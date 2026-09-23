@@ -57,6 +57,18 @@
 .view::-webkit-scrollbar { display: none; }
 .scene-frame { position: absolute; inset: 0; display: block; overflow: hidden; pointer-events: none; }
 .scene-frame .plate, .scene-frame .embers, .scene-frame .surface, .scene-frame .grain { pointer-events: none; }
+/* CUI1 B1 (7e25a69): scene.mjs makes the real live host the active screen's .ui, so the
+   pack gate probes the actual application. The host keeps its existing accepted
+   geometry and interaction: this restates .view's own values over the pinned .ui and
+   .screen .ui layout declarations and the frame's pointer-events. No colour, type or
+   spacing is added. */
+.scene-frame > .view.ui { position: relative; inset: auto; display: block; padding: 0;
+  overflow: auto; pointer-events: auto; }
+/* CUI1 review D3: the approved device chrome's "status" class collides with the pinned
+   2026-09-08 Additions C `.status` line style (14px, green, 12px margins). Inside the
+   preview-owned scene layer only, the bar takes back what the approved pack computes for
+   it: inherited type size and colour and no margin. No pinned byte changes. */
+.scene-frame > .chrome.status { font-size: inherit; color: inherit; margin: 0; }
 @media (max-width: 430px) {
   .stage { display: block; min-height: 100dvh; padding: 0; }
   .review { display: none; }
@@ -82,13 +94,12 @@
    sticky. */
 .view .intro h1 { font-size: var(--headline, 47px); line-height: 1.04; letter-spacing: -.025em; }
 
-/* At the existing 33px floor only, reclaim the measured 35px overflow and retain
-   the fitter's 8px breathing guard. These are existing Additions C spaces: normal
-   47px headlines and every intermediate fitted size keep the approved proportions. */
+/* At the existing 33px floor only, reclaim the measured 35px overflow: C's 23px
+   intro bottom margin and the later approved 12px primary margin. These are existing
+   Additions C spaces: normal 47px headlines and every intermediate fitted size keep
+   the approved proportions. */
 .view .page[style*="--headline: 33px"] .intro,
 .view .page[style*="--headline:33px"] .intro { margin-bottom: 0; }
-.view .page[style*="--headline: 33px"] .bottom,
-.view .page[style*="--headline:33px"] .bottom { padding-top: 12px; }
 .view .page[style*="--headline: 33px"] .bottom .primary,
 .view .page[style*="--headline:33px"] .bottom .primary { margin-top: 0; }
 

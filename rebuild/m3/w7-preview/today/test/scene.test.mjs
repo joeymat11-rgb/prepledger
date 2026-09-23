@@ -28,6 +28,18 @@ test("C-UI-1 review hooks normalize theme, screen, chrome, date and state", asyn
   });
 });
 
+test("C-UI-1 B3 draws the pinned approved device chrome verbatim, never a local copy", async () => {
+  const approved = fs.readFileSync(path.resolve(SOURCE, "../../../m1/approved-2026-09-18/app/app.html"), "utf8");
+  const status = approved.match(/<div class="chrome status" aria-hidden="true">.*?<\/div>/);
+  const home = approved.match(/<div class="chrome home" aria-hidden="true"><\/div>/);
+  assert(status && home, "the approved pack carries both chrome elements");
+  const source = fs.readFileSync(SCENE, "utf8");
+  assert(source.includes(JSON.stringify(status[0])),
+    "scene.mjs draws the approved status bar byte for byte");
+  assert(source.includes(JSON.stringify(home[0])),
+    "scene.mjs draws the approved home indicator byte for byte");
+});
+
 test("C-UI-1 board-date observer does not rewrite the mutation it caused", async () => {
   const { installScene } = await instrumentedScene();
   const callbacks = [];
@@ -42,7 +54,7 @@ test("C-UI-1 board-date observer does not rewrite the mutation it caused", async
     set: (next) => { writes += 1; value = next; },
   });
   const canvas = { getContext: () => ({}) };
-  const frame = { clientWidth: 0, clientHeight: 0, setAttribute() {},
+  const frame = { clientWidth: 0, clientHeight: 0, setAttribute() {}, insertBefore() {},
     querySelector: (selector) => selector === "canvas.embers" ? canvas : null };
   const host = { scrollHeight: 0, clientHeight: 0, scrollTop: 0,
     classList: { add() {}, toggle() {} }, addEventListener() {},

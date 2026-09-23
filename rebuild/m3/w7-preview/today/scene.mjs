@@ -3,6 +3,11 @@
 
 const VALID_SCREENS = new Set(["today", "workout", "coach"]);
 
+/* The approved pack's device chrome (app/app.html), byte for byte; scene.test.mjs
+   compares both strings with the pinned pack so a local edit cannot drift. */
+const APPROVED_CHROME_STATUS = "<div class=\"chrome status\" aria-hidden=\"true\"><span class=\"time\">9:41</span><span class=\"island\"></span><span class=\"icons\"><svg viewBox=\"0 0 76 14\" fill=\"currentColor\"><rect x=\"0\" y=\"9\" width=\"3.5\" height=\"5\" rx=\"1\"/><rect x=\"5.5\" y=\"6.5\" width=\"3.5\" height=\"7.5\" rx=\"1\"/><rect x=\"11\" y=\"3.5\" width=\"3.5\" height=\"10.5\" rx=\"1\"/><rect x=\"16.5\" y=\"0.5\" width=\"3.5\" height=\"13.5\" rx=\"1\"/><path d=\"M33.5 3.6a10.5 10.5 0 0 1 13 0l-1.5 1.8a8.2 8.2 0 0 0-10 0zm2.6 3.1a6.6 6.6 0 0 1 7.8 0l-1.5 1.8a4.3 4.3 0 0 0-4.8 0zm2.6 3.1a2.7 2.7 0 0 1 2.6 0L40 12.2z\"/><rect x=\"52\" y=\"1\" width=\"21\" height=\"12\" rx=\"3.5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\" opacity=\"0.5\"/><rect x=\"53.5\" y=\"2.5\" width=\"18\" height=\"9\" rx=\"2.2\"/><path d=\"M74.3 5v4a2 2 0 0 0 0-4z\" opacity=\"0.5\"/></svg></span></div>";
+const APPROVED_CHROME_HOME = "<div class=\"chrome home\" aria-hidden=\"true\"></div>";
+
 export function reviewHooks(search = "") {
   const qs = new URLSearchParams(search);
   const theme = qs.get("theme") === "dawn" ? "dawn" : "ink";
@@ -335,13 +340,19 @@ function installScene(view, doc) {
   const meta = doc.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = hooks.theme === "dawn" ? "#f7f2e7" : "#0c0b0a";
 
+  /* CUI1 B1/B3 (7e25a69). The active screen is structured as the approved pack's:
+     decoration layers each aria-hidden, then the REAL live application host as its
+     .ui (controls and listeners move with the node), then the pinned device chrome,
+     which the approved CSS draws only under body.with-chrome. The screen itself is
+     not hidden from assistive technology; only its decoration and chrome are. */
   const frame = doc.createElement("div");
   frame.className = `scene-frame screen screen-${live.screen} is-active`;
-  frame.setAttribute("aria-hidden", "true");
-  frame.innerHTML = '<div class="plate"></div><canvas class="embers"></canvas>'
-    + '<div class="surface"></div><div class="grain"></div>';
+  frame.innerHTML = '<div class="plate" aria-hidden="true"></div><canvas class="embers" aria-hidden="true"></canvas>'
+    + '<div class="surface" aria-hidden="true"></div><div class="grain" aria-hidden="true"></div>'
+    + APPROVED_CHROME_STATUS + APPROVED_CHROME_HOME;
   phone.insertBefore(frame, host);
-  host.classList.add("scrolls");
+  frame.insertBefore(host, frame.querySelector(".chrome.status"));
+  host.classList.add("ui", "scrolls");
   scrollFades(host, view);
 
   const date = () => {

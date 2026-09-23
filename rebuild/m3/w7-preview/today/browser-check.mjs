@@ -17,7 +17,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { startServer } from "./serve.mjs";
 import design from "./design.cjs";
 // P1 (DECISIONS:114 (1)): every state this check reaches is also swept for an em or en
@@ -127,6 +127,32 @@ try {
   await page.screenshot({ path: path.join(VISUAL_DIR, "ink-today-390x844.png") });
   visual.inkToday = sceneWitness;
 
+  /* CUI1 interface blockers 7e25a69. B1: the pack gate's only live-screen probe is
+     ".screen.is-active .ui"; it must be the real application host, holding its real
+     controls, and must not sit under an aria-hidden ancestor (decoration stays hidden).
+     B3: chrome=1 must draw the pinned status bar and home indicator inside the active
+     screen; chrome=0 keeps them undrawn. Nothing here plants a probe element. */
+  const interfaceWitness = (target) => target.evaluate(() => {
+    const ui = document.querySelector(".screen.is-active .ui");
+    const chrome = (kind) => {
+      const node = document.querySelector(".screen.is-active > .chrome." + kind);
+      if (!node) return null;
+      return { shown: getComputedStyle(node).display !== "none",
+        height: Math.round(node.getBoundingClientRect().height),
+        ariaHidden: node.getAttribute("aria-hidden") };
+    };
+    return { actives: document.querySelectorAll(".screen.is-active").length,
+      uiIsLiveHost: !!ui && ui.id === "phone",
+      uiUnderAriaHidden: !ui || !!ui.closest('[aria-hidden="true"]'),
+      uiHoldsPrimary: !!ui && !!ui.querySelector('[data-slot="primary"]'),
+      status: chrome("status"), home: chrome("home") };
+  });
+  assert.deepEqual(await interfaceWitness(page), { actives: 1, uiIsLiveHost: true,
+    uiUnderAriaHidden: false, uiHoldsPrimary: true,
+    status: { shown: false, height: 0, ariaHidden: "true" },
+    home: { shown: false, height: 0, ariaHidden: "true" } },
+  "C-UI-1 B1/B3: the active screen's .ui is the real live host and chrome=0 draws no chrome");
+
   const dawnContext = await browser.newContext({ viewport: VIEWPORT });
   try {
     const dawn = await dawnContext.newPage();
@@ -140,10 +166,49 @@ try {
       { theme: "dawn", screen: "today", chrome: true, date: "board", state: "T-02" });
     assert(witness.draws >= 1 && witness.scheduled >= 1,
       "the Dawn scene completed a moving frame before capture");
+    assert.deepEqual(await interfaceWitness(dawn), { actives: 1, uiIsLiveHost: true,
+      uiUnderAriaHidden: false, uiHoldsPrimary: true,
+      status: { shown: true, height: 54, ariaHidden: "true" },
+      home: { shown: true, height: 5, ariaHidden: "true" } },
+    "C-UI-1 B1/B3: chrome=1 draws the pinned status bar and home indicator around the live .ui");
     await dawn.screenshot({ path: path.join(VISUAL_DIR, "dawn-today-390x844.png") });
     visual.dawnToday = witness;
   } finally {
     await dawnContext.close();
+  }
+
+  /* CUI1 review D3: the drawn chrome must RENDER as the approved pack draws it, not
+     only exist. Measured in this same browser against the approved app.html itself,
+     both themes, chrome=1: the status bar's offset in its screen, its margin, colour
+     and type size, and the same for its clock. */
+  const chromeLook = (target) => target.evaluate(() => {
+    const bar = document.querySelector(".screen.is-active > .chrome.status");
+    const screen = bar && bar.parentElement;
+    if (!bar) return null;
+    const look = (node) => { const s = getComputedStyle(node);
+      return { top: +(node.getBoundingClientRect().top - screen.getBoundingClientRect().top).toFixed(2),
+        marginTop: s.marginTop, marginBottom: s.marginBottom, color: s.color, fontSize: s.fontSize }; };
+    return { bar: look(bar), time: look(bar.querySelector(".time")) };
+  });
+  const approvedApp = pathToFileURL(path.join(here, "../../../m1/approved-2026-09-18/app/app.html")).href;
+  const chromeContext = await browser.newContext({ viewport: VIEWPORT });
+  try {
+    for (const theme of ["ink", "dawn"]) {
+      const pack = await chromeContext.newPage();
+      await pack.goto(approvedApp + "?theme=" + theme + "&screen=today&chrome=1&date=board", { waitUntil: "load" });
+      const expected = await chromeLook(pack);
+      await pack.close();
+      const ours = await chromeContext.newPage();
+      await ours.goto(url + "?theme=" + theme + "&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
+      await ours.waitForSelector('[data-slot="instruction"]');
+      const actual = await chromeLook(ours);
+      await ours.close();
+      assert(expected, "the approved pack draws a status bar with chrome=1 (" + theme + ")");
+      assert.deepEqual(actual, expected,
+        "C-UI-1 D3: the preview status bar renders as the approved pack's (" + theme + ")");
+    }
+  } finally {
+    await chromeContext.close();
   }
 
   /* review F2: the ONE primary action must be reachable without scrolling, in both
@@ -209,19 +274,24 @@ try {
         const top = view.getBoundingClientRect().top;
         const box = cta.getBoundingClientRect();
         return { bottom: Math.round(box.bottom - top), viewport: Math.round(view.clientHeight),
+          exactRoom: view.clientHeight - (box.bottom - top),
           size: Math.round(parseFloat(getComputedStyle(headline).fontSize)),
           height: Math.round(headline.getBoundingClientRect().height) };
       }, title);
+      /* CUI1 review D1: the assertions below are unchanged; the unrounded headroom is
+         only REPORTED, so a platform's real margin is visible in its log. */
       assert(row.bottom <= row.viewport,
         label + ': "' + title + '" pushes the primary action out of the viewport (bottom '
         + row.bottom + " > " + row.viewport + ", headline at " + row.size + "px)");
       assert(row.size >= 33,
         label + ': "' + title + '" drove the headline below the 33px floor (' + row.size + "px)");
-      rows.push({ title, room: row.viewport - row.bottom, size: row.size });
+      rows.push({ title, room: row.viewport - row.bottom, exactRoom: row.exactRoom, size: row.size });
     }
     const worst = rows.reduce((a, b) => (a.room <= b.room ? a : b));
+    const exactWorst = Math.min(...rows.map((r) => r.exactRoom)).toFixed(2);
     const shrunk = rows.filter((r) => r.size < 47);
-    return { worst, shrunk, count: rows.length };
+    const atFloor = rows.filter((r) => r.size === 33).length;
+    return { worst, exactWorst, shrunk, atFloor, count: rows.length };
   };
 
   const sweepContext = await browser.newContext({ viewport: VIEWPORT });
@@ -500,9 +570,10 @@ try {
     + `the reading survived a REAL process kill (taskkill /F /T on ${killed} ${PROCESS_NAME} of a persistent profile, `
     + `kill verified) and localStorage holds nothing; no network request; no prototype figure on screen; `
     + `${sweptBefore.count} engine headline titles swept in both states — worst headroom `
-    + `${sweptBefore.worst.room}px before / ${sweptAfter.worst.room}px after; `
+    + `${sweptBefore.worst.room}px before / ${sweptAfter.worst.room}px after `
+    + `(unrounded ${sweptBefore.exactWorst}px / ${sweptAfter.exactWorst}px); `
     + `${sweptBefore.shrunk.length} title(s) fitted down to ${[...new Set(sweptBefore.shrunk.map((r) => r.size))].join("/") || "none"}px `
-    + `(33px floor never reached); unwired entry points labelled on Today's face; `
+    + `(${sweptBefore.atFloor} before / ${sweptAfter.atFloor} after at the 33px floor, none below it); unwired entry points labelled on Today's face; `
     + `no em/en dash in the rendered DOM of ${dashStates.length} screen states (DECISIONS:114): `
     + dashStates.join(", ")
     + `; "Report a problem" copied its eight-field block (${problem.tap}px tap target, ${problem.font}px box, `
