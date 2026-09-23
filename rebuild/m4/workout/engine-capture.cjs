@@ -66,7 +66,7 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
     if(!number(card.w)&&!(configured&&configuration(card.w)))fail('ENGINE_CAPTURE_LOAD_UNPROVEN');
     // genSession looks up the first unfinished matching move after choosing an
     // active lift. Multiple matching moves do not prove which load vector won.
-    const selected=card.isDebutNow?input.queue.filter(q=>q.exId===card.id&&!q.done&&['debut','unlock'].includes(q.kind)):[];
+    const selected=card.isDebutNow?input.queue.filter(q=>q.exId===card.id&&!q.done&&q.state!=='PROPOSED'&&['debut','unlock'].includes(q.kind)):[];
     if(selected.length>1)fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');
     const q=selected[0];
     if(configured&&configuration(card.w)){

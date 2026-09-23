@@ -76,8 +76,11 @@ test('configuration never flattens an existing or debut load vector and ambiguou
  assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'},'CONFIG_VECTOR_CONFLICT');delete ex.wSets;
  const q={id:'synthetic-config-debut',kind:'debut',state:'DEBUT',done:false,exId:ex.id,newW:'hold',newWSets:[40,35],t:'Synthetic configured debut'};input.state.queue.push(q);
  assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'},'CONFIG_DEBUT_VECTOR_CONFLICT');delete q.newWSets;
- input.state.queue.unshift({...q,id:'synthetic-proposed',state:'PROPOSED'});
- assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});
+ // D-EPP-2 (f0a5eb1a; DECISIONS:785 2b): an untapped PROPOSED is not a selected move (today.cjs:97); capture maps the DEBUT's configuration.
+ input.state.queue.unshift({...q,id:'synthetic-proposed',state:'PROPOSED',newW:'band'});
+ assert.deepEqual(adapter.prepare(input).capture.slots.slice(0,2).map(s=>JSON.parse(s.load.source_json)),[0,1].map(()=>({kind:'configuration',configuration_key:'hold'})),'The untapped PROPOSED configuration is never captured');
+ input.state.queue.push({...q,id:'synthetic-second-debut'});
+ assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'},'Two eligible moves still refuse');
 });
 test('invalid source configurations and numeric vectors refuse without changing input',async()=>{
  const {adapter,input}=await fixture(),ex=input.state.exercises[0];

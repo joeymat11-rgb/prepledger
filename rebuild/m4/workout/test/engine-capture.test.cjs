@@ -78,7 +78,11 @@ test('an actual selected debut keeps its supplied vector and does not reuse old 
  assert.deepEqual(adapter.prepare(input).capture.slots.slice(0,2).map(s=>JSON.parse(s.load.source_json).value),[45,40]);
  delete q.newWSets;assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});
  q.newWSets=[45,40];input.state.queue.unshift({...q,id:'synthetic-proposed',state:'PROPOSED',newWSets:[45,30]});
- assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});
+ // D-EPP-2 (f0a5eb1a; DECISIONS:785 2b): an untapped PROPOSED is not a selected move (today.cjs:97), so capture maps the DEBUT's vector.
+ assert.equal(engine.genSession(input.state,input.day).ex[0].w,45);
+ assert.deepEqual(adapter.prepare(input).capture.slots.slice(0,2).map(s=>JSON.parse(s.load.source_json).value),[45,40],'The untapped PROPOSED vector is never captured');
+ input.state.queue.push({...q,id:'synthetic-second-debut',newWSets:[45,35]});
+ assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'},'Two eligible moves still refuse');
 });
 test('a rest day has no invented workout capture',async()=>{
  const {adapter,input}=await fixture();input.day=F.dayOffset(input.day,-1);
