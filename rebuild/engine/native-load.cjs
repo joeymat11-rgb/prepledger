@@ -334,6 +334,12 @@ function compensation(state, req, ex, rows, R) {
   if (!decoded || decoded.lift !== lift) refuse('RECORD_INVALID', [], 'intent');
   const authRefs = refsOf(fe.response_refs);
   if (fe.close_ref) refuse('COMPENSATION_DESCENDANTS', authRefs);
+  // The durable tombstone (spec R8 :121 "permanently cancels the targeted effect", :153):
+  // the fold rebuilds every recorded compensation into the effect frontier from its own
+  // response, so an already cancelled spend is seen here on every projection and under
+  // every revision, whatever trace the state keeps. No second undo is offered (review B14).
+  const undoSpend = JSON.stringify(['native-load-compensation', lift, spendId]);
+  if (req.basis.effect_frontier.some((f) => map(f) && f.spend_id === undoSpend)) refuse('COMPENSATION_DESCENDANTS', authRefs);
   const lastConsumed = rows.reduce((at, row, i) => (decoded.consumes.includes(rootOf(row, lift)) ? i : at), -1);
   if (lastConsumed < 0 || lastConsumed !== rows.length - 1) refuse('COMPENSATION_DESCENDANTS', authRefs);
   const q = state.queue.find((x) => x && x.native_load_spend === spendId && !x.done);

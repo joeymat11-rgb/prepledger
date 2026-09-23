@@ -291,6 +291,11 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
     const body = op.payload.issuance.body, g = groups.get(body.spend_id);
     if (!g) groups.set(body.spend_id, { body, ops: [op], seq: op.device_seq || 0, device: op.device_id });
     else if (same(g.body, body)) g.ops.push(op);
+    // Two compensations of the SAME effect are one decision (spec R8 :121 "permanently
+    // cancels the targeted effect"; its spend_id names only the target): a later body,
+    // issued at another basis, is the same cancellation, folded unchanged with its ref kept
+    // (review B14). The first recorded body (device order) is the one validated.
+    else if (g.body.kind === 'compensate' && body.kind === 'compensate' && g.body.compensates === body.compensates) g.alt = (g.alt || []).concat([op]);
     else { g.conflict = true; g.others = (g.others || []).concat([op]); }
   }
   // Incompatible accepts are refused TOGETHER before anything applies: same spend with
@@ -322,7 +327,7 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
   const held = new Map();   // spend_id -> its load_basis EFFECT_CONFLICT issue (spec R8 :156)
   for (const ev of events) {
     if (ev.type === 'accept') {
-      const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = g.ops.map(refOf).sort(byOp), lift = body.lift_lineage_id;
+      const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = [...g.ops, ...(g.alt || [])].map(refOf).sort(byOp), lift = body.lift_lineage_id;
       if (disputed.has(lift)) continue; // same-lift dependencies wait behind the named refusal
       const overlap = spent.filter((x) => x.spend_id !== body.spend_id && x.consumes.some((c) => body.consumes.includes(c)));
       if (overlap.length) { dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs: [...refs, ...overlap.flatMap((x) => x.response_refs)].sort(byOp), field: null, lift }); continue; }
@@ -364,7 +369,16 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
           const cut = factsAtCut(facts, body.basis.order.start_ids, body.basis.order.frontier);
           const again = rt.evaluateNativeLoad(withFacts(atIssuedEquipment(state, body), cut), { lift_lineage_id: body.lift_lineage_id, completion_op_id: checkedCompletion(body, cut),
             intent: body.kind === 'compensate' ? { compensate: body.compensates } : 'check', basis: body.basis });
-          if (!(again.status === 'offer' && again.offers.some((o) => same(o.body, body) && o.reason === iss.reason))) {
+          // Spec R8 :156: the compensation of an effect HELD under an unprovable order is
+          // retire-only "because the prior image is no longer provably current", so its
+          // recorded target is never re-priced against a later base (review B15): at its
+          // original cut it must still be ELIGIBLE for the same effect, and it then writes
+          // nothing. Every other record must reproduce its exact body and reason.
+          const retireOnly = body.kind === 'compensate' && held.has(body.compensates);
+          const reproduced = again.status === 'offer' && (retireOnly
+            ? again.offers.some((o) => o.body.compensates === body.compensates)
+            : again.offers.some((o) => same(o.body, body) && o.reason === iss.reason));
+          if (!reproduced) {
             if (again.status === 'refused' && again.refusal.code === 'NATIVE_LOAD_PLAN_CHANGED') { issues.push({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs, field: null, lift }); continue; }
             dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs, field: 'issuance', reason: 'not reproduced at its original cut', lift }); continue;
           }
@@ -460,11 +474,14 @@ function checkNativeLoad(args = {}) {
   // request carries no Start capture (:91), which lives on the authenticated Start op
   // (:122), so this check reads it here and refuses by FC01's own name and refs.
   if (undoOf) {
-    const x = fold.spent.find((y) => y.spend_id === undoOf), e = fold.effects.find((y) => y.spend_id === undoOf);
-    if (x && e) {
+    // The target is read from its retained issuance, so a HELD (unapplied) effect is judged
+    // by the same capture predicate the fold applies to a recorded undo (review B16).
+    const x = fold.spent.find((y) => y.spend_id === undoOf);
+    if (x) {
       const { ops, byId } = operationsOf(generation);
-      const g = { body: { lift_lineage_id: request.lift_lineage_id, target_load: e.target_load }, ops: x.response_refs.map((r) => byId.get(r.op_id)).filter(Boolean) };
-      if (g.ops.length && capturedAfter(g, ops, byId)) return refused({ code: 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', refs: x.response_refs.slice(), field: null });
+      const acceptOps = x.response_refs.map((r) => byId.get(r.op_id)).filter((op) => op && map(op.payload) && map(op.payload.issuance) && map(op.payload.issuance.body));
+      const g = acceptOps.length ? { body: acceptOps[0].payload.issuance.body, ops: acceptOps } : null;
+      if (g && capturedAfter(g, ops, byId)) return refused({ code: 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', refs: x.response_refs.slice(), field: null });
     }
   }
   if (disputed.length && !undo) return refused({ code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs: disputed.flatMap((x) => x.refs).sort(byOp), field: null });
@@ -498,6 +515,6 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:0bfbbe55d3552282927bbce3a2554c7a963495d39384f23cb96b85f02d73504e';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:9688ad8abc639ea867cb833eebd5d33c8d8aa8f0db356e6283038d6bf6bb741e';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf };

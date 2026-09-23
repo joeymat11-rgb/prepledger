@@ -443,3 +443,99 @@ test('R5-D10 TODAY COUNT AGREES WITH THE CARD [Y] (Astra L3 D10; spec :164 "Both
   assert.equal(three.model.read().workout.exerciseCount, 1, 'demo-press is off the card, so Today does not count it');
   three.entry.gymHost.close(); again.close();
 });
+
+// ROUND 6 actual-host rows (Astra L4 B14, B15, B16, B17).
+async function heldBaselineUndone(fault) {
+  const era = await reopenAt(fault, D1);
+  hostGate(era);
+  const one = await dayEntryWith(era, D1, withPress(D1, { w: null }));
+  assert.equal((await train(one.entry, 12, '1', { load: '60' })).finished.ok, true);
+  await one.entry.nativeLoad.settled();
+  await one.entry.nativeLoad.check();
+  const offer = one.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.equal((await one.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  one.entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D1, engineState: withPress(D1, { w: 45 }) });
+  const body = (await responsesOf(era))[0].payload.issuance.body;
+  const ask = { lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } };
+  const undo = await host.check(ask);
+  assert.equal(undo.status, 'offer', JSON.stringify(undo.refusal));
+  assert.equal((await host.respond({ handle: undo.offers[0].handle, proposal_id: undo.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+  return { era, host, ask };
+}
+const pressOf = p => p.state.exercises.find(e => e.id === 'demo-press');
+const badIssues = p => p.issues.filter(i => ['NATIVE_LOAD_EFFECT_CONFLICT', 'NATIVE_LOAD_RECORD_INVALID'].includes(i.code)).map(i => i.code);
+
+test('R6-B14 HELD UNDO ONCE [Y] (Astra L4 B14; spec R8 :121, :153, :156): after the retire-only undo of a held baseline, checking the same undo again offers nothing and nothing re-conflicts', async () => {
+  const fault = faultDatabase(), { era, host, ask } = await heldBaselineUndone(fault);
+  const again = await host.check(ask);
+  assert.equal(again.status, 'refused', 'no second undo for a cancelled spend');
+  assert.deepEqual(again.offers, []);
+  const p = await host.project();
+  assert.deepEqual(badIssues(p), []);
+  assert.equal(pressOf(p).quarantined, undefined, 'never re-quarantined');
+  host.close(); era.close();
+});
+
+test('R6-B15 UNDO SURVIVES REOPEN AND A LATER BASE [Y] (Astra L4 B15; spec R8 :153-156): the retire-only undo of a held baseline stays COMPENSATED after close/reopen with an immutable base of 50', async () => {
+  const fault = faultDatabase(), first = await heldBaselineUndone(fault);
+  first.host.close(); first.era.close();
+  const again = await reopenAt(fault, D1), host = await again.createNativeLoadHost({ day: D1, engineState: withPress(D1, { w: 50 }) });
+  const p = await host.project();
+  assert.deepEqual(badIssues(p), [], 'no conflict and no RECORD_INVALID after the base moved again');
+  assert.equal(pressOf(p).w, 50, 'the later base stands');
+  assert.equal(pressOf(p).quarantined, undefined);
+  assert.ok(p.effects.every(x => x.kind !== 'adopted'));
+  host.close(); again.close();
+});
+
+test('R6-B16 CAPTURED HELD ADOPTION [Y] (Astra L4 B16; spec R8 :153): a 60 baseline is agreed and a later Start captures 60; with a moved base the undo is refused COMPENSATION_DESCENDANTS before any write', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const one = await dayEntryWith(era, D1, withPress(D1, { w: null }));
+  assert.equal((await train(one.entry, 12, '1', { load: '60' })).finished.ok, true);
+  await one.entry.nativeLoad.settled();
+  await one.entry.nativeLoad.check();
+  const offer = one.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.equal((await one.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  one.entry.gymHost.close();
+  const two = await dayEntryWith(era, D2, withPress(D2, { w: null }));
+  assert.match((await two.entry.gym.read()).prescription.line, /^60 lb/, 'the adopted 60 is on the D2 card');
+  assert.equal((await two.entry.gym.start()).ok, true, 'the D2 Start captures 60 and stays active');
+  const host = await era.createNativeLoadHost({ day: D2, engineState: withPress(D2, { w: 45 }) });
+  const body = (await responsesOf(era))[0].payload.issuance.body;
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'refused', 'no undo once a Start captured the adopted weight');
+  assert.equal(undo.refusal.code, 'NATIVE_LOAD_COMPENSATION_DESCENDANTS');
+  assert.equal((await responsesOf(era)).length, 1, 'nothing written');
+  host.close(); two.entry.gymHost.close(); era.close();
+});
+
+test('R6-B17 FULL ISSUANCE AT THE HOST [Y] (Astra L4 B17/M14; spec :60, :148): through the real respond path, a fresh offer whose body was substituted under a colliding digest (test seam) is STALE_OFFER and writes nothing', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const { entry } = await twoTops(era);
+  assert.equal((await train(entry)).finished.ok, true);
+  await entry.nativeLoad.settled();
+  await entry.nativeLoad.check();
+  const offer = entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  // TEST SEAM (no product hook): the shared FC03 module object today-bindings imports. The
+  // re-evaluation at yes returns a substituted body, and the exported digest is made to
+  // collide with the held proposal id, so only a FULL comparison can refuse it.
+  const NLE = require('../../../../m4/workout/native-load-effects.cjs');
+  const realCheck = NLE.checkNativeLoad, realDigest = NLE.proposalDigest;
+  const forged = body => JSON.stringify(body).includes('"SYNTHETIC-SUBSTITUTED"');
+  NLE.checkNativeLoad = args => {
+    const out = realCheck(args);
+    if (out.evaluation.status === 'offer') out.evaluation.offers = out.evaluation.offers.map(o => ({ ...o, body: { ...o.body, reason_key: o.body.reason_key, basis: { ...o.body.basis, source: { ...o.body.basis.source, selection_id: 'SYNTHETIC-SUBSTITUTED' } } } }));
+    return out;
+  };
+  NLE.proposalDigest = (producer, body, reason) => (forged(body) ? offer.proposalId : realDigest(producer, body, reason));
+  let result;
+  try { result = await entry.nativeLoad.accept(offer.proposalId); }
+  finally { NLE.checkNativeLoad = realCheck; NLE.proposalDigest = realDigest; }
+  assert.equal(result.acknowledged, false, 'a substituted body is never the issued one');
+  assert.equal(result.code, 'NATIVE_LOAD_STALE_OFFER');
+  assert.equal((await responsesOf(era)).length, 0, 'nothing written');
+  entry.gymHost.close(); era.close();
+});

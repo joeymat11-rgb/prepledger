@@ -1096,3 +1096,66 @@ test('R5-D11 FULL ISSUANCE EQUALITY (Astra L3 D11; spec :60 "semantic equality c
  assert.equal(EFFECTS.m.sameIssued(offer,held),true,'the genuine issuance is fresh');
  for(const x of swaps)assert.equal(EFFECTS.m.sameIssued(offer,x),false,'a substitution is never fresh');
 });
+
+// ======================================================================
+// ROUND 6 rows (Astra L4 B14, B15, B16). One root: a retire-only undo must be a
+// durable cancellation rebuilt from its response on every projection. Invented inputs.
+// ======================================================================
+function heldUndo(baseline){
+ const h=heldAdoption({baseline});
+ const u1=checkOf(foldArgs([h.c1],[h.resp],'fx-revision-1',h.moved()),LIFT,h.c1,{compensate:h.spend});
+ assert.equal(u1.status,'offer',JSON.stringify(u1.refusal));
+ return {...h,u1,comp1:acceptOp(u1.offers[0],{op_id:'fx-resp-2',after:1}),compSpend:decisionOf(u1.offers[0]).spend_id};
+}
+const noConflict=f=>f.issues.filter(i=>['NATIVE_LOAD_EFFECT_CONFLICT','NATIVE_LOAD_RECORD_INVALID'].includes(i.code));
+for(const baseline of [false,true])test('R6-B14'+(baseline?'b':'a')+' HELD UNDO ONCE (Astra L4 B14; spec R8 :121 "permanently cancels the targeted effect", :153, :156): a compensated held '+(baseline?'baseline':'observed')+' adoption offers no second undo; a second recorded undo with another body folds unchanged and never re-conflicts',()=>{
+ effectsGate();
+ const h=heldUndo(baseline);
+ expectRefusal(checkOf(foldArgs([h.c1],[h.resp,h.comp1],'fx-revision-1',h.moved()),LIFT,h.c1,{compensate:h.spend}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-1')]);
+ const other=h.moved();exOf(other).w=h.now+2.5;
+ const u2=checkOf(foldArgs([h.c1],[h.resp],'fx-revision-1',other),LIFT,h.c1,{compensate:h.spend});
+ assert.equal(u2.status,'offer');assert.equal(decisionOf(u2.offers[0]).spend_id,h.compSpend);
+ assert.notDeepEqual(decisionOf(u2.offers[0]),decisionOf(h.u1.offers[0]),'the same undo, another body');
+ const comp2=acceptOp(u2.offers[0],{op_id:'fx-resp-3',after:1});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,h.comp1,comp2],rev,h.moved()));
+  assert.deepEqual(noConflict(f),[],'unchanged, never a conflict ('+rev+')');
+  assert.equal(f.spent.find(x=>x.spend_id===h.spend).cancelled_by,h.compSpend,'the tombstone stands');
+  assert.equal(exOf(f.state).w,h.now);
+ }
+});
+for(const baseline of [false,true])test('R6-B15'+(baseline?'b':'a')+' UNDO SURVIVES A LATER BASE (Astra L4 B15; spec R8 :153-156, :154 original cut): a retire-only undo of a held '+(baseline?'baseline':'observed')+' adoption stays COMPENSATED when a later immutable base moves again, under R1 and R2',()=>{
+ effectsGate();
+ const h=heldUndo(baseline),later=h.moved();exOf(later).w=h.now+5;
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,h.comp1],rev,later));
+  assert.deepEqual(noConflict(f),[],'no conflict, no RECORD_INVALID ('+rev+')');
+  assert.equal(f.spent.find(x=>x.spend_id===h.spend).cancelled_by,h.compSpend);
+  assert.equal(exOf(f.state).w,h.now+5,'the later base stands; nothing is written');
+ }
+});
+test('R6-B15c UNDONE APPLIED ADOPTION SURVIVES A LATER BASE (Astra L4 B15; spec R8 :156 "the prior image is no longer provably current"): adopt-observed 105 applied at base 100, undone to 100, then a base 102.5 -> still COMPENSATED, no conflict, w 102.5 (retire-only)',()=>{
+ effectsGate();
+ const h=heldAdoption({baseline:false}),base=F0();
+ assert.equal(exOf(EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp],'fx-revision-1',base)).state).w,105,'applied at its own base');
+ const u=checkOf(foldArgs([h.c1],[h.resp],'fx-revision-1',base),LIFT,h.c1,{compensate:h.spend});assert.equal(u.status,'offer');
+ const comp=acceptOp(u.offers[0],{op_id:'fx-resp-2',after:1});
+ assert.equal(exOf(EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,comp],'fx-revision-1',base)).state).w,100,'undone to the prior image');
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,comp],rev,F0({w:102.5})));
+  assert.deepEqual(noConflict(f),[],rev);assert.equal(f.spent.find(x=>x.spend_id===h.spend).cancelled_by,decisionOf(u.offers[0]).spend_id);
+  assert.equal(exOf(f.state).w,102.5);
+ }
+});
+test('R6-B16 CAPTURED HELD ADOPTION (Astra L4 B16; spec R8 :153 "only if no later Start captured the accepted effect"): a Start that captured the adopted 105 refuses the undo with COMPENSATION_DESCENDANTS at check, and the fold refuses a recorded one by the SAME predicate',()=>{
+ effectsGate();
+ const h=heldAdoption({baseline:false}),c2=C(2,{reps:TOP,loads:105,prescribed:105,effort:e(2,1,1)});
+ const u=checkOf(foldArgs([h.c1],[h.resp],'fx-revision-1',h.moved()),LIFT,h.c1,{compensate:h.spend});assert.equal(u.status,'offer','before the capture');
+ const withStart=extra=>{const a=foldArgs([h.c1],[h.resp,...extra],'fx-revision-1',h.moved());
+  a.generation.collections.ops[c2.start]={op_id:c2.start,athlete_id:ATH,device_id:DEVICE,device_seq:a.generation.collections.ops['fx-resp-1'].device_seq+0.5,class:'session',kind:'session-start',payload:{},canonical_content_commitment:commit(c2.start)};
+  captureOn(a.generation,c2,[105,105,105]);return a;}; // the Start follows the yes and precedes the undo
+ expectRefusal(checkOf(withStart([]),LIFT,h.c1,{compensate:h.spend}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-1')]);
+ const f=EFFECTS.m.foldNativeLoad(withStart([acceptOp(u.offers[0],{op_id:'fx-resp-2',after:1})]));
+ assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_COMPENSATION_DESCENDANTS'),'the fold agrees');
+ assert.equal(f.spent.find(x=>x.spend_id===h.spend).cancelled_by,null);
+});
