@@ -21,8 +21,8 @@
   ],
   "privateLiveTriggered": [],
   "parent": {
-    "decided": false,
-    "chosen": null,
+    "decided": true,
+    "chosen": "S9",
     "options": [
       {
         "id": "S9",
@@ -37,18 +37,23 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "5321181a14bd5716c1d8692d40d5086cd10179609dcccced6d7a6da04704fd22"
+    "runnerSha256": "9fbfdd2d9b09fe2aa8f8bd93090220b302414d32efba78e52a83309a61a7ec7c"
   },
   "product": {
     ".github/workflows/rebuild.yml": {
       "pre": "bce0594f77b7b3abe04fe05b965267ee89ad7584d201b21155cdf32ae25908f0",
-      "post": "786443f04ac26f2cd7e5519cff0e0f9ad514072c09e6a0d55a7a999855fa5d0e",
+      "post": "3e1f7cad45473c0400246f6dbafec840e4faad7974567a9cf4eefb659883c048",
       "role": "edited"
     },
     ".github/workflows/shared-preflight.yml": {
       "pre": "99edda0784bdcaac010bb0261d6eaa37f8ed5c0cc562928e900489d145f4f491",
       "post": "99edda0784bdcaac010bb0261d6eaa37f8ed5c0cc562928e900489d145f4f491",
       "role": "carried"
+    },
+    "rebuild/engine/PROPOSED-PICK-REPAIR-REPORT.md": {
+      "pre": null,
+      "post": "33963989336f2bb78146e353f870b0a754fe40a7ce1a7c3e93e7c623ccb3126e",
+      "role": "new"
     },
     "rebuild/engine/constants.cjs": {
       "pre": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
@@ -147,8 +152,8 @@
     },
     "rebuild/lanes/b/tooling/b-package.cjs": {
       "pre": "5321181a14bd5716c1d8692d40d5086cd10179609dcccced6d7a6da04704fd22",
-      "post": "5321181a14bd5716c1d8692d40d5086cd10179609dcccced6d7a6da04704fd22",
-      "role": "carried"
+      "post": "9fbfdd2d9b09fe2aa8f8bd93090220b302414d32efba78e52a83309a61a7ec7c",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/B-NTC.json": {
       "pre": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
@@ -157,43 +162,48 @@
     },
     "rebuild/lanes/b/tooling/packages/H3.json": {
       "pre": "8962c995669829ee4b7e0678203f3fea31025da1e62adac3e712c56b68692fe9",
-      "post": "8962c995669829ee4b7e0678203f3fea31025da1e62adac3e712c56b68692fe9",
-      "role": "carried"
+      "post": "922a9b33b984c5e666981390072db488a40d138d03789f07b5f1281e59a820ff",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S3.json": {
       "pre": "c534bd3724f5af2ab003d8c3ed8a06410651299716849b2c28bc02980bf4ca61",
-      "post": "c534bd3724f5af2ab003d8c3ed8a06410651299716849b2c28bc02980bf4ca61",
-      "role": "carried"
+      "post": "34bb094b138b5970bb946cfcbf8144552807b6c6e5642410ec484f47f63ffc53",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S4.json": {
       "pre": "23b73cca3727ccf817aa17893c761832658ab2a0969c300b162e32b89bda76cd",
-      "post": "23b73cca3727ccf817aa17893c761832658ab2a0969c300b162e32b89bda76cd",
-      "role": "carried"
+      "post": "3c7c9764a046bf3863702370e7a22ab53cba02d54066af73dd49de606075f6d4",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S5.json": {
       "pre": "ff9ab81fe0f15df71fb744f209619e0f66a4f3bc7475319f211b637327242034",
-      "post": "ff9ab81fe0f15df71fb744f209619e0f66a4f3bc7475319f211b637327242034",
-      "role": "carried"
+      "post": "978ca0afa70a9a05dfea0a24e072d4b77f6879e034b665f1bc098b0c9e31df76",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S6.json": {
       "pre": "4e6346ad4ef56fce79b61958325428dc9f63a62136516507a7c3e5088f009c98",
-      "post": "4e6346ad4ef56fce79b61958325428dc9f63a62136516507a7c3e5088f009c98",
-      "role": "carried"
+      "post": "76ec2659e3092a43c2605822bf0571f4fd1b43a581de5ff4cb572141ce3dc98e",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S7.json": {
       "pre": "7a89547b32f5ce7dccddcb8ff9b170a8b82e31afbf01876f091191dfcb2efa3c",
-      "post": "7a89547b32f5ce7dccddcb8ff9b170a8b82e31afbf01876f091191dfcb2efa3c",
-      "role": "carried"
+      "post": "3703543a485a7ecafb4bbd1a7ddce4e02af36283108be9dc4e76f1c259916967",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S8.json": {
       "pre": "f17183d3561a42ddb42bb7d41143d3569b5711b9197baeb6e1a3d642367d4e88",
-      "post": "f17183d3561a42ddb42bb7d41143d3569b5711b9197baeb6e1a3d642367d4e88",
-      "role": "carried"
+      "post": "1da6ef28bdcad8c3760efcf99f3a1a858b857638b4303c8bf135ebd7fbdf9c4f",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/S9.json": {
+      "pre": "a1f9fa38e6cb43513b82fc31f9d08852821a67f3a8cccf5a2704c831dfd83ce9",
+      "post": "5369b99b326f3781cbd803fccccdaa2c2ebaf007e941e1018be8336583288cca",
+      "role": "superseded-by-child"
     },
     "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
       "pre": "a8ebdb7d74c95c563896cb71fd9d8fa901091d865bd238f27267b87145d65195",
-      "post": "a8ebdb7d74c95c563896cb71fd9d8fa901091d865bd238f27267b87145d65195",
-      "role": "carried"
+      "post": "6981b1964c0ff68193ed70ba23517bd54f6e89ba8dcf905d84fed3ed2dfb0370",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/test/release-from-seal.test.cjs": {
       "pre": "d872eaff3fb12a75227822218c569cf8deec820efeb59fe88aa84df0516422d0",
@@ -322,8 +332,8 @@
     },
     "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs": {
       "pre": "af7b6f34a10d6a36c2982ae0713ff127a26a4e34736ac69346b6f3e66822a29c",
-      "post": "af7b6f34a10d6a36c2982ae0713ff127a26a4e34736ac69346b6f3e66822a29c",
-      "role": "carried"
+      "post": "e49c3b0c0cbea8aa748444ddec71733797effcae18fb20ed8d0e3d1001ac1dd9",
+      "role": "edited"
     },
     "rebuild/lanes/d/b-lom/legacy-order.test.mjs": {
       "pre": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
@@ -862,7 +872,7 @@
     },
     "rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs": {
       "pre": null,
-      "post": "cb1120a985d338a0a8172751fcf34bf7ce4d50a08d37aad620bf771c562f5444",
+      "post": "377149ac7be816f03ed7b255e8386cc27a623c29d0f645cfd63faebadc695212",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
@@ -952,8 +962,8 @@
     },
     "rebuild/m4/import/local-source-profile.cjs": {
       "pre": "2de07820664ee2ec42c72fecd665a31dfb3768d607870745798c590bd79640e9",
-      "post": "2de07820664ee2ec42c72fecd665a31dfb3768d607870745798c590bd79640e9",
-      "role": "carried"
+      "post": "1a93f5716550bbb97a6f37169d85a11df900c05e6b8ab933e5567ddbe2aaa454",
+      "role": "edited"
     },
     "rebuild/m4/import/measure-replay.cjs": {
       "pre": "61a4a9204985a468dbfadd5df6a87d92237a0e1587b7b1c11e10c9446c42876e",
@@ -1037,7 +1047,7 @@
     },
     "rebuild/m4/import/test/s3/s3-portable-sources.json": {
       "pre": null,
-      "post": "051b60f525d03406b0547fe971c132f0d035a6237008c9dcadbe3086ae256e21",
+      "post": "58049328e57154869aa0cba0d3c0c5a346921267c3e548e6de3d60d409583fc9",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-cases.cjs": {
@@ -1239,6 +1249,36 @@
       "pre": "cb4643af81e7a7d6082ba7c2cbd1cb51c4896aa0f82ac69d9274c683659979ab",
       "post": "cb4643af81e7a7d6082ba7c2cbd1cb51c4896aa0f82ac69d9274c683659979ab",
       "role": "carried"
+    },
+    "rebuild/m4/workout/test/s10-engine-files-differential.cjs": {
+      "pre": null,
+      "post": "8bc3894c18463b09ec905ddc76e33b378e7e75ab022d4cf38c492f95469c2358",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s10-supersede-defect-witnesses.test.cjs": {
+      "pre": null,
+      "post": "c0ec07a949a0d1df8408a7c61a870f0775252627f76db15d0b616d3f1c21256b",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s10-supersede-inherited-carriers.test.cjs": {
+      "pre": null,
+      "post": "d47da1a6db8bf029f034e9a172a5b1cf3c0f3ac75d5fce0d8667a81a68fad20b",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s10-supersede-second-gate.test.cjs": {
+      "pre": null,
+      "post": "d6b0506a2af18a7782ab785cce5c770528b114f1e40e467f74318bd800e0e77c",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s10-supersede-source-carriers.test.cjs": {
+      "pre": null,
+      "post": "67d3237f919800c735ecb4e8dcc08fa3f8b43ea0d668e05c1ce4bccd189b3fb8",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s10-supersede-writers-differential.test.cjs": {
+      "pre": null,
+      "post": "6f6d4eb498bf57454e2af7b94feae736f75cf194418debdf1ea50022de2a7757",
+      "role": "new"
     },
     "rebuild/m4/workout/test/s3-companion-gensession-differential.test.cjs": {
       "pre": "a3dcc8d37d798527df4f9d9e484419ac092db5fd9ec6d58a2ac2caffc8c787da",
@@ -1472,7 +1512,73 @@
     "successors": null,
     "superseded": {
       "rulingLineSha256": null,
-      "gates": {}
+      "gates": {
+        "source-carriers": {
+          "why": "DECISIONS:153 (the standing role) and S10's own GATE-SUPERSESSION token clause (PROPOSED, not yet on the chain; rulingLineSha256 null until the PM appends it): the carrier RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers pinned by CHANGES_SHA. UNLIKE S9, S10 MOVES engine bytes: today.cjs and writers.cjs, each the parent post plus exactly one owner-worded clause (DECISIONS:631 O-1a; D-EPP-3). Both files had already left the reconstruction at the parent (M2-S3-COMPANION, M2-H3-CLEAN-INIT), so S10 moves them further from it and cannot mend it - executed and measured in s10-sup-source-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s10-sup-source-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s10-engine-files-differential"
+          }
+        },
+        "inherited-carriers": {
+          "why": "DECISIONS:153 and S10's own token clause (PROPOSED): priorModule re-reads every prior engine module against the same sha-pinned list, so today.cjs and writers.cjs are refused there; at S10 each is the parent post plus one declared EPP clause, every other module stands at the parent post - executed and measured in s10-sup-inherited-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s10-sup-inherited-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s10-engine-files-differential"
+          }
+        },
+        "defect-witnesses": {
+          "why": "DECISIONS:153 and S10's own token clause (PROPOSED): the FROZEN side of every comparison is built through the same reconstruction, which refuses on this tree; S10's complete comparison is taken against the accepted engine read from Git at this package's own sourceBase, and any difference would have to be D-EPP-3's declared departure - executed and measured in s10-sup-defect-witnesses",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s10-sup-defect-witnesses"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s10-engine-files-differential"
+          }
+        },
+        "writers-differential": {
+          "why": "DECISIONS:153 and S10's own token clause (PROPOSED): the gate's subject writers.cjs is the parent post plus the one owner-worded clause at :227, neither the reconstruction's pre- nor post-image - executed and measured in s10-sup-writers-differential",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s10-sup-writers-differential"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s10-engine-files-differential"
+          }
+        },
+        "second-gate": {
+          "why": "DECISIONS:153 and S10's own token clause (PROPOSED): the second reading pins fe516c1 and goes through the reconstruction, so it refuses this tree; S10's second reading is taken from Git at its own sourceBase against the disk composition - executed and measured in s10-sup-second-gate",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s10-sup-second-gate"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s10-engine-files-differential"
+          }
+        }
+      }
     }
   },
   "release": {
@@ -1824,6 +1930,67 @@
         "rebuild/m4/workout/test/engine-capture-proposed.test.cjs"
       ],
       "needle": null
+    },
+    {
+      "name": "today-split-fence",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/today-split/writer-fence.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s10-sup-source-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s10-supersede-source-carriers.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s10-sup-inherited-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s10-supersede-inherited-carriers.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s10-sup-defect-witnesses",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s10-supersede-defect-witnesses.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s10-sup-writers-differential",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s10-supersede-writers-differential.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s10-sup-second-gate",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s10-supersede-second-gate.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s10-engine-files-differential",
+      "argv": [
+        "rebuild/m4/workout/test/s10-engine-files-differential.cjs"
+      ],
+      "needle": null
     }
   ],
   "notes": [
@@ -1831,7 +1998,9 @@
     "PRODUCT MAP. pre is S9.json's own declared post at 6dc2596 (the S9 candidate, standing in for the S9 artifact's product map until S9 seals); post is sha256 of the bytes at this commit. S9's own released paths (build.mjs, preview.css) are not parent product pins and are not declared. today-app.cjs and gym-app.mjs are declared released (pre = S9 post, post = null) under brief 4.3; their RELEASE-FROM-SEAL line is a STOP. New paths are every non-Markdown path this branch adds or changes that S9 does not declare. Re-measure all of it at S9_PARENT_COMMIT.",
     "INPUTS, in merge order: Track A TODAY-SPLIT b35a48e35a1f3e3c278c377934794a32b632535b (:662); Track B GSS 66d325308bc584950163c1c177799ce4953fa298 (:765); EPP 0d38b8e2633ee46b033f8386670bf6e25ef10862 with D-EPP-2 5a953d59a1fce5f27ff368b4997350a655f94f69 riding with it (:780 Q3, :785, :791), as its own engine-tier input. NATIVE-LOAD is excluded (:791).",
     "D-EPP-3, DECLARED DEPARTURE (f0a5eb1a; payer the S10 seal chain by :780 Q3): rebuild/engine/today.cjs and rebuild/engine/writers.cjs are sealed S8 product keys and are declared edited here with their composed posts. For an untapped PROPOSED entry the repaired engine deliberately departs from the frozen app's behaviour although no golden row moves; the file headers still say they were copied from frozen. Owed and NOT run: the port oracle on the synthetic fixture, the sensitivity pass, the private gate, exact-head CI on both systems.",
-    "SEVEN PATHS EXISTED AT THE PARENT PINNED BY NO PACKAGE (measured against B-NTC, H3, S3-S9 product maps at 6dc2596) and change here, so under the runner's own rule (a file the parent pins in neither map is this package's own) they are declared role new with pre null although they are not new files: rebuild/m3/w7-preview/today/machine-settings-view.mjs (accepted post-GSS bytes, pinned as DECISIONS:628 G-R1 requires), rebuild/m3/w7-preview/today/today-model.cjs (not sealed at the parent, so no release is invented for it), rebuild/m4/workout/engine-capture.cjs (D-EPP-2), rebuild/m4/workout/test/engine-capture.test.cjs, rebuild/m4/workout/test/configuration-capture.test.cjs, rebuild/m4/import/test/s3/s3-portable-sources.json and rebuild/m4/spec/configured-history-candidate/run.cjs (D-CR-2 successor re-pins). Their parent bytes are recorded in the S10 integration report; the role is for review.",
-    "STOPS CARRIED BY THIS DRAFT: the runner does not know S10 (IDS, NO_REGISTER_IDS, CHILD_ROOTS, the s10-supersede cells and s10-engine-files-differential are not authored; S9's s9-* children are therefore dropped, not renamed); coverage.superseded names no gates because S10 moves engine bytes, so S9's reason 'this package changes NO engine byte' cannot be carried; rebuild/m4/import/local-source-profile.cjs:16 still pins today.cjs at the S9 bytes and is carried unmoved (a product-byte re-pin needs a ruling); D-EPP-4 (self-sensitivity guard for proposed-pick) is unpaid."
+    "SEVEN PATHS EXISTED AT THE PARENT PINNED BY NO PACKAGE (measured against B-NTC, H3, S3-S9 product maps at 6dc2596) and change here, so under the runner's own rule (a file the parent pins in neither map is this package's own) they are declared role new with pre null although they are not new files: rebuild/m3/w7-preview/today/machine-settings-view.mjs (accepted post-GSS bytes, pinned as DECISIONS:628 G-R1 requires), rebuild/m3/w7-preview/today/today-model.cjs (not sealed at the parent, so no release is invented for it), rebuild/m4/workout/engine-capture.cjs (D-EPP-2), rebuild/m4/workout/test/engine-capture.test.cjs, rebuild/m4/workout/test/configuration-capture.test.cjs, rebuild/m4/import/test/s3/s3-portable-sources.json and rebuild/m4/spec/configured-history-candidate/run.cjs (D-CR-2 successor re-pins). Their parent bytes are recorded in the S10 integration report. DECISIONS:792 rules them declared new with pre null. None of the seven is an execution pin of the S9 artifact (runner proposed(): runner, packages/S9.json, the brief and every child argv target), measured.",
+    "EXECUTION PIN SUPERSEDED. rebuild/lanes/b/tooling/packages/S9.json is an execution pin of the S9 artifact (b-package.cjs proposed() pins packages/<ID>.json) and S10 edits it (tooling.runnerSha256 only, the E fact 7 re-pin after S10's runner hunk), so it is declared superseded-by-child with pre = its bytes at the S9 candidate 6dc2596; re-measure at S9_PARENT_COMMIT. H3, S3-S8 .json take the same one-value re-pin as S9 product pins, role edited.",
+    "S10's OWN GATE SUPERSESSION. coverage.superseded retires the parent's five carriers (nine gates) again under S10's OWN reason: S10 moves today.cjs and writers.cjs by one owner-worded clause each, so S9's reason ('changes NO engine byte') is not carried. Evidence is S10's own s10-sup-* cells and s10-engine-files-differential. rulingLineSha256 is null: the S10 GATE-SUPERSESSION and RELEASE-FROM-SEAL token lines exist only as PROPOSED drafts in S10-INTEGRATION-REPORT.md, for the PM to append after review.",
+    "DECISIONS:792 CARRIERS. rebuild/m4/import/local-source-profile.cjs SOURCE_PINS today.cjs is re-pinned to the EPP bytes (declared edited), and s3-portable-sources.json re-pins local-source-profile.cjs with it. rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs takes a minimal import-path fix (fake-indexeddb from rebuild/m3/w6). STILL OPEN: D-EPP-4 (self-sensitivity guard for proposed-pick) is unpaid; the writer fence's RECORDED RESIDUE row is red at the 66d32530 bytes and goes to review, then to a PM ruling under :626 (4)."
   ]
 }
