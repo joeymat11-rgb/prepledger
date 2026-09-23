@@ -1,4 +1,4 @@
-# S10 integration report, rounds 2 to 4 (builder claude-opus-5-5, 2026-09-23)
+# S10 integration report, rounds 2 to 5 (builder claude-opus-5-5, 2026-09-23)
 Worktree %TEMP%\earned-s10int, branch rebuild/b-s10-integration; round 1 pushed by the PM at 7f8b228; round 2 is local commits only, nothing pushed.
 Parent: S9 CANDIDATE 6dc2596 (NOT sealed; every S10-WORKING-BRIEF.md c58b892 s.2.1 value is still a STOP). Rulings: DECISIONS:792 at 25c9276.
 Local runs: Windows, Node v24.19.0 (CI uses 22), runtime lock, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, preload guard that throws before any require/import/read of the protected five; guard log empty in every run.
@@ -60,6 +60,14 @@ D-S10I-4 is left to CI, as ordered: the hosted run must show that `--ci --packag
 | fdee511 | | S10.json (8ed50317...): 295 paths (231 carried, 20 edited, 2 released, 41 new, 1 superseded-by-child); S10-REGEN dry run at 6dc2596: 0 entries differ |
 Astra's named debts taken where feasible: D-REASON-TEXT (paid). The destructure-aware api.lane census is NOT feasible here: no parser resolves from this worktree (acorn absent at root, w6 and w5; the same gap as D5). The rest are the STOPs below.
 
+## Round 5 (Fable l2 ACCEPT WITH NAMED DEBTS, f4d20943; small separate commits)
+| sha | debt | content and evidence |
+|---|---|---|
+| f7c2980 | D-S10I-9 | boundary.test.mjs release-accounting row names the RE-RELEASE (S9 released the path, S10 releases it again; accounted from S8's pinned post, the nearest older non-null post; declaring a re-release at all is the runner's one-generation rule) with an explicit control asserting ok, by S10, pre = S8's post. Source-slice harness: row green, undeclared [] unchanged |
+| d1e76b1 | D-S10I-10 | S10-REGEN.cjs regenerates the three measured notes (PRODUCT MAP, PARENT-UNPINNED PATHS, EXECUTION PIN SUPERSEDED) from the run's own values; any other carried note still citing 6dc2596 / a1f9fa38 / CANDIDATE is FLAGGED and blocks --write unless --allow-stale-notes. --receipt-line is REQUIRED with --write, checked first (receiptLedgerLine is a parent binding the runner re-reads; optional only in a dry run). Dry run at 6dc2596: notes [1], [5], [6] regenerated, [0] flagged (the PROPOSED DRAFT note, PM re-authors it at finalization); --write without --receipt-line refused; with it, refused for the absent artifact |
+| 2e76e71 | | S10.json (56e75b6e...): same 295-path counts; REGEN dry run 0 entries differ |
+D-S10I-8, the EPP-R9 guard's scope and what CI owes. SCOPE: EPP-R9 guards exactly the four assertions the sensitivity pass named as the clauses' behavioural guard: R2's card check (test:142 at 0d38b8e), R3's card/record check (:160), R3's untapped-entry check and R4's no-down-pull check. The assertions of R1, R5, R6, R7 and R8 are OUTSIDE it (R1 producer order, R5 tap control, R6 reversed-order control, R7 half-repair control, R8 import road); deleting one of those is not detected by R9. OWED FROM CI on the real cell (index.cjs, both OS, frozen env): the cell green with 9 rows; and, as the red half, the four single deletions (R2 card check, R3 card/record, R3 untapped, R4 no-down-pull) each turning exactly EPP-R9 red. Only the scratch composition has shown that red (7/8 each), never the real engine.
+
 ## STOPs remaining (D-S10I-1, complete list)
 1. Every s.2.1 placeholder: S9_PARENT_COMMIT/sourceBase, the S9 spec/receipt/verdict and both-OS CI ids, the S9 artifact and review sha256 and receipt line, S10_PACKAGE_ID, the S10 brief path/sha, THEME, BRIEF-BY-SHA and the two PROPOSED token lines above, all child needles.
 2. D-SPLIT-PARENT (3.1): re-measure the three sourceBlobs.s9 at S9_PARENT_COMMIT. They are EQUAL at 6dc2596 only; S10-REGEN.cjs prints the check and refuses --write on a mismatch.
@@ -67,7 +75,7 @@ Astra's named debts taken where feasible: D-REASON-TEXT (paid). The destructure-
 4. CUI0 acceptance with its independent audit and its pins at the S9 parent, and the section 8 copy lock with its eight answers, source ownership and CI step (12.1, :732 A4). Neither exists.
 5. D-GSS-PASSTHROUGH: the destructure-aware census of api.lane at the integrated bytes (round 1 ran a regex census only: 0 product readers, 1 test reader; no parser available locally); D-GSS-TIMER reported, not fixed (6.2).
 6. S-R30 re-assertion (4.2): at the integrated bytes no today-app exception row changed and each gym row matches its :628 ruling. Measured so far: the fence blob before S10's own hunks equals 66d32530's (09a6dd18), and S10's two fence hunks are the LOOK_EDITS row and the residue re-anchor, neither an exception-site row. A reviewer's final assertion is still owed.
-7. D-EPP-4: paid in bytes (12be4ea); its CI run of the real cell is owed. D-EPP-3 gates owed: port oracle, sensitivity, private gate, exact-head CI.
+7. D-EPP-4: paid in bytes (12be4ea); the real cell's green and its four-deletion red are owed from CI (D-S10I-8). D-EPP-3 gates owed: port oracle, sensitivity, private gate, exact-head CI.
 8. D3, D5 (the real eslint-scope stack), D6, D7, D9, the S-R33 boot row, the six inherited scope rows, the Track A re-cut and DOM/listener cells, and the M/R/N hunk classification (3.2, D-GSS-LINES): not done.
 9. machine-settings-ui three-way merge, red-first on both OS; engine-capture.test and configuration-capture.test need PERFORMED_W6_DIR; the coach ENGINE_REVISION moves only after a receipt.
 10. D-S10I-4 (CI); Astra's re-review of B1-B4 at this head; the separate Claude final (D-ACCEPTANCE).
