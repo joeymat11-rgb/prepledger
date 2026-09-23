@@ -26,9 +26,12 @@
    WHY THAT IS THE RIGHT COROBORATION. The five superseded carriers are
    byte-identity reconstructions of the engine. They refuse on this tree
    because FOUR files this package's ancestors moved are no longer what the
-   frozen reconstruction builds - not because this package moved anything. The
-   only way to say that as a measurement rather than as a claim is to compare
-   every engine byte against the parent and report the count.
+   frozen reconstruction builds. Two of those four (today.cjs, writers.cjs) THIS
+   package then moves one owner-worded clause further, and nothing else: the
+   refusal predates S10, and S10's clauses neither cause nor mend it (D-REASON-TEXT,
+   Astra S10-INTEGRATION-REVIEW-L1). The only way to say that as a measurement
+   rather than as a claim is to compare every engine byte against the parent,
+   report the count, and name the two moves with their pre and post.
 
    THE PARENT HERE IS M2-S9-UI-PINS, WHICH ITSELF MOVED NO ENGINE BYTE, so the
    comparison chains: S9's own differential proved all 45 identical to S8's
