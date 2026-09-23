@@ -18,6 +18,9 @@ import PlainCopy from './plain-copy.cjs';
    binding can see them. The producer and every rule about the op are the coach's,
    imported by machine-settings-view.mjs and machine-settings-host.mjs. */
 import MachineSettingsView from './machine-settings-view.mjs';
+/* THE SPLIT (spec B.9). The settings lane, its read cache and the two functions that
+   open and read it are sealed in this module; what comes back is three frozen objects. */
+import { createGymSettingsLane } from './gym-settings-lane.mjs';
 
 const { plainOrDrop } = PlainCopy;
 /* REVIEW R1 FINDING 2 - the two headings the stub screen falls back to when the card
@@ -120,54 +123,22 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
      an encrypted store keeps exactly the card it has today: the block and the
      editor stay hidden, nothing is captured, and no jsdom mount in this repository
      changes, because jsdom has no indexedDB. Tests inject `settings` directly. */
-  let settingsLane = settings || null;
-  let settingsOpening = null;
-  let settingsSaving = null;
+  /* THE SPLIT (spec B.9, DECISIONS:550 S-R4 and S-R12). What crosses is three frozen
+     objects and nothing else: `facade`, the read-only view of the sealed state; `hooks`,
+     the callback table, which is the only way released code changes it; and `painter`,
+     the paint handle, which is how the seal repaints the card. The gym seal touches ONE
+     released name, paint, at two call sites, which is why the handle has one entry and
+     not the two B.9 predicted: `owns` is named nowhere in the moved regions, and the
+     census is what says so. */
+  const painter = Object.freeze({ repaint: () => paint() });
+  const { facade, hooks } = createGymSettingsLane(doc, model, settings, painter);
   let settingsDraft = null;       // non-null only while the editor is open
   let settingsDraftLift = null;   // the lift that draft belongs to
   // A repaint replaces DOM nodes, not the draft's refusal. Weak keys also keep a
   // delayed result from assigning the old draft's message to a replacement draft.
   const settingsErrors = new WeakMap();
-  /* D2 ROUND 1, FINDING 1 - THE OPTIONAL READ IS NEVER A PREREQUISITE FOR THE CARD.
-     The read used to be AWAITED inside paint(), so a slow lane meant no active set, no
-     log control and no workout at all until it answered. It is now a lookup in a cache
-     keyed by exercise id: the card paints from whatever that cache holds, a lift with
-     no entry STARTS a read and paints the pending state, and the answer repaints only
-     the lift it belongs to. A late answer for a lift the athlete has moved past is
-     stored and never shown. */
-  const settingsRead = new Map();   // exercise id -> {state: 'known'|'failed', latest}
-  const settingsInFlight = new Set();
-  let settingsReading = null;       // the last read started, for checks and tests
 
-  function startSettingsRead(liftId) {
-    if (!settingsLane || typeof liftId !== 'string' || !liftId) return settingsReading;
-    if (settingsRead.has(liftId) || settingsInFlight.has(liftId)) return settingsReading;
-    settingsInFlight.add(liftId);
-    settingsReading = Promise.resolve()
-      .then(() => settingsLane.latest(liftId))
-      .then(
-        (latest) => { settingsRead.set(liftId, { state: 'known', latest: latest || null }); },
-        /* A REFUSAL IS NOT AN ABSENCE (finding 2). It is recorded as its own state and
-           the block says so; it never becomes "no settings saved yet". */
-        () => { settingsRead.set(liftId, { state: 'failed', latest: null }); },
-      )
-      .then(() => { settingsInFlight.delete(liftId); return paint(); });
-    return settingsReading;
-  }
 
-  function openSettingsLane() {
-    if (settingsLane || settingsOpening) return settingsOpening;
-    const view = doc.defaultView || null;
-    const idb = (view && view.indexedDB) || (typeof globalThis !== 'undefined' ? globalThis.indexedDB : undefined);
-    const web = (view && view.crypto) || (typeof globalThis !== 'undefined' ? globalThis.crypto : undefined);
-    if (!idb || !web || !web.subtle || typeof model.day !== 'string') return null;
-    settingsOpening = Promise.resolve()
-      .then(() => import('./machine-settings-host.mjs'))
-      .then((module) => module.createMachineSettingsHost({ day: model.day, indexedDB: idb, crypto: web }))
-      .then(async (host) => { settingsLane = host; await paint(); return host; })
-      .catch(() => { settingsLane = null; return null; });
-    return settingsOpening;
-  }
 
   const template = id => {
     const node = doc.getElementById(id);
@@ -243,13 +214,13 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const block = map.get('settings-block');
     const editor = map.get('settings-editor');
     if (!block || !editor) return;
-    if (!settingsLane) { block.hidden = true; editor.hidden = true; openSettingsLane(); return; }
+    if (!facade.lane()) { block.hidden = true; editor.hidden = true; hooks.open(); return; }
     const liftId = view.lift && typeof view.lift.id === 'string' ? view.lift.id : null;
     if (!liftId) { block.hidden = true; editor.hidden = true; return; }
     /* NOT AWAITED. The read is started here and its answer arrives in its own repaint;
        this function, and therefore the whole card, is finished either way. */
-    if (!settingsRead.has(liftId)) startSettingsRead(liftId);
-    const entry = settingsRead.get(liftId) || null;
+    if (!facade.hasRead(liftId)) hooks.startRead(liftId);
+    const entry = facade.entryFor(liftId);
     const state = entry ? entry.state : 'reading';
     const latest = entry ? entry.latest : null;
     MachineSettingsView.renderBlock(doc, map, { copy: SETTINGS_COPY, latest, state, put });
@@ -276,7 +247,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       settingsDraft = null; settingsDraftLift = null; paint();
     });
     map.get('settings-save').addEventListener('click', () => {
-      settingsSaving = recordSettings(map, view, paintedDraft);
+      hooks.saving(recordSettings(map, view, paintedDraft));
     });
   }
 
@@ -302,7 +273,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const save = map.get('settings-save');
     save.disabled = true;
     let result = null;
-    try { result = await settingsLane.save(machine); }
+    try { result = await facade.lane().save(machine); }
     finally { save.disabled = false; }
     if (!result || result.ok !== true) {
       refuse(SETTINGS_NOT_SAVED);
@@ -313,8 +284,8 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     }
     /* The capture is durable now, so the cached read for this lift is stale: drop it
        and read the LOG again rather than painting what this mount remembers. */
-    settingsRead.delete(view.lift.id);
-    await startSettingsRead(view.lift.id);
+    hooks.dropRead(view.lift.id);
+    await hooks.startRead(view.lift.id);
   }
 
   /* ---------------- the active set ---------------- */
@@ -567,13 +538,13 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
      event loop, and a check that polls the log needs to know when it has settled. */
   const first = paint();
   first.settings = Object.freeze({
-    pending: () => settingsSaving,
-    ready: () => settingsOpening,
-    lane: () => settingsLane,
+    pending: () => facade.pending(),
+    ready: () => facade.ready(),
+    lane: () => facade.lane(),
     /* The optional read, exposed so a CHECK can wait for it. Nothing on the card
        waits for it, which is the whole point of finding 1. */
-    read: () => settingsReading,
-    stateFor: (liftId) => (settingsRead.has(liftId) ? settingsRead.get(liftId).state : 'reading'),
+    read: () => facade.reading(),
+    stateFor: (liftId) => facade.stateFor(liftId),
     /* D2 round 2, R2-1 - whether THIS mount is still the screen on the phone. */
     owns: () => owns,
   });

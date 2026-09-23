@@ -32,6 +32,11 @@ const FoodModel = require("./food-model.cjs");
 /* N2 (DECISIONS:167) - the sleep entry's refusal rules and the projector seam S2 needs,
    because the engine has no writer that appends a night. Pure: no DOM, no store. */
 const SleepModel = require("./sleep-model.cjs");
+/* THE SPLIT (spec B.1 to B.8, DECISIONS:550 S-R1). Every function that can put a row
+   of the athlete's food, sleep or check-in log on disk is sealed in today-lanes.cjs;
+   what comes back is two frozen objects. The require is at module level, once, and
+   not inside the mount. */
+const { createTodayLanes } = require("./today-lanes.cjs");
 
 const NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const ARROW = '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
@@ -359,29 +364,32 @@ function mountToday(doc, model, options = {}) {
      it opens has a rebind seam (both files are pinned on disk). So when a night is
      recorded, the page builds a NEW entry over the SAME memoized era - one store, one
      lease - and carries the half-typed set across. See rebindWorkout. */
-  let workout = options.workout || null;
-  let workoutRebinding = null;   // the rebind in flight, so a check can await it
-  let rebindInFlight = false;    // ... and only ever one of them at a time
-  const session = () => (workout && typeof workout.summary === "function" ? workout.summary() : null) || null;
+  /* THE SPLIT (spec B.3 and B.4). What crosses is three frozen objects and nothing
+     else: `painter`, the paint handle, which is the ONLY thing the seal can reach back
+     through and which can do nothing but paint; `facade`, the read-only view of the
+     sealed state; and `hooks`, the callback table, which is the only way this file
+     changes anything in there. The paint handle's five entries are the five names the
+     census found crossing SEALED -> RELEASED that D.1 declares a rewrite for; the
+     eighteen names handed in below are the ones it does not, and they are injected so
+     that every moved byte keeps its own spelling. `sleepTyped` goes in wrapped because
+     it is a const declared further down this file and would be in its temporal dead
+     zone here; the wrapper resolves it when it is called, which is after a gesture. */
+  const painter = Object.freeze({
+    repaint: (name, focus) => render(name, focus),
+    screenNow: () => screen,
+    token: () => mountToken,
+    clearDraft: () => clearSleepDraft(),
+    paintTodayEntry: () => paintTodayEntry(),
+  });
+  const { facade, hooks } = createTodayLanes({ doc, model, options, painter,
+    phone, status, tell, athleteStateFailureCopy, reasonOf,
+    sleepTyped: (...a) => sleepTyped(...a),
+    FOOD_REASON, FOOD_REFUSAL_COPY, FOOD_REFUSED, FOOD_REFUSED_ACTION, SLEEP_CHECKIN_CHANGED, SLEEP_KEPT,
+    SLEEP_NIGHT_CHANGED, SLEEP_NOTHING_RECORDED, SLEEP_NOT_SAVED, SLEEP_REFUSAL_COPY, SLEEP_ROLLOVER, SLEEP_UNCERTAIN });
   /* A3 — the check-in entry, injected exactly as the workout entry is, so this
      module keeps no import of the check-in's data layer:
        summary()                  -> { recorded: boolean } read from the durable lane
        open({ phone, doc, back })  -> mounts the check-in into the phone element */
-  const checkin = options.checkin || null;
-  const checkinSummary = () => (checkin && typeof checkin.summary === "function" ? checkin.summary() : null) || null;
-  /* A4 — the first-run entry, injected exactly as the other two are:
-       firstRun()                  -> true only while the DURABLE record holds no
-                                      first-run operation for this installation
-       open({ doc, phone, back, done }) -> mounts the six screens into #phone */
-  const setup = options.setup || null;
-  /* P3-IMPORT-UI-2 - THE INSTALLATION ITSELF, for the one route that needs the
-     local durable client rather than a lane over it: importBundle, listImports
-     and retractImport are the client's own methods (browser-entry.mjs), and the
-     admission controller wants its OWN hostBindings so it never shares staging
-     state with the setup or gym handles. today-entry.mjs hands over the era it
-     already opened; with none, the Import route says so and offers nothing. */
-  const installation = options.installation || null;
-  const firstRun = () => !!(setup && typeof setup.firstRun === "function" && setup.firstRun() === true);
   /* S6 item 1 (owner ruling DECISIONS:463). Whether THIS mount lands on the setup
      screens when the durable record says the installation is fresh. today-entry.mjs
      boot() sets it true for the shipped page (the caller that declares no day) and
@@ -389,7 +397,6 @@ function mountToday(doc, model, options = {}) {
      preview reachable for the fixtures and checks that were built on it. A caller
      that mounts this module directly and says nothing gets the landing it has always
      had. */
-  const setupFirst = options.setupFirst === true;
 
   /* N1 - THE FOOD LANE, and why this module opens it rather than boot().
 
@@ -407,19 +414,7 @@ function mountToday(doc, model, options = {}) {
      The lane object is a READER plus a writer, never a store: `rows()` is synchronous
      because the adapter's projector is, and it is refreshed from the durable log after
      every write rather than from the screen's own memory. */
-  let foodLane = options.food || null;
-  let foodOpening = null;
-  let foodSaving = null;
-  /* D2 round 1, finding 3 - the CAUSE of a lane that would not open, kept rather than
-     swallowed, so the screen can say why instead of claiming the feature is unbuilt. */
-  let foodLaneFailure = null;
-  /* D2 round 2, R2-1 - what is known about the LAST write whose read-back did not
-     land: `{state: "unavailable"|"unknown", day, code}`. "unavailable" means the client
-     acknowledged the op and only the read failed, so the day below is a FACT. "unknown"
-     means the save itself threw before it answered, so nothing may be claimed about it
-     either way. Cleared the moment a read succeeds. */
-  let foodReadBack = null;
-  if (foodLane && typeof model.setFoodDays === "function") model.setFoodDays(foodLane);
+  hooks.bootFoodDays();
 
   /* ---------------- N2, THE SLEEP LANE (DECISIONS:167) ----------------
      Opened here for exactly N1's reason, one seam further on: today-entry.mjs boot()
@@ -429,16 +424,6 @@ function mountToday(doc, model, options = {}) {
      `era.client.hostBindings({workoutCommands})` - the point local-client.mjs:395
      exposes and D2's N2-SOURCE-ERRATUM.md confirms - lazily and FAILING CLOSED, so
      every jsdom mount in this repository is unchanged: jsdom has no indexedDB. */
-  let sleepLane = options.sleep || null;
-  let sleepOpening = null;
-  let sleepSaving = null;
-  let sleepLaneFailure = null;
-  let sleepReadBack = null;      // an acknowledged night whose read-back did not land
-  /* D2 ROUND 1, FINDING 6 - THE COMMITTED OP, KEPT. A save that the client acknowledged
-     is durable whatever the read-back afterwards does, so the figure it carries stays on
-     the screen instead of vanishing with the draft: {date, hours, savedDate, savedTime}.
-     Cleared the moment a read succeeds and the projected record can speak for itself. */
-  let sleepAck = null;
   /* D2 ROUND 1, FINDING 6 - MOUNT OWNERSHIP, as the gym card's settings learned it.
      Every paint takes the CURRENT token; a save that resolves after the athlete has
      navigated holds a stale one and applies nothing - no render, no navigation. */
@@ -451,171 +436,28 @@ function mountToday(doc, model, options = {}) {
      ever sets it on its own, and a caller that declared its day never re-boots,
      so the page that ships and every suite that mounts it are unchanged. */
   let disposed = false;
-  let sleepBusy = false;         // a save is in flight: the screen says so and refuses a second
   /* D2 ROUND 1, FINDING 5 - the night's date is CHOSEN, never guessed. Null means "the
      page's own default, the day before today"; a string is the athlete's own choice and
      survives a rollover. `sleepRollover` holds the date the screen was opened against
      when today moves under an open draft, so the athlete confirms before saving. */
-  let sleepNightChoice = null;
-  let sleepRollover = null;
-  let sleepCorrecting = false;   // the recorded night is being corrected deliberately
-  let sleepOpenedNight = null;   // the night an open draft was begun against
-  let sleepOpenedDay = null;
-  let sleepErrorText = "";       // the refusal or outcome sentence the next paint draws
-  /* D2 ROUND 2, FINDING 5 - AN OUTCOME NOBODY KNOWS. The command did not answer and
-     the read that would settle it also failed, so whether the night was written is
-     UNKNOWN. It is neither claimed nor denied: the screen says it is still finding
-     out, the save is fenced so a second press cannot duplicate a write that may have
-     landed, and the read is offered again. `{date, night}` - the night that was
-     attempted, so a later read can recognise it. */
-  let sleepUnknown = null;
-  let sleepCheckInDay = null, sleepCheckInRow = null, sleepCheckInPending = null;
-  let sleepCheckInFailed = false;
-  let sleepCheckInViewPending = null;
   /* The screen's own transient state. Nothing durable lives here. TIMES first. */
   const sleepDraft = { mode: "times", bed: "", wake: "", awake_min: "", hours: "",
     awakeOpen: false, from_checkin_op_id: "" };
+  /* THE SPLIT (spec B.5). The sealed writer reads this object once, in recordSleep;
+     it is the SAME object, not a copy, so it sees every keystroke. */
+  hooks.bindSleepDraft(sleepDraft);
   const clearSleepDraft = () => {
     sleepDraft.bed = ""; sleepDraft.wake = ""; sleepDraft.awake_min = "";
     sleepDraft.hours = ""; sleepDraft.from_checkin_op_id = ""; sleepDraft.awakeOpen = false;
   };
-  if (sleepLane && typeof model.setSleepNights === "function") model.setSleepNights(sleepLane);
+  hooks.bootSleepNights();
 
-  function sleepEntryFor(host, rows) {
-    let cache = rows;
-    return {
-      host,
-      rows: () => cache,
-      async refresh() { cache = await host.all(); return cache; },
-      /* The COMMIT and the READ-BACK are two outcomes, exactly as N1's lane learned
-         from D2 round 2: an acknowledged night is durable whatever the read does. */
-      async save(night, precondition) {
-        const result = await host.save(night, precondition);
-        if (!result || result.ok !== true) return result;
-        try { await this.refresh(); return { ...result, readBack: true, readCode: null }; }
-        catch (error) {
-          return { ...result, readBack: false,
-            readCode: (error && (error.code || error.message)) || "SLEEP_READ_BACK_FAILED" };
-        }
-      },
-      close() { host.close(); },
-    };
-  }
 
-  /* Does this lane hold anything the gym host's captured state would not already
-     have? Only then is a rebuild worth the store it opens. */
-  const sleepRowsMatter = (lane) =>
-    !!(lane && typeof lane.rows === "function" && lane.rows().length > 0);
 
-  function openSleepLane() {
-    if (sleepLane || sleepOpening) return sleepOpening;
-    const view = doc.defaultView || null;
-    const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
-    const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
-    if (!idb || !web || !web.subtle) { sleepLaneFailure = "NO_LOCAL_STORE"; return null; }
-    sleepOpening = Promise.resolve()
-      .then(() => import("./sleep-host.mjs"))
-      .then((module) => module.createSleepHost({ day: model.today, indexedDB: idb, crypto: web }))
-      .then(async (host) => {
-        const lane = sleepEntryFor(host, await host.all());
-        sleepLane = lane;
-        if (typeof model.setSleepNights === "function") model.setSleepNights(lane);
-        loadCheckInKit();
-        /* D2 ROUND 2, FINDING 2 - THE LANE OPENS AFTER THE GYM HOST WAS BUILT. boot()
-           captures `model.stateFromOps()` for the workout before this lane exists, so
-           on a device that already HOLDS a night the gym is prepared without it - no
-           save required, just an ordinary start. The moment the replay is attached the
-           workout entry is rebuilt over the same era, so the first workout of the day
-           is prepared against the nights the athlete actually has. */
-        if (sleepRowsMatter(lane)) workoutRebinding = rebindWorkout();
-        if (screen === "today" || screen === "sleep") render(screen, false);
-        return lane;
-      })
-      .catch((error) => {
-        sleepLane = null;
-        sleepLaneFailure = (error && (error.code || error.message)) || "SLEEP_LANE_UNAVAILABLE";
-        if (screen === "sleep") render(screen, false);
-        return null;
-      });
-    return sleepOpening;
-  }
 
-  /* D2's correction 1 - THE SAME-PAGE JOURNEY. `createCheckInEntry` captures
-     `model.stateFromOps()` ONCE, at boot, and `createCheckInModel` freezes the night
-     it found at construction. Reopening the page is not a substitute, and neither
-     today-entry.mjs nor checkin-model.mjs may be edited (the first is pinned on disk,
-     the second must stay byte-identical so N2 proves the reuse path without changing
-     A3 at all). So when a night has been saved since the check-in was built, the
-     route builds a FRESH check-in model over the SAME host and mounts it with the
-     SAME screen: one rebind, no second store, no second producer, nothing durable. */
-  let checkInKit = null;
-  let checkInKitLoading = null;
-  /* D2 round 2, finding 3 - the check-in model this page is CURRENTLY using. Null
-     until the first rebind, so a page that never rebinds is the page that shipped. */
-  let checkInLive = null;
-  function loadCheckInKit() {
-    if (checkInKit || checkInKitLoading) return checkInKitLoading;
-    checkInKitLoading = Promise.all([import("./checkin-model.mjs"), import("./checkin-app.mjs")])
-      .then(([model_, app]) => {
-        checkInKit = { createCheckInModel: model_.createCheckInModel,
-          recordedLines: model_.recordedLines, mountCheckIn: app.mountCheckIn };
-        return checkInKit;
-      })
-      .catch(() => { checkInKit = null; return null; });
-    return checkInKitLoading;
-  }
-  if (sleepLane) loadCheckInKit();
+  hooks.bootCheckInKit();
 
-  function foodEntryFor(host, rows) {
-    let cache = rows;
-    return {
-      host,
-      rows: () => cache,
-      async refresh() { cache = await host.all(); return cache; },
-      /* D2 ROUND 2, R2-1 - THE COMMIT AND THE READ-BACK ARE TWO OUTCOMES. The op is
-         durable the moment the client acknowledges it. A read that fails afterwards
-         changes nothing about that, and used to reject out of here and take the
-         acknowledgment, the screen and the event promise with it. It is reported
-         instead, so the caller can keep what it knows and offer the read again. */
-      async save(day) {
-        const result = await host.save(day);
-        if (!result || result.ok !== true) return result;
-        try { await this.refresh(); return { ...result, readBack: true, readCode: null }; }
-        catch (error) {
-          return { ...result, readBack: false,
-            readCode: (error && (error.code || error.message)) || "FOOD_READ_BACK_FAILED" };
-        }
-      },
-      close() { host.close(); },
-    };
-  }
 
-  function openFoodLane() {
-    if (foodLane || foodOpening) return foodOpening;
-    const view = doc.defaultView || null;
-    const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
-    const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
-    if (!idb || !web || !web.subtle) { foodLaneFailure = "NO_LOCAL_STORE"; return null; }
-    foodOpening = Promise.resolve()
-      .then(() => import("./food-host.mjs"))
-      .then((module) => module.createFoodHost({ day: model.today, indexedDB: idb, crypto: web }))
-      .then(async (host) => {
-        const lane = foodEntryFor(host, await host.all());
-        foodLane = lane;
-        if (typeof model.setFoodDays === "function") model.setFoodDays(lane);
-        if (screen === "today" || screen === "nutrition") render(screen, false);
-        return lane;
-      })
-      .catch((error) => {
-        /* `foodOpening` is deliberately LEFT SET: one attempt per mount. A cleared
-           handle would let every repaint reopen a store that has already refused. */
-        foodLane = null;
-        foodLaneFailure = (error && (error.code || error.message)) || "FOOD_LANE_UNAVAILABLE";
-        if (screen === "nutrition") render(screen, false);
-        return null;
-      });
-    return foodOpening;
-  }
 
   /* ---------------- P-MEASURE v1 - THE MEASURE ROUTE ----------------
      ROUND 3 (DECISIONS:455): ROUTE, TILE AND WIRING ONLY. Sealed-byte drift on
@@ -625,22 +467,6 @@ function mountToday(doc, model, options = {}) {
      What stays here is what only this file can supply: the route, the tile, and
      the handles this page already holds (the replayed state Today itself stands
      on, its engine, and the setup entry local-source-basis.mjs takes). */
-  let measureScreen = null;
-  const measureState = { error: "", markersError: "", exportOpen: false };
-
-  function measureDeps() {
-    const view2 = doc.defaultView || null;
-    return {
-      doc, state: measureState, setup, engine: model.engine,
-      today: () => model.today,
-      trialState: () => { try { return model.stateFromOps(); } catch (_) { return null; } },
-      indexedDB: (view2 && view2.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined),
-      crypto: (view2 && view2.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined),
-      injected: options.measure || null,
-      repaint: () => { if (screen === "measure") render("measure", false); },
-      back: () => render("today", true),
-    };
-  }
 
   async function renderMeasure(focus) {
     const root = doc.createElement("section");
@@ -649,8 +475,8 @@ function mountToday(doc, model, options = {}) {
     show(root, focus);
     const Screen = await import("../measure/measure-screen.mjs");
     if (token !== mountToken) return root;
-    if (!measureScreen) measureScreen = Screen.createMeasureScreen(measureDeps());
-    await measureScreen.paint(root, () => token === mountToken);
+    hooks.mintMeasureScreen(Screen);
+    await facade.measureScreen().paint(root, () => token === mountToken);
     /* P3-IMPORT-UI-2 entry link 1 of 2 (DECISIONS:470, :475 (4)). The measure
        view always renders its own baseline note slot (hidden once a baseline
        exists), so the route that OWNS the Import screen puts its own link on
@@ -665,7 +491,7 @@ function mountToday(doc, model, options = {}) {
        has already painted - and it keeps the two words honest on the first
        frame. A rejected chain reports itself on the status line, as it always
        did, and the link falls back to offering the import. */
-    try { await ready; } catch (_) { /* reported by adoptAthleteState's own catch */ }
+    try { await facade.ready(); } catch (_) { /* reported by adoptAthleteState's own catch */ }
     if (token !== mountToken) return root;
     /* AND ONLY ON AN ENROLLED INSTALLATION (round 4, DECISIONS:480 RULING 1 as
        amended, and review r3 MAJOR 1). Before the first run is saved this
@@ -675,7 +501,7 @@ function mountToday(doc, model, options = {}) {
        a route that never could have worked. An entry that can only refuse is
        not an entry, so it is not painted. Both entries ask the same question,
        in the same words, of the same lane. */
-    if (!firstRun()) importLink(root, root.querySelector('[data-slot="measure-baseline-note"]'));
+    if (!facade.firstRun()) importLink(root, root.querySelector('[data-slot="measure-baseline-note"]'));
     return root;
   }
 
@@ -685,20 +511,6 @@ function mountToday(doc, model, options = {}) {
      without crossing this edge and refuses if migrate.cjs, merge.cjs or the
      m4/import lane is reachable, so the Today boot path carries none of the
      admission stack until the athlete opens this screen. */
-  let importScreen = null;
-  let importAdmitted = false;
-
-  function importDeps() {
-    const view2 = doc.defaultView || null;
-    return { doc, installation, day: () => model.today,
-      crypto: (view2 && view2.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined),
-      admitted: () => importAdmitted,
-      repaint: () => { if (screen === "import") render("import", false); },
-      back: () => render("today", true),
-      /* The SAME adoption chain boot() runs. An admitted import is this
-         athlete's own basis, and local-source-basis.mjs is what says so. */
-      onAdmitted: () => adoptAthleteState() };
-  }
 
   async function renderImport(focus) {
     const root = doc.createElement("section");
@@ -708,15 +520,15 @@ function mountToday(doc, model, options = {}) {
     show(root, focus);
     const Screen = await import("../import/import-screen.mjs");
     if (token !== mountToken) return root;
-    if (!importScreen) importScreen = Screen.createImportScreen(importDeps());
+    hooks.mintImportScreen(Screen);
     /* Round 2, review r1 finding 7. The screen is cached for the page session,
        so "Imported. Today and your gym card now use it." - which belongs to the
        import the athlete just confirmed - would greet him again every time he
        re-entered the route. `focus` is true only when a LINK brought him here
        (a repaint passes false), and on that tap the route hands back the
        read-only summary DECISIONS:470 asks for. */
-    if (focus) importScreen.reopen();
-    await importScreen.paint(root, () => token === mountToken);
+    if (focus) facade.importScreen().reopen();
+    await facade.importScreen().paint(root, () => token === mountToken);
     return root;
   }
 
@@ -734,8 +546,8 @@ function mountToday(doc, model, options = {}) {
     link.type = "button";
     link.className = "option";
     link.dataset.slot = "import-entry";
-    link.textContent = plainOrDrop(importAdmitted ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, "import-entry");
-    link.addEventListener("click", () => render("import", true));
+    link.textContent = plainOrDrop(facade.importAdmitted() ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, "import-entry");
+    hooks.listen(link, "click", () => render("import", true));
     /* The "No baseline yet" line, when the measure screen has painted one - the
        athlete is reading the sentence that says his history is missing, and the
        way to fix it belongs on that line. The measure screen has three earlier
@@ -764,29 +576,12 @@ function mountToday(doc, model, options = {}) {
      not return. A chain that rejects still settles: adoptAthleteState reports
      its own cause on the status line and the link then offers the import, which
      is what it offered before this ticket existed. */
-  let adoptionSettled = false;
   let todayEntry = null;         // { root, token } the settle should paint into
   function paintTodayEntry() {
-    if (!adoptionSettled || !todayEntry) return null;
+    if (!facade.adoptionSettled() || !todayEntry) return null;
     if (todayEntry.token !== mountToken || screen !== "today") return null;
     if (todayEntry.root.querySelector('[data-slot="import-entry"]')) return null;
     return importLink(todayEntry.root, null);
-  }
-  function settleAdoption(chain, adopting) {
-    /* WITH NO ADOPTION CHAIN RUNNING there is nothing to wait for and the frame
-       must not be made to wait: importAdmitted is set by athleteBasisState()
-       inside the chain, so when no chain runs the flag is already final (false)
-       and the link can be painted in the same frame as everything else. Making
-       every mount wait would change what a Today frame CONTAINS between one
-       paint and the next on pages that never adopt at all, which is a real
-       change to a screen for no gain. */
-    adoptionSettled = !adopting;
-    if (!adopting) return chain;
-    const answered = () => { adoptionSettled = true; paintTodayEntry(); };
-    /* The chain itself is handed back UNCHANGED, so api.ready is the same
-       promise, with the same settlement, that it was before this hook. */
-    chain.then(answered, answered);
-    return chain;
   }
 
   let screen = "today";
@@ -823,7 +618,7 @@ function mountToday(doc, model, options = {}) {
   }
   function wire(root) {
     arrows(root);
-    for (const el of root.querySelectorAll("[data-go]")) el.addEventListener("click", () => render(el.dataset.go, true));
+    for (const el of root.querySelectorAll("[data-go]")) hooks.listen(el, "click", () => render(el.dataset.go, true));
   }
   function show(root, focus) {
     phone.replaceChildren(root);
@@ -885,7 +680,7 @@ function mountToday(doc, model, options = {}) {
        "ready" and "Start" for a workout the layer will refuse to prepare. A refusal
        is shown in plain words with the layer's own code, exactly once, and is never
        described as a fault of this device. */
-    const today = session();
+    const today = facade.session();
     const refused = today && today.phase === "blocked" ? (today.code || null) : null;
     /* A session abandoned on an EARLIER day blocks every later day in the accepted
        client. It is not a dead end: the layer's own `early` close retires it, so
@@ -947,12 +742,12 @@ function mountToday(doc, model, options = {}) {
       : refused ? WHY_WORKOUT_CANNOT_OPEN
       : "Start " + view.workout.title;
     put(map, "primary-label", action);
-    primary.addEventListener("click", async () => {
+    hooks.listen(primary, "click", async () => {
       if (stranded) {
         /* One durable write, through the same client as everything else, and the
            screen repaints from what the layer answers — never from optimism. */
         primary.disabled = true;
-        try { await workout.recover(); } finally { primary.disabled = false; }
+        try { await facade.workout().recover(); } finally { primary.disabled = false; }
         render("today", false);
         return;
       }
@@ -989,7 +784,7 @@ function mountToday(doc, model, options = {}) {
        the adoption chain, so the link goes on once that chain has answered and
        never before (review r2 MINOR 4). Nothing here is lazy-loaded, so painting
        it pulls no admission stack onto the boot path. */
-    todayEntry = firstRun() ? null : { root, token };
+    todayEntry = facade.firstRun() ? null : { root, token };
     paintTodayEntry();
 
     /* S6 MERGE NOTE: the Import entry above and the build footer below both append
@@ -1046,18 +841,18 @@ function mountToday(doc, model, options = {}) {
       if (returnFocus && returnFocus.isConnected) returnFocus.focus();
     }
     for (const step of sheet.querySelectorAll("[data-step]")) {
-      step.addEventListener("click", () => {
+      hooks.listen(step, "click", () => {
         const current = Number(input.value);
         const next = (Number.isFinite(current) ? current : 0) + Number(step.dataset.step);
         input.value = String(Math.max(0, Math.round(next * 10) / 10));
       });
     }
-    sheet.querySelector('[data-action="cancel"]').addEventListener("click", close);
-    sheet.addEventListener("keydown", (event) => {
+    hooks.listen(sheet.querySelector('[data-action="cancel"]'), "click", close);
+    hooks.listen(sheet, "keydown", (event) => {
       if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); }
     });
     const submit = sheet.querySelector('button[type="submit"]');
-    sheet.addEventListener("submit", async (event) => {
+    hooks.listen(sheet, "submit", async (event) => {
       event.preventDefault();
       /* Hand the raw entry to the model. Everything that can refuse it — the form bound,
          then the client itself — answers in words, and those words are shown. An empty
@@ -1163,7 +958,7 @@ function mountToday(doc, model, options = {}) {
        WITHOUT A FOOD LANE there is nothing to record into, and the screen says which
        of the two true things happened: the store is still opening, or it refused and
        here is its reason. With the lane open the screen records. */
-    if (!foodLane) {
+    if (!facade.foodLane()) {
       /* D2 round 1, finding 3 - WHAT cannot happen, WHY, and WHAT TO DO, FIRST. The
          only sentence here used to be the unwired-screen one, which answered none of
          the three: what is actually true of a device with no entry is that THIS DEVICE
@@ -1178,9 +973,9 @@ function mountToday(doc, model, options = {}) {
          B-NTC artifact (DECISIONS:144) and asserts it here, so this build cannot
          remove it and does not try; it demotes it below the sentence the athlete can
          act on instead. */
-      const opening = openFoodLane();
-      const why = opening && !foodLaneFailure ? FOOD_OPENING
-        : foodLaneFailure ? FOOD_NO_STORE + " " + FOOD_REASON + foodLaneFailure + "."
+      const opening = hooks.openFoodLane();
+      const why = opening && !facade.foodLaneFailure() ? FOOD_OPENING
+        : facade.foodLaneFailure() ? FOOD_NO_STORE + " " + FOOD_REASON + facade.foodLaneFailure() + "."
           : FOOD_NO_STORE;
       put(map, "stub-note", why + " " + FOOD_PLAN_UNWIRED);
     } else {
@@ -1218,7 +1013,7 @@ function mountToday(doc, model, options = {}) {
     /* D2 round 1, finding 3 - a lane that opened INTO a refusal (a lost lease, a
        restore the athlete has not done) says so before he types, in the client's own
        words, with the action attached. */
-    const opened = foodLane && foodLane.host ? foodLane.host.openedRefusal : null;
+    const opened = facade.foodLane() && facade.foodLane().host ? facade.foodLane().host.openedRefusal : null;
     error.textContent = opened
       ? plainOrDrop(FOOD_REFUSED + " " + reasonOf(opened) + " " + FOOD_REFUSED_ACTION, "food-error")
       : "";
@@ -1250,89 +1045,36 @@ function mountToday(doc, model, options = {}) {
     const retry = map.get("food-retry");
     /* HIS DRAFT SURVIVES. The repaint that carries the read failure rebuilds the two
        boxes from the template, so what he typed is put back into them. */
-    if (foodReadBack && foodReadBack.entry) {
-      cal.value = foodReadBack.entry.cal === undefined ? "" : String(foodReadBack.entry.cal);
-      pro.value = foodReadBack.entry.pro === undefined ? "" : String(foodReadBack.entry.pro);
+    if (facade.foodReadBack() && facade.foodReadBack().entry) {
+      cal.value = facade.foodReadBack().entry.cal === undefined ? "" : String(facade.foodReadBack().entry.cal);
+      pro.value = facade.foodReadBack().entry.pro === undefined ? "" : String(facade.foodReadBack().entry.pro);
     }
-    if (foodReadBack && foodReadBack.state === "unavailable") {
+    if (facade.foodReadBack() && facade.foodReadBack().state === "unavailable") {
       recorded.textContent = plainOrDrop(
-        FOOD_SAVED + " · " + intakeLine(foodReadBack.day) + " " + FOOD_SAVED_UNREAD, "food-recorded");
+        FOOD_SAVED + " · " + intakeLine(facade.foodReadBack().day) + " " + FOOD_SAVED_UNREAD, "food-recorded");
       recorded.hidden = false;
     }
-    if (foodReadBack) {
-      const said = foodReadBack.code ? FOOD_REASON + foodReadBack.code + "." : "";
-      const head = foodReadBack.state === "unknown" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;
+    if (facade.foodReadBack()) {
+      const said = facade.foodReadBack().code ? FOOD_REASON + facade.foodReadBack().code + "." : "";
+      const head = facade.foodReadBack().state === "unknown" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;
       error.textContent = plainOrDrop([head, said, FOOD_READ_ACTION].filter(Boolean).join(" "), "food-error");
     }
     if (retry) {
-      retry.hidden = !foodReadBack;
-      retry.textContent = foodReadBack ? plainOrDrop(FOOD_READ_RETRY, "food-retry") : "";
-      if (foodReadBack) retry.addEventListener("click", () => { foodSaving = retryFoodRead(); });
+      retry.hidden = !facade.foodReadBack();
+      retry.textContent = facade.foodReadBack() ? plainOrDrop(FOOD_READ_RETRY, "food-retry") : "";
+      if (facade.foodReadBack()) hooks.listen(retry, "click", () => { hooks.retryFoodRead(); });
     }
     const save = map.get("food-save");
-    save.addEventListener("click", () => { foodSaving = recordIntake(save, cal, pro, error); });
+    hooks.listen(save, "click", () => { hooks.recordIntake(save, cal, pro, error); });
     return section;
   }
   /* The write itself, kept as a named async function so the click handler can hand the
      in-flight promise to `foodPending()`: a durable write is several turns of the
      event loop and a check that polls the log needs to know when it has settled. */
-  async function recordIntake(save, cal, pro, error) {
-    {
-      const entry = { cal: cal.value, pro: pro.value };
-      const refusal = FoodModel.refusalFor(entry);
-      if (refusal) {
-        error.textContent = plainOrDrop(FOOD_REFUSAL_COPY[refusal] || FOOD_REFUSED, "food-error");
-        return;
-      }
-      const dayValues = FoodModel.dayFromEntry(entry);
-      save.disabled = true;
-      let result = null;
-      /* D2 ROUND 2, R2-1 - THIS PROMISE NEVER REJECTS. A lane that throws out of save
-         has told us nothing about whether the op landed, so the outcome is UNKNOWN and
-         the screen says unknown; it is never reported as "no part of it was recorded",
-         and it never becomes a rejected event promise with a blank screen behind it. */
-      try { result = await foodLane.save(dayValues); }
-      catch (thrown) {
-        foodReadBack = { state: "unknown", day: dayValues, entry,
-          code: (thrown && (thrown.code || thrown.message)) || "FOOD_WRITE_UNKNOWN" };
-        save.disabled = false;
-        render("nutrition", false);
-        return;
-      }
-      finally { save.disabled = false; }
-      if (!result || result.ok !== true) {
-        /* D2 round 1, finding 3 - the refusal the CLIENT made, not a shrug. What was
-           refused, its own reason, and what to do; the boxes are deliberately not
-           re-rendered, so everything he typed is still there to record again. */
-        error.textContent = plainOrDrop(
-          FOOD_REFUSED + " " + reasonOf(result) + " " + FOOD_REFUSED_ACTION, "food-error");
-        return;
-      }
-      /* ACKNOWLEDGED. The op is durable; the read that follows it is a separate
-         outcome and `readBack === false` says it did not land. The committed day is
-         kept here so the screen can show the acknowledgment from the OPERATION rather
-         than from a log it could not read. */
-      foodReadBack = result.readBack === false
-        ? { state: "unavailable", day: dayValues, entry, code: result.readCode || null }
-        : null;
-      render("nutrition", false);
-    }
-  }
 
   /* D2 round 2, R2-1 - THE READ, ON ITS OWN. It submits no intake: it asks the lane to
      read the durable log again and, when that answers, the screen goes back to saying
      what the record says. A read that fails again updates only the reason. */
-  async function retryFoodRead() {
-    if (!foodLane || typeof foodLane.refresh !== "function") return;
-    try {
-      await foodLane.refresh();
-      foodReadBack = null;
-    } catch (error) {
-      foodReadBack = Object.assign({}, foodReadBack,
-        { code: (error && (error.code || error.message)) || "FOOD_READ_BACK_FAILED" });
-    }
-    render("nutrition", false);
-  }
   /* WHY, IN THE WORDS OF WHATEVER REFUSED. A client refusal carries its own copy; a
      refusal with no copy carries the code it named, and the code is shown as the code.
      Neither is reworded here, and a refusal with neither says nothing extra rather
@@ -1371,10 +1113,6 @@ function mountToday(doc, model, options = {}) {
   /* D2 ROUND 1, FINDING 5 - the DEFAULT is the day before today; the athlete may choose
      any completed night through the same label, and his choice is what the screen and
      the write both use. Nothing about the night's date is inferred from a save time. */
-  const sleepToday = () => sleepLane && sleepLane.host && typeof sleepLane.host.today === "function"
-    ? sleepLane.host.today() : model.today;
-  const sleepNightDate = () => sleepNightChoice || sleepRollover
-    || SleepModel.nightDateFor(sleepToday());
   /* Is anything typed? A rollover may only disturb a draft that exists. */
   const sleepTyped = () => !!(sleepDraft.bed || sleepDraft.wake || sleepDraft.hours
     || sleepDraft.awake_min);
@@ -1382,16 +1120,6 @@ function mountToday(doc, model, options = {}) {
      screen simply follows the clock. Once there is a draft, the night it was begun
      against is PINNED (sleepRollover) and the athlete confirms it before saving; the
      date never moves under him, and the page never silently moves it for him. */
-  function sleepClockCheck() {
-    const now = sleepToday();
-    if (!sleepTyped()) {
-      sleepRollover = null; sleepOpenedDay = now; sleepOpenedNight = sleepNightDate(); return null;
-    }
-    if (!sleepOpenedDay) { sleepOpenedDay = now; sleepOpenedNight = sleepNightDate(); return null; }
-    if (sleepOpenedDay === now) return sleepRollover;
-    sleepRollover = sleepOpenedNight;
-    return sleepRollover;
-  }
   /* The check-in for the morning AFTER a night, which is where its quality already
      lives. A3 asked the question once; this lane never asks it again. */
   function sleepQualityFor(date) {
@@ -1402,56 +1130,34 @@ function mountToday(doc, model, options = {}) {
   }
   function sleepCheckInFor(date) {
     const day = SleepModel.dayAfter(date);
-    if (sleepCheckInDay === day && (sleepCheckInPending || sleepCheckInFailed)) return null;
-    if (sleepCheckInDay === day) return sleepCheckInRow;
-    const active = checkInLive || (checkin && checkin.checkin);
+    if (facade.sleepCheckInDay() === day && (facade.sleepCheckInPending() || facade.sleepCheckInFailed())) return null;
+    if (facade.sleepCheckInDay() === day) return facade.sleepCheckInRow();
+    const active = facade.checkInLive() || (facade.checkin() && facade.checkin().checkin);
     const row = active && typeof active.recorded === "function" ? active.recorded() : null;
     return row && row.date === day ? row : null;
   }
-  function readSleepCheckIn(date, force = false) {
-    const day = SleepModel.dayAfter(date);
-    if (!checkin || !checkin.host || typeof checkin.host.forDate !== "function") return null;
-    if (sleepCheckInDay === day && !force) return sleepCheckInPending;
-    sleepCheckInDay = day; sleepCheckInRow = null; sleepCheckInFailed = false;
-    const token = mountToken;
-    const pending = Promise.resolve().then(() => checkin.host.forDate(day)).then((rows) => {
-      if (sleepCheckInPending === pending) sleepCheckInRow = rows.length ? rows[rows.length - 1] : null;
-    }).catch(() => {
-      if (sleepCheckInPending === pending) sleepCheckInFailed = true;
-    }).then(() => {
-      if (sleepCheckInPending !== pending) return;
-      sleepCheckInPending = null;
-      if (token === mountToken && screen === "sleep" && sleepNightDate() === date) render("sleep", false);
-    });
-    sleepCheckInPending = pending;
-    return pending;
-  }
   function renderSleepCheckIn(focus) {
-    const date = sleepNightDate(), day = SleepModel.dayAfter(date), token = mountToken;
+    const date = facade.sleepNightDate(), day = SleepModel.dayAfter(date), token = mountToken;
     const root = template("t-sleep-checkin"), map = slots(root);
     put(map, "sleep-back-label", SLEEP_TITLE);
     put(map, "sleep-checkin-title", SLEEP_CHECKIN_TITLE + day);
     put(map, "sleep-checkin-history", SLEEP_CHECKIN_HISTORY);
     wire(root); show(root, focus);
-    sleepCheckInViewPending = Promise.all([loadCheckInKit(), readSleepCheckIn(date, true)]).then(() => {
+    hooks.readSleepCheckInView(date, () => {
       if (token !== mountToken || screen !== "sleep-checkin") return;
       const row = sleepCheckInFor(date), body = map.get("sleep-checkin-record");
-      const lines = sleepCheckInFailed || !checkInKit ? [SLEEP_CHECKIN_UNREADABLE]
-        : row ? [SLEEP_CHECKIN_PREFIX + row.date + ".", ...checkInKit.recordedLines(row)] : [SLEEP_CHECKIN_EMPTY];
+      const lines = facade.sleepCheckInFailed() || !facade.checkInKit() ? [SLEEP_CHECKIN_UNREADABLE]
+        : row ? [SLEEP_CHECKIN_PREFIX + row.date + ".", ...facade.checkInKit().recordedLines(row)] : [SLEEP_CHECKIN_EMPTY];
       for (const line of lines) {
         const text = doc.createElement("p");
         text.className = "fine"; text.textContent = plainOrDrop(line, "sleep-checkin-record"); body.append(text);
       }
     });
-    return sleepCheckInViewPending;
+    return facade.sleepCheckInViewPending();
   }
   /* Every operation this device holds for one night, in the log's own order. Two of
      them mean the record has been CORRECTED, which the screen says in the brief's
      own word rather than presenting a correction as a first entry. */
-  function sleepOpsFor(date) {
-    const rows = sleepLane && typeof sleepLane.rows === "function" ? sleepLane.rows() : null;
-    return Array.isArray(rows) ? rows.filter((row) => row && row.night && row.night.date === date) : [];
-  }
 
   /* The check-in's own answer for the morning AFTER this night, offered as a dated
      SUGGESTION and never promoted silently. Read out of the check-in lane the page was
@@ -1472,9 +1178,9 @@ function mountToday(doc, model, options = {}) {
     return null;
   }
   function sleepCheckInOffer(date) {
-    const row = sleepCheckInFor(date || sleepNightDate());
+    const row = sleepCheckInFor(date || facade.sleepNightDate());
     if (!row || !row.answers) return null;
-    const night = date || sleepNightDate();
+    const night = date || facade.sleepNightDate();
     if (night && row.date && row.date !== SleepModel.dayAfter(night)) return null;
     const hours = checkInHoursOf(row.answers);
     if (hours === null) return null;
@@ -1486,16 +1192,16 @@ function mountToday(doc, model, options = {}) {
   function renderSleep(focus) {
     const root = template("t-sleep");
     const map = slots(root);
-    const date = sleepNightDate();
-    readSleepCheckIn(date);
+    const date = facade.sleepNightDate();
+    hooks.readSleepCheckIn(date);
     put(map, "sleep-title", SLEEP_TITLE);
     put(map, "sleep-night", SLEEP_NIGHT_PREFIX + (date || ""));
-    const opening = sleepLane ? null : openSleepLane();
-    if (!sleepLane) {
+    const opening = facade.sleepLane() ? null : hooks.openSleepLane();
+    if (!facade.sleepLane()) {
       /* WHAT CANNOT HAPPEN, WHY, AND WHAT TO DO - N1's D2 round-1 lesson, applied
          here from the first line rather than after a review. */
-      put(map, "sleep-note", sleepLaneFailure
-        ? SLEEP_NO_STORE + " " + FOOD_REASON + sleepLaneFailure + "."
+      put(map, "sleep-note", facade.sleepLaneFailure()
+        ? SLEEP_NO_STORE + " " + FOOD_REASON + facade.sleepLaneFailure() + "."
         : (opening ? FOOD_OPENING : SLEEP_NO_STORE));
       map.get("sleep-entry-form").hidden = true;
     } else {
@@ -1515,7 +1221,7 @@ function mountToday(doc, model, options = {}) {
     /* D2 ROUND 1, FINDING 6 - AN ACKNOWLEDGED NIGHT IS A NIGHT. When the read-back did
        not land there is no projected row to read, but the op committed, so the figure
        the athlete just saved stays on the screen from the acknowledgment itself. */
-    const ack = sleepAck && sleepAck.date === date ? sleepAck : null;
+    const ack = facade.sleepAck() && facade.sleepAck().date === date ? facade.sleepAck() : null;
     /* D2 ROUND 2, FINDING 5 - THE ACKNOWLEDGMENT OUTRANKS THE STALE CACHE. When a
        correction commits and only the read-back fails, the projected row still holds
        the OLD night: showing it would tell the athlete his correction did not happen
@@ -1533,21 +1239,18 @@ function mountToday(doc, model, options = {}) {
     const dateBox = map.get("sleep-date");
     if (dateBox) {
       dateBox.value = date || "";
-      dateBox.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;
-      const latest = SleepModel.nightDateFor(sleepToday());
+      dateBox.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
+      const latest = SleepModel.nightDateFor(hooks.sleepToday());
       if (latest) dateBox.max = latest;
-      dateBox.addEventListener("change", () => {
-        sleepNightChoice = dateBox.value || null;
-        sleepRollover = null;
-        sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate();
-        sleepAck = null; sleepReadBack = null; sleepCorrecting = false; sleepErrorText = "";
+      hooks.listen(dateBox, "change", () => {
+        hooks.sleepNightChosen(dateBox.value || null);
         render("sleep", false);
       });
     }
     /* The rollover confirmation. Shown only when the clock has crossed midnight under
        an open draft; until it is answered the save refuses, so a night cannot be
        recorded against a date the athlete never saw. */
-    const rolled = sleepClockCheck();
+    const rolled = hooks.sleepClockCheck();
     const rolloverLine = map.get("sleep-rollover");
     const keepNight = map.get("sleep-keep-night");
     if (rolloverLine) {
@@ -1557,10 +1260,8 @@ function mountToday(doc, model, options = {}) {
     if (keepNight) {
       keepNight.hidden = !rolled;
       keepNight.textContent = rolled ? plainOrDrop(SLEEP_KEEP_NIGHT, "sleep-keep-night") : "";
-      keepNight.addEventListener("click", () => {
-        sleepNightChoice = sleepRollover || sleepNightDate();
-        sleepRollover = null;
-        sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate();
+      hooks.listen(keepNight, "click", () => {
+        hooks.keepNight();
         render("sleep", false);
       });
     }
@@ -1572,11 +1273,11 @@ function mountToday(doc, model, options = {}) {
     hoursMode.textContent = plainOrDrop(SLEEP_MODE_HOURS, "sleep-mode-hours");
     times.setAttribute("aria-pressed", String(sleepDraft.mode === "times"));
     hoursMode.setAttribute("aria-pressed", String(sleepDraft.mode === "hours"));
-    times.disabled = hoursMode.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;
+    times.disabled = hoursMode.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
     /* A MODE IS NOT A FACT. Switching keeps what is typed in the other mode locally
        and submits only the visible one. */
-    times.addEventListener("click", () => { sleepDraft.mode = "times"; render("sleep", false); });
-    hoursMode.addEventListener("click", () => { sleepDraft.mode = "hours"; render("sleep", false); });
+    hooks.listen(times, "click", () => { sleepDraft.mode = "times"; render("sleep", false); });
+    hooks.listen(hoursMode, "click", () => { sleepDraft.mode = "hours"; render("sleep", false); });
 
     const timesBlock = map.get("sleep-times");
     const hoursBlock = map.get("sleep-hours-mode");
@@ -1597,16 +1298,16 @@ function mountToday(doc, model, options = {}) {
     wake.value = sleepDraft.wake;
     awake.value = sleepDraft.awake_min;
     hoursBox.value = sleepDraft.hours;
-    for (const box of [bed, wake, awake, hoursBox]) box.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;
-    bed.addEventListener("input", () => { sleepDraft.bed = bed.value; sleepEstimate(map); });
-    wake.addEventListener("input", () => { sleepDraft.wake = wake.value; sleepEstimate(map); });
-    awake.addEventListener("input", () => { sleepDraft.awake_min = awake.value; sleepEstimate(map); });
-    hoursBox.addEventListener("input", () => { sleepDraft.hours = hoursBox.value; });
+    for (const box of [bed, wake, awake, hoursBox]) box.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
+    hooks.listen(bed, "input", () => { sleepDraft.bed = bed.value; sleepEstimate(map); });
+    hooks.listen(wake, "input", () => { sleepDraft.wake = wake.value; sleepEstimate(map); });
+    hooks.listen(awake, "input", () => { sleepDraft.awake_min = awake.value; sleepEstimate(map); });
+    hooks.listen(hoursBox, "input", () => { sleepDraft.hours = hoursBox.value; });
 
     const toggle = map.get("sleep-awake-toggle");
     toggle.textContent = plainOrDrop(SLEEP_AWAKE_TOGGLE, "sleep-awake-toggle");
     map.get("sleep-awake-field").hidden = !sleepDraft.awakeOpen;
-    toggle.addEventListener("click", () => { sleepDraft.awakeOpen = !sleepDraft.awakeOpen; render("sleep", false); });
+    hooks.listen(toggle, "click", () => { sleepDraft.awakeOpen = !sleepDraft.awakeOpen; render("sleep", false); });
     sleepEstimate(map);
 
     /* THE CHECK-IN'S OWN ANSWER, dated, as a suggestion. Taking it fills the hours
@@ -1620,7 +1321,7 @@ function mountToday(doc, model, options = {}) {
         SLEEP_CHECKIN_PREFIX + offer.date + ": " + offer.hours + " h", "sleep-checkin");
       use.hidden = false;
       use.textContent = plainOrDrop(SLEEP_USE_CHECKIN, "sleep-use-checkin");
-      use.addEventListener("click", () => {
+      hooks.listen(use, "click", () => {
         sleepDraft.mode = "hours";
         sleepDraft.hours = String(offer.hours);
         sleepDraft.from_checkin_op_id = offer.op_id || "";
@@ -1636,7 +1337,7 @@ function mountToday(doc, model, options = {}) {
     const openCheckIn = map.get("sleep-open-checkin");
     if (qualityLine) {
       qualityLine.hidden = false;
-      qualityLine.textContent = sleepCheckInPending ? "" : plainOrDrop(sleepCheckInFailed
+      qualityLine.textContent = facade.sleepCheckInPending() ? "" : plainOrDrop(facade.sleepCheckInFailed()
         ? SLEEP_CHECKIN_UNREADABLE : quality ? SLEEP_QUALITY_PREFIX + quality.choice : SLEEP_QUALITY_NONE, "sleep-quality");
     }
     const qualitySource = map.get("sleep-quality-source");
@@ -1645,9 +1346,9 @@ function mountToday(doc, model, options = {}) {
       qualitySource.textContent = quality ? plainOrDrop(SLEEP_CHECKIN_PREFIX + quality.date + ".", "sleep-quality-source") : "";
     }
     if (openCheckIn) {
-      openCheckIn.hidden = !!quality || !!sleepCheckInPending;
+      openCheckIn.hidden = !!quality || !!facade.sleepCheckInPending();
       openCheckIn.textContent = openCheckIn.hidden ? "" : plainOrDrop(SLEEP_OPEN_CHECKIN, "sleep-open-checkin");
-      openCheckIn.addEventListener("click", () => {
+      hooks.listen(openCheckIn, "click", () => {
         if (SleepModel.dayAfter(date) === model.today) {
           checkinOrigin = "sleep"; render("recovery", true);
         } else render("sleep-checkin", true);
@@ -1655,17 +1356,17 @@ function mountToday(doc, model, options = {}) {
     }
 
     const error = map.get("sleep-error");
-    error.textContent = sleepErrorText
-      ? plainOrDrop(sleepErrorText, "sleep-error")
-      : (sleepReadBack ? plainOrDrop(SLEEP_READ_FAILED + " " + SLEEP_KEPT, "sleep-error") : "");
+    error.textContent = facade.sleepErrorText()
+      ? plainOrDrop(facade.sleepErrorText(), "sleep-error")
+      : (facade.sleepReadBack() ? plainOrDrop(SLEEP_READ_FAILED + " " + SLEEP_KEPT, "sleep-error") : "");
     /* D2 ROUND 1, FINDING 6 - the read that failed is OFFERED AGAIN rather than left
        for the athlete to discover by reopening the page. */
     const retry = map.get("sleep-read-retry");
-    const owed = !!sleepReadBack || !!sleepUnknown || sleepCheckInFailed;
+    const owed = !!facade.sleepReadBack() || !!facade.sleepUnknown() || facade.sleepCheckInFailed();
     if (retry) {
       retry.hidden = !owed;
       retry.textContent = owed ? plainOrDrop(SLEEP_READ_RETRY, "sleep-read-retry") : "";
-      retry.addEventListener("click", () => { sleepSaving = retrySleepRead(); });
+      hooks.listen(retry, "click", () => { hooks.retrySleepRead(); });
     }
     const recorded = map.get("sleep-recorded");
     recorded.hidden = !known;
@@ -1676,7 +1377,7 @@ function mountToday(doc, model, options = {}) {
        because from the acknowledgment alone it is not.
        D2 ROUND 1, FINDING 5 - a second op for one night is a CORRECTION, and the
        screen says which of the two it is looking at. */
-    const corrected = sleepOpsFor(date).length > 1;
+    const corrected = hooks.sleepOpsFor(date).length > 1;
     /* While an acknowledgment is standing, the projected OPERATION is the one it
        replaced: its shape and its stamp describe a night that is no longer the
        record, so neither is claimed. The figure is the acknowledged one and the save
@@ -1693,68 +1394,38 @@ function mountToday(doc, model, options = {}) {
        saved value stays visible the whole time, exactly as the brief requires. */
     const change = map.get("sleep-change");
     const cancel = map.get("sleep-cancel");
-    const editing = !known || sleepCorrecting;
+    const editing = !known || facade.sleepCorrecting();
     if (map.get("sleep-modes")) map.get("sleep-modes").hidden = !editing;
     timesBlock.hidden = !editing || sleepDraft.mode !== "times";
     hoursBlock.hidden = !editing || sleepDraft.mode !== "hours";
     if (map.get("sleep-date-field")) map.get("sleep-date-field").hidden = false;
     if (change) {
-      change.hidden = !known || sleepCorrecting;
+      change.hidden = !known || facade.sleepCorrecting();
       change.textContent = change.hidden ? "" : plainOrDrop(SLEEP_CHANGE, "sleep-change");
-      change.addEventListener("click", () => { sleepCorrecting = true; render("sleep", false); });
+      hooks.listen(change, "click", () => { hooks.sleepCorrect(true); render("sleep", false); });
     }
     if (cancel) {
-      cancel.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;
-      cancel.hidden = !sleepCorrecting;
-      cancel.textContent = sleepCorrecting ? plainOrDrop(SLEEP_CANCEL, "sleep-cancel") : "";
-      cancel.addEventListener("click", () => {
-        sleepCorrecting = false; clearSleepDraft(); render("sleep", false);
+      cancel.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
+      cancel.hidden = !facade.sleepCorrecting();
+      cancel.textContent = facade.sleepCorrecting() ? plainOrDrop(SLEEP_CANCEL, "sleep-cancel") : "";
+      hooks.listen(cancel, "click", () => {
+        hooks.sleepCorrect(false); clearSleepDraft(); render("sleep", false);
       });
     }
     const save = map.get("sleep-save");
     save.hidden = !editing;
-    put(map, "sleep-save-label", sleepBusy ? SLEEP_SAVING
+    put(map, "sleep-save-label", facade.sleepBusy() ? SLEEP_SAVING
       : (known ? SLEEP_SAVE_CORRECTION : SLEEP_SAVE));
     /* D2 ROUND 2, FINDING 5 - THE FENCE. While the outcome of a write is unknown a
        second press could duplicate a night that did land, so saving waits until the
        read settles the question. The read is the way forward, and it is on screen. */
-    save.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;
-    save.addEventListener("click", () => { sleepSaving = recordSleep(map); });
+    save.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
+    hooks.listen(save, "click", () => { hooks.recordSleep(map); });
     return section;
   }
 
   /* D2 ROUND 1, FINDING 6 - the read that failed, asked again. The op is already
      durable; this only tries to see it. Nothing is written and nothing navigates. */
-  async function retrySleepRead() {
-    if (sleepCheckInFailed) await readSleepCheckIn(sleepNightDate(), true);
-    if (!sleepLane || (!sleepReadBack && !sleepUnknown)) return;
-    const owed = sleepUnknown;
-    const token = mountToken;
-    try { await sleepLane.refresh(); }
-    catch (_) { if (token === mountToken) render("sleep", false); return; }
-    /* D2 ROUND 2, FINDING 5 - THE READ IS WHAT SETTLES AN UNKNOWN OUTCOME. If the
-       night that was attempted is in the log, the write landed after all and the
-       screen says so; if the log can be read and it is not there, nothing was
-       recorded - and now that is a statement the log supports. Either way the fence
-       comes down, because the question has an answer. */
-    if (owed) {
-      const present = committedSleepAttempt(owed);
-      sleepUnknown = null;
-      sleepErrorText = present ? "" : SLEEP_NOT_SAVED + " " + SLEEP_NOTHING_RECORDED + " " + SLEEP_KEPT;
-      if (present) { clearSleepDraft(); sleepCorrecting = false; sleepRollover = null; }
-      workoutRebinding = rebindWorkout();
-      if (token === mountToken) render("sleep", false);
-      return;
-    }
-    sleepReadBack = null;
-    sleepAck = null;
-    sleepCorrecting = false;
-    sleepErrorText = "";
-    clearSleepDraft();
-    workoutRebinding = rebindWorkout();
-    if (token !== mountToken) return;      // the record is settled; the screen is his
-    render("sleep", false);
-  }
 
   /* The hours a pair of clock times comes to, asked of the ENGINE and never computed
      here. Shown only when the pair is recordable, so the clamp can never be displayed
@@ -1762,7 +1433,7 @@ function mountToday(doc, model, options = {}) {
   function sleepEstimate(map) {
     const line = map.get("sleep-estimate");
     if (!line) return;
-    const entry = { ...sleepDraft, mode: "times", date: sleepNightDate() };
+    const entry = { ...sleepDraft, mode: "times", date: facade.sleepNightDate() };
     const refusal = SleepModel.timesRefusal(entry, model.today);
     if (refusal === SleepModel.REFUSALS.SAME_TIME) {
       line.textContent = plainOrDrop(SLEEP_CLOCK_CHANGE, "sleep-estimate");
@@ -1805,151 +1476,13 @@ function mountToday(doc, model, options = {}) {
 
   /* The write. Kept as a named async function so a check can await it, and it NEVER
      rejects: a commit and the read-back that follows it are two outcomes. */
-  async function recordSleep(map) {
-    if (sleepBusy || sleepUnknown || sleepReadBack) return;
-    /* D2 ROUND 1, FINDING 6 - the sentence is STATE, not a node. A save that outlives
-       its paint cannot write into the element it started with: `render` replaces the
-       whole screen, so every message below is held here and drawn by the next paint. */
-    const say = (sentence) => { sleepErrorText = sentence; render("sleep", false); };
-    sleepClockCheck();
-    const date = sleepNightDate();
-    sleepErrorText = "";
-    /* D2 ROUND 1, FINDING 5 - a rollover that has not been answered blocks the write.
-       The athlete confirms which night this is for; the page never decides for him. */
-    if (sleepRollover) {
-      say(SLEEP_ROLLOVER + " " + SLEEP_NOTHING_RECORDED);
-      return;
-    }
-    const entry = { ...sleepDraft, date };
-    const refusal = SleepModel.refusalFor(entry, sleepToday());
-    if (refusal) {
-      say((SLEEP_REFUSAL_COPY[refusal] || SLEEP_NOT_SAVED) + " " + SLEEP_NOTHING_RECORDED);
-      return;
-    }
-    const night = SleepModel.nightFromEntry(entry, sleepToday());
-    /* D2 ROUND 1, FINDING 1 - A CORRECTION NAMES WHAT IT CORRECTS. The op this screen
-       is looking at travels with the write, and the host refuses if it is no longer the
-       current one: a stale editor and a double submit both stop here, with nothing
-       written, rather than quietly replacing a night the athlete never saw. */
-    const held = sleepOpsFor(date);
-    const supersedes = held.length === 0 ? null : held[held.length - 1].op_id;
-    const attempt = { date, night, supersedes, before: held.map((row) => row.op_id),
-      deviceId: sleepLane && sleepLane.host && sleepLane.host.deviceId };
-    /* D2 ROUND 1, FINDING 6 - MOUNT OWNERSHIP. The token this save was begun under; if
-       the athlete has navigated by the time it resolves, nothing at all is applied. */
-    const token = mountToken;
-    sleepBusy = true;
-    render("sleep", false);
-    let result = null;
-    try { result = await sleepLane.save(night, { supersedes }); }
-    catch (thrown) {
-      /* D2 ROUND 1, FINDING 6 - AN UNCERTAIN OUTCOME IS RECONCILED, NOT GUESSED. The
-         command threw without answering, so whether it committed is unknown. The screen
-         says it is finding out, then READS the log: if the night is there the write
-         landed and is treated as a save; if it is not, the reason is shown and the
-         athlete may try again. Nothing is resubmitted before that question is settled,
-         so an acknowledged write cannot be duplicated by a second press. */
-      sleepErrorText = SLEEP_UNCERTAIN;
-      if (token === mountToken) render("sleep", false);
-      /* D2 ROUND 2, FINDING 5 - RECONCILE AGAINST THE OPERATION THAT WAS ATTEMPTED.
-         "Some new last op" is not proof that THIS write landed: another correction may
-         have arrived, and a night that merely differs from `supersedes` proves nothing
-         about the one being saved. The log is asked for an op that is not the one this
-         write expected to replace AND carries exactly the night that was written. */
-      let landed = null;
-      let read = true;
-      try {
-        await sleepLane.refresh();
-        landed = committedSleepAttempt(attempt);
-      } catch (_) { read = false; landed = null; }
-      sleepBusy = false;
-      if (landed) {
-        /* It did land. Everything a successful save settles is settled, including the
-           shared consumer state - whether or not this screen is still on top. */
-        sleepAck = null; sleepReadBack = null; sleepUnknown = null; sleepCorrecting = false;
-        sleepRollover = null;
-        clearSleepDraft();
-        workoutRebinding = rebindWorkout();
-        if (token === mountToken) say("");
-        return;
-      }
-      if (!read) {
-        /* THE READ FAILED TOO. Nobody knows. Saying "nothing was recorded" here would
-           be a claim about the log that the log never made, so the screen keeps the
-           question open, fences the save against a duplicate, and offers the read. */
-        sleepUnknown = attempt;
-        if (token === mountToken) say(SLEEP_UNCERTAIN);
-        return;
-      }
-      /* The read succeeded and the night is NOT there: the log itself says nothing
-         was written, which is the one case in which that may be said. */
-      sleepUnknown = null;
-      if (token !== mountToken) return;
-      say(SLEEP_NOT_SAVED + " "
-        + FOOD_REASON + ((thrown && (thrown.code || thrown.message)) || "SLEEP_WRITE_UNKNOWN") + ". "
-        + SLEEP_NOTHING_RECORDED + " " + SLEEP_KEPT);
-      return;
-    }
-    sleepBusy = false;
-    if (!result || result.ok !== true) {
-      /* THE LATE REFUSAL NEVER STEALS THE SCREEN either: nothing was written, so
-         there is nothing for another screen to be told. */
-      if (token !== mountToken) return;
-      const code = result && result.code;
-      if (code === "SLEEP_STALE_NIGHT") {
-        try { await sleepLane.refresh(); } catch (_) { /* keep the refusal and the typed correction */ }
-      }
-      const sentence = code === "SLEEP_STALE_NIGHT" ? SLEEP_NIGHT_CHANGED
-        : (code && code.indexOf("SLEEP_SOURCE_") === 0) ? SLEEP_CHECKIN_CHANGED
-          : [SLEEP_NOT_SAVED, reasonOf(result)].filter(Boolean).join(" ");
-      say(sentence + " " + SLEEP_NOTHING_RECORDED);
-      return;
-    }
-    /* THE COMMIT IS A FACT. Its figure is held here so a failed read-back cannot make
-       a durable night disappear from the screen, and the typed value is KEPT in that
-       case so nothing the athlete wrote is lost with it. */
-    sleepUnknown = null;
-    if (result.readBack === false) {
-      sleepAck = { date: night.date, hours: SleepModel.rowFor(night, model.engine).h };
-      sleepReadBack = { date: night.date, code: result.readCode || null };
-    } else {
-      sleepAck = null;
-      sleepReadBack = null;
-      sleepCorrecting = false;
-      sleepRollover = null;
-      clearSleepDraft();
-    }
-    /* D2 ROUND 1, FINDING 2, CORRECTED IN ROUND 2 - THE CONSUMERS ARE UPDATED EVEN
-       WHEN THIS SCREEN IS NO LONGER ON TOP. A night that committed is a fact about
-       the device, not about the sleep screen: the gym host still holds an engine
-       state captured before it existed, and leaving it stale because the athlete
-       walked away is exactly the defect. Ownership governs PAINTING and NAVIGATION,
-       which stay with the mount that has the screen; it never governs the record. */
-    workoutRebinding = rebindWorkout();
-    if (token !== mountToken) return;
-    render("sleep", false);
-  }
 
   /* Two nights are the same fact when they carry the same members with the same
      values. Used to recognise a write in the log after an uncertain outcome, so
      "something new is there" is never mistaken for "mine is there". */
-  function sameNight(one, two) {
-    if (!one || !two || typeof one !== "object" || typeof two !== "object") return false;
-    const keys = [...new Set([...Object.keys(one), ...Object.keys(two)])];
-    return keys.every((key) => one[key] === two[key]);
-  }
-  // Equality alone can find a years-old observation. Only a new operation bound to
-  // this attempted revision on this device can settle an uncertain correction.
-  function committedSleepAttempt(attempt) {
-    return sleepOpsFor(attempt.date).find((row) => !attempt.before.includes(row.op_id)
-      && Object.hasOwn(row, "supersedes") && row.supersedes === attempt.supersedes
-      && (!attempt.deviceId || row.device_id === attempt.deviceId)
-      && sameNight(row.night, attempt.night)) || null;
-  }
-
   /* Today's one line about sleep: the DURABLE record, never a flag this page sets. */
   function sleepState() {
-    if (!sleepLane) { openSleepLane(); return ""; }
+    if (!facade.sleepLane()) { hooks.openSleepLane(); return ""; }
     const logged = typeof model.loggedSleep === "function" ? model.loggedSleep(SleepModel.nightDateFor(model.today)) : null;
     return logged && Number.isFinite(logged.h) ? logged.h + " h" : "";
   }
@@ -1962,79 +1495,12 @@ function mountToday(doc, model, options = {}) {
      in this repository behaves exactly as it did. Nothing durable is written, no
      second store or producer is opened, and neither checkin-model.mjs nor the pinned
      today-entry.mjs is edited. */
-  function reboundCheckIn(origin) {
-    if (!checkInKit || !checkin || !checkin.host || typeof model.loggedSleep !== "function") return null;
-    /* D2 ROUND 2, FINDING 3 - THE CURRENT SHEET IS THE ONE THE ATHLETE IS FILLING IN.
-       A rebind replaces the model, so the replacement - not the entry's original - is
-       what the next visit must reopen. Keeping only the entry's model meant the carry
-       was repeated from the ORIGINAL draft every time, and everything typed into the
-       replacement was thrown away on the second visit. The active model is retained,
-       every later carry starts from it, and the carry happens ONCE per rebind. */
-    const active = checkInLive || checkin.checkin || null;
-    if (!active) return null;
-    const captured = active.sleepRecord || null;
-    const current = model.loggedSleep(SleepModel.nightDateFor(model.today));
-    const same = (!captured && !current)
-      || (captured && current && captured.hours === current.h && captured.date === current.d);
-    /* Nothing has moved since this model was built: reopen THE SAME sheet, with
-       everything on it. Only when this page has never rebound does the untouched
-       original path run, so every existing mount behaves exactly as it did. */
-    if (same && !checkInLive) return null;
-    const token = mountToken;
-    if (same) {
-      return Promise.resolve(active.refresh()).then(() => {
-        if (token !== mountToken) return null;
-        return checkInKit.mountCheckIn(doc, phone, { model: active,
-          onBack: () => render(origin, true), onChanged: () => checkin.refresh() });
-      });
-    }
-    const fresh = checkInKit.createCheckInModel({ host: checkin.host, day: model.today,
-      engineState: model.stateFromOps() });
-    /* D2 ROUND 1, FINDING 3 - A REBIND IS NOT A RESET. The only thing that changed is
-       the night this check-in reads back; every OTHER answer the athlete has already
-       typed - his soreness detail, his note, the issues he ticked - is his and is
-       carried across to the replacement. Only the sleep confirmation is left behind,
-       because that is precisely the answer the new night invalidates. */
-    carryCheckInDraft(active, fresh);
-    checkInLive = fresh;
-    return Promise.resolve(fresh.refresh()).then(() => {
-      /* ... and the mount itself is deferred, so it takes the same ownership guard as
-         every other deferred paint on this page: if the athlete has moved on while the
-         read was in flight, his destination stands. */
-      if (token !== mountToken) return null;
-      return checkInKit.mountCheckIn(doc, phone, {
-        model: fresh,
-        onBack: () => render(origin, true),
-        /* Today's own marker still comes from the ENTRY's durable summary. */
-        onChanged: () => checkin.refresh(),
-      });
-    });
-  }
 
   /* The half-answered sheet, moved from one model to the next through the draft's own
      public verbs. Nothing is reached into: `choose`, `toggleIssue` and `set` are the
      same three the screen itself uses, so a carried answer is indistinguishable from
      one the athlete has just given. Sleep hours travel only while the replacement is
      still asking for them. */
-  function carryCheckInDraft(previous, next) {
-    const from = previous && typeof previous.draft === "function" ? previous.draft() : null;
-    const to = next && typeof next.draft === "function" ? next.draft() : null;
-    if (!from || !to || typeof from.state !== "function") return false;
-    const was = from.state();
-    const now = typeof to.state === "function" ? to.state() : null;
-    for (const [group, label] of Object.entries(was.choices || {})) {
-      if (label && typeof to.choose === "function") to.choose(group, label);
-    }
-    for (const [name, on] of Object.entries(was.issues || {})) {
-      if (on && typeof to.toggleIssue === "function") to.toggleIssue(name);
-    }
-    for (const [field, value] of Object.entries(was.fields || {})) {
-      if (value === "" || typeof to.set !== "function") continue;
-      if (field === "sleep_hours" && !(now && now.askHours)) continue;
-      to.set(field, value);
-    }
-    return true;
-  }
 
   /* D2 ROUND 1, FINDING 2 - THE GYM HOST SEES THE NIGHT. `createWorkoutEntry` captures
      `model.stateFromOps()` once and `createGymHost` holds it for the life of the host;
@@ -2046,51 +1512,6 @@ function mountToday(doc, model, options = {}) {
      draft. Durable Start/set bytes need no carrying: they are in the log. A device with
      no store rebinds nothing and keeps the entry it has, which is what every jsdom
      mount in this repository does. */
-  let workoutRebindQueued = false;
-  function rebindWorkout() {
-    if (!workout || typeof workout.gymDraft !== "function") return null;
-    const view = doc.defaultView || null;
-    const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
-    const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
-    if (!idb || !web || !web.subtle) return null;
-    const previous = workout;
-    if (rebindInFlight) { workoutRebindQueued = true; return workoutRebinding; }
-    rebindInFlight = true;
-    return import("./today-entry.mjs")
-      .then((entry) => entry.createWorkoutEntry(model, { indexedDB: idb, crypto: web }))
-      .then((next) => {
-        /* D2 ROUND 2, FINDING 2 - THE REBUILD MUST BE THE SAME INSTALLATION. The page
-           rebuilds over the store THIS window can reach; a page that was handed an
-           entry on some other installation (a test harness, a second device's handle)
-           must keep the one it was given rather than silently moving the athlete's
-           workout to a different generation. Identity is the era's own: athlete,
-           namespace, database and the lease the host is standing on. */
-        const before = previous.gymHost || {};
-        const after = next.gymHost || {};
-        const same = ["athleteId", "namespace", "databaseName", "lease"]
-          .every((key) => before[key] === undefined || before[key] === after[key]);
-        if (!same) {
-          try { if (typeof after.close === "function") after.close(); } catch (_) { /* nothing held */ }
-          return previous;
-        }
-        const kept = previous.gymDraft();
-        if (kept && typeof next.gymDraft === "function") Object.assign(next.gymDraft(), kept);
-        /* The same refresh binding today-entry.mjs boot() gives the first entry, so
-           Today keeps repainting itself from the durable log after every set. */
-        if (typeof next.setOnRefresh === "function") {
-          next.setOnRefresh(() => { if (screen === "today") render("today", false); });
-        }
-        workout = next;
-        if (screen === "today") render("today", false);
-        return next;
-      })
-      .catch(() => null)        // a rebind that cannot happen leaves the entry it has
-      .then((value) => {
-        rebindInFlight = false;
-        if (workoutRebindQueued) { workoutRebindQueued = false; return rebindWorkout(); }
-        return value;
-      });
-  }
 
   function renderStub(id, focus, note, extra, noteSlot = "stub-note") {
     const root = template(id);
@@ -2112,7 +1533,7 @@ function mountToday(doc, model, options = {}) {
   function setupTile(map) {
     const tile = map.get("setup-entry");
     if (!tile) return null;
-    const offer = firstRun();
+    const offer = facade.firstRun();
     tile.hidden = !offer;
     if (offer) put(map, "setup-entry-label", SETUP_ENTRY);
     return offer;
@@ -2133,7 +1554,7 @@ function mountToday(doc, model, options = {}) {
      what "above the first figure" means on this screen. The template is untouched:
      the element is built here, the same way the Measure tile below already is. */
   function sampleNote(map, root) {
-    if (!firstRun()) return false;
+    if (!facade.firstRun()) return false;
     const line = doc.createElement("p");
     line.dataset.slot = "sample-note";
     line.textContent = plainOrDrop(SAMPLE_DATA_NOTE, "sample-note");
@@ -2149,8 +1570,8 @@ function mountToday(doc, model, options = {}) {
   function setupNote(map) {
     const note = map.get("setup-note");
     if (!note) return false;
-    const summary = (setup && typeof setup.summary === "function" ? setup.summary() : null) || null;
-    const label = setup && typeof setup.athleteLabel === "function" ? setup.athleteLabel() : null;
+    const summary = (facade.setup() && typeof facade.setup().summary === "function" ? facade.setup().summary() : null) || null;
+    const label = facade.setup() && typeof facade.setup().athleteLabel === "function" ? facade.setup().athleteLabel() : null;
     let state = null;
     try { state = typeof model.stateFromOps === "function" ? model.stateFromOps() : null; }
     catch (_) { state = null; }
@@ -2180,9 +1601,9 @@ function mountToday(doc, model, options = {}) {
      only place a state-18 refusal reaches this view: boot() writes rebuild/client's
      sentence there and hands mountToday no lanes at all, so a damaged installation
      and a device with no store are otherwise indistinguishable from here. */
-  const laneHandles = () => ({ workout: !!workout, checkin: !!checkin, setup: !!setup });
+  const laneHandles = () => ({ workout: !!facade.workout(), checkin: !!facade.checkin(), setup: !!facade.setup() });
   function installationDevice() {
-    const holders = [setup && setup.host, workout && workout.gymHost];
+    const holders = [facade.setup() && facade.setup().host, facade.workout() && facade.workout().gymHost];
     for (const handle of holders) {
       if (!handle) continue;
       if (handle.lease && typeof handle.lease.device_id === "string") return handle.lease.device_id;
@@ -2197,7 +1618,7 @@ function mountToday(doc, model, options = {}) {
       lanes: laneHandles(),
       enrolment: ProblemReport.enrolmentOf({
         restoreNote: status ? status.textContent : "",
-        setup: setup && typeof setup.summary === "function" ? setup.summary() : null,
+        setup: facade.setup() && typeof facade.setup().summary === "function" ? facade.setup().summary() : null,
       }),
       offlineReady: ProblemReport.offlineReadinessOf(view),
       device: installationDevice(),
@@ -2220,7 +1641,7 @@ function mountToday(doc, model, options = {}) {
     const area = map.get("problem-text");
     said.hidden = true;
     box.hidden = true;
-    button.addEventListener("click", async () => {
+    hooks.listen(button, "click", async () => {
       const report = ProblemReport.buildProblemReport(problemState());
       area.value = report;
       let copied = false;
@@ -2243,13 +1664,13 @@ function mountToday(doc, model, options = {}) {
      state, never a flag this page sets: with no lane it is A1's unwired marker, with a
      lane and nothing recorded it is silent, and with a recorded day it says so. */
   function nutritionState() {
-    if (!foodLane) { openFoodLane(); return NOT_WIRED; }
+    if (!facade.foodLane()) { hooks.openFoodLane(); return NOT_WIRED; }
     const logged = typeof model.loggedFood === "function" ? model.loggedFood(model.today) : null;
     return logged && (logged.cal !== null || logged.pro !== null) ? FOOD_SAVED : "";
   }
 
   function recoveryState() {
-    const summary = checkinSummary();
+    const summary = facade.checkinSummary();
     if (!summary || summary.durable !== true) return CHECKIN_NO_STORE_SHORT;
     return summary.recorded ? CHECKIN_RECORDED_TODAY : "";
   }
@@ -2266,7 +1687,7 @@ function mountToday(doc, model, options = {}) {
     for (const el of root.querySelectorAll('[data-go="today"]')) {
       const back = el.cloneNode(true);
       el.replaceWith(back);
-      back.addEventListener("click", (event) => { event.preventDefault(); render(origin, true); });
+      hooks.listen(back, "click", (event) => { event.preventDefault(); render(origin, true); });
     }
   }
 
@@ -2286,7 +1707,7 @@ function mountToday(doc, model, options = {}) {
        tab can reach the setup screens a second time (S13). The same fallback
        covers RESTORE_REQUIRED and a device with no store, because in both cases
        the page was given no setup entry at all (S14). */
-    if (next === "setup" && !firstRun()) next = "today";
+    if (next === "setup" && !facade.firstRun()) next = "today";
     /* D2 ROUND 1, FINDING 6 - MOUNT OWNERSHIP, exactly as the gym card's settings lane
        holds it. Leaving a screen INVALIDATES the mount that was on it: any deferred
        work begun there - a save still in flight, a read being retried - finds its token
@@ -2295,11 +1716,11 @@ function mountToday(doc, model, options = {}) {
        mount and keeps the token. */
     if (next !== screen) {
       mountToken += 1;
-      if (next === "sleep") { sleepCheckInDay = null; sleepCheckInPending = null; }
+      if (next === "sleep") hooks.forgetCheckInRead();
     }
     screen = next;
     if (next === "setup") {
-      return setup.open({ doc, phone,
+      return facade.setup().open({ doc, phone,
         back: () => render("today", true),
         /* P3-IMPORT-UI-2 round 2, review r1 finding 1. THE SETUP SCREENS CARRY
            NO IMPORT LINK, and the reason is written here rather than left as a
@@ -2320,8 +1741,8 @@ function mountToday(doc, model, options = {}) {
            `ready` lets a caller await api.ready and see exactly this settle,
            with no reload. */
         done: () => {
-          const adopting = canAdoptAthleteState();
-          if (adopting) armAdoptionGate();
+          const adopting = hooks.canAdoptAthleteState();
+          if (adopting) hooks.armAdoptionGate();
           /* ROUND 4: the chain is armed BEFORE this first Today paint, exactly
              as boot() below arms it before ITS first paint. It was started one
              statement later until now, which was invisible while nothing on the
@@ -2331,9 +1752,9 @@ function mountToday(doc, model, options = {}) {
              gates are still armed before the paint, and the chain still does
              its own first work asynchronously, so the athlete sees the same
              Today he saw before. */
-          ready = settleAdoption(adopting ? adoptAthleteState() : Promise.resolve(), adopting);
+          hooks.settleAdoption(adopting);
           render("today", true);
-          return ready;
+          return facade.ready();
         } });
     }
     if (next === "today") return renderToday(focus);
@@ -2342,14 +1763,14 @@ function mountToday(doc, model, options = {}) {
     if (next === "sleep") return renderSleep(focus);
     if (next === "sleep-checkin") return renderSleepCheckIn(focus);
     if (next === "recovery") {
-      const origin = checkinOrigin === "workout" && workout ? "workout"
+      const origin = checkinOrigin === "workout" && facade.workout() ? "workout"
         : checkinOrigin === "sleep" ? "sleep" : "today";
       checkinOrigin = null;
-      if (checkin && typeof checkin.open === "function") {
+      if (facade.checkin() && typeof facade.checkin().open === "function") {
         /* N2 / D2 correction 1 - the SAME-PAGE journey. */
-        const rebound = reboundCheckIn(origin);
+        const rebound = hooks.reboundCheckIn(origin);
         if (rebound) return rebound;
-        return checkin.open({ doc, phone, back: () => render(origin, true) });
+        return facade.checkin().open({ doc, phone, back: () => render(origin, true) });
       }
       return renderCheckInWithoutStore(focus, origin);
     }
@@ -2358,12 +1779,12 @@ function mountToday(doc, model, options = {}) {
     if (next === "coach") return renderStub("t-coach", focus,
       "The coach is not wired yet. There is no conversation here, and nothing on this screen comes from your records.");
     if (next === "workout") {
-      if (workout && typeof workout.open === "function") {
+      if (facade.workout() && typeof facade.workout().open === "function") {
         /* A3 — the check-in is reachable from the workout flow too, in the approved
            design's own sentence. The gym card is handed the route, not the screen:
            it never learns what a check-in is. */
-        return workout.open({ doc, phone, back: () => render("today", true),
-          ...(checkin ? { checkIn: () => { checkinOrigin = "workout"; render("recovery", true); } } : {}) });
+        return facade.workout().open({ doc, phone, back: () => render("today", true),
+          ...(facade.checkin() ? { checkIn: () => { checkinOrigin = "workout"; render("recovery", true); } } : {}) });
       }
       /* No encrypted local workout store on this device: say exactly that, show no
          prescription, and record nothing. This is not a "not wired yet" screen — the
@@ -2388,7 +1809,7 @@ function mountToday(doc, model, options = {}) {
   const onPhoneKeydown = (event) => {
     if (event.key === "Escape" && !phone.querySelector('[role="dialog"]') && screen !== "today") render("today", true);
   };
-  phone.addEventListener("keydown", onPhoneKeydown);
+  hooks.listen(phone, "keydown", onPhoneKeydown);
 
   /* THE SCREEN THIS PAGE LOAD OPENS ON. Today, as it always has, with the
      first-run tile on it while this installation is fresh. `?screen=` names a
@@ -2428,18 +1849,7 @@ function mountToday(doc, model, options = {}) {
      "Start using Earned" (the "done" callback above). At THIS mount, before
      setup finishes, setup.summary().enrolled is false, so this is false here
      and the first paint is the untouched fixture, exactly as P0B.3 requires. */
-  function canAdoptAthleteState() {
-    return !!(setup && typeof setup.summary === "function" && setup.summary().enrolled === true
-      && typeof setup.athleteState === "function" && typeof model.adoptBasis === "function");
-  }
-  function armAdoptionGate() {
-    if (typeof model.setPendingAdoption === "function") model.setPendingAdoption(true);
-    if (workout && workout.gym && typeof workout.gym.holdForAdoption === "function") {
-      workout.gym.holdForAdoption(true);
-    }
-  }
-  const willAdopt = canAdoptAthleteState();
-  if (willAdopt) armAdoptionGate();
+  hooks.bootAdoptionGate();
   /* S6 item 1 - THE LANDING SCREEN (owner ruling DECISIONS:463). A device whose
      durable record holds no first-run operation opens on the setup screens; an
      enrolled device, a device whose store did not open, and a RESTORE_REQUIRED
@@ -2449,7 +1859,7 @@ function mountToday(doc, model, options = {}) {
      the setup route on an installation that is no longer fresh. Nothing here
      changes what setup WRITES or how it hands over: the "done" callback below is
      the same setup-to-Today transition P0-C already owns. */
-  render(requestedScreen() || (setupFirst && firstRun() ? "setup" : "today"));
+  render(requestedScreen() || (facade.setupFirst() && facade.firstRun() ? "setup" : "today"));
 
   /* P0 HIS NUMBERS (CRITICAL-PATH-2026-09-15 section 4, Route B) - ON AN ENROLLED
      INSTALLATION, TODAY AND THE GYM CARD STAND ON THE ATHLETE'S OWN STATE.
@@ -2480,101 +1890,36 @@ function mountToday(doc, model, options = {}) {
      athlete's label) and never throws, so this is the P0-B chain with one extra
      read in front of it and no other change: the same adoptBasis, the same gym
      rebase, the same check-in adoption, the same pending gate and release. */
-  function athleteBasisState() {
-    return import("./local-source-basis.mjs")
-      .then((module) => module.admittedLocalSourceState(setup))
-      .catch(() => null)
-      /* P3-IMPORT-UI-2 - the SAME read is what the two entry links ask, so the
-         page never has a second opinion about whether a history is admitted. */
-      .then((imported) => { importAdmitted = !!imported; return imported || setup.athleteState(); });
-  }
-  function adoptAthleteState() {
-    return athleteBasisState().then(async (state) => {
-      {
-        if (!state) return;
-        model.adoptBasis(state);
-        /* The gym card: rebase its host through hostForDay(day), which rereads
-           model.stateFromOps() at call time and so picks up the athlete just
-           adopted above. Then refresh the cached summary Today reads off the
-           workout entry, so the durable state the card next opens on agrees with
-           the one line Today already shows about it. */
-        if (workout && workout.gym && typeof workout.gym.rebase === "function") {
-          try { await workout.gym.rebase(); } catch (_) { /* the card keeps whatever host it already had */ }
-          if (typeof workout.refresh === "function") { try { await workout.refresh(); } catch (_) { /* reported on its own next read */ } }
-        }
-        /* P0-B r2 (review finding 1) - through the MODEL the entry actually
-           carries. `checkin` here is the ENTRY today-entry.mjs:83 returns
-           ({summary, refresh, setOnRefresh, open, checkin, host}); the entry
-           itself has no adoptEngineState, only entry.checkin (the model) does,
-           so this guard used to be permanently false and the fixture's sleep
-           night stood on his check-in sheet on every frame, unreached. */
-        if (checkin && checkin.checkin && typeof checkin.checkin.adoptEngineState === "function") {
-          checkin.checkin.adoptEngineState(state);
-        }
-        /* No render call of this module's own here (review, this ticket): the
-           repaint that shows the adopted state comes from workout.refresh()
-           above, through the SAME onRefresh -> api.render("today") wiring
-           boot() already gives every other durable change on this page. A
-           render here, unconditional on whatever screen or in-page control the
-           athlete already has open (the "Report a problem" box included), would
-           tear that down out from under them for no reason of its own; letting
-           the existing cascade own it is what every other lane on this page
-           already does. With no workout lane (a device with no workout store,
-           or a caller that mounts this module directly with none, as several
-           tests here do), Today's adopted state still paints correctly the next
-           time anything else repaints it - `read()` and `stateFromOps()` always
-           read the CURRENT (adopted) basis; only the automatic repaint waits. */
-      }
-    }).catch((error) => {
-      if (status) tell(athleteStateFailureCopy(error));
-    }).finally(() => {
-      /* P0-B r3 (review finding N1) - moved OUT of the `.then` (where it sat
-         inside a `try/finally` that a REJECTED athleteState() never reached,
-         so a corrupt or undecryptable first-run record left Start dark for
-         the whole page load behind a message that promised it would clear).
-         `.finally()` on the WHOLE chain runs after `.then` OR `.catch`, so
-         EVERY path - adopted, a falsy state, no workout lane, or a genuine
-         rejection - releases it. This alone does not hand the athlete the
-         fixture host back: gym-model.mjs's own `everHeld` guard (below)
-         keeps Start refused on an enrolled installation until a rebase has
-         actually happened, so releasing this flag only clears the ONE
-         early, worded refusal - it never becomes "Start over the fixture
-         host". */
-      if (workout && workout.gym && typeof workout.gym.holdForAdoption === "function") {
-        workout.gym.holdForAdoption(false);
-      }
-    });
-  }
   /* `let`, not `const`: the "done" callback above reassigns this on the
      in-page transition, so a caller awaiting api.ready sees that settle too,
      with no reload. */
-  let ready = settleAdoption(willAdopt ? adoptAthleteState() : Promise.resolve(), willAdopt);
+  hooks.bootSettleAdoption();
 
   return { render, read: () => model.read(), openWeighIn, screen: () => screen,
     /* P3-IMPORT-UI-2 - the Import route's own handle and the one flag the two
        entry links read, so a cell can drive the real screen and assert what the
        links say without reaching into this closure through the DOM. */
-    importScreen: () => importScreen, importAdmitted: () => importAdmitted,
-    foodPending: () => foodSaving, foodReady: () => foodOpening,
+    importScreen: () => facade.importScreen(), importAdmitted: () => facade.importAdmitted(),
+    foodPending: () => facade.foodSaving(), foodReady: () => facade.foodOpening(),
     /* N2 - the in-flight sleep write, the lane's own opening, and the check-in
        rebind's module load, so a check and a test can wait for each honestly. */
-    sleepPending: () => sleepSaving, sleepReady: () => sleepOpening,
-    sleepCheckInReady: () => screen === "sleep-checkin" ? sleepCheckInViewPending : sleepCheckInPending,
-    checkInKitReady: () => checkInKitLoading, sleepLane: () => sleepLane,
+    sleepPending: () => facade.sleepSaving(), sleepReady: () => facade.sleepOpening(),
+    sleepCheckInReady: () => screen === "sleep-checkin" ? facade.sleepCheckInViewPending() : facade.sleepCheckInPending(),
+    checkInKitReady: () => facade.checkInKitLoading(), sleepLane: () => facade.sleepLane(),
     /* D2 round 1 - what the fixed screen now holds, so a cell can assert the
        acknowledgment, the mount that owns the screen and the rebuilt workout entry
        without reaching into the module's closure through the DOM. */
-    sleepAck: () => (sleepAck ? { ...sleepAck } : null),
+    sleepAck: () => (facade.sleepAck() ? { ...facade.sleepAck() } : null),
     sleepMount: () => mountToken,
-    workoutEntry: () => workout,
-    workoutRebound: () => workoutRebinding,
+    workoutEntry: () => facade.workout(),
+    workoutRebound: () => facade.workoutRebinding(),
     /* P0-B - the boot chain's own settle promise, so a caller can await the
        athleteState() adoption (or its refusal) without polling. P0-C item (a) -
        a GETTER, not a snapshot: the "done" callback above reassigns `ready` on
        the in-page transition off "Start using Earned", and a caller reading
        this property after that point must see that later settle, not the
        already-resolved promise this function returned at boot. */
-    get ready() { return ready; },
+    get ready() { return facade.ready(); },
     /* S4 REAL DAY r3 (review round 2, finding 1) - THE TEARDOWN, AND ITS ONE
        CALLER. today-entry.mjs's midnight re-boot calls this before boot() paints
        the new day, and nothing else in this repository calls it at all: a caller
@@ -2590,7 +1935,7 @@ function mountToday(doc, model, options = {}) {
       if (disposed) return false;
       disposed = true;
       mountToken += 1;
-      if (typeof phone.removeEventListener === "function") phone.removeEventListener("keydown", onPhoneKeydown);
+      if (typeof phone.removeEventListener === "function") hooks.unlisten(phone, "keydown", onPhoneKeydown);
       return true;
     },
     disposed: () => disposed };

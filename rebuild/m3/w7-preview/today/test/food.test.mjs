@@ -1166,7 +1166,11 @@ test('D2.R2 - the page own lane reports the read-back failure instead of throwin
   const kit = await device();
   const api = mountToday(new JSDOM(shell()).window.document, createTodayModel({ today: DAY }), {});
   assert.equal(typeof api.foodReady, 'function');
-  const source = readRepo('rebuild/m3/w7-preview/today/today-app.cjs');
+  /* THE SPLIT, part 2 (spec D.3, DECISIONS:550 S-R17). foodEntryFor and openFoodLane are
+     TA-S17 and TA-S18 and both moved to the sealed lane module; the slice is the same slice
+     over the same two declarations, and regions.json orders TA-S17 before TA-S18 while
+     cut.cjs emits in SOURCE order, so the first still precedes the second by construction. */
+  const source = readRepo('rebuild/m3/w7-preview/today/today-lanes.cjs');
   const lane = source.slice(source.indexOf('function foodEntryFor'), source.indexOf('function openFoodLane'));
   assert(lane.includes('readBack: true'), 'the lane reports a read-back that landed');
   assert(lane.includes('readBack: false'), 'and one that did not');

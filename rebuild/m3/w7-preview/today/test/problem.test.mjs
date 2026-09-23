@@ -1097,7 +1097,10 @@ const outboxOf = async (repository) => Object.values((await repository.load()).g
 /* The lane object today-app.cjs builds for itself, built here so the tests drive the
    same shape the page does. */
 function entryFor(host, rows) {
-  const source = readRepo('rebuild/m3/w7-preview/today/today-app.cjs');
+  /* THE SPLIT, part 2 (spec D.3). sleepEntryFor is TA-S11 and moved to the sealed lane
+     module. Every moved region sits at depth 1 inside createTodayLanes, so the two-space
+     closing brace this regex needs is still a two-space closing brace. */
+  const source = readRepo('rebuild/m3/w7-preview/today/today-lanes.cjs');
   const body = source.slice(source.indexOf('function sleepEntryFor('))
     .match(/^function sleepEntryFor[\s\S]*?^  \}/m)[0];
   return Function('return (' + body + ')')()(host, rows);
