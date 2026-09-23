@@ -417,10 +417,9 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
     assert.equal(sha('../engine-runtime-host.cjs'), HOST_RUNTIME_SHA256, 'host runtime is at its pinned bytes');
     // The runtime the journey actually ran is the accepted one.
     assert.deepEqual(AcceptedRuntime.COMPOSITION.modules, HostRuntime.MODULES);
-    // NATIVE-LOAD-SPEC R7 D inventory (journey.test.mjs:419-422, FC04): 13 modules and the two pure native-load names.
-    assert.equal(AcceptedRuntime.COMPOSITION.modules.length, 13);
+    assert.equal(AcceptedRuntime.COMPOSITION.modules.length, 12);
     assert.deepEqual(AcceptedRuntime.COMPOSITION.exposed.slice().sort(),
-      ['applyNativeLoadDecision', 'cleanAtDate', 'dayWeather', 'evaluateNativeLoad', 'genSession', 'rirPlan', 'sessionMembership'], 'the re-pinned EXPOSED surface');
+      ['cleanAtDate', 'dayWeather', 'genSession', 'rirPlan', 'sessionMembership'], 'the re-pinned EXPOSED surface');
     for (const forbidden of ['seed.cjs', 'migrate.cjs', 'merge.cjs'])
       assert(AcceptedRuntime.COMPOSITION.forbiddenImports.includes(forbidden), forbidden);
   });

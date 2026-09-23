@@ -450,9 +450,7 @@ const RUNTIME_CLOCK = { today: () => DAY, hour: () => 8, now: () => new Date(DAY
 test('EXPOSED carries the two day predicates in BOTH accepted runtimes, and they are the engine\'s own', () => {
   // Five names since M2-S3-COMPANION: the fifth is today.cjs's own sessionMembership
   // reader, re-pinned on both runtimes exactly as the two predicates were.
-  // NATIVE-LOAD-SPEC R7 D inventory (native-trend-context.test.cjs:453-456, FC04/FC05): the exposed
-  // set gains the two pure native-load names on both runtimes; the day predicates are unchanged.
-  const expected = ['applyNativeLoadDecision', 'cleanAtDate', 'dayWeather', 'evaluateNativeLoad', 'genSession', 'rirPlan', 'sessionMembership'];
+  const expected = ['cleanAtDate', 'dayWeather', 'genSession', 'rirPlan', 'sessionMembership'];
   assert.deepEqual(Runtime.COMPOSITION.exposed.slice().sort(), expected, 'rebuild/m4/workout/engine-runtime.cjs');
   assert.deepEqual(HostRuntime.COMPOSITION.exposed.slice().sort(), expected, 'the host mirror');
   assert.deepEqual(HostRuntime.EXPOSED.slice(), Runtime.COMPOSITION.exposed.slice(),

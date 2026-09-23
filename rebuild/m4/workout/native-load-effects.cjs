@@ -183,17 +183,34 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
   let state = withFacts(base, facts);
   const { ops, byId } = operationsOf(generation);
   const issues = [], effects = new Map(), spent = [], groups = new Map();
+  // Spec :156 PER LIFT: a record or conflict that cannot be admitted makes ONLY its own
+  // lift's new native prescription unavailable (every later effect of that lift is held
+  // back and check refuses by the same code); other lifts and every fact save stand. An
+  // issue whose lift cannot be resolved carries lift:null and holds back every check.
+  const disputed = new Set();
+  const liftOf = (op) => { const b = map(op.payload) && map(op.payload.issuance) && map(op.payload.issuance.body) ? op.payload.issuance.body : null;
+    return b && text(b.lift_lineage_id) && base.exercises.some((x) => x && x.id === b.lift_lineage_id) ? b.lift_lineage_id : null; };
+  const dispute = (issue) => { issues.push(issue); if (issue.lift) disputed.add(issue.lift); };
   // The native-load family: every native accept is admitted, coalesced or refused BY NAME.
   for (const op of ops) {
     if (!(op.class === 'plan' && op.kind === 'proposal-response' && map(op.payload) && map(op.payload.issuance) && op.payload.issuance.producer === PRODUCER)) continue;
     const why = structural(op, byId, athleteId, base);
-    if (why) { issues.push({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [refOf(op)], field: 'payload', reason: why }); continue; }
+    if (why) { dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [refOf(op)], field: 'payload', reason: why, lift: liftOf(op) }); continue; }
     const body = op.payload.issuance.body, g = groups.get(body.spend_id);
     if (!g) groups.set(body.spend_id, { body, ops: [op], seq: op.device_seq || 0, device: op.device_id });
     else if (same(g.body, body)) g.ops.push(op);
-    else issues.push({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs: [refOf(g.ops[0]), refOf(op)].sort(byOp), field: null });
+    else { g.conflict = true; g.others = (g.others || []).concat([op]); }
   }
-  const events = [...groups.values()].map((g) => ({ type: 'accept', seq: g.seq, g }));
+  // Incompatible accepts are refused TOGETHER before anything applies: same spend with
+  // different bodies, or different spends over overlapping evidence. Never a clock winner.
+  const all = [...groups.values()];
+  for (const g of all) for (const h of all) if (g !== h && g.body.spend_id < h.body.spend_id && g.body.lift_lineage_id === h.body.lift_lineage_id &&
+    g.body.consumes.some((c) => h.body.consumes.includes(c))) { g.conflict = true; h.conflict = true; g.others = (g.others || []).concat(h.ops); h.others = (h.others || []).concat(g.ops); }
+  for (const g of all) if (g.conflict) {
+    const refs = [...new Map([...g.ops, ...(g.others || [])].map((op) => [op.op_id, refOf(op)])).values()].sort(byOp);
+    if (!issues.some((i) => i.code === 'NATIVE_LOAD_EFFECT_CONFLICT' && same(i.refs, refs))) dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs, field: null, lift: g.body.lift_lineage_id });
+  }
+  const events = all.filter((g) => !g.conflict).map((g) => ({ type: 'accept', seq: g.seq, g }));
   for (const id of (facts && facts.order ? facts.order.start_ids : [])) {
     const start = byId.get(id), session = facts.sessions.find((s) => s.start_op_id === id);
     if (!start || !session) continue; // no causal witness in this log: nothing can land on it
@@ -202,9 +219,10 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
   events.sort((a, b) => a.seq - b.seq || (a.type === 'accept' ? -1 : 1));
   for (const ev of events) {
     if (ev.type === 'accept') {
-      const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = g.ops.map(refOf).sort(byOp);
+      const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = g.ops.map(refOf).sort(byOp), lift = body.lift_lineage_id;
+      if (disputed.has(lift)) continue; // same-lift dependencies wait behind the named refusal
       const overlap = spent.filter((x) => x.spend_id !== body.spend_id && x.consumes.some((c) => body.consumes.includes(c)));
-      if (overlap.length) { issues.push({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs: [...refs, ...overlap.flatMap((x) => x.response_refs)].sort(byOp), field: null }); continue; }
+      if (overlap.length) { dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs: [...refs, ...overlap.flatMap((x) => x.response_refs)].sort(byOp), field: null, lift }); continue; }
       const rt = engine.at(dayOf(body, facts)), changed = evidenceChanged(body, facts);
       if (changed) issues.push({ code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs, field: null, lift: body.lift_lineage_id });
       if (iss.revision === engine.revision) {
@@ -213,14 +231,17 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
           const again = rt.evaluateNativeLoad(withFacts(state, cut), { lift_lineage_id: body.lift_lineage_id, completion_op_id: checkedCompletion(body, cut),
             intent: body.kind === 'compensate' ? { compensate: body.compensates } : 'check', basis: body.basis });
           if (!(again.status === 'offer' && again.offers.some((o) => same(o.body, body) && o.reason === iss.reason))) {
-            if (again.status === 'refused' && again.refusal.code === 'NATIVE_LOAD_PLAN_CHANGED') { issues.push({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs, field: null }); continue; }
-            issues.push({ code: 'NATIVE_LOAD_RECORD_INVALID', refs, field: 'issuance', reason: 'not reproduced at its original cut' }); continue;
+            if (again.status === 'refused' && again.refusal.code === 'NATIVE_LOAD_PLAN_CHANGED') { issues.push({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs, field: null, lift }); continue; }
+            dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs, field: 'issuance', reason: 'not reproduced at its original cut', lift }); continue;
           }
         }
-      } else issues.push({ code: 'NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED', refs, field: null });
+      } else issues.push({ code: 'NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED', refs, field: null, lift });
       const t = rt.applyNativeLoadDecision(state, body, { event: 'accept', basis: body.basis, spent: json(spent),
         authority: { response_refs: refs, issuance: iss, source_cut: iss.source }, completion: null });
-      if (t.status !== 'applied') { if (t.refusal) issues.push({ code: t.refusal.code, refs, field: t.refusal.field }); continue; }
+      if (t.status !== 'applied') {
+        if (t.refusal) { const issue = { code: t.refusal.code, refs, field: t.refusal.field, lift }; if (BLOCKING.has(issue.code)) dispute(issue); else issues.push(issue); }
+        continue;
+      }
       state = t.state;
       spent.push({ spend_id: body.spend_id, consumes: body.consumes.slice(), response_refs: refs, close_ref: null, cancelled_by: null });
       if (body.kind === 'compensate') {
@@ -235,12 +256,20 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
     const lift = ev.entry.lift_lineage_id;
     for (const q of state.queue.filter((x) => x && x.exId === lift && !x.done && typeof x.native_load_spend === 'string')) {
       const g = groups.get(q.native_load_spend);
-      if (!g || !(g.seq < ev.seq && g.device === ev.start.device_id)) continue;
+      if (!g) continue;
       const want = g.body.target_load.vector.map((x) => x.value);
       const got = ev.entry.slots.filter((s) => s.origin !== 'added').map((s) => (s.prescribed_load && s.prescribed_load.state === 'specified' ? s.prescribed_load.source.value : null));
       if (!same(want, got)) continue; // this Start did not capture the debut: nothing lands
       const close = byId.get(ev.entry.completion.op_id);
       if (!close) continue;
+      // Spec :153 "Require acceptance before Start by proven causality"; table :198 names the
+      // outcome: DEBUT_BASIS_UNPROVEN, Close saved, target pending/disputed, w does not land.
+      // Order is witnessed only within one device's sequence (D-B-5): another device's yes
+      // before this Start is not proven, so the debut is REPORTED, never silently pending.
+      if (!(g.device === ev.start.device_id && g.seq < ev.seq)) {
+        issues.push({ code: 'NATIVE_LOAD_DEBUT_BASIS_UNPROVEN', refs: [refOf(close), ...g.ops.map(refOf).sort(byOp)], field: 'causality', lift });
+        continue;
+      }
       const t = engine.at(ev.session.effective.local_date).applyNativeLoadDecision(state, g.body, { event: 'close', basis: g.body.basis, spent: json(spent),
         authority: { response_refs: g.ops.map(refOf).sort(byOp), issuance: g.ops[0].payload.issuance, source_cut: g.ops[0].payload.issuance.source },
         completion: { start: refOf(ev.start), close: refOf(close), capture: got, entry: ev.entry, source_basis: g.body.basis.source } });
@@ -248,10 +277,10 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
         state = t.state;
         const x = spent.find((y) => y.spend_id === g.body.spend_id); if (x) x.close_ref = refOf(close);
         effects.set(g.body.spend_id, t.effect);
-      } else if (t.refusal) issues.push({ code: t.refusal.code, refs: t.refusal.refs, field: t.refusal.field });
+      } else if (t.refusal) issues.push({ code: t.refusal.code, refs: t.refusal.refs, field: t.refusal.field, lift });
     }
   }
-  const blocked = issues.some((i) => BLOCKING.has(i.code));
+  const blocked = false; // spec :156: refusals are per lift (disputed) and never refuse the whole programme
   const coverage = [...groups.values()].filter((g) => spent.some((x) => x.spend_id === g.body.spend_id)).map((g) => {
     const x = spent.find((y) => y.spend_id === g.body.spend_id);
     return { spend_id: x.spend_id, response_refs: x.response_refs, issue_cut: json(g.body.basis.order), source: g.ops[0].payload.issuance.source, consumes: x.consumes, close_ref: x.close_ref };
@@ -266,6 +295,9 @@ function checkNativeLoad(args = {}) {
   const refused = (refusal) => ({ fold, evaluation: { profile: PRODUCER, status: 'refused', basis: null, offers: [], refusal } });
   if (fold.status !== 'ready') { const i = fold.issues.find((x) => BLOCKING.has(x.code)); return refused({ code: i.code, refs: i.refs, field: i.field || null }); }
   if (!map(request) || !text(request.lift_lineage_id) || !text(request.completion_op_id)) return refused({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [], field: 'request' });
+  // Spec :156 per lift: this lift's (or an unattributable) blocking issue refuses its check by the same code and refs.
+  const blocking = fold.issues.find((x) => BLOCKING.has(x.code) && (x.lift === request.lift_lineage_id || x.lift === null || x.lift === undefined));
+  if (blocking) return refused({ code: blocking.code, refs: blocking.refs, field: blocking.field || null });
   const disputed = fold.issues.filter((x) => x.code === 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED' && x.lift === request.lift_lineage_id);
   if (disputed.length) return refused({ code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs: disputed.flatMap((x) => x.refs).sort(byOp), field: null });
   if (!map(workoutFacts) || !map(workoutFacts.order)) return refused({ code: 'NATIVE_LOAD_COMPLETION_REQUIRED', refs: [], field: 'workoutFacts' });
@@ -290,9 +322,14 @@ function completedLifts(workoutFacts, closeOpId) {
     if (e && e.completion && (closeOpId === undefined || e.completion.op_id === closeOpId) && e.completion.kind === 'normal') out.push({ lift_lineage_id: e.lift_lineage_id, completion_op_id: e.completion.op_id, date: s.effective.local_date });
   return out;
 }
-// The producer revision this build issues under (spec B "revision identifies the sealed
-// producer bytes"). The seal child replaces this label with its sealed identity; a record
-// issued under any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+unsealed-build';
+// The producer revision (spec B "revision identifies the sealed producer bytes"; D-B-2):
+// sha256 over, in runtime MODULES order then entered-load, one line per producer file
+// "rebuild/engine/<name>.cjs" NUL sha256hex(file bytes) LF, for dates, constants, plan,
+// performed, progression, sleep, energy, policy, today, volume, earn, writers,
+// native-load, entered-load. The bundle cannot read files, so this is a CONSTANT that
+// CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
+// any engine byte change without re-binding turns that row red. A record issued under
+// any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:c363ce4907448bb687d59400f65b597ef75950727a206ee2cb9e7ea6378eaba7';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, completedLifts, operationsOf };

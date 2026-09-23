@@ -636,9 +636,9 @@ function effectsGate(){
 const DEVICE='fx-device';
 function opsFor(comps,extra=[]){
  const out={};let seq=0;
- const put=(op_id,klass,kind,payload={})=>{out[op_id]={op_id,athlete_id:ATH,device_id:DEVICE,device_seq:++seq,class:klass,kind,payload,canonical_content_commitment:commit(op_id)};};
+ const put=(op_id,klass,kind,payload={},device=DEVICE)=>{out[op_id]={op_id,athlete_id:ATH,device_id:device,device_seq:++seq,class:klass,kind,payload,canonical_content_commitment:commit(op_id)};};
  for(const c of comps){for(const id of c.ops)put(id,'session',id===c.start?'session-start':id===c.close?'session-close':id.startsWith('fx-edit')?'correction':'session-set');
-  for(const x of extra.filter(x=>x.after===c.n))put(x.op_id,'plan','proposal-response',x.payload);}
+  for(const x of extra.filter(x=>x.after===c.n))put(x.op_id,'plan','proposal-response',x.payload,x.device||DEVICE);}
  return {collections:{ops:out,rejected:{},dispositions:{}}};
 }
 const SOURCE=Object.freeze({W:0,log_digest:'fx-empty-prefix',selection_id:null});
@@ -703,4 +703,92 @@ test('N22 [Y] REVISION-RETENTION (fold part; I4): accept and landing under R1, r
  assert.deepEqual(r2.spent,r1.spent);
  assert.ok(r2.issues.some(i=>i.code==='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'));
  assert.ok(!r1.issues.some(i=>i.code==='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'),'present revision re-validates instead');
+});
+
+// ======================================================================
+// ROUND 2 rows (REVIEW-NATIVE-LOAD-BUILD-l1, sha 84b450dd): D-B-3 (five LIVE
+// mutants), D-B-5 (two devices), D-B-2 (producer revision bound to bytes,
+// per-lift refusal). Invented inputs; engine constants READ.
+// ======================================================================
+test('R2-ERA N19 ERA-AND-TENURE (FIX 3c, D-B-3 m-era): the era-first completion itself banks nothing even with a clear margin -> PROVISIONAL',()=>{
+ const cs=[C(1,{reps:[8,7,6],effort:e(2,1,1)}),C(2,{reps:[10,10,10],effort:e(2,1,1)})];
+ const s=withFacts(F0({forks:[{from:dayAt(1),kind:'reset',why:'SYNTHETIC'}]}),cs),E=engineAt(cs[1].date);
+ preconditions(E,s,cs);
+ const pre=structuredClone(s);pre.workoutFacts.sessions=pre.workoutFacts.sessions.slice(0,1);pre.workoutFacts.order.start_ids=pre.workoutFacts.order.start_ids.slice(0,1);
+ assert.equal(E.eraFresh(pre,LIFT,cs[1].date),true,'READ plan.cjs:291: C2 opens the new technique era');
+ const oracle=canonical(E,s,{en:{w:100,reps:[10,10,10],rir:2,rirSets:[2,1,1]},r:[10,10,10],prevMeta:{w:100,reps:[8,7,6]},dEarn:cs[1].date});
+ assert.deepEqual(oracle.map(q=>q.state),['DEBUT'],'earnWalk alone would earn: only the era guard (writers.cjs FIX 3c) stops it');
+ nativeGate(E);
+ expectRefusal(evaluate(E,s,request(s,cs,cs[1])),'PROVISIONAL',[ref(cs[1].close)]);
+});
+test('R2-REFS applyNativeLoadDecision (D-B-3 m-refs): an accept with no response Ref is not consent -> CAPABILITY_REQUIRED, state unchanged',()=>{
+ const {c1,s,E}=n03b();
+ nativeGate(E);
+ const ev=evaluate(E,s,request(s,[c1],c1)),body=decisionOf(ev.offers[0]),before=JSON.stringify(s);
+ const t=E.applyNativeLoadDecision(s,body,{event:'accept',basis:ev.basis,spent:[],completion:null,
+  authority:{response_refs:[],issuance:{producer:'earned/native-load/v1',body,reason:ev.offers[0].reason,revision:'fx-revision-1',source:'x',moment:'2026-10-02T12:00:00.000Z'},source_cut:'x'}});
+ assert.equal(t.status,'refused');assert.equal(t.refusal.code,'NATIVE_LOAD_CAPABILITY_REQUIRED');assert.equal(t.effect,null);
+ assert.equal(JSON.stringify(t.state),before,'input state retained by value');assert.deepEqual(t.state.queue,[]);
+});
+test('R2-DIGEST fold (D-B-3 m-digest): a record whose proposal id is not the digest of its own producer/body/reason is refused RECORD_INVALID even when its revision is absent (no re-validation to catch it)',()=>{
+ effectsGate();
+ const {cs,offer}=landingScenario('fx-revision-1');
+ const bad=acceptOp(offer,{after:2,revision:'fx-revision-0'});bad.payload.proposal_id='prop-0000000000000000';
+ const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[bad],'fx-revision-2'));
+ assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'),'refused by name');
+ assert.ok(f.state===null||f.state.queue.length===0,'no target from a record that is not the issued one');
+});
+function n11Checked(){
+ const {cs,s,oracle}=n11(AT_LEAST_3);
+ const base=F0(N11EX),args=foldArgs(cs,[],'fx-revision-1',base);
+ const checked=EFFECTS.m.checkNativeLoad({...args,request:{lift_lineage_id:LIFT,completion_op_id:cs[1].close,intent:'check'}});
+ assert.equal(checked.evaluation.offers.length,2,'PROPOSED 110 and DEBUT 105: one spend, two bodies');
+ return {cs,base,offers:checked.evaluation.offers,oracle,s};
+}
+test('R2-CONFLICT fold (D-B-3 m-coalesce, spec :156): two accepts of the SAME spend with DIFFERENT bodies never coalesce -> EFFECT_CONFLICT with both refs, nothing queued, and only that lift is refused',()=>{
+ effectsGate();
+ const {cs,base,offers}=n11Checked();
+ const a=acceptOp(offers[0],{after:2,op_id:'fx-resp-a'}),b=acceptOp(offers[1],{after:2,op_id:'fx-resp-b'});
+ const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[a,b],'fx-revision-1',base));
+ const issue=f.issues.find(i=>i.code==='NATIVE_LOAD_EFFECT_CONFLICT');
+ assert.ok(issue,'named conflict');assert.deepEqual(issue.refs,[ref('fx-resp-a'),ref('fx-resp-b')],'both refs reported');
+ assert.equal(f.status,'ready','per lift: the programme still projects (spec :156 other fact saves remain available)');
+ assert.ok(f.state&&Array.isArray(f.state.exercises),'state present');
+ assert.deepEqual(f.state.queue.filter(q=>q.exId===LIFT),[],'no target from either body');
+ const again=EFFECTS.m.checkNativeLoad({...foldArgs(cs,[a,b],'fx-revision-1',base),request:{lift_lineage_id:LIFT,completion_op_id:cs[1].close,intent:'check'}});
+ expectRefusal(again.evaluation,'EFFECT_CONFLICT',[ref('fx-resp-a'),ref('fx-resp-b')]);
+});
+test('R2-DEVICE fold (D-B-3 m-device, D-B-5, spec :153 and table :198): a yes recorded on device B and a debut Close on device A has no proven causal order -> DEBUT_BASIS_UNPROVEN issue with the Close and response Refs; the target stays pending and w does not land',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1'),resp={...s.resp,device:'fx-device-B'};
+ const f=EFFECTS.m.foldNativeLoad(foldArgs(s.all,[resp],'fx-revision-1'));
+ assert.equal(f.status,'ready');
+ const issue=f.issues.find(i=>i.code==='NATIVE_LOAD_DEBUT_BASIS_UNPROVEN');
+ assert.ok(issue,'a named issue, never a silent pending');
+ assert.deepEqual(issue.refs,[ref(s.c3.close),ref('fx-resp-1')]);
+ assert.equal(exOf(f.state).w,100,'w does not land');
+ const q=f.state.queue.find(x=>x.native_load_spend===decisionOf(s.offer).spend_id);assert.deepEqual([q.done,q.state],[false,'DEBUT'],'target stays pending');
+ const same=EFFECTS.m.foldNativeLoad(foldArgs(s.all,[s.resp],'fx-revision-1'));
+ assert.equal(exOf(same.state).w,105,'positive control: the same Close on the same device lands');
+});
+test('R2-REVISION (D-B-2): PRODUCER_REVISION is bound to the producer bytes: the digest of the composed engine modules and native-load.cjs, recomputed here',()=>{
+ effectsGate();
+ const fs=require('node:fs');
+ const files=[...MODULES,'native-load','entered-load'].map(n=>'rebuild/engine/'+n+'.cjs');
+ const h=crypto.createHash('sha256');
+ for(const f of files)h.update(f+'\0'+crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,f))).digest('hex')+'\n');
+ assert.equal(EFFECTS.m.PRODUCER_REVISION,'earned/native-load/v1+sha256:'+h.digest('hex'),'the sealed revision names the exact producer bytes');
+});
+test('R2-PERLIFT (D-B-2, spec :154/:156): a present-revision record that does not re-validate at its cut refuses that lift only (RECORD_INVALID); the programme still projects',()=>{
+ effectsGate();
+ const {cs,offer}=landingScenario('fx-revision-1');
+ const body=structuredClone(decisionOf(offer));body.target_load={scalar:lb(150),vector:Loads(150,150,150)};body.candidate={...body.candidate,newW:150};
+ const forged=acceptOp({body,reason:offer.reason},{after:2});
+ const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[forged]));
+ assert.equal(f.status,'ready','never the whole programme');assert.ok(f.state&&f.state.exercises.length>1);
+ const issue=f.issues.find(i=>i.code==='NATIVE_LOAD_RECORD_INVALID');assert.ok(issue);assert.equal(issue.lift,LIFT);
+ assert.deepEqual(f.state.queue,[],'no target');
+ const E=engineAt(CARD_DAY);assert.ok(E.genSession(f.state,CARD_DAY,{}),'the day still prescribes');
+ const again=EFFECTS.m.checkNativeLoad({...foldArgs(cs,[forged]),request:{lift_lineage_id:LIFT,completion_op_id:cs[1].close,intent:'check'}});
+ expectRefusal(again.evaluation,'RECORD_INVALID',[ref('fx-resp-1')]);
 });

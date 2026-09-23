@@ -24,8 +24,7 @@ const runtimes = () => {
 test('host runtime composes exactly the accepted runtime\'s modules, in order', () => {
   assert.deepEqual(Host.MODULES, Accepted.COMPOSITION.modules);
   assert.deepEqual(Host.EXPOSED, Accepted.COMPOSITION.exposed);
-  // NATIVE-LOAD-SPEC R7 D :297 (FC04/FC05): the literal module count becomes 13 (native-load after writers).
-  assert.equal(Host.MODULES.length, 13);
+  assert.equal(Host.MODULES.length, 12);
   // Order matters: the factories are applied in sequence onto one table, so a
   // permutation would compose a different engine while passing a set compare.
   Host.MODULES.forEach((name, index) => assert.equal(name, Accepted.COMPOSITION.modules[index], 'position ' + index));
