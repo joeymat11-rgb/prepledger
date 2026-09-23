@@ -1293,6 +1293,18 @@ for (const file of RELEASED_FILES) {
     });
   }
 }
+/* S10 (S10-WORKING-BRIEF.md c58b892 section 4.2, review l3 D-S10B3-ANCHOR): LOOK_EDITS kept three
+   dead keys for the facade.lane() spellings GSS removed from the released gym card (fence
+   :1255-:1257 at 66d32530). S10 drops them WITH THIS ROW and never silently: every LOOK_EDITS
+   key must be a declared window of some released file, so a key left behind by a later
+   removal turns this row red by name instead of lingering as an unused exemption. */
+test('S10 LOOK_EDITS: every key is a declared window of a released file (no dead key)', () => {
+  const live = new Set(RELEASED_FILES.flatMap((file) => [...Object.values(file.capabilities).flat(),
+    ...Object.values(file.holders).flat(), ...file.lane, ...file.syntax.destructure,
+    ...(file.readingsUse ? READINGS_PASS : [])]));
+  const dead = Object.keys(LOOK_EDITS).filter((key) => !live.has(key));
+  assert.deepEqual(dead, [], 'LOOK_EDITS keys with no declared window: ' + JSON.stringify(dead));
+});
 function checkPlantSyntax(file, src) {
   const mode = file.rel.endsWith('.mjs') ? 'module' : 'commonjs';
   const result = spawnSync(process.execPath, ['--check', '--input-type=' + mode], { input: src, encoding: 'utf8' });
