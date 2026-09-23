@@ -495,3 +495,212 @@ test('N20 HOST-PARITY (composition part; I7): both runtimes compose native-load 
  }
  assert.deepEqual(Object.keys(require.cache).filter(f=>PROTECTED.test(f)),[],'no protected module reached through either runtime');
 });
+
+// ======================================================================
+// [YES-ONLY] CELLS (owner answer YES, route B; DECISIONS:784-785). Spec R7
+// (6ddf7af, sha256 98c0cf7a...) B0 table column "YES, route B" and every D1
+// "[Y]" clause. The sealed consent constant is consent='yes-only': the ordinary
+// one-rung DEBUT (earn.cjs:88) is an OFFER that waits for a yes, exactly like
+// the PROPOSED candidates (earn.cjs:63,80,97). Same guard, same composition,
+// same red gates as the common cells above.
+// ======================================================================
+const ORD=oracleRow=>({kind:'earn',reason_key:'canonical-earn',target:{scalar:lb(105),vector:Loads(105,105,105)},candidate:oracleRow,baseW:{present:true,value:100}});
+const inter=(a,b)=>a.filter(x=>b.includes(x));
+function n02cY(){
+ const cs=[C(1,{reps:TOP,effort:e(2,1,1)}),C(2,{reps:TOP,effort:e(2,1,1)})],s=withFacts(F0(),cs),E=engineAt(cs[1].date);
+ preconditions(E,s,cs);
+ const oracle=canonical(E,s,{ex:{topAt:100,topRun:1},en:{w:100,reps:TOP,rir:2,rirSets:[2,1,1]},r:TOP,prevMeta:{w:100,reps:TOP},dEarn:cs[1].date});
+ assert.deepEqual(oracle.map(q=>[q.state,q.newW,q.newWSets]),[['DEBUT',105,null]],'unchanged earnWalk: the ordinary one-rung DEBUT (earn.cjs:88) on two sightings');
+ assert.ok(oracle[0].rule.startsWith('Auto-queued'),'READ earn.cjs:88: classic text claims automatic queuing');
+ return {cs,s,E,oracle};
+}
+test('N02c [Y] WINDOW-NOT-CARD offer (I1/I5): C1, C2 [10,9,8] e(2,1,1) -> offers exactly [ORD] consuming [C1,C2]; yes -> queue [Q], ex.w 100, next card debuts 105 on every set; re-check TARGET_QUEUED',()=>{
+ const {cs,s,E,oracle}=n02cY();
+ nativeGate(E);
+ const ev=evaluate(E,s,request(s,cs,cs[1])),offers=expectOffers(ev);
+ assert.equal(offers.length,1,'[Y] the ordinary DEBUT is an offer, and the only one');
+ expectDecision(offers[0],{...ORD(oracle[0])});
+ assert.equal(offers[0].consumes.length,2,'consumes [C1,C2]: the run of two (C1 is also the noise comparator)');
+ assert.deepEqual(offers[0].evidence.map(x=>x.close.op_id),[cs[0].close,cs[1].close],'evidence names exactly the consumed completions, in registered order');
+ assert.equal(typeof ev.offers[0].reason,'string');assert.ok(ev.offers[0].reason.length>0,'native explanation present');
+ assert.ok(!/automatic/i.test(ev.offers[0].reason),'[YES-ONLY] spec :137: the native explanation never promises automatic queuing');
+ assert.ok(ev.offers[0].reason.includes('105'),'the native explanation names the target load');
+ assert.deepEqual(s.queue,[],'no queue entry before yes');
+ const {t,body}=applyAccept(E,s,ev,ev.offers[0]);
+ assert.equal(t.status,'applied');assert.equal(t.effect.kind,'queued');
+ assert.equal(t.state.queue.length,1);const q=t.state.queue[0];
+ assert.deepEqual([q.id,q.kind,q.exId,q.newW,q.state,q.done,q.native_load_spend],[body.spend_id,'debut',LIFT,105,'DEBUT',false,body.spend_id]);
+ assert.equal(Object.hasOwn(q,'newWSets'),false,'D1 Q: no newWSets key for a scalar lift');
+ assert.equal(exOf(t.state).w,100,'w stays 100 until the debut lands');
+ const card=E.genSession(t.state,CARD_DAY,{}).ex.find(c=>c.id===LIFT);
+ assert.equal(card.isDebutNow,true);assert.equal(card.w,105);assert.equal(card.tgt.length,3,'three original positions, each captured at 105 (engine-capture.cjs scalar arm)');
+ const again=evaluate(E,t.state,request(t.state,cs,cs[1],{frontier:[{spend_id:body.spend_id,response_refs:[ref('fx-resp-1')],close_ref:null}]}));
+ expectRefusal(again,'TARGET_QUEUED',[ref('fx-resp-1')]);assert.equal(again.refusal.field,null);
+});
+test('N03c [Y] NOISE-AND-EARLY (I1/I5): C0 [8,7,6], C1 [10,10,10] e(2,1,1) -> margin 9 >= need 4.4, ordinary on one sighting -> offers exactly [ORD] consuming [C0,C1]',()=>{
+ const cs=[C(0,{reps:[8,7,6],effort:e(2,1,1)}),C(1,{reps:[10,10,10],effort:e(2,1,1)})],s=withFacts(F0(),cs),E=engineAt(cs[1].date);
+ preconditions(E,s,cs);
+ const bn=E.beatsNoise(s,LIFT,[10,10,10],[8,7,6]);assert.deepEqual([bn.clear,bn.margin,bn.need],[true,9,4.4],'READ constants.cjs:50 and progression.cjs:586-603');
+ const oracle=canonical(E,s,{en:{w:100,reps:[10,10,10],rir:2,rirSets:[2,1,1]},r:[10,10,10],prevMeta:{w:100,reps:[8,7,6]},dEarn:cs[1].date});
+ assert.deepEqual(oracle.map(q=>[q.state,q.newW]),[['DEBUT',105]]);
+ nativeGate(E);
+ const offers=expectOffers(evaluate(E,s,request(s,cs,cs[1])));
+ assert.equal(offers.length,1);expectDecision(offers[0],ORD(oracle[0]));
+ assert.equal(offers[0].consumes.length,2,'spec :121: the current completion plus the noise comparator C0');
+});
+test('N04c [Y] REPEAT-AND-HOLD presentation (I5): C3 offers exactly [ORD] consuming [C2,C3]; unanswered, C4 offers exactly [ORD] consuming [C3,C4] and C3 becomes COMPLETION_SUPERSEDED',()=>{
+ const cs=[C(1,{reps:[9,8,8],effort:e(0,1,1)}),C(2,{reps:[9,8,8],effort:e(0,1,1)}),C(3,{reps:TOP,effort:e(2,1,1)}),C(4,{reps:TOP,effort:e(2,1,1)})];
+ const s3=withFacts(F0(),cs.slice(0,3)),E3=engineAt(cs[2].date);preconditions(E3,s3,cs.slice(0,3));
+ const o3=canonical(E3,s3,{en:{w:100,reps:TOP,rir:2,rirSets:[2,1,1]},r:TOP,prevMeta:{w:100,reps:[9,8,8]},dEarn:cs[2].date});
+ const s4=withFacts(F0(),cs),E4=engineAt(cs[3].date);preconditions(E4,s4,cs);
+ const o4=canonical(E4,s4,{ex:{topAt:100,topRun:1},en:{w:100,reps:TOP,rir:2,rirSets:[2,1,1]},r:TOP,prevMeta:{w:100,reps:TOP},dEarn:cs[3].date});
+ assert.deepEqual([o3.map(q=>q.state),o4.map(q=>q.state)],[['DEBUT'],['DEBUT']]);
+ nativeGate(E3);
+ const a=expectOffers(evaluate(E3,s3,request(s3,cs.slice(0,3),cs[2])));
+ assert.equal(a.length,1);expectDecision(a[0],ORD(o3[0]));assert.equal(a[0].consumes.length,2);
+ const b=expectOffers(evaluate(E4,s4,request(s4,cs,cs[3])));
+ assert.equal(b.length,1);expectDecision(b[0],ORD(o4[0]));assert.equal(b[0].consumes.length,2);
+ assert.equal(inter(a[0].consumes,b[0].consumes).length,1,'C3 is the one root shared by [C2,C3] and [C3,C4]');
+ assert.notEqual(a[0].spend_id,b[0].spend_id);
+ const old=evaluate(E4,s4,request(s4,cs,cs[2]));expectRefusal(old,'COMPLETION_SUPERSEDED');
+});
+test('N11 [Y] VECTOR-PREFIX (I3/I5): offers exactly the two candidates in earnWalk push order, PROPOSED 110 [110,105] then DEBUT 105 [105,100]; the DEBUT yes queues [105,100] and the card debuts that vector',()=>{
+ const {cs,s,E,oracle}=n11(AT_LEAST_3);
+ assert.deepEqual(oracle.map(q=>[q.state,q.newW,q.newWSets]),[['PROPOSED',110,[110,105]],['DEBUT',105,[105,100]]]);
+ nativeGate(E);
+ const ev=evaluate(E,s,request(s,cs,cs[1])),offers=expectOffers(ev);
+ assert.equal(offers.length,2,'[Y] the DEBUT is offered beside the PROPOSED two-rung');
+ expectDecision(offers[0],{kind:'earn',reason_key:'canonical-earn',target:{scalar:lb(110),vector:Loads(110,105)},candidate:oracle[0],baseW:{present:true,value:100}});
+ expectDecision(offers[1],{kind:'earn',reason_key:'canonical-earn',target:{scalar:lb(105),vector:Loads(105,100)},candidate:oracle[1],baseW:{present:true,value:100}});
+ assert.equal(offers[0].spend_id,offers[1].spend_id,'spec :122: the offered alternative is not part of spend_id');
+ const {t}=applyAccept(E,s,ev,ev.offers[1]);assert.equal(t.status,'applied');
+ const q=t.state.queue.at(-1);assert.deepEqual([q.newW,q.newWSets,q.state],[105,[105,100],'DEBUT']);
+ assert.deepEqual([exOf(t.state).w,exOf(t.state).wSets],[100,[100,95]],'w/wSets unchanged until landing');
+ const card=E.genSession(t.state,CARD_DAY,{}).ex.find(c=>c.id===LIFT);assert.equal(card.isDebutNow,true);assert.equal(card.w,105);
+});
+test('N12 [Y] EFFORT-VARIANTS (I5): terminal exact 0, exact 2 or unknown -> offers exactly [DEBUT 105 [105,100]]; at least 3 with the ladder -> DEBUT plus the two-rung, gate text "at least 3"',()=>{
+ const variants=[X(0),X(2),UNKNOWN].map(term=>({term,...n11(term)}));
+ for(const v of variants)assert.deepEqual(v.oracle.map(q=>[q.state,q.newW]),[['DEBUT',105]]);
+ const bound=n11(AT_LEAST_3);
+ nativeGate(bound.E);
+ for(const v of variants){
+  const offers=expectOffers(evaluate(v.E,v.s,request(v.s,v.cs,v.cs[1])));
+  assert.equal(offers.length,1,'DEBUT only for terminal '+JSON.stringify(v.term));
+  expectDecision(offers[0],{kind:'earn',reason_key:'canonical-earn',target:{scalar:lb(105),vector:Loads(105,100)},candidate:v.oracle[0],baseW:{present:true,value:100}});
+ }
+ const ev=evaluate(bound.E,bound.s,request(bound.s,bound.cs,bound.cs[1])),offers=expectOffers(ev);
+ assert.deepEqual(offers.map(d=>d.candidate.state),['PROPOSED','DEBUT']);assert.ok(offers[0].candidate.gate.includes('at least 3'));
+ assert.ok(ev.offers.every(o=>!/\[object|valueOf/.test(JSON.stringify(o))),'no token serialized in any offer');
+});
+test('N13 [Y] LATE-AND-SAME-DAY (I2/I5): C1, C2 on the same local_date, distinct Starts, order C1 < C2, no fork -> C2 offers exactly [ORD] as N02c',()=>{
+ const cs=[C(1,{date:D0,reps:TOP,effort:e(2,1,1)}),C(2,{date:D0,reps:TOP,effort:e(2,1,1)})],s=withFacts(F0(),cs),E=engineAt(D0);
+ preconditions(E,s,cs);
+ const oracle=canonical(E,s,{ex:{topAt:100,topRun:1},en:{w:100,reps:TOP,rir:2,rirSets:[2,1,1]},r:TOP,prevMeta:{w:100,reps:TOP},dEarn:D0});
+ nativeGate(E);
+ const offers=expectOffers(evaluate(E,s,request(s,cs,cs[1])));
+ assert.equal(offers.length,1);expectDecision(offers[0],ORD(oracle[0]));assert.equal(offers[0].consumes.length,2,'two distinct same-date Starts, two roots');
+ expectRefusal(evaluate(E,s,request(s,cs,cs[0])),'COMPLETION_SUPERSEDED');
+});
+test('N18 [Y] NO-NEXT-RUNG (I4/I5): without inc -> NO_NEXT_LOAD; after inc 5 through existing authority the same banked C1, C2 -> offers exactly [ORD] consuming [C1,C2]',()=>{
+ const cs=[C(1,{reps:TOP,effort:e(2,1,1)}),C(2,{reps:TOP,effort:e(2,1,1)})],E=engineAt(cs[1].date);
+ const bare=withFacts(F0({inc:undefined}),cs),s=withFacts(F0(),cs);
+ preconditions(E,bare,cs);preconditions(E,s,cs);assert.equal(E.nextLoad(exOf(s)),105);
+ const oracle=canonical(E,s,{ex:{topAt:100,topRun:1},en:{w:100,reps:TOP,rir:2,rirSets:[2,1,1]},r:TOP,prevMeta:{w:100,reps:TOP},dEarn:cs[1].date});
+ nativeGate(E);
+ expectRefusal(evaluate(E,bare,request(bare,cs,cs[1])),'NO_NEXT_LOAD',[ref(cs[1].close)]);
+ const offers=expectOffers(evaluate(E,s,request(s,cs,cs[1],{authority:['fx-inc-edit-1']})));
+ assert.equal(offers.length,1,'an equipment-only change is not PLAN_CHANGED (spec step 2)');expectDecision(offers[0],ORD(oracle[0]));assert.equal(offers[0].consumes.length,2);
+});
+test('N21 [Y] CONSENT-BRANCH (evaluator part; I1/I4): the N02c input produces an offer and NO queue entry; nothing reaches state without an accept transition',()=>{
+ const {cs,s,E}=n02cY();
+ nativeGate(E);
+ const before=structuredClone(s),ev=evaluate(E,s,request(s,cs,cs[1]));
+ assert.equal(ev.status,'offer');assert.deepEqual(s,before,'state untouched by the evaluator');assert.deepEqual(s.queue,[]);
+ assert.equal(E.genSession(s,CARD_DAY,{}).ex.find(c=>c.id===LIFT).isDebutNow,false,'no automatic debut on the card');
+ assert.equal(ev.offers.length,1);assert.ok(!Object.hasOwn(ev,'state')&&!Object.hasOwn(ev,'effect'),'an Evaluation carries no state or effect');
+});
+
+// ---------- FC03 fold rows under [Y] (spec B "Apply and fold", D1 N05/N15/N21/N22) ----------
+// The fold is driven through its own exported surface: checkNativeLoad builds the
+// basis at the current cut and evaluates, issuanceFor seals the exact issuance the
+// host commits through respond, foldNativeLoad reconstructs the programme from the
+// immutable base, the authenticated operations and the registered typed facts.
+// Operations are synthetic client-shaped envelopes (one device, device_seq order).
+const EFFECTS_FILE=path.join(ROOT,'rebuild/m4/workout/native-load-effects.cjs');
+const EFFECTS=(()=>{try{return {m:require(EFFECTS_FILE),reason:null};}
+ catch(e){if(e&&e.code==='MODULE_NOT_FOUND'&&String(e.message).split('\n')[0].includes('native-load-effects.cjs'))return {m:null,reason:'MODULE_NOT_FOUND rebuild/m4/workout/native-load-effects.cjs'};throw e;}})();
+function effectsGate(){
+ assert.ok(EFFECTS.m,'RED NATIVE_LOAD_EFFECTS_ABSENT: '+EFFECTS.reason+' (FC03; spec B foldNativeLoad)');
+ for(const n of ['foldNativeLoad','checkNativeLoad','issuanceFor','proposalDigest'])assert.equal(typeof EFFECTS.m[n],'function','RED NATIVE_LOAD_EFFECTS_EXPORT_ABSENT: '+n);
+}
+const DEVICE='fx-device';
+function opsFor(comps,extra=[]){
+ const out={};let seq=0;
+ const put=(op_id,klass,kind,payload={})=>{out[op_id]={op_id,athlete_id:ATH,device_id:DEVICE,device_seq:++seq,class:klass,kind,payload,canonical_content_commitment:commit(op_id)};};
+ for(const c of comps){for(const id of c.ops)put(id,'session',id===c.start?'session-start':id===c.close?'session-close':id.startsWith('fx-edit')?'correction':'session-set');
+  for(const x of extra.filter(x=>x.after===c.n))put(x.op_id,'plan','proposal-response',x.payload);}
+ return {collections:{ops:out,rejected:{},dispositions:{}}};
+}
+const SOURCE=Object.freeze({W:0,log_digest:'fx-empty-prefix',selection_id:null});
+const engineR=revision=>({revision,at:day=>engineAt(day)});
+const foldArgs=(comps,extra,revision='fx-revision-1',base=F0())=>({base,generation:opsFor(comps,extra),workoutFacts:withFacts(base,comps).workoutFacts,engine:engineR(revision),source:SOURCE,athleteId:ATH});
+function acceptOp(offer,{op_id='fx-resp-1',after,revision='fx-revision-1',moment='2026-10-02T12:00:00.000Z'}={}){
+ const {proposal_id,issuance}=EFFECTS.m.issuanceFor(offer,{revision,source:JSON.stringify(SOURCE),moment});
+ return {op_id,after,payload:{proposal_id,answer:'accept',issuance}};
+}
+test('N21 [Y] CONSENT-BRANCH (fold part; I1/I4): the N02c facts alone fold to NO queue entry; only the accepted response queues exactly one Q',()=>{
+ const {cs,oracle}=n02cY();
+ effectsGate();
+ const bare=EFFECTS.m.foldNativeLoad(foldArgs(cs,[]));
+ assert.equal(bare.status,'ready');assert.deepEqual(bare.state.queue,[],'[YES-ONLY] no automatic effect ever');assert.deepEqual(bare.effects,[]);
+ const checked=EFFECTS.m.checkNativeLoad({...foldArgs(cs,[]),request:{lift_lineage_id:LIFT,completion_op_id:cs[1].close,intent:'check'}});
+ assert.equal(checked.evaluation.status,'offer');assert.equal(checked.evaluation.offers.length,1);
+ assert.deepEqual(decisionOf(checked.evaluation.offers[0]).candidate,oracle[0]);
+ const folded=EFFECTS.m.foldNativeLoad(foldArgs(cs,[acceptOp(checked.evaluation.offers[0],{after:2})]));
+ assert.equal(folded.status,'ready');assert.equal(folded.state.queue.length,1);
+ assert.equal(folded.state.queue[0].native_load_spend,decisionOf(checked.evaluation.offers[0]).spend_id);
+ assert.deepEqual(folded.effects.map(x=>x.kind),['queued']);assert.equal(exOf(folded.state).w,100);
+});
+function landingScenario(revision){
+ const {cs}=n02cY();
+ const checked=EFFECTS.m.checkNativeLoad({...foldArgs(cs,[]),request:{lift_lineage_id:LIFT,completion_op_id:cs[1].close,intent:'check'}});
+ const offer=checked.evaluation.offers[0],resp=acceptOp(offer,{after:2});
+ const c3=C(3,{date:'2026-10-12',reps:TOP,loads:105,prescribed:105,effort:e(2,1,1)}),all=[...cs,c3];
+ return {cs,c3,all,offer,resp,fold:rev=>EFFECTS.m.foldNativeLoad(foldArgs(all,[resp],rev||revision))};
+}
+test('N05 [Y] YES-OR-NOTHING (fold part; I1/I3): the exact yes queues Q with w 100; the later debut Close [10,9,8] at 105 lands it: w 105, wAt that Close local_date, Q done/ESTABLISH; the landing Close checks DEBUT_LANDED',()=>{
+ effectsGate();
+ const {c3,all,offer,fold}=landingScenario('fx-revision-1'),f=fold();
+ assert.equal(f.status,'ready');
+ const q=f.state.queue.find(x=>x.native_load_spend===decisionOf(offer).spend_id);
+ assert.deepEqual([q.done,q.state],[true,'ESTABLISH']);assert.equal(exOf(f.state).w,105);assert.equal(exOf(f.state).wAt,c3.date);
+ assert.deepEqual(exOf(f.state).last,TOP,'last from performedLine');
+ assert.deepEqual(f.effects.map(x=>x.kind),['landed']);assert.deepEqual(f.effects[0].close_ref,ref(c3.close));
+ assert.deepEqual(EFFECTS.m.foldNativeLoad(foldArgs(all,[landingScenario().resp])).state,f.state,'cold rebuild: the same single landing');
+ const again=EFFECTS.m.checkNativeLoad({...foldArgs(all,[landingScenario().resp]),request:{lift_lineage_id:LIFT,completion_op_id:c3.close,intent:'check'}});
+ expectRefusal(again.evaluation,'DEBUT_LANDED',[ref(c3.close)]);
+});
+test('N05 [Y] YES-OR-NOTHING (forged record; I1/I2): an accept whose issuance does not reproduce its proposal id, or names another producer body, is never consent',()=>{
+ effectsGate();
+ const {cs,offer}=landingScenario('fx-revision-1');
+ const forged=acceptOp(offer,{after:2});forged.payload.issuance.body={...forged.payload.issuance.body,target_load:{scalar:lb(115),vector:Loads(115,115,115)}};
+ const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[forged]));
+ assert.deepEqual(f.state===null?[]:f.state.queue,[],'no target from a forged body');
+ assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'),'malformed native accept is refused by name, never dropped');
+});
+test('N15 [Y] SPEND-ONCE (fold part; I4): the same issuance delivered twice with distinct response ids folds to ONE Q carrying both response refs',()=>{
+ effectsGate();
+ const {cs,offer}=landingScenario('fx-revision-1');
+ const a=acceptOp(offer,{after:2,op_id:'fx-resp-1'}),b=acceptOp(offer,{after:2,op_id:'fx-resp-2'});
+ const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[a,b]));
+ assert.equal(f.status,'ready');assert.equal(f.state.queue.length,1);
+ assert.equal(f.effects.length,1);assert.deepEqual(f.effects[0].response_refs,[ref('fx-resp-1'),ref('fx-resp-2')]);
+});
+test('N22 [Y] REVISION-RETENTION (fold part; I4): accept and landing under R1, re-sealed to R2 with R1 absent -> the same w 105, Q done/ESTABLISH and spend, with issue PRODUCER_REVISION_ABSENT_APPLIED',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1'),r1=s.fold('fx-revision-1'),r2=s.fold('fx-revision-2');
+ assert.equal(r2.status,'ready');assert.deepEqual(r2.state,r1.state,'the recorded body applies as written, never re-priced');
+ assert.deepEqual(r2.spent,r1.spent);
+ assert.ok(r2.issues.some(i=>i.code==='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'));
+ assert.ok(!r1.issues.some(i=>i.code==='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'),'present revision re-validates instead');
+});
