@@ -930,3 +930,93 @@ test('R3-D7a ORIGINAL CUT (D7, spec :154 "validates each historical issuance at 
  assert.deepEqual(f.issues,[],'no RECORD_INVALID for an increment chosen later');
  assert.deepEqual(f.state.queue.map(q=>[q.native_load_spend,q.newW]),[[decisionOf(offer).spend_id,105]]);
 });
+
+// ======================================================================
+// ROUND 4 rows (spec R8 b849508, sha 297bf999; Astra L2 B7, B9, B11; D7b/N24;
+// N23). Invented inputs; engine constants READ.
+// ======================================================================
+const GOV=Object.freeze({event:'governor',basis:null,spent:[],authority:null,completion:null});
+function n23(openers){
+ const cs=openers.map((o,i)=>C(i+1,{reps:[10],effort:[o]})),base=F0({sets:1}),s=withFacts(base,cs),E=engineAt(cs.at(-1).date);
+ preconditions(E,s,cs);
+ return {cs,base,s,E};
+}
+test('R4-N23 HOLD-PROJECTION (Astra B7, spec R8 :92 governor event, :135 step 6, D1 N23): two one-set openers exactly 0 -> event governor applies holdFlag true and nothing else; the card effort is the canonical [2], not [0]',()=>{
+ const {cs,base,s,E}=n23([X(0),X(0)]);
+ const card=E.genSession(s,CARD_DAY,{}).ex.find(c=>c.id===LIFT);
+ assert.deepEqual(E.rirPlan(s,{...card,holdFlag:false},{}).plan,[0],'READ: the unprojected one-set card effort');
+ assert.deepEqual(E.rirPlan(s,{...card,holdFlag:true},{}).plan,[2],'READ: the canonical held one-set card effort');
+ nativeGate(E);
+ const before=JSON.stringify(s),t=E.applyNativeLoadDecision(s,null,structuredClone(GOV));
+ assert.equal(JSON.stringify(s),before,'input never modified');
+ assert.deepEqual([t.status,t.effect,t.refusal],['applied',null,null]);
+ const want=structuredClone(s);exOf(want).holdFlag=true;assert.deepEqual(t.state,want,'ONLY holdFlag changes; rirHist and every other byte equal');
+ assert.ok(!JSON.stringify(t).includes('[object'),'no token escapes');
+ for(const bad of [[{},GOV],[null,{...GOV,spent:[{spend_id:'x'}]}],[null,{...GOV,authority:{}}],[null,{...GOV,completion:{}}]]){
+  const r=E.applyNativeLoadDecision(s,bad[0],structuredClone(bad[1]));assert.equal(r.status,'refused');assert.equal(r.refusal.code,'NATIVE_LOAD_RECORD_INVALID');
+ }
+ const W=require(path.join(ROOT,'rebuild/m4/workout/engine-runtime.cjs')),H=require(path.join(ROOT,'rebuild/m3/w6/host/engine-runtime-host.cjs'));
+ for(const R of [W,H]){const r=R.createEngineRuntime({clock:clockFor(cs[1].date),nativeTrendContext:assumedContext});
+  assert.equal(JSON.stringify(r.applyNativeLoadDecision(structuredClone(s),null,structuredClone(GOV))),JSON.stringify(t),'both runtimes byte-equal');
+  assert.equal(Object.hasOwn(r,'updateOpenerHold'),false);}
+ assert.deepEqual(Object.keys(evaluate(E,s,request(s,cs,cs[1]))),['profile','status','basis','offers','refusal'],'the Evaluation carries no holdFlag');
+ effectsGate();
+ const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[],'fx-revision-1',base));
+ assert.equal(exOf(f.state).holdFlag,true,'the fold projects the governor once per projection');
+ assert.deepEqual(E.rirPlan(f.state,{...card,holdFlag:exOf(f.state).holdFlag},{}).plan,[2],'the captured card effort equals the canonical governor');
+ const again=EFFECTS.m.foldNativeLoad({...foldArgs(cs,[],'fx-revision-1',base)});assert.deepEqual(again.state,f.state,'re-projection from the immutable base is stable');
+});
+test('R4-N23b HOLD-PROJECTION variants (D1 N23): an honest C3 opener releases (unchanged, false); an unknown C2 opener never becomes 0 (unchanged, false)',()=>{
+ const rel=n23([X(0),X(0),X(1)]),unk=n23([X(0),UNKNOWN]);
+ nativeGate(rel.E);
+ for(const v of [rel,unk]){
+  const t=v.E.applyNativeLoadDecision(v.s,null,structuredClone(GOV));
+  assert.equal(t.status,'unchanged');assert.deepEqual(t.state,v.s);assert.equal(exOf(t.state).holdFlag,false);
+ }
+});
+test('R4-N24 ORDER-UNPROVABLE (D7b; spec R8 :156, :196, D1 N24): accepted Q then a base w 102.5 with no authenticated plan op -> EFFECT_CONFLICT for fx-press only, refs [accept], field load_basis, identical under R1/R2 and both delivery orders; compensation is retire-only',()=>{
+ effectsGate();
+ const {cs,resp,offer}=landingScenario('fx-revision-1'),spend=decisionOf(offer).spend_id,moved=()=>F0({w:102.5});
+ const runs=[];
+ for(const rev of ['fx-revision-1','fx-revision-2'])for(const first of [false,true]){
+  const args=foldArgs(cs,[resp],rev,moved());if(first)args.generation.collections.ops['fx-resp-1'].device_seq=0;
+  runs.push(EFFECTS.m.foldNativeLoad(args));
+ }
+ const f=runs[0];
+ assert.equal(f.status,'ready','never the whole programme');
+ assert.deepEqual(f.issues.map(i=>[i.code,i.refs,i.field,i.lift]),[['NATIVE_LOAD_EFFECT_CONFLICT',[ref('fx-resp-1')],'load_basis',LIFT]]);
+ const q=f.state.queue.find(x=>x.native_load_spend===spend);assert.deepEqual([q.done,q.state],[false,'DEBUT'],'neither landed nor dropped');
+ assert.deepEqual(f.spent.map(x=>x.spend_id),[spend],'spend kept');assert.equal(exOf(f.state).w,102.5);
+ for(const r of runs.slice(1)){assert.deepEqual(r.state,f.state);assert.deepEqual(r.issues,f.issues);assert.deepEqual(r.spent,f.spent);}
+ const c3=C(3,{date:'2026-10-12',reps:TOP,loads:105,prescribed:105,effort:e(2,1,1)}),late=EFFECTS.m.foldNativeLoad(foldArgs([...cs,c3],[resp],'fx-revision-1',moved()));
+ assert.equal(exOf(late.state).w,102.5,'a Close that captured 105 still never lands a conflicted effect');
+ assert.equal(late.state.queue.find(x=>x.native_load_spend===spend).done,false);
+ const args=foldArgs(cs,[resp],'fx-revision-1',moved());
+ expectRefusal(checkOf(args,LIFT,cs[1]),'EFFECT_CONFLICT',[ref('fx-resp-1')]);
+ const undo=checkOf(args,LIFT,cs[1],{compensate:spend});
+ assert.equal(undo.status,'offer','compensation stays reachable: '+JSON.stringify(undo.refusal));
+ const g=EFFECTS.m.foldNativeLoad(foldArgs(cs,[resp,acceptOp(undo.offers[0],{op_id:'fx-resp-2',after:2})],'fx-revision-1',moved()));
+ const q2=g.state.queue.find(x=>x.native_load_spend===spend);assert.deepEqual([q2.done,q2.state],[true,'COMPENSATED']);
+ assert.equal(exOf(g.state).w,102.5,'retire-only: no w write');assert.equal(g.spent.find(x=>x.spend_id===spend).cancelled_by,decisionOf(undo.offers[0]).spend_id);
+ assert.ok(!g.issues.some(i=>i.code==='NATIVE_LOAD_EFFECT_CONFLICT'),'conflict cleared');
+});
+test('R4-B9 CAPTURED BEFORE UNDO (Astra L2 B9; spec :153 "offers the prior field image only if no later Start captured the accepted effect"): a Start that captured 105 refuses compensation COMPENSATION_DESCENDANTS; a raced undo is not applied and the debut lands',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1'),spend=decisionOf(s.offer).spend_id;
+ const early=checkOf(foldArgs(s.cs,[s.resp]),LIFT,s.cs[1],{compensate:spend});assert.equal(early.status,'offer','before any capture the undo is offered');
+ const args=foldArgs(s.cs,[s.resp]);
+ args.generation.collections.ops[s.c3.start]={op_id:s.c3.start,athlete_id:ATH,device_id:DEVICE,device_seq:100,class:'session',kind:'session-start',payload:{},canonical_content_commitment:commit(s.c3.start)};
+ captureOn(args.generation,s.c3,[105,105,105]);
+ expectRefusal(checkOf(args,LIFT,s.cs[1],{compensate:spend}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-1')]);
+ const all=foldArgs(s.all,[s.resp,acceptOp(early.offers[0],{op_id:'fx-resp-2',after:3})]);captureOn(all.generation,s.c3,[105,105,105]);
+ const f=EFFECTS.m.foldNativeLoad(all);
+ assert.equal(exOf(f.state).w,105,'the captured, performed debut lands');
+ assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_COMPENSATION_DESCENDANTS'),'the raced undo is refused by name');
+});
+test('R4-B11 UNDO AFTER TRAINING (Astra L2 B11/M13; spec :153 "After subsequent training/landing return COMPENSATION_DESCENDANTS", N16): C3 completed at the old 100 while Q105 is pending -> COMPENSATION_DESCENDANTS',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1'),spend=decisionOf(s.offer).spend_id;
+ const c3=C(3,{date:'2026-10-12',reps:TOP,loads:100,prescribed:100,effort:e(2,1,1)}),args=foldArgs([...s.cs,c3],[s.resp]);
+ assert.equal(EFFECTS.m.foldNativeLoad(args).state.queue.find(q=>q.native_load_spend===spend).done,false,'Q105 still pending: C3 captured 100');
+ expectRefusal(checkOf(args,LIFT,c3,{compensate:spend}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-1')]);
+});

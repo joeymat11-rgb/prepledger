@@ -99,16 +99,41 @@ function sessionOf(facts, closeId, lift) {
 // the authenticated Start op's prescription_capture cell for that logical slot (the
 // shape W/engine-capture.cjs loadCell writes); a typed slot's own prescribed_load is
 // used only when the Start carries no capture cell for it. Unreadable -> null.
+function cellValue(load) {
+  if (!map(load) || load.state !== 'specified' || !text(load.source_json)) return null;
+  try { const v = JSON.parse(load.source_json); return map(v) && v.unit === 'lb' && Number.isFinite(v.value) ? v.value : null; } catch (_) { return null; }
+}
 function captureOf(start, entry) {
   const cells = new Map();
   const pc = start && map(start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
   for (const cell of pc) if (map(cell) && cell.lift_lineage_id === entry.lift_lineage_id && text(cell.logical_set_slot)) cells.set(cell.logical_set_slot, cell.load);
-  const read = (load) => {
-    if (!map(load) || load.state !== 'specified' || !text(load.source_json)) return null;
-    try { const v = JSON.parse(load.source_json); return map(v) && v.unit === 'lb' && Number.isFinite(v.value) ? v.value : null; } catch (_) { return null; }
-  };
-  return entry.slots.filter((s) => s.origin !== 'added').map((s) => (cells.has(s.logical_set_slot) ? read(cells.get(s.logical_set_slot))
+  return entry.slots.filter((s) => s.origin !== 'added').map((s) => (cells.has(s.logical_set_slot) ? cellValue(cells.get(s.logical_set_slot))
     : s.prescribed_load && s.prescribed_load.state === 'specified' && s.prescribed_load.source ? s.prescribed_load.source.value : null));
+}
+// One Start's captured load vector for one lift, in position order (the same cells).
+function startCapture(start, lift) {
+  const pc = map(start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
+  const cells = [];
+  for (const cell of pc) {
+    if (!map(cell) || cell.lift_lineage_id !== lift || !text(cell.logical_set_slot)) continue;
+    let at = null;
+    try { const k = JSON.parse(cell.logical_set_slot); at = Array.isArray(k) && k[0] === lift && Number.isSafeInteger(k[1]) ? k[1] : null; } catch (_) { at = null; }
+    if (at !== null) cells.push([at, cellValue(cell.load)]);
+  }
+  return cells.sort((a, b) => a[0] - b[0]).map((c) => c[1]);
+}
+// Spec :153 "only if no later Start captured the accepted effect" (review B9): some
+// authenticated Start after the accept (provenBefore) captured exactly its target vector.
+function capturedAfter(g, ops, byId) {
+  const lift = g.body.lift_lineage_id, want = (g.body.target_load && Array.isArray(g.body.target_load.vector) ? g.body.target_load.vector : []).map((x) => (map(x) ? x.value : null));
+  return ops.some((op) => op.class === 'session' && op.kind === 'session-start' && same(startCapture(op, lift), want) && provenBefore(g.ops, op, byId));
+}
+// Spec R8 :156 (D7b): the reconstructed lift no longer has the base the accept recorded.
+function movedBase(ex, body) {
+  const img = (k) => (Object.hasOwn(ex, k) ? { present: true, value: ex[k] === undefined ? null : json(ex[k]) } : { present: false, value: null });
+  const f = map(body.base_load) && map(body.base_load.fields) ? body.base_load.fields : {};
+  const forks = map(body.basis) && map(body.basis.technique) && Array.isArray(body.basis.technique.forks) ? body.basis.technique.forks : [];
+  return !same(img('w'), f.w) || !same(img('wSets'), f.wSets) || !same(json(ex.forks || []), forks);
 }
 // Proven causality (spec :151 "Require acceptance before Start by proven causality";
 // :156 "same-lift dependencies follow witnessed causal/source order"): the accept is
@@ -279,13 +304,42 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
   });
   events.sort((a, b) => a.at - b.at || (a.type === b.type ? 0 : a.type === 'accept' ? -1 : 1) || a.frontier - b.frontier || a.seq - b.seq || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const repair = new Map(); // spend_id -> its BASIS_REPAIR_REQUIRED issue (spec :157)
+  const held = new Map();   // spend_id -> its load_basis EFFECT_CONFLICT issue (spec R8 :156)
   for (const ev of events) {
     if (ev.type === 'accept') {
       const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = g.ops.map(refOf).sort(byOp), lift = body.lift_lineage_id;
       if (disputed.has(lift)) continue; // same-lift dependencies wait behind the named refusal
       const overlap = spent.filter((x) => x.spend_id !== body.spend_id && x.consumes.some((c) => body.consumes.includes(c)));
       if (overlap.length) { dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs: [...refs, ...overlap.flatMap((x) => x.response_refs)].sort(byOp), field: null, lift }); continue; }
-      const rt = engine.at(dayOf(body, facts)), changed = evidenceChanged(body, facts);
+      const rt = engine.at(dayOf(body, facts));
+      // Spec :153 (review B9): compensation is offered "only if no later Start captured the
+      // accepted effect". A compensation recorded while such a Start exists is not applied;
+      // that captured debut keeps its landing on its own Close.
+      if (body.kind === 'compensate') {
+        const target = groups.get(body.compensates);
+        if (target && capturedAfter(target, ops, byId)) { issues.push({ code: 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', refs, field: 'capture', lift }); continue; }
+      }
+      // Spec R8 :156 UNPROVABLE ORDER (D7b, table :196): the base this accept was issued on
+      // (base_load w/wSets, technique) is not the reconstructed one and no authenticated plan
+      // op orders the change (this fold admits none), so the lift is refused EFFECT_CONFLICT,
+      // refs = its response refs, field 'load_basis', before any re-validation, identically
+      // under every revision and delivery order. The effect is neither applied as load nor
+      // dropped: an earn keeps its queue entry (never captured: the registrar holds the lift,
+      // never landed: see the Close below), the spend is kept, and only its compensation
+      // (retire-only, no w write) or a later plan authority resolves it.
+      const exNow = state.exercises.find((x) => x && x.id === lift);
+      if (body.kind !== 'compensate' && exNow && movedBase(exNow, body)) {
+        const issue = { code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs, field: 'load_basis', lift, spend_id: body.spend_id };
+        issues.push(issue); held.set(body.spend_id, issue);
+        if (body.kind === 'earn') {
+          const t = rt.applyNativeLoadDecision(state, body, { event: 'accept', basis: body.basis, spent: json(spent),
+            authority: { response_refs: refs, issuance: iss, source_cut: iss.source }, completion: null });
+          if (t.status === 'applied') { state = t.state; effects.set(body.spend_id, t.effect); }
+        }
+        spent.push({ spend_id: body.spend_id, consumes: body.consumes.slice(), response_refs: refs, close_ref: null, cancelled_by: null });
+        continue;
+      }
+      const changed = evidenceChanged(body, facts);
       if (changed) {
         const issue = { code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs, field: null, lift, spend_id: body.spend_id };
         issues.push(issue); repair.set(body.spend_id, issue);
@@ -315,8 +369,11 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
         const e = effects.get(body.compensates);
         if (e) e.kind = 'compensated';
         // Spec :157: the eligible compensating choice resolves the disputed basis.
-        const resolved = repair.get(body.compensates);
-        if (resolved) { issues.splice(issues.indexOf(resolved), 1); repair.delete(body.compensates); }
+        // Spec R8 :156: its compensation also clears an unprovable-order conflict.
+        for (const book of [repair, held]) {
+          const resolved = book.get(body.compensates);
+          if (resolved) { issues.splice(issues.indexOf(resolved), 1); book.delete(body.compensates); }
+        }
       } else effects.set(body.spend_id, t.effect);
       continue;
     }
@@ -331,7 +388,7 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
       const close = byId.get(ev.entry.completion.op_id);
       if (!close) continue;
       // Spec :157: no landing on a disputed basis; its BASIS_REPAIR_REQUIRED issue stands.
-      if (repair.has(q.native_load_spend)) continue;
+      if (repair.has(q.native_load_spend) || held.has(q.native_load_spend)) continue; // R8 :156: nor on an unprovable order
       // Spec :151 "Require acceptance before Start by proven causality"; table :198 names the
       // outcome: DEBUT_BASIS_UNPROVEN, Close saved, target pending/disputed, w does not land.
       // Proof is causal ancestry or one device's own sequence (provenBefore), never a
@@ -350,6 +407,14 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
       } else if (t.refusal) issues.push({ code: t.refusal.code, refs: t.refusal.refs, field: t.refusal.field, lift });
     }
   }
+  // Step 6 (spec R8 :135): the governor projection, ONCE per projection, after the accepted
+  // effects and before registration, seeded by this projection's immutable base (no
+  // transition above writes holdFlag), so a re-projection never replays its own output.
+  if (facts) {
+    const gv = engine.at(dayOf({ evidence: [] }, facts)).applyNativeLoadDecision(state, null, { event: 'governor', basis: null, spent: [], authority: null, completion: null });
+    if (gv.status === 'applied') state = gv.state;
+    else if (gv.status === 'refused' && gv.refusal) issues.push({ code: gv.refusal.code, refs: [], field: 'governor', lift: null });
+  }
   const blocked = false; // spec :156: refusals are per lift (disputed) and never refuse the whole programme
   const coverage = [...groups.values()].filter((g) => spent.some((x) => x.spend_id === g.body.spend_id)).map((g) => {
     const x = spent.find((y) => y.spend_id === g.body.spend_id);
@@ -366,12 +431,27 @@ function checkNativeLoad(args = {}) {
   if (fold.status !== 'ready') { const i = fold.issues.find((x) => BLOCKING.has(x.code)); return refused({ code: i.code, refs: i.refs, field: i.field || null }); }
   if (!map(request) || !text(request.lift_lineage_id) || !text(request.completion_op_id)) return refused({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [], field: 'request' });
   // Spec :156 per lift: this lift's (or an unattributable) blocking issue refuses its check by the same code and refs.
-  const blocking = fold.issues.find((x) => BLOCKING.has(x.code) && (x.lift === request.lift_lineage_id || x.lift === null || x.lift === undefined));
+  // Spec R8 :156: an unprovable-order conflict keeps its own compensation reachable
+  // ("dispatched before this refusal"), so only that spend's undo passes it.
+  const undoOf = map(request.intent) && text(request.intent.compensate) ? request.intent.compensate : null;
+  const blocking = fold.issues.find((x) => BLOCKING.has(x.code) && (x.lift === request.lift_lineage_id || x.lift === null || x.lift === undefined) &&
+    !(undoOf && x.spend_id === undoOf));
   if (blocking) return refused({ code: blocking.code, refs: blocking.refs, field: blocking.field || null });
   // Spec :157: a disputed basis refuses further load authorization until "an eligible
   // compensating choice" resolves it, so only the compensation of a disputed spend passes.
   const disputed = fold.issues.filter((x) => x.code === 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED' && x.lift === request.lift_lineage_id);
-  const undo = map(request.intent) && text(request.intent.compensate) && disputed.some((x) => x.spend_id === request.intent.compensate);
+  const undo = !!undoOf && disputed.some((x) => x.spend_id === undoOf);
+  // Spec :153 "only if no later Start captured the accepted effect" (review B9). FC01's
+  // request carries no Start capture (:91), which lives on the authenticated Start op
+  // (:122), so this check reads it here and refuses by FC01's own name and refs.
+  if (undoOf) {
+    const x = fold.spent.find((y) => y.spend_id === undoOf), e = fold.effects.find((y) => y.spend_id === undoOf);
+    if (x && e) {
+      const { ops, byId } = operationsOf(generation);
+      const g = { body: { lift_lineage_id: request.lift_lineage_id, target_load: e.target_load }, ops: x.response_refs.map((r) => byId.get(r.op_id)).filter(Boolean) };
+      if (g.ops.length && capturedAfter(g, ops, byId)) return refused({ code: 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', refs: x.response_refs.slice(), field: null });
+    }
+  }
   if (disputed.length && !undo) return refused({ code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs: disputed.flatMap((x) => x.refs).sort(byOp), field: null });
   if (!map(workoutFacts) || !map(workoutFacts.order)) return refused({ code: 'NATIVE_LOAD_COMPLETION_REQUIRED', refs: [], field: 'workoutFacts' });
   const basis = basisOf({ state: fold.state, generation, workoutFacts, source, athleteId, plan, lift: request.lift_lineage_id, spent: fold.spent });
@@ -403,6 +483,6 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:ff3788ecd4791721391f840f3ade805085975bbffec9c5f34668bbc1d5bf1957';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:ac17f4a93ee1931236ad99a740c78535620ef968d44827ca6891cc5fa89681fc';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, completedLifts, operationsOf };

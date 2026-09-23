@@ -17,6 +17,7 @@ import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
 import { openTodayInstallation } from '../../../w6/local/today-bindings.mjs';
 import { createWorkoutEntry } from '../today-entry.mjs';
+import * as TodayEntry from '../today-entry.mjs';
 import TodayModel from '../today-model.cjs';
 import design from '../design.cjs';
 
@@ -48,17 +49,17 @@ async function dayEntry(era, day, extra = {}) {
 }
 // One whole U-day session through the gym model: every set logged at `reps`
 // with effort `effort` (a label of the approved choice set), then a normal Finish.
-async function train(entry, reps = 12, effort = '1') {
+// Round 4 options: start:false continues a Start already made; load fills a set whose card has no load (baseline).
+async function train(entry, reps = 12, effort = '1', { start = true, load: entered = null } = {}) {
   const gym = entry.gym;
   const reserve = gym.effortChoices().find(c => c.label === effort).reserve;
-  const started = await gym.start();
-  assert.equal(started.ok, true, 'start ' + started.code);
+  if (start) { const started = await gym.start(); assert.equal(started.ok, true, 'start ' + started.code); }
   for (let guard = 0; guard < 20; guard++) {
     const view = await gym.read();
     if (view.phase === 'saved') { if (view.complete) break; gym.forget(); continue; }
     if (view.phase !== 'active') break;
     const logged = await gym.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
-      load: String(view.entry.load), reps: String(reps), effort: reserve });
+      load: String(view.entry.load === null && entered !== null ? entered : view.entry.load), reps: String(reps), effort: reserve });
     assert.equal(logged.ok, true, 'set ' + logged.code);
     gym.forget();
   }
@@ -231,7 +232,7 @@ test('R3-B1 ACTUAL LANDING [Y] (Astra B1, spec :151-152): yes to 45, reopen, tra
   host.close(); three.entry.gymHost.close(); again.close();
 });
 
-test('R3-B2 DISPUTED CARD [Y] (Astra B2, spec :157): a set of the accepted basis removed after the yes -> the reopened card is not 45 advice but NATIVE_LOAD_BASIS_REPAIR_REQUIRED; the compensating yes resolves it', async () => {
+test('R3-B2 DISPUTED CARD [Y] (Astra B2, spec :157; round 4 D-B2-1 :156): a set of the accepted basis removed after the yes -> the reopened card is not 45 advice (demo-press is left off it); the compensating yes resolves it', async () => {
   const fault = faultDatabase(), era = await reopenAt(fault, D1);
   hostGate(era);
   const entry = await yesTo(era, 'demo-press');
@@ -243,8 +244,9 @@ test('R3-B2 DISPUTED CARD [Y] (Astra B2, spec :157): a set of the accepted basis
   assert.equal((await entry.gymHost.host.client.commitWorkoutEdit({ editId: edit.editId, action: 'remove', change: 'SYNTHETIC correction' })).acknowledged, true);
   entry.gymHost.close(); era.close();
   const again = await reopenAt(fault, D3), three = await dayEntry(again, D3), card = await three.entry.gym.read();
-  assert.notEqual(card.phase, 'ready', 'disputed 45 is never current advice: ' + JSON.stringify(card.prescription && card.prescription.line));
-  assert.ok(JSON.stringify([card.code, card.clientCode, card.copy]).includes('NATIVE_LOAD_BASIS_REPAIR_REQUIRED'), JSON.stringify([card.code, card.clientCode, card.copy]));
+  // Round 4 (Claude l2 D-B2-1, spec :156): only the disputed lift's slot is unavailable, not the whole day.
+  assert.equal(card.phase, 'ready', card.code || '');
+  assert.notEqual(card.lift.id, 'demo-press', 'disputed 45 is never current advice: demo-press is left off the card');
   const host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) });
   const body = (await responsesOf(again))[0].payload.issuance.body;
   const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
@@ -281,4 +283,123 @@ test('R3-B5 REOPEN RECONCILES [Y] (Astra B5, spec :164-165): after yes 45, a col
   assert.deepEqual(nativeQueue(state, 'demo-press').map(q => [q.done, q.newW]), [[false, 45]], 'Today holds the accepted target the gym prescribes');
   assert.equal(state.exercises.find(e => e.id === 'demo-press').w, 40, 'w unchanged until landing');
   next.entry.gymHost.close(); again.close();
+});
+
+// ROUND 4 actual-host rows (spec R8 b849508; Astra L2 B7, B9, B10; Claude l2 D-B2-1; D9).
+async function dayEntryWith(era, day, basis) {
+  const model = createTodayModel({ today: day, basisState: basis });
+  return { model, entry: await createWorkoutEntry(model, { hosts: era }) };
+}
+const withPress = (day, patch) => { const s = basisFor(day); Object.assign(s.exercises.find(e => e.id === 'demo-press'), patch); return s; };
+const PROPOSED = () => TodayEntry.NATIVE_LOAD_PROPOSED_COPY || {};
+async function disputedAtD3(fault) {
+  const era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  const history = await entry.gymHost.host.client.readWorkoutHistory();
+  const session = history.history.sessions.find(s => s.projection.close_records.length && s.projection.start_record.current.effective.local_date === D2);
+  const target = session.projection.facts.filter(f => f.included === true)[0].source_op_id;
+  const edit = await entry.gymHost.host.client.prepareWorkoutEdit({ target_op_id: target });
+  assert.equal(edit.prepared, true, edit.code);
+  assert.equal((await entry.gymHost.host.client.commitWorkoutEdit({ editId: edit.editId, action: 'remove', change: 'SYNTHETIC correction' })).acknowledged, true);
+  entry.gymHost.close(); era.close();
+  const again = await reopenAt(fault, D3);
+  return { again, three: await dayEntry(again, D3) };
+}
+
+test('R4-N23 HOLD ON THE CARD [Y] (Astra B7; spec R8 :92, :135, D1 N23): two workouts whose one-set demo-press opener is exactly 0 -> the next card carries the canonical governor effort, 2 reps in reserve', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const b = day => withPress(day, { sets: 1 });
+  for (const day of [D1, D2]) {
+    const one = await dayEntryWith(era, day, b(day));
+    assert.equal((await train(one.entry, 12, '0')).finished.ok, true);
+    if (one.entry.nativeLoad) await one.entry.nativeLoad.settled();
+    one.entry.gymHost.close();
+  }
+  era.close();
+  const again = await reopenAt(fault, D3), three = await dayEntryWith(again, D3, b(D3)), card = await three.entry.gym.read();
+  assert.equal(card.lift.id, 'demo-press');
+  assert.equal(card.prescription.effortCell, '2 reps in reserve', 'the held one-set opener is prescribed as the canonical governor says');
+  const host = await again.createNativeLoadHost({ day: D3, engineState: b(D3) }), p = await host.project();
+  const press = p.state.exercises.find(e => e.id === 'demo-press'), seed = b(D3).exercises.find(e => e.id === 'demo-press');
+  assert.equal(press.holdFlag, true);
+  assert.deepEqual(press.rirHist, seed.rirHist, 'no rirHist leaves the governor');
+  host.close(); three.entry.gymHost.close(); again.close();
+});
+
+test('R4-B9 CAPTURED DEBUT CANNOT BE UNDONE [Y] (Astra L2 B9; spec :153 "only if no later Start captured the accepted effect"): yes 45, the D3 Start captures 45, compensation refuses COMPENSATION_DESCENDANTS, and the finished debut lands 45', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  entry.gymHost.close(); era.close();
+  const again = await reopenAt(fault, D3), three = await dayEntry(again, D3);
+  const started = await three.entry.gym.start();
+  assert.equal(started.ok, true, started.code);
+  const host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) });
+  const body = (await responsesOf(again))[0].payload.issuance.body;
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'refused', 'no undo once a Start captured the agreed weight');
+  assert.equal(undo.refusal.code, 'NATIVE_LOAD_COMPENSATION_DESCENDANTS');
+  assert.equal((await train(three.entry, 12, '1', { start: false })).finished.ok, true);
+  await three.entry.nativeLoad.settled();
+  assert.equal((await host.project()).state.exercises.find(e => e.id === 'demo-press').w, 45, 'the captured debut lands');
+  host.close(); three.entry.gymHost.close(); again.close();
+});
+
+test('R4-B10 BASELINE UNDO [Y] (Astra L2 B10; spec :110 "Only compensation may restore original null/unprescribed positions", :153): yes to a 60 baseline; its compensation offers the null prior image and its yes restores no working weight', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const b = day => withPress(day, { w: null });
+  const one = await dayEntryWith(era, D1, b(D1));
+  assert.equal((await train(one.entry, 12, '1', { load: '60' })).finished.ok, true);
+  await one.entry.nativeLoad.settled();
+  await one.entry.nativeLoad.check();
+  const offer = one.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.equal(offer && offer.kind, 'adopt-baseline');
+  assert.equal((await one.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  const host = await era.createNativeLoadHost({ day: D1, engineState: b(D1) });
+  const body = (await responsesOf(era))[0].payload.issuance.body;
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'offer', JSON.stringify(undo.refusal));
+  assert.deepEqual(undo.offers[0].loads, [null, null], 'the prior image had no working weight');
+  assert.equal((await host.respond({ handle: undo.offers[0].handle, proposal_id: undo.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+  assert.equal((await host.project()).state.exercises.find(e => e.id === 'demo-press').w, null);
+  host.close(); one.entry.gymHost.close(); era.close();
+});
+
+test('R4-DB21 ONE SLOT, NOT THE DAY [Y] (Claude l2 D-B2-1; spec :156 "mark affected new prescription unavailable", :157 "labeled disputed"): the disputed demo-press is left off D3, demo-row is prescribed, and the panel labels demo-press disputed', async () => {
+  const fault = faultDatabase(), { again, three } = await disputedAtD3(fault), card = await three.entry.gym.read();
+  assert.equal(card.phase, 'ready', card.code || '');
+  assert.equal(card.lift.id, 'demo-row', 'the rest of the day is prescribed');
+  assert.match(card.prescription.line, /^40 lb/);
+  await three.entry.refresh();
+  const doc = shell(), phone = doc.getElementById('phone');
+  await three.entry.open({ doc, phone, back: () => {} });
+  const notice = q(doc, '[data-native-load="notice"][data-lift="demo-press"]');
+  assert.ok(notice, 'demo-press is labeled, not silently missing');
+  assert.ok(PROPOSED().disputed && notice.textContent.includes(PROPOSED().disputed), notice && notice.textContent);
+  three.entry.gymHost.close(); again.close();
+});
+
+test('R4-D9 UNDO CONTROL [Y] (D9; spec :153; PROPOSED copy): after yes 45 the Check next weight panel lists an undo choice for demo-press at the prior 40/40; its Yes retires the agreed weight and the next card is 40', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  const doc = shell(), phone = doc.getElementById('phone');
+  await entry.open({ doc, phone, back: () => {} });
+  q(doc, '[data-native-load="check"]').click();
+  await entry.nativeLoad.settled();
+  const undo = qa(doc, '[data-native-load="offer"]').find(o => o.getAttribute('data-lift') === 'demo-press' && o.getAttribute('data-kind') === 'compensate');
+  assert.ok(undo, 'an undo choice is listed');
+  assert.deepEqual(qa(undo, '[data-native-load="set-load"]').map(x => x.textContent.trim()), ['40 lb', '40 lb']);
+  assert.ok(q(undo, 'h3').textContent.endsWith(PROPOSED().undoHeading));
+  q(undo, '[data-native-load="yes"]').click();
+  await entry.nativeLoad.settled();
+  assert.equal((await responsesOf(era)).length, 2, 'the undo is its own durable yes');
+  assert.equal(entry.nativeLoad.view().copy, PROPOSED().undone);
+  entry.gymHost.close(); era.close();
+  const again = await reopenAt(fault, D3), three = await dayEntry(again, D3);
+  assert.match((await three.entry.gym.read()).prescription.line, /^40 lb/, 'the retired weight never reaches the card');
+  three.entry.gymHost.close(); again.close();
 });

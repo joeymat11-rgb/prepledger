@@ -166,9 +166,26 @@ export const NATIVE_LOAD_COPY = Object.freeze({
   yes: "Yes",
   decline: "Not now",
 });
+/* PROPOSED - NEW COPY, NOT APPROVED. Every string below needs Joe's approval before
+   release (round 4, D9 undo control and D-B2-1 disputed label; spec R7/R8 :153, :156,
+   :157). Nothing else in this file's copy changed. A lift's display name is prefixed to
+   `disputed` and `conflict` as "Name: ", and to `undoHeading` as "Name". */
+export const NATIVE_LOAD_PROPOSED_COPY = Object.freeze({
+  undoHeading: ": undo the agreed weight",
+  noWeight: "No working weight",
+  undone: "Undone. The agreed weight will not be used.",
+  disputed: "a workout behind your agreed weight was corrected, so this lift is left off your workouts for now. Check next weight to undo the agreed weight.",
+  conflict: "your working weight changed after you agreed to a new one, so this lift is left off your workouts for now. Check next weight to undo the agreed weight.",
+});
+// The fold issues that make a lift's new prescription unavailable and carry the spend
+// whose compensation resolves them (spec :157 BASIS_REPAIR_REQUIRED; R8 :156 load_basis).
+const heldIssue = x => x && typeof x.lift === "string" && typeof x.spend_id === "string" &&
+  (x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" || (x.code === "NATIVE_LOAD_EFFECT_CONFLICT" && x.field === "load_basis"));
+const noticesOf = issues => (Array.isArray(issues) ? issues : []).filter(heldIssue)
+  .map(x => ({ lift: x.lift, code: x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" ? "disputed" : "conflict" }));
 function createNativeLoadController({ openHost, lifts: liftNames = () => new Map(), onSaved, onClosedChecked } = {}) {
   let host = null, opening = null, busy = Promise.resolve(), region = null, doc = null;
-  let view = { phase: "idle", offers: [], refusals: [], copy: null };
+  let view = { phase: "idle", offers: [], refusals: [], copy: null, notices: [] };
   const held = new Map();   // proposalId -> the host's offer (with its opaque handle)
   const ensure = async () => { if (host) return host; if (!opening) opening = openHost(); host = await opening; return host; };
   const run = task => { const next = busy.then(task, task); busy = next.then(() => {}, () => {}); return next; };
@@ -188,10 +205,29 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
         if (result.status === "offer") for (const offer of result.offers) { held.set(offer.proposalId, offer); offers.push(offer); }
         else if (result.refusal) refusals.push({ lift: target.lift_lineage_id, code: result.refusal.code });
       }
-      set({ phase: offers.length ? "offers" : "refused", offers, refusals, copy: offers.length ? null : NATIVE_LOAD_COPY.none });
+      /* D9 UNDO (spec :153): the explicit check also lists, for every accepted effect not yet
+         used and every held one, its compensating choice as its own offer. FC01 decides
+         eligibility (no captured Start, landing or later training), so an ineligible undo
+         is simply not offered. Route B's after-Close check lists only new weights. */
+      if (closeOpId === undefined) {
+        const spends = new Map();
+        for (const e of projected.effects || []) if (e && (e.kind === "queued" || e.kind === "adopted")) {
+          let lift = null; try { lift = JSON.parse(e.spend_id)[1]; } catch (_) { lift = null; }
+          if (typeof lift === "string") spends.set(e.spend_id, lift);
+        }
+        for (const x of (projected.issues || []).filter(heldIssue)) spends.set(x.spend_id, x.lift);
+        for (const [spend, lift] of spends) {
+          const newest = projected.lifts.find(l => l.lift_lineage_id === lift && l.normal);
+          if (!newest) continue;
+          const result = await h.check({ lift_lineage_id: lift, completion_op_id: newest.completion_op_id, intent: { compensate: spend } });
+          if (result.status === "offer") for (const offer of result.offers) { held.set(offer.proposalId, offer); offers.push(offer); }
+        }
+      }
+      set({ phase: offers.length ? "offers" : "refused", offers, refusals, notices: noticesOf(projected.issues),
+        copy: offers.length ? null : NATIVE_LOAD_COPY.none });
     } catch (_) {
       held.clear();
-      set({ phase: "failed", offers: [], refusals: [], copy: NATIVE_LOAD_COPY.failed });
+      set({ phase: "failed", offers: [], refusals: [], notices: view.notices, copy: NATIVE_LOAD_COPY.failed });
     }
     return api.view();
   }
@@ -207,7 +243,8 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
     }
     if (result.acknowledged === true) {
       held.delete(proposalId);
-      set({ phase: "saved", offers: view.offers.filter(o => o.lift !== offer.lift), refusals: [], copy: NATIVE_LOAD_COPY.saved });
+      set({ phase: "saved", offers: view.offers.filter(o => o.lift !== offer.lift), refusals: [], notices: view.notices,
+        copy: offer.kind === "compensate" ? NATIVE_LOAD_PROPOSED_COPY.undone : NATIVE_LOAD_COPY.saved });
       if (typeof onSaved === "function") {
         try { await onSaved(); } catch (_) { set({ ...view, copy: NATIVE_LOAD_COPY.savedButUnchecked }); }
       }
@@ -230,11 +267,13 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
     button.addEventListener("click", () => { api.check(); });
     const children = [button];
     if (view.copy) children.push(make("p", { "data-native-load": "status", role: "status" }, view.copy));
+    for (const notice of view.notices || [])
+      children.push(make("p", { "data-native-load": "notice", "data-lift": notice.lift }, nameOf(notice.lift) + ": " + NATIVE_LOAD_PROPOSED_COPY[notice.code]));
     for (const offer of view.offers) {
-      const card = make("div", { "data-native-load": "offer", "data-lift": offer.lift, "data-proposal": offer.proposalId });
-      card.append(make("h3", {}, nameOf(offer.lift) + (offer.kind === "earn" ? ": next weight" : ": set your working weight")));
+      const card = make("div", { "data-native-load": "offer", "data-lift": offer.lift, "data-kind": offer.kind, "data-proposal": offer.proposalId });
+      card.append(make("h3", {}, nameOf(offer.lift) + (offer.kind === "earn" ? ": next weight" : offer.kind === "compensate" ? NATIVE_LOAD_PROPOSED_COPY.undoHeading : ": set your working weight")));
       const list = make("ul", { "aria-label": "Offered weight for each set" });
-      offer.loads.forEach((load, i) => { const item = make("li", {}, "Set " + (i + 1) + ": "); item.append(make("span", { "data-native-load": "set-load" }, load + " " + offer.unit)); list.append(item); });
+      offer.loads.forEach((load, i) => { const item = make("li", {}, "Set " + (i + 1) + ": "); item.append(make("span", { "data-native-load": "set-load" }, load === null ? NATIVE_LOAD_PROPOSED_COPY.noWeight : load + " " + offer.unit)); list.append(item); });
       card.append(list, make("p", { "data-native-load": "reason" }, offer.reason));
       const yes = make("button", { type: "button", "data-native-load": "yes", class: "btn" }, NATIVE_LOAD_COPY.yes);
       yes.addEventListener("click", () => { api.accept(offer.proposalId); });
@@ -259,6 +298,8 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
     view: () => JSON.parse(JSON.stringify({ ...view, offers: view.offers.map(o => ({ proposalId: o.proposalId, lift: o.lift, kind: o.kind,
       state: o.state, loads: o.loads, unit: o.unit, current: o.current, reason: o.reason })) })),
     settled: () => busy,
+    // The label for a lift whose new prescription is held (spec :157 "labeled disputed").
+    setNotices(issues) { set({ ...view, notices: noticesOf(issues) }); },
     mount(document_, element) { doc = document_; region = element; paint(); },
     close() { if (host && typeof host.close === "function") host.close(); },
   });
@@ -322,6 +363,7 @@ export async function createWorkoutEntry(model, options = {}) {
     if (!opened) return false;
     const projected = await opened.project({ base: immutableBasis });
     if (!projected || projected.ok !== true || !projected.state) throw new Error((projected && projected.code) || "NATIVE_LOAD_PROJECTION_FAILED");
+    nativeLoad.setNotices(projected.issues); // a held lift is labeled, never silently missing (spec :157)
     const next = { ...projected.state }; delete next.workoutFacts;
     if (lastAdopted === null && JSON.stringify(next) === JSON.stringify(immutableBasis)) return false;
     model.adoptBasis(next);

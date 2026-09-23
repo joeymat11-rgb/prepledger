@@ -95,9 +95,9 @@ function decodeSpend(id) {
 }
 
 // ---------- typed rows of one lift, in the registered causal order ----------
-function liftRows(s, lift) {
+function liftRows(s, lift, all) {
   const out = [];
-  for (const row of E.performedHistoryRows(s)) {
+  for (const row of all || E.performedHistoryRows(s)) {
     if (row.source !== 'performed') continue;
     const entry = ((row.rec || {}).entries || []).find((e) => E.performedEntry(e) && e.lift_lineage_id === lift);
     if (entry) out.push({ start: row.start_op_id, close: entry.completion.op_id, date: row.d, entry });
@@ -228,6 +228,21 @@ function evaluate(state, request) {
   return earn(state, b, R, ex, lift, rows, idx, cur, closeRef, originals, line, planNow);
 }
 
+// Step 6, the ONE internal governor (spec R8 :92/:135): the moved canonical
+// updateOpenerHold replayed on an isolated {id, n, holdFlag, rirHist} seeded from the
+// lift as given, over the ordered native original openers. Unknown openers are null
+// (no-op), never 0. Only the resulting boolean leaves; the scratch rirHist (which may
+// hold the private effort token) is discarded. push is a no-op; n falls back to the id
+// only so the discarded push text can be built.
+function governor(ex, rows) {
+  const gov = { id: ex.id, n: ex.n == null ? String(ex.id) : ex.n, holdFlag: !!ex.holdFlag, rirHist: Array.isArray(ex.rirHist) ? ex.rirHist.slice() : [] };
+  for (const row of rows) {
+    const first = originalSlots(row.entry)[0];
+    E.updateOpenerHold(gov, { rir: first && first.state === 'performed' ? nativeEffort(first.fact.current.reserve) : null }, () => {});
+  }
+  return gov.holdFlag;
+}
+
 // Steps 4-8: two FULL views, the spend suffix on deriveSighting's OUTPUT, the moved
 // governor, then the unchanged earnWalk ONCE on scratch. Every candidate is an offer.
 function earn(state, b, R, ex, lift, rows, idx, cur, closeRef, originals, line, planNow) {
@@ -270,12 +285,7 @@ function earn(state, b, R, ex, lift, rows, idx, cur, closeRef, originals, line, 
   // 5-6: scratch lift seeded with the pre-current run and the replayed governor.
   const exS = V_cur.exercises.find((x) => x.id === lift);
   exS.topAt = run > 0 ? f.topAt : null; exS.topRun = run > 0 ? run : 0;
-  const gov = { id: ex.id, n: ex.n, holdFlag: !!ex.holdFlag, rirHist: Array.isArray(ex.rirHist) ? ex.rirHist.slice() : [] };
-  for (const row of rows.slice(0, idx + 1)) {
-    const first = originalSlots(row.entry)[0];
-    E.updateOpenerHold(gov, { rir: first && first.state === 'performed' ? nativeEffort(first.fact.current.reserve) : null }, () => {});
-  }
-  exS.holdFlag = gov.holdFlag;
+  exS.holdFlag = governor(ex, rows.slice(0, idx + 1));
   // The immediately prior comparable same-tenure line is the noise comparator.
   const tenureCur = E._loadTenure(exS, V_cur, null, null).tenure;
   const prevRow = tenureCur.length >= 2 ? tenureCur[tenureCur.length - 2] : null;
@@ -347,7 +357,31 @@ function validDecision(d) {
   return d;
 }
 const effectOf = (kind, d, responseRefs, closeRef = null) => ({ kind, spend_id: d.spend_id, response_refs: json(responseRefs), close_ref: closeRef ? json(closeRef) : null, base_load: json(d.base_load), target_load: json(d.target_load) });
+// The 'governor' event (spec R8 :92): decision null, authority null, spent [], completion
+// null, anything else RECORD_INVALID. For every lift with at least one native original
+// opener at the given facts it replays step 6's governor and returns the state with ONLY
+// that lift's holdFlag replaced (set only where the replay differs from the given flag,
+// so every other byte, rirHist included, is equal); effect null; 'applied' if a flag
+// changed, else 'unchanged'.
+function governorEvent(state, decision, context) {
+  if (decision !== null || context.authority !== null || !Array.isArray(context.spent) || context.spent.length || context.completion !== null ||
+      !(context.basis === null || map(context.basis))) refuse('RECORD_INVALID', [], 'context');
+  if (!map(state) || !Array.isArray(state.exercises)) refuse('RECORD_INVALID', [], 'state');
+  const s = json(state);
+  if (!map(s.workoutFacts)) return { status: 'unchanged', state: s, effect: null, refusal: null };
+  const all = E.performedHistoryRows(s);
+  let changed = false;
+  for (const ex of s.exercises) {
+    if (!map(ex) || !text(ex.id)) continue;
+    const rows = liftRows(s, ex.id, all);
+    if (!rows.some((row) => { const first = originalSlots(row.entry)[0]; return first && first.state === 'performed'; })) continue;
+    const hold = governor(ex, rows);
+    if (hold !== !!ex.holdFlag) { ex.holdFlag = hold; changed = true; }
+  }
+  return { status: changed ? 'applied' : 'unchanged', state: s, effect: null, refusal: null };
+}
 function transition(state, decision, context) {
+  if (map(context) && context.event === 'governor') return governorEvent(state, decision, context);
   const d = validDecision(decision);
   if (!map(context) || !['accept', 'close'].includes(context.event)) refuse('RECORD_INVALID', [], 'context');
   const s = json(state), ex = (s.exercises || []).find((x) => x && x.id === d.lift_lineage_id);

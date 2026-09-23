@@ -525,20 +525,27 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
           const issue = fold.issues.find(x => NativeLoadEffects.BLOCKING_CODES.includes(x.code)) || { code: "NATIVE_LOAD_RECORD_INVALID" };
           const error = new Error(issue.code); error.code = issue.code; throw error;
         }
-        /* Spec :156-157: a lift on this day's card whose accepted basis is disputed
-           (BASIS_REPAIR_REQUIRED) or whose native record is refused by name makes the
-           new prescription unavailable, by that code; the card never offers the old
-           accepted load as current advice. Other days and every fact save stand. */
+        /* Spec :156 "mark affected new prescription unavailable" and :157 (Claude l2
+           D-B2-1): a lift on this day's card whose accepted basis is disputed
+           (BASIS_REPAIR_REQUIRED) or whose native record is refused by name loses ONLY its
+           own slot. The registered projection marks that lift quarantined (the existing
+           record-level "not available" fact exActive reads, E/plan.cjs) and drops its
+           native queue entry, so the capture never offers the disputed load and the rest of
+           the day is prescribed as usual. Nothing is persisted: Today and later
+           projections still read the unquarantined fold, and the panel labels the lift.
+           Only when every lift of the day is held does the day refuse, by that code. */
         const member = runtime.sessionMembership(fold.state, day);
-        const onCard = new Set(member ? member.exercise_ids : []);
-        const held = fold.issues.find(x => onCard.has(x.lift) && (x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" || NativeLoadEffects.BLOCKING_CODES.includes(x.code)));
-        if (held) {
-          const error = new Error(held.code); error.code = held.code;
-          if (held.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED")
-            error.reason = "Disputed: a workout behind your agreed next weight was corrected after you agreed, so that weight is not current advice.";
-          throw error;
+        const onCard = member ? member.exercise_ids : [];
+        const heldIssues = fold.issues.filter(x => onCard.includes(x.lift) && (x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" || NativeLoadEffects.BLOCKING_CODES.includes(x.code)));
+        const heldLifts = new Set(heldIssues.map(x => x.lift));
+        if (heldLifts.size && heldLifts.size === onCard.length) {
+          const error = new Error(heldIssues[0].code); error.code = heldIssues[0].code; throw error;
         }
         const state = { ...fold.state }; delete state.workoutFacts;
+        if (heldLifts.size) {
+          state.exercises = state.exercises.map(e => (e && heldLifts.has(e.id) ? { ...e, quarantined: true } : e));
+          state.queue = state.queue.filter(q => !(q && heldLifts.has(q.exId) && typeof q.native_load_spend === "string"));
+        }
         return real.register({ ...args, state });
       } });
     };
@@ -668,7 +675,9 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
           const body = offer.body;
           return Object.freeze({ handle, proposalId: proposal_id, lift: body.lift_lineage_id, kind: body.kind,
             state: body.candidate ? body.candidate.state : null, unit: "lb",
-            loads: body.target_load.vector.map(v => v.value), current: body.base_load.vector.map(v => (v ? v.value : null)),
+            // Spec :109/:110: a null position is "not prescribed"; only a compensation may carry
+            // one (the prior image of a baseline had no working weight). Review B10.
+            loads: body.target_load.vector.map(v => (v ? v.value : null)), current: body.base_load.vector.map(v => (v ? v.value : null)),
             reason: offer.reason });
         });
         return { status: evaluation.status, offers, refusal: evaluation.refusal ? structuredClone(evaluation.refusal) : null };
