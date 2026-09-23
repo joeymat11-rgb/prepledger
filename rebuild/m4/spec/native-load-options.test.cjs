@@ -1159,3 +1159,220 @@ test('R6-B16 CAPTURED HELD ADOPTION (Astra L4 B16; spec R8 :153 "only if no late
  assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_COMPENSATION_DESCENDANTS'),'the fold agrees');
  assert.equal(f.spent.find(x=>x.spend_id===h.spend).cancelled_by,null);
 });
+
+// ======================================================================
+// ROUND 7 rows (Astra L5 B18, B19, B20, B22; Claude l5 D-B5-1). Invented inputs.
+// ======================================================================
+for(const baseline of [false,true])test('R7-B18'+(baseline?'b':'a')+' UNDO SURVIVES A RETURN TO THE ORIGINAL BASE (Astra L5 B18; spec R8 :121 "permanently cancels", :153-156): a '+(baseline?'baseline':'observed')+' adoption undone while held stays COMPENSATED when the base returns to its original value, R1 and R2',()=>{
+ effectsGate();
+ const h=heldUndo(baseline),original=baseline?F0({w:null}):F0();
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,h.comp1],rev,original));
+  assert.deepEqual(noConflict(f),[],'no conflict, no RECORD_INVALID ('+rev+')');
+  assert.equal(f.spent.find(x=>x.spend_id===h.spend).cancelled_by,h.compSpend,'the cancellation stands ('+rev+')');
+  assert.equal(exOf(f.state).w,baseline?null:100,'the agreed '+(baseline?60:105)+' never returns ('+rev+')');
+ }
+});
+function b19Scenario(u2Seq,u2Id='fx-resp-u2'){
+ const s=landingScenario('fx-revision-1'),A=decisionOf(s.offer).spend_id;
+ const dupA=acceptOp(s.offer,{op_id:'fx-resp-1b',after:2});
+ const u1=checkOf(foldArgs(s.cs,[s.resp]),LIFT,s.cs[1],{compensate:A}),u2=checkOf(foldArgs(s.cs,[s.resp,dupA]),LIFT,s.cs[1],{compensate:A});
+ assert.equal(u1.status,'offer');assert.equal(u2.status,'offer');
+ assert.notDeepEqual(decisionOf(u1.offers[0]),decisionOf(u2.offers[0]),'two bodies of one cancellation');
+ const U1=acceptOp(u1.offers[0],{op_id:'fx-resp-2',after:2}),U2=acceptOp(u2.offers[0],{op_id:u2Id,after:2});
+ const c3=C(3,{reps:TOP,effort:e(2,1,1)}),c4=C(4,{reps:TOP,effort:e(2,1,1)}),four=[...s.cs,c3,c4];
+ const fresh=checkOf(foldArgs(four,[s.resp,dupA,U1]),LIFT,c4);assert.equal(fresh.status,'offer',JSON.stringify(fresh.refusal));
+ const B=decisionOf(fresh.offers[0]).spend_id,respB=acceptOp(fresh.offers[0],{op_id:'fx-resp-3',after:4});
+ const c5=C(5,{date:'2026-10-12',reps:TOP,loads:105,prescribed:105,effort:e(2,1,1)});
+ return rev=>{
+  const args=foldArgs([...four,c5],[s.resp,dupA,U1,U2,respB],rev);captureOn(args.generation,c5,[105,105,105]);
+  const u=args.generation.collections.ops[u2Id];u.device_id='fx-device-B';u.device_seq=u2Seq;u.causal_parents=['fx-resp-1'];
+  return {f:EFFECTS.m.foldNativeLoad(args),A,B,undo:decisionOf(u1.offers[0]).spend_id};
+ };
+}
+// The last two variants give the OTHER device's record the least op id, so it is the
+// canonical representative and only the first device's record proves the undo came
+// before the C5 Start (every record is proof: review B19).
+for(const [u2Seq,u2Id] of [[1,'fx-resp-u2'],[100,'fx-resp-u2'],[1,'fx-resp-0u2'],[100,'fx-resp-0u2']])test('R7-B19 COALESCED UNDO IS ORDER-FREE (Astra L5 B19, Claude l5 D-B5-1; spec R8 :151, :153, :156): two bodies of one cancellation on two devices (other device seq '+u2Seq+(u2Id==='fx-resp-u2'?'':', record '+u2Id)+') keep A cancelled and land the fresh B under R1 and R2',()=>{
+ effectsGate();
+ const run=b19Scenario(u2Seq,u2Id);
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const {f,A,B,undo}=run(rev);
+  assert.equal(f.spent.find(x=>x.spend_id===A).cancelled_by,undo,'the proven cancellation is never lost ('+rev+')');
+  assert.deepEqual(f.state.queue.filter(q=>q.native_load_spend).map(q=>[q.native_load_spend===A?'A':q.native_load_spend===B?'B':'?',q.done,q.state]),[['A',true,'COMPENSATED'],['B',true,'ESTABLISH']],rev);
+  assert.ok(!f.issues.some(i=>['NATIVE_LOAD_COMPENSATION_DESCENDANTS','NATIVE_LOAD_RECORD_INVALID','NATIVE_LOAD_TARGET_QUEUED'].includes(i.code)),JSON.stringify(f.issues));
+ }
+});
+test('R7-B20 RENAME KEEPS AGREED WEIGHTS (Astra L5 B20; spec :103 lineage "never display name", :120, :154 original cut, N19c): an accepted earn and an accepted adoption survive a rename of the lift under R1 and R2',()=>{
+ effectsGate();
+ const {cs,resp,offer}=landingScenario('fx-revision-1'),spend=decisionOf(offer).spend_id,renamed=()=>F0({n:'Renamed Synthetic Press'});
+ const h=heldAdoption({baseline:false});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[resp],rev,renamed()));
+  assert.deepEqual(noConflict(f),[],rev);
+  assert.deepEqual(f.state.queue.filter(q=>q.native_load_spend).map(q=>[q.native_load_spend===spend,q.done]),[[true,false]],'the agreed target is kept ('+rev+')');
+  const g=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp],rev,renamed()));
+  assert.deepEqual(noConflict(g),[],rev);assert.equal(exOf(g.state).w,105,'the agreed working weight is kept ('+rev+')');
+ }
+});
+test('R7-B22 V1 CAPTURE BEFORE A PLAN EDIT (Astra L5 B22; spec :127, :148, step 2 "an older completion cannot silently replace a newer athlete choice"): a host-shaped completion captured 100 cannot be offered or adopted over a newer plan of 102.5 -> PLAN_CHANGED',()=>{
+ effectsGate();
+ const c1=v1Of(C(1,{reps:TOP,loads:100,effort:e(2,1,1)}));
+ const at=w=>{const a=foldArgs([c1],[],'fx-revision-1',F0({w}));captureOn(a.generation,c1,[100,100,100]);return a;};
+ assert.equal(checkOf(at(100),LIFT,c1).status,'refused','control: the captured plan still holds (PROVISIONAL)');
+ expectRefusal(checkOf(at(102.5),LIFT,c1),'PLAN_CHANGED',[ref(c1.close)]);
+});
+// Property counterexamples, 20,000-sequence walk from seed 20260923: seeds 20269845 and
+// 20274085 (I3, R1 vs R2). The second yes was issued on the working weight the first yes
+// adopted (its spend_id's load authority root IS the first spend). A later plan base moves,
+// so the first effect is held (D7b); the second read an authority the fold never applied.
+test('R7-P1 DEPENDENT OF A HELD EFFECT (property seeds 20269845, 20274085; spec R8 :156 "same-lift dependencies follow witnessed causal/source order", "every revision and delivery order reproduces the same conflict"): an adoption issued on a held adoption is held too, identically under R1 and R2',()=>{
+ effectsGate();
+ const pickTarget=(ev,v)=>{assert.equal(ev.status,'offer',JSON.stringify(ev.refusal));const o=ev.offers.find(x=>decisionOf(x).target_load.scalar.value===v);assert.ok(o,JSON.stringify(ev.offers.map(x=>[decisionOf(x).kind,decisionOf(x).target_load.scalar.value])));return o;};
+ const c1=C(1,{reps:TOP,loads:100,effort:e(2,1,1)}),c2=C(2,{reps:TOP,loads:105,prescribed:100,effort:e(2,1,1)});
+ const o1=pickTarget(checkOf(foldArgs([c1,c2],[]),LIFT,c2),105),r1=acceptOp(o1,{op_id:'fx-p-1',after:2}),S1=decisionOf(o1).spend_id;
+ const c3=C(3,{reps:TOP,loads:110,prescribed:105,effort:e(2,1,1)});
+ const o2=pickTarget(checkOf(foldArgs([c1,c2,c3],[r1]),LIFT,c3),110),r2=acceptOp(o2,{op_id:'fx-p-2',after:3}),S2=decisionOf(o2).spend_id;
+ assert.equal(JSON.parse(S2)[2],S1,'control: the second yes stands on the first yes');
+ const out={};
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([c1,c2,c3],[r1,r2],rev,F0({w:105})));
+  out[rev]={w:exOf(f.state).w,spent:f.spent.map(x=>x.spend_id).sort(),held:f.issues.filter(i=>i.code==='NATIVE_LOAD_EFFECT_CONFLICT'&&i.field==='load_basis').map(i=>i.spend_id).sort(),
+   bad:f.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID').length};
+ }
+ assert.deepEqual(out['fx-revision-2'],out['fx-revision-1'],'R1 and R2 agree');
+ assert.deepEqual(out['fx-revision-1'],{w:105,spent:[S1,S2].sort(),held:[S1,S2].sort(),bad:0},'both held, both kept, no weight written');
+});
+
+// ======================================================================
+// ROUND 7 MODEL-BASED PROPERTY ROW (PM methodology order, round 7). Seeded and
+// deterministic. Each sequence is a random walk over one lift of: tops and misses (typed
+// v2 and host-shaped v1 with a Start capture), checks and yeses, undos, repeated undo
+// checks, base moves (including a return to the original value), renames, plan edits,
+// captures by a later Start, and cold reopens; every projection is the cold fold.
+// Invariants, after every step and at the end:
+//  I1 no working weight exists that no yes authorized (w is the base's or an accepted target);
+//  I2 a proven cancellation (an undo offered and recorded) is never lost, and never re-offered;
+//  I3 the same result under both delivery orders (responses moved to a second device,
+//     causal parents chained, counters reversed) and under revision R1 or R2;
+//  I4 a rename never changes an outcome;
+//  I5 a stale offer never writes: after a plan edit the old issuance is never fresh.
+// NATIVE_LOAD_PROPERTY_RUNS (default 150) and NATIVE_LOAD_PROPERTY_SEED (default 20260923).
+// ======================================================================
+function mulberry32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function propertySequence(seed){
+ const rnd=mulberry32(seed),pick=xs=>xs[Math.floor(rnd()*xs.length)],chance=p=>rnd()<p;
+ const baseline=chance(0.25),origW=baseline?null:100;
+ const m={w:origW,n:'Fx Press',comps:[],extras:[],starts:[],proven:[],accepted:new Set(),trace:[],k:0};
+ const base=(patch={})=>{const b=F0(origW===null?{w:null}:{});exOf(b).w=patch.w!==undefined?patch.w:m.w;exOf(b).n=patch.n||m.n;return b;};
+ const gen=(o={})=>{
+  const a=foldArgs(m.comps,m.extras,o.rev||'fx-revision-1',base(o.base));
+  const ops=a.generation.collections.ops;let seq=Math.max(0,...Object.values(ops).map(x=>x.device_seq));
+  for(const s of m.starts){if(!ops[s.anchor])continue;/* an older view (undo2) predates this Start */ops[s.c.start]={op_id:s.c.start,athlete_id:ATH,device_id:DEVICE,device_seq:s.afterSeq(ops),class:'session',kind:'session-start',payload:{},canonical_content_commitment:commit(s.c.start)};captureOn(a.generation,s.c,s.loads);}
+  for(const c of m.comps)if(c.v1)captureOn(a.generation,c,c.cap);
+  if(o.twoDevice){
+   const all=Object.values(ops).sort((x,y)=>x.device_seq-y.device_seq||(x.op_id<y.op_id?-1:1));
+   all.forEach((op,i)=>{if(i)op.causal_parents=[all[i-1].op_id];});
+   const resp=all.filter(op=>op.class==='plan');resp.forEach((op,i)=>{op.device_id='fx-device-B';op.device_seq=1000-i;});
+   void seq;
+  }
+  return a;
+ };
+ const fold=o=>EFFECTS.m.foldNativeLoad(gen(o));
+ const held=f=>f.issues.some(i=>i.lift===LIFT&&['NATIVE_LOAD_EFFECT_CONFLICT','NATIVE_LOAD_BASIS_REPAIR_REQUIRED','NATIVE_LOAD_RECORD_INVALID'].includes(i.code));
+ const fail=(what,extra)=>{const e=new Error('PROPERTY '+what+' seed='+seed+' trace='+JSON.stringify(m.trace)+(extra?' '+JSON.stringify(extra):''));e.code='PROPERTY_COUNTEREXAMPLE';throw e;};
+ // The queue entry's title t is a display label written from the CURRENT name; it is not an outcome.
+ const norm=f=>({state:(()=>{const s=structuredClone(f.state);const ex=exOf(s);delete ex.n;return {ex,queue:s.queue.filter(q=>q.native_load_spend).map(q=>{const x={...q};delete x.t;return x;})};})(),
+  spent:f.spent.map(x=>[x.spend_id,x.cancelled_by,x.close_ref&&x.close_ref.op_id]).sort(),
+  issues:[...new Set(f.issues.filter(i=>!['NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'].includes(i.code)).map(i=>i.code))].sort()});
+ const checkInvariants=(stage)=>{
+  const f=fold();
+  const w=exOf(f.state).w;
+  if(!(w===m.w||m.accepted.has(w)))fail('I1 unauthorized weight '+w+' at '+stage,{base:m.w,accepted:[...m.accepted]});
+  for(const p of m.proven){
+   const x=f.spent.find(y=>y.spend_id===p.target);
+   if(!x||!x.cancelled_by)fail('I2 proven cancellation lost at '+stage,{target:p.target});
+   const again=checkOf(gen(),LIFT,m.comps.at(-1),{compensate:p.target});
+   if(again.status==='offer')fail('I2 cancelled spend offered again at '+stage);
+  }
+  return f;
+ };
+ const steps=6+Math.floor(rnd()*8);
+ for(let step=0;step<steps;step++){
+  const f=fold(),action=pick(m.comps.length<2?['train','train','train','base','rename']:['train','train','check','check','undo','base','rename','plan','capture','reopen','dup','undo2']);
+  m.trace.push(action);
+  if(action==='train'){
+   if(held(f)){m.trace.push('skip-held');continue;}
+   const n=m.comps.length+1,q=f.state.queue.find(x=>x&&x.exId===LIFT&&!x.done&&typeof x.native_load_spend==='string');
+   let card=q?q.newW:exOf(f.state).w;const lifted=card===null?pick([60,65]):chance(0.15)?card+5:card;
+   const reps=pick([TOP,TOP,TOP,[10,9,7],[9,8,8]]),effort=chance(0.8)?e(2,1,1):e(0,1,1);
+   let c=C(n,{reps,loads:lifted,prescribed:card,effort});
+   if(chance(0.3)){c=v1Of(c);c.v1=true;c.cap=[card,card,card];}
+   m.comps.push(c);m.trace.push([n,card,lifted,reps.join('')]);
+  }else if(action==='check'){
+   const ev=checkOf(gen(),LIFT,m.comps.at(-1));
+   if(ev.status==='offer'){
+    const offer=pick(ev.offers),held0=EFFECTS.m.issuanceFor(offer,{revision:'fx-revision-1',source:JSON.stringify(SOURCE),moment:'2026-10-02T12:00:00.000Z'});
+    m.lastOffer={offer,held:held0,w:m.w,n:m.comps.length};
+    if(chance(0.7)){m.extras.push(acceptOp(offer,{op_id:'fx-p-'+(++m.k),after:m.comps.length}));m.accepted.add(decisionOf(offer).target_load.scalar.value);m.trace.push('yes');}
+   }
+  }else if(action==='undo'){
+   const live=f.spent.filter(x=>!x.cancelled_by&&!x.spend_id.startsWith('["native-load-compensation"'));
+   if(!live.length)continue;
+   const target=pick(live).spend_id,ev=checkOf(gen(),LIFT,m.comps.at(-1),{compensate:target});
+   if(ev.status==='offer'){const d=decisionOf(ev.offers[0]);m.extras.push(acceptOp(ev.offers[0],{op_id:'fx-p-'+(++m.k),after:m.comps.length}));m.proven.push({target,undo:d.spend_id});m.trace.push('undo-yes');}
+  }else if(action==='base'||action==='plan'){
+   const ws=origW===null?[null,45,50]:[100,102.5,97.5,105];m.w=pick(ws);m.trace.push(m.w);
+   if(m.lastOffer&&m.lastOffer.w!==m.w&&m.lastOffer.n===m.comps.length){
+    const ev=checkOf(gen(),LIFT,m.comps.at(-1));
+    if(ev.status==='offer'&&ev.offers.some(o=>EFFECTS.m.sameIssued(o,m.lastOffer.held)))fail('I5 stale offer still fresh after plan edit',{from:m.lastOffer.w,to:m.w});
+   }
+  }else if(action==='dup'){
+   // The same recorded yes or undo delivered again from a second device (distinct response id).
+   if(!m.extras.length)continue;
+   const src=pick(m.extras);m.extras.push({...src,op_id:'fx-p-'+(++m.k),after:m.comps.length,device:'fx-device-B'});m.trace.push('dup');
+  }else if(action==='undo2'){
+   // A second device records the SAME cancellation from its own older view (another body).
+   if(!m.proven.length)continue;
+   const p=pick(m.proven),idx=m.extras.findIndex(x=>x.payload.issuance.body.compensates===p.target);
+   const older=m.extras.slice(0,idx),save=m.extras;m.extras=older;const ev=checkOf(gen(),LIFT,m.comps.at(-1),{compensate:p.target});m.extras=save;
+   if(ev.status==='offer'){m.extras.push({...acceptOp(ev.offers[0],{op_id:'fx-p-'+(++m.k),after:m.comps.length}),device:'fx-device-B'});m.trace.push('undo2-yes');}
+  }else if(action==='rename'){m.n=pick(['Fx Press','Renamed Press','Bench (renamed)','Fx: Press']);m.trace.push(m.n);}
+  else if(action==='capture'){
+   if(held(f)||m.starts.length)continue;
+   const q=f.state.queue.find(x=>x&&x.exId===LIFT&&!x.done&&typeof x.native_load_spend==='string'),card=q?q.newW:exOf(f.state).w;
+   if(card===null)continue;
+   // A later Start that captured the current card and is still open, placed right after
+   // the newest operation that exists now (not after operations recorded later).
+   const c=C(900+m.starts.length,{reps:TOP,effort:e(2,1,1)}),lastExtra=m.extras.filter(x=>x.after===m.comps.length).at(-1);
+   const anchor=lastExtra?lastExtra.op_id:m.comps.at(-1).close;
+   m.starts.push({c,anchor,loads:[card,card,card],afterSeq:ops=>ops[anchor].device_seq+0.5});m.trace.push(['capture',card]);
+  }
+  checkInvariants('step '+step);
+ }
+ const f=checkInvariants('end');
+ const ref0=norm(f);
+ for(const o of [{rev:'fx-revision-2'},{twoDevice:true},{twoDevice:true,rev:'fx-revision-2'}]){
+  const g=norm(fold(o));
+  if(JSON.stringify(g)!==JSON.stringify(ref0))fail('I3 differs under '+JSON.stringify(o),{ref:ref0,got:g});
+ }
+ const r=norm(fold({base:{n:'Property Rename'}}));
+ if(JSON.stringify(r)!==JSON.stringify(ref0))fail('I4 rename changes the outcome',{ref:ref0,got:r});
+ const tally={};for(const t of m.trace)if(typeof t==='string')tally[t]=(tally[t]||0)+1;
+ for(const e2 of f.effects)tally['effect:'+e2.kind]=(tally['effect:'+e2.kind]||0)+1;
+ for(const i of f.issues)tally['issue:'+i.code]=(tally['issue:'+i.code]||0)+1;
+ if(baseline)tally.baseline=1;
+ Object.defineProperty(tally,'detail',{value:{trace:m.trace,issues:f.issues,spent:f.spent,w:exOf(f.state).w},enumerable:false});
+ return tally;
+}
+test('R7-PROPERTY MODEL-BASED WALK (PM round 7; invariants I1-I5 above; seeded, deterministic)',()=>{
+ effectsGate();
+ const runs=Number(process.env.NATIVE_LOAD_PROPERTY_RUNS||150),seed0=Number(process.env.NATIVE_LOAD_PROPERTY_SEED||20260923);
+ const found=[],coverage={};
+ for(let i=0;i<runs;i++){
+  try{const t=propertySequence(seed0+i);if(runs<=3)coverage['detail '+(seed0+i)]=t.detail;for(const [k,v] of Object.entries(t)){coverage[k]=(coverage[k]||0)+v;if(k.startsWith('issue:')){const s='seeds '+k;coverage[s]=coverage[s]||[];if(coverage[s].length<5)coverage[s].push(seed0+i);}}}
+  catch(err){if(err&&err.code==='PROPERTY_COUNTEREXAMPLE'){found.push(err.message);if(!process.env.NATIVE_LOAD_PROPERTY_ALL)break;}else throw new Error('seed='+(seed0+i)+' '+(err&&err.stack||err));}
+ }
+ if(process.env.NATIVE_LOAD_PROPERTY_REPORT)require('node:fs').writeFileSync(process.env.NATIVE_LOAD_PROPERTY_REPORT,JSON.stringify({runs,seed0,found,coverage},null,1));
+ assert.deepEqual(found,[],'counterexamples');
+});

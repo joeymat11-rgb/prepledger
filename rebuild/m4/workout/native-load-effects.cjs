@@ -143,12 +143,54 @@ function sameIssued(offer, held) {
   return iss.producer === PRODUCER && same(offer.body, iss.body) && offer.reason === iss.reason &&
     proposalDigest(PRODUCER, offer.body, offer.reason) === held.proposal_id && proposalDigest(iss.producer, iss.body, iss.reason) === held.proposal_id;
 }
+// The lift's display name as issued (review B20; spec :103 lineage, :120 no alias name,
+// :154 original cut): every FC01 explanation begins "<name>: ", and a name may itself hold
+// ": " (property seed 20260961). Re-validation tries the current name, then each prefix
+// before a ": " in the issued reason, and accepts only an EXACT body and reason
+// reproduction, so a wrong guess still refuses and nothing is weakened. Identity stays
+// the lineage id.
+function issuedNames(state, body, reason) {
+  const ex = state.exercises.find((x) => x && x.id === body.lift_lineage_id), now = ex ? String(ex.n || ex.id) : null, out = [null];
+  for (let at = text(reason) ? reason.indexOf(': ') : -1; at > 0 && out.length < 12; at = reason.indexOf(': ', at + 2)) {
+    const name = reason.slice(0, at);
+    if (name !== now && !out.includes(name)) out.push(name);
+  }
+  return out;
+}
+function withIssuedName(state, body, name) {
+  if (name === null) return state;
+  const s = json(state), ex = s.exercises.find((x) => x && x.id === body.lift_lineage_id);
+  if (ex) ex.n = name;
+  return s;
+}
+// One Start's captured prescription for one lift as the plan vector reads it: a numeric
+// load, a configuration key, or null for not prescribed (the engine-capture.cjs cells).
+function startPlanCapture(start, lift) {
+  const pc = map(start && start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
+  const cells = [];
+  for (const cell of pc) {
+    if (!map(cell) || cell.lift_lineage_id !== lift || !text(cell.logical_set_slot)) continue;
+    let at = null, v = null;
+    try { const k = JSON.parse(cell.logical_set_slot); at = Array.isArray(k) && k[0] === lift && Number.isSafeInteger(k[1]) ? k[1] : null; } catch (_) { at = null; }
+    const load = cell.load;
+    if (map(load) && load.state === 'specified' && text(load.source_json)) {
+      try { const s = JSON.parse(load.source_json); v = map(s) && s.unit === 'lb' && Number.isFinite(s.value) ? s.value : map(s) && s.kind === 'configuration' ? s.configuration_key : null; } catch (_) { v = null; }
+    }
+    if (at !== null) cells.push([at, v]);
+  }
+  return cells.sort((a, b) => a[0] - b[0]).map((c) => c[1]);
+}
 // Spec R8 :156 (D7b): the reconstructed lift no longer has the base the accept recorded.
 function movedBase(ex, body) {
   const img = (k) => (Object.hasOwn(ex, k) ? { present: true, value: ex[k] === undefined ? null : json(ex[k]) } : { present: false, value: null });
   const f = map(body.base_load) && map(body.base_load.fields) ? body.base_load.fields : {};
   const forks = map(body.basis) && map(body.basis.technique) && Array.isArray(body.basis.technique.forks) ? body.basis.technique.forks : [];
   return !same(img('w'), f.w) || !same(img('wSets'), f.wSets) || !same(json(ex.forks || []), forks);
+}
+// The load authority root of a spend_id (canonical JSON ['native-load', lift, root,
+// technique, consumes]); null when it is not a native-load spend or has no root.
+function authorityRoot(spendId) {
+  try { const d = JSON.parse(spendId); return Array.isArray(d) && d[0] === 'native-load' && typeof d[2] === 'string' ? d[2] : null; } catch { return null; }
 }
 // Proven causality (spec :151 "Require acceptance before Start by proven causality";
 // :156 "same-lift dependencies follow witnessed causal/source order"): the accept is
@@ -294,9 +336,21 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
     // Two compensations of the SAME effect are one decision (spec R8 :121 "permanently
     // cancels the targeted effect"; its spend_id names only the target): a later body,
     // issued at another basis, is the same cancellation, folded unchanged with its ref kept
-    // (review B14). The first recorded body (device order) is the one validated.
+    // (review B14). Its representative is chosen below by op id, never by device order.
     else if (g.body.kind === 'compensate' && body.kind === 'compensate' && g.body.compensates === body.compensates) g.alt = (g.alt || []).concat([op]);
     else { g.conflict = true; g.others = (g.others || []).concat([op]); }
+  }
+  // ORDER-FREE canonical record (review B19, Claude l5 D-B5-1): every group's records are
+  // ordered by op id, never by a device counter; a cancellation recorded as several bodies
+  // takes the least op id as its representative, keeps every record as proof and sits at
+  // the EARLIEST cut any of them was issued at.
+  const cutOf = (b) => (map(b.basis) && map(b.basis.order) && Array.isArray(b.basis.order.start_ids) ? b.basis.order.start_ids.length : 0);
+  for (const g of groups.values()) {
+    const every = [...g.ops, ...(g.alt || [])].sort(byOp), bodyOf = (op) => op.payload.issuance.body;
+    g.body = bodyOf(every[0]);
+    g.ops = every.filter((op) => same(bodyOf(op), g.body));
+    g.alt = every.filter((op) => !same(bodyOf(op), g.body));
+    g.cut = Math.min(...every.map((op) => cutOf(bodyOf(op))));
   }
   // Incompatible accepts are refused TOGETHER before anything applies: same spend with
   // different bodies, or different spends over overlapping evidence. Never a clock winner.
@@ -311,11 +365,10 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
   // acceptance order", :156 "witnessed causal/source order"): a Close sits at its Start's
   // rank in the authenticated workout order; an accept sits just after the last Start of
   // the cut it was issued at. Equal places: accepts first, then fewer frontier effects
-  // (a compensation names the effect it undoes), then device sequence and op id.
+  // (a compensation names the effect it undoes), then op id (never a device counter).
   const events = all.filter((g) => !g.conflict).map((g) => {
-    const cut = map(g.body.basis) && map(g.body.basis.order) && Array.isArray(g.body.basis.order.start_ids) ? g.body.basis.order.start_ids.length : 0;
     const frontier = map(g.body.basis) && Array.isArray(g.body.basis.effect_frontier) ? g.body.basis.effect_frontier.length : 0;
-    return { type: 'accept', at: cut - 0.5, frontier, seq: g.seq, id: g.ops[0].op_id, g };
+    return { type: 'accept', at: g.cut - 0.5, frontier, seq: 0, id: g.ops[0].op_id, g };
   });
   (facts && facts.order ? facts.order.start_ids : []).forEach((id, rank) => {
     const start = byId.get(id), session = facts.sessions.find((s) => s.start_op_id === id);
@@ -337,7 +390,8 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
       // that captured debut keeps its landing on its own Close.
       if (body.kind === 'compensate') {
         const target = groups.get(body.compensates);
-        if (target && capturedAfter(target, ops, byId, g.ops)) { issues.push({ code: 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', refs, field: 'capture', lift }); continue; }
+        // Every record of the cancellation is proof of when it happened (review B19).
+        if (target && capturedAfter(target, ops, byId, [...g.ops, ...g.alt])) { issues.push({ code: 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', refs, field: 'capture', lift }); continue; }
       }
       // Spec R8 :156 UNPROVABLE ORDER (D7b, table :196): the base this accept was issued on
       // (base_load w/wSets, technique) is not the reconstructed one and no authenticated plan
@@ -347,8 +401,11 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
       // dropped: an earn keeps its queue entry (never captured: the registrar holds the lift,
       // never landed: see the Close below), the spend is kept, and only its compensation
       // (retire-only, no w write) or a later plan authority resolves it.
+      // A same-lift effect issued on the working weight a HELD effect adopted (its spend_id's
+      // load authority root is that spend) depends on it and is held with it: it read an
+      // authority this fold never applied (property seeds 20269845, 20274085).
       const exNow = state.exercises.find((x) => x && x.id === lift);
-      if (body.kind !== 'compensate' && exNow && movedBase(exNow, body)) {
+      if (body.kind !== 'compensate' && exNow && (movedBase(exNow, body) || held.has(authorityRoot(body.spend_id)))) {
         const issue = { code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs, field: 'load_basis', lift, spend_id: body.spend_id };
         issues.push(issue); held.set(body.spend_id, issue);
         if (body.kind === 'earn') {
@@ -366,18 +423,32 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
       }
       if (iss.revision === engine.revision) {
         if (!changed) {
-          const cut = factsAtCut(facts, body.basis.order.start_ids, body.basis.order.frontier);
-          const again = rt.evaluateNativeLoad(withFacts(atIssuedEquipment(state, body), cut), { lift_lineage_id: body.lift_lineage_id, completion_op_id: checkedCompletion(body, cut),
-            intent: body.kind === 'compensate' ? { compensate: body.compensates } : 'check', basis: body.basis });
-          // Spec R8 :156: the compensation of an effect HELD under an unprovable order is
-          // retire-only "because the prior image is no longer provably current", so its
-          // recorded target is never re-priced against a later base (review B15): at its
-          // original cut it must still be ELIGIBLE for the same effect, and it then writes
-          // nothing. Every other record must reproduce its exact body and reason.
-          const retireOnly = body.kind === 'compensate' && held.has(body.compensates);
-          const reproduced = again.status === 'offer' && (retireOnly
-            ? again.offers.some((o) => o.body.compensates === body.compensates)
-            : again.offers.some((o) => same(o.body, body) && o.reason === iss.reason));
+          // A CANCELLATION (spec R8 :121 "permanently cancels the targeted effect"; its
+          // transition reads only the effect it names, never its recorded target) is valid
+          // when, at the original cut of ANY of its records, that effect was eligible for
+          // compensation; its recorded target is presentation, never re-priced against any
+          // later base, including a return to the original one (reviews B15, B18). Every
+          // other record must reproduce its exact body and reason at its original cut, read
+          // with the lift's display name as issued (lineage, never the name, is identity:
+          // :103, :120; review B20) and its issued equipment (D7a).
+          const at = (b) => factsAtCut(facts, b.basis.order.start_ids, b.basis.order.frontier);
+          let again = null, reproduced;
+          if (body.kind === 'compensate') {
+            reproduced = [...g.ops, ...g.alt].map((op) => op.payload.issuance.body).some((b) => {
+              const cut = at(b), ev2 = rt.evaluateNativeLoad(withFacts(state, cut), { lift_lineage_id: b.lift_lineage_id, completion_op_id: checkedCompletion(b, cut),
+                intent: { compensate: b.compensates }, basis: b.basis });
+              again = again || ev2;
+              return ev2.status === 'offer' && ev2.offers.some((o) => o.body.compensates === b.compensates);
+            });
+          } else {
+            const cut = at(body), equipped = atIssuedEquipment(state, body);
+            reproduced = issuedNames(equipped, body, iss.reason).some((name) => {
+              const ev2 = rt.evaluateNativeLoad(withFacts(withIssuedName(equipped, body, name), cut), { lift_lineage_id: body.lift_lineage_id,
+                completion_op_id: checkedCompletion(body, cut), intent: 'check', basis: body.basis });
+              again = again || ev2;
+              return ev2.status === 'offer' && ev2.offers.some((o) => same(o.body, body) && o.reason === iss.reason);
+            });
+          }
           if (!reproduced) {
             if (again.status === 'refused' && again.refusal.code === 'NATIVE_LOAD_PLAN_CHANGED') { issues.push({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs, field: null, lift }); continue; }
             dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs, field: 'issuance', reason: 'not reproduced at its original cut', lift }); continue;
@@ -491,6 +562,22 @@ function checkNativeLoad(args = {}) {
   const day = hit ? hit.session.effective.local_date : dayOf({ evidence: [] }, workoutFacts);
   const evaluation = engine.at(day).evaluateNativeLoad(fold.state, { lift_lineage_id: request.lift_lineage_id,
     completion_op_id: request.completion_op_id, intent: request.intent === undefined ? 'check' : request.intent, basis });
+  // Step 2 (spec :126 "an older completion cannot silently replace a newer athlete
+  // choice"; :127, :148; review B22): FC01 compares the captured vector with the current plan
+  // for typed v2 slots, which carry it. Host v1 slots do not; their capture lives on the
+  // authenticated Start op (:122), so the same comparison is made here, by the same rule
+  // (planVector, null when w is null) and with FC01's name and refs. It only withholds an
+  // offer; every earlier refusal keeps FC01's precedence.
+  if (evaluation.status === 'offer' && (request.intent === undefined || request.intent === 'check') && hit) {
+    const { byId } = operationsOf(generation), start = byId.get(hit.session.start_op_id);
+    const originals = hit.entry.slots.filter((s) => s.origin !== 'added'), ex = fold.state.exercises.find((x) => x && x.id === request.lift_lineage_id);
+    const cap = start && originals.every((s) => s.prescribed_load === undefined) ? startPlanCapture(start, request.lift_lineage_id) : [];
+    if (cap.length && ex) {
+      const planNow = Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => (ex.w == null ? null : Array.isArray(ex.wSets) && ex.wSets[i] != null ? ex.wSets[i] : ex.w));
+      const close = byId.get(request.completion_op_id);
+      if (!same(cap, planNow)) return refused({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs: close ? [refOf(close)] : [], field: null });
+    }
+  }
   return { fold, evaluation };
 }
 // The host-held issuance: exactly {producer, body, reason, revision, source, moment},

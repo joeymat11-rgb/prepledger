@@ -624,8 +624,14 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     reconcile("createNativeLoadHost", options);
     const { day, engineState } = options;
     if (typeof day !== "string" || !DAY_RE.test(day)) throw new TypeError("createNativeLoadHost requires day");
-    if (!engineState || !Array.isArray(engineState.exercises)) throw new TypeError("createNativeLoadHost requires engineState");
-    const gym = await createGymHost({ day, engineState, plannedSplitSlotId: "native-load/" + day });
+    /* engineState is the page's immutable basis, or a function returning the CURRENT one
+       (review B21; spec :148 "the host re-evaluates against the freshly loaded generation",
+       :165): a page that adopts a new basis never leaves a held offer authorized against
+       the old one; check, project and the pre-commit re-evaluation all read it anew. */
+    const baseNow = () => (typeof engineState === "function" ? engineState() : engineState);
+    const first = baseNow();
+    if (!first || !Array.isArray(first.exercises)) throw new TypeError("createNativeLoadHost requires engineState");
+    const gym = await createGymHost({ day, engineState: first, plannedSplitSlotId: "native-load/" + day });
     let alive = true;
     const handles = new WeakMap();
     const nullSource = Source.basis({ W: 0, log_digest: Source.createPrefixHasher().digest(), selection_id: null });
@@ -635,7 +641,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     const refused = (code, extra = {}) => ({ acknowledged: false, state: 3, code, copy: null, ...extra });
     // `base` lets the page fold from ITS immutable basis (spec B: the fold always reloads
     // its immutable source base, never a state already handed to adoptBasis).
-    async function project(base = engineState) {
+    async function project(base = baseNow()) {
       if (!alive) return { ok: false, code: "NATIVE_LOAD_CAPABILITY_REQUIRED" };
       if (!base || !Array.isArray(base.exercises)) return { ok: false, code: "NATIVE_LOAD_RECORD_INVALID" };
       const snap = await gym.repository.load();
@@ -669,7 +675,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     return Object.freeze({
       day,
       async project({ base } = {}) {
-        const p = await project(base === undefined ? engineState : base);
+        const p = await project(base === undefined ? baseNow() : base);
         if (!p.ok) return { ok: false, code: p.code };
         // The registered projection (spec :164; D10): held lifts are unavailable here too.
         const shown = p.fold.state ? heldProjection(p.fold, engine.at(day), day).state : null;

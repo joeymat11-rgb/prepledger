@@ -355,6 +355,15 @@ export async function createWorkoutEntry(model, options = {}) {
      nothing is adopted, so the adoption gate (today-model setPendingAdoption) is never
      lifted by this. It runs on a yes (onSaved), after a checked Close and on the entry's
      exported refresh, which today-app.cjs calls after its adoption chain and on reopen. */
+  /* The basis the native host judges against, read afresh on every check, projection and
+     yes (review B21; spec :148, :165): the page's current basis, unless it is exactly the
+     projection this entry itself adopted, in which case the immutable basis beneath it. So
+     a newer adopted plan makes an older displayed offer STALE_OFFER before any write. */
+  function hostBase() {
+    if (typeof model.basisState !== "function") return model.stateFromOps();
+    const current = model.basisState();
+    return lastAdopted !== null && JSON.stringify(current) === JSON.stringify(lastAdopted) ? immutableBasis : current;
+  }
   async function reconcile() {
     if (!nativeLoad || !immutableBasis || typeof model.adoptBasis !== "function") return false;
     const current = model.basisState();
@@ -378,7 +387,7 @@ export async function createWorkoutEntry(model, options = {}) {
   }) : null;
   let nativeHost = null;
   const openedNativeHost = async () => nativeHost || (nativeHost = hosts && typeof hosts.createNativeLoadHost === "function"
-    ? await hosts.createNativeLoadHost({ day, engineState: model.stateFromOps() }) : null);
+    ? await hosts.createNativeLoadHost({ day, engineState: hostBase }) : null);
   const gym = createGymModel({ gymHost, hostForDay,
     sessionTitle: view.workout && view.workout.today === true ? view.workout.title : null,
     ...(nativeLoad ? { onClosed: closed => nativeLoad.afterClose(closed) } : {}) });

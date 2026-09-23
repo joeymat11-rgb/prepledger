@@ -539,3 +539,64 @@ test('R6-B17 FULL ISSUANCE AT THE HOST [Y] (Astra L4 B17/M14; spec :60, :148): t
   assert.equal((await responsesOf(era)).length, 0, 'nothing written');
   entry.gymHost.close(); era.close();
 });
+
+// ROUND 7 actual-host rows (Astra L5 B18, B20, B21, B22).
+test('R7-B18 UNDO SURVIVES THE ORIGINAL BASE [Y] (Astra L5 B18; spec R8 :121, :153-156): the retire-only undo of a held 60 baseline stays in force when a reopen brings back the original base with no working weight', async () => {
+  const fault = faultDatabase(), first = await heldBaselineUndone(fault);
+  first.host.close(); first.era.close();
+  const again = await reopenAt(fault, D1), host = await again.createNativeLoadHost({ day: D1, engineState: withPress(D1, { w: null }) });
+  const p = await host.project();
+  assert.deepEqual(badIssues(p), [], 'no conflict and no RECORD_INVALID');
+  assert.equal(pressOf(p).w, null, 'the undone 60 never returns');
+  assert.equal(pressOf(p).quarantined, undefined);
+  host.close(); again.close();
+});
+
+test('R7-B20 RENAME KEEPS THE AGREED 45 [Y] (Astra L5 B20; spec :103, :120, :154, N19c): yes 45, then a reopen where only the lift name changed keeps the agreed target and the card debuts 45', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  entry.gymHost.close(); era.close();
+  const renamed = day => withPress(day, { n: 'Renamed synthetic press' });
+  const again = await reopenAt(fault, D3), host = await again.createNativeLoadHost({ day: D3, engineState: renamed(D3) }), p = await host.project();
+  assert.deepEqual(badIssues(p), []);
+  assert.deepEqual(nativeQueue(p.state, 'demo-press').map(q => [q.done, q.newW]), [[false, 45]], 'the consented target survives the rename');
+  assert.equal(pressOf(p).quarantined, undefined);
+  const three = await dayEntryWith(again, D3, renamed(D3));
+  assert.match((await three.entry.gym.read()).prescription.line, /^45 lb/);
+  host.close(); three.entry.gymHost.close(); again.close();
+});
+
+test('R7-B21 ADOPTED PLAN MAKES THE OLD OFFER STALE [Y] (Astra L5 B21; spec :148 "Stale means STALE_OFFER", :165, N07): offer 45, the page adopts a basis with demo-press at 42.5 and refreshes; the old offer yes is STALE_OFFER with zero writes', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const { entry, model } = await twoTops(era);
+  assert.equal((await train(entry)).finished.ok, true);
+  await entry.nativeLoad.settled();
+  await entry.nativeLoad.check();
+  const offer = entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.ok(offer, 'an offer for demo-press');
+  model.adoptBasis(withPress(D2, { w: 42.5 }));
+  await entry.refresh();
+  const result = await entry.nativeLoad.accept(offer.proposalId);
+  assert.equal(result.acknowledged, false, 'the old offer was issued on the old plan');
+  assert.equal(result.code, 'NATIVE_LOAD_STALE_OFFER');
+  assert.equal((await responsesOf(era)).length, 0, 'zero writes');
+  entry.gymHost.close(); era.close();
+});
+
+test('R7-B22 A NEW HOST REFUSES A PRE-EDIT CAPTURE [Y] (Astra L5 B22; spec :127, :148, step 2): two workouts captured 40/40, then a fresh host on a plan of 42.5 refuses the old completion PLAN_CHANGED and writes nothing', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const { entry } = await twoTops(era);
+  assert.equal((await train(entry)).finished.ok, true);
+  await entry.nativeLoad.settled();
+  entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D2, engineState: withPress(D2, { w: 42.5 }) }), p = await host.project();
+  const press = p.lifts.find(l => l.lift_lineage_id === 'demo-press');
+  const checked = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: press.completion_op_id });
+  assert.equal(checked.status, 'refused', 'no offer over the newer plan');
+  assert.equal(checked.refusal.code, 'NATIVE_LOAD_PLAN_CHANGED');
+  assert.equal((await responsesOf(era)).length, 0);
+  host.close(); era.close();
+});
