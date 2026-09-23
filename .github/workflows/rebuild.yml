@@ -317,8 +317,10 @@ jobs:
       # enumeration fix. It is 28/28 on this tree, so it has a step and a declared child.
       - name: P3 — the Import screen route, its refusals and its page-bundle law
         run: node --test rebuild/m3/w7-preview/import/test/route.test.mjs rebuild/m3/w7-preview/import/test/refusal-route.test.mjs rebuild/m3/w7-preview/import/test/live-clock.test.mjs rebuild/m3/w7-preview/import/test/page-bundle.test.mjs rebuild/m3/w7-preview/import/test/refusals.test.mjs
+      # S10 names engine-pins-unprotected.test.cjs in this step (D-S10I-5): the today.cjs and
+      # engine-runtime.cjs halves of S3-PROVIDER-ENGINE-PINS, reading no protected engine file.
       - name: M4 — the import lane, its production mapping and its admission
-        run: node --test rebuild/m4/import/test/prepare.test.cjs rebuild/m4/import/test/reading-replay.test.cjs rebuild/m4/import/test/engine-provider.test.cjs rebuild/m4/import/test/local-source-order.test.cjs rebuild/m4/import/test/browser-parity.test.mjs rebuild/m4/import/test/production-mapping.test.cjs rebuild/m4/import/test/production-admission.test.mjs
+        run: node --test rebuild/m4/import/test/prepare.test.cjs rebuild/m4/import/test/reading-replay.test.cjs rebuild/m4/import/test/engine-provider.test.cjs rebuild/m4/import/test/local-source-order.test.cjs rebuild/m4/import/test/browser-parity.test.mjs rebuild/m4/import/test/production-mapping.test.cjs rebuild/m4/import/test/production-admission.test.mjs rebuild/m4/import/test/engine-pins-unprotected.test.cjs
       - name: D — plan edit, import retract, the admission swap, the replay measure family and capture-start
         run: node --test rebuild/lanes/d/plan-edit/model.test.cjs rebuild/lanes/d/plan-edit/durable-host.test.mjs rebuild/lanes/d/plan-edit/browser-build.test.mjs rebuild/lanes/d/plan-edit/client-p6.test.cjs rebuild/lanes/d/import-retract/retract.test.mjs rebuild/lanes/d/p3-followons/admission-swap.test.mjs rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs rebuild/lanes/d/p3-capture-start/capture-start.test.mjs
       # F2-LAND GIVES THE EXERCISE-TAG PROJECTOR ITS CI HOME, under the same
