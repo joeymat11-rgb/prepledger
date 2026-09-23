@@ -240,8 +240,11 @@ jobs:
       # added later has no CI home until some package names it here on purpose, which is
       # precisely the property DECISIONS:186 (3) asks of a file: "a file with no CI home is
       # a file nobody runs". Named by exact path, never globbed, so both runners agree.
+      # S10 NAMES THE FIVE GSS ANNEX FILES HERE (S10-WORKING-BRIEF.md c58b892 sections 4.2
+      # and 10.1): GYM-SETTINGS-WRITER-SEAL 66d32530 added them under today/test/, so the
+      # 13-name rule above requires this line to name them, by exact path and never globbed.
       - name: A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup; and P-MEASURE's four page-stack suites
-        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs rebuild/m3/w7-preview/measure/test/journey.test.mjs rebuild/m3/w7-preview/measure/test/lane.test.mjs rebuild/m3/w7-preview/measure/test/baseline.test.mjs rebuild/m3/w7-preview/measure/test/boundary.test.mjs
+        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-identity-reentrancy.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-log-timing.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-remount.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs rebuild/m3/w7-preview/measure/test/journey.test.mjs rebuild/m3/w7-preview/measure/test/lane.test.mjs rebuild/m3/w7-preview/measure/test/baseline.test.mjs rebuild/m3/w7-preview/measure/test/boundary.test.mjs
       # M2-S9-UI-PINS ADDS THE SEALED-INVENTORY FENCE HERE, beside the today step, under
       # the same DECISIONS:117 (4) licence (S9-RELEASE-SPEC.md D.2, D.3). It asks what no
       # other step asks: of the paths this branch touched since its merge-base with the
@@ -329,6 +332,17 @@ jobs:
         run: node --test rebuild/lanes/d/p3-replay-all/class-membership.test.mjs rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs rebuild/lanes/d/p3-replay-all/writer-order.test.mjs
       - name: D — the legacy order mapping, its provider and its route
         run: node --test rebuild/lanes/d/b-lom/legacy-order.test.mjs rebuild/m4/workout/test/legacy-order-mapping.test.cjs
+      # S10 CARRIES EPP WITH D-EPP-2 RIDING WITH IT (DECISIONS:780 Q3, :785, :791), so it
+      # pays D-EPP-1 here: the proposed-pick cell for the two owner-worded clauses of :631
+      # (today.cjs:97, writers.cjs:227) and the D-EPP-2 capture cell for engine-capture.cjs:69,
+      # each named by exact path and never globbed, under the job's frozen MEASURED_TEST_NOW
+      # and TZ, on both runners. The D-EPP-2 step text is the one CAPTURE-REPAIR-REPORT.md
+      # (D-CR-1) names. engine-capture.test.cjs and configuration-capture.test.cjs still need
+      # a provisioned PERFORMED_W6_DIR, which no workflow sets; they are not named here.
+      - name: E - EPP proposed-pick, an untapped PROPOSED never establishes a debut (D-EPP-1)
+        run: node --test rebuild/engine/test/proposed-pick.test.cjs
+      - name: E - D-EPP-2 workout preparation excludes an untapped PROPOSED
+        run: node --test rebuild/m4/workout/test/engine-capture-proposed.test.cjs
       # M2-S7-PORT-ADMISSION ADDS ITS OWN THREE LANE CELLS HERE, under the same
       # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason: they arrived
       # with P3-PORT-FIX and P3-PORT-FIX-2 (DECISIONS:509, :510) and no workflow names
