@@ -42,7 +42,7 @@
   "product": {
     ".github/workflows/rebuild.yml": {
       "pre": "bce0594f77b7b3abe04fe05b965267ee89ad7584d201b21155cdf32ae25908f0",
-      "post": "3e1f7cad45473c0400246f6dbafec840e4faad7974567a9cf4eefb659883c048",
+      "post": "6fc818d644ee660f9259607f4ace7614dacaa3524f30a0cc358fb6fac2c91887",
       "role": "edited"
     },
     ".github/workflows/shared-preflight.yml": {
@@ -149,6 +149,11 @@
       "pre": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
       "post": "67033f9f06696345dac1358de6026fc3703c96ad2050dff3208ccb88d965fa7b",
       "role": "edited"
+    },
+    "rebuild/lanes/b/S10-REGEN.cjs": {
+      "pre": null,
+      "post": "373826a00da0c380eafd7faf233788daf1e04079850ade01b5879bd394806f38",
+      "role": "new"
     },
     "rebuild/lanes/b/tooling/b-package.cjs": {
       "pre": "5321181a14bd5716c1d8692d40d5086cd10179609dcccced6d7a6da04704fd22",
@@ -307,7 +312,7 @@
     },
     "rebuild/lanes/c/today-split/writer-fence.test.mjs": {
       "pre": null,
-      "post": "913eb27c83f888dc0fc75652f091d64e37cfdf18547e825414b0040d6f87378c",
+      "post": "34ea959186d326dbd274296fdb879ea0ebb98ce172c9cc9916ccd0be58d97d5a",
       "role": "new"
     },
     "rebuild/lanes/c/ui-port/approved-pin.test.mjs": {
@@ -1005,6 +1010,11 @@
       "post": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
       "role": "carried"
     },
+    "rebuild/m4/import/test/engine-pins-unprotected.test.cjs": {
+      "pre": null,
+      "post": "44cb5da22608f45679dbf04918f85792357ca2d9f23f57152ee11ad7547daa03",
+      "role": "new"
+    },
     "rebuild/m4/import/test/engine-provider.test.cjs": {
       "pre": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
       "post": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
@@ -1695,7 +1705,8 @@
         "rebuild/m4/import/test/reading-replay.test.cjs",
         "rebuild/m4/import/test/engine-provider.test.cjs",
         "rebuild/m4/import/test/local-source-order.test.cjs",
-        "rebuild/m4/import/test/browser-parity.test.mjs"
+        "rebuild/m4/import/test/browser-parity.test.mjs",
+        "rebuild/m4/import/test/engine-pins-unprotected.test.cjs"
       ],
       "needle": null
     },
@@ -1995,7 +2006,8 @@
   ],
   "notes": [
     "PROPOSED DRAFT, NOT A SPEC OF RECORD. Composed by the S10 builder (claude-opus-5-5) on rebuild/b-s10-integration over the S9 CANDIDATE 6dc2596, which is not sealed. Every S10-WORKING-BRIEF.md (c58b892) section 2.1 placeholder is a STOP and is null here: packageId (S10_PACKAGE_ID), brief file/sha256/acceptedLedgerLine, sourceBase (S9_PARENT_COMMIT), parent artifact/review sha256 and receipt line, THEME, RELEASE-FROM-SEAL and GATE-SUPERSESSION ruling line hashes, artifact paths and review prefix. Every child needle is null: no child has been observed at the composed candidate.",
-    "PRODUCT MAP. pre is S9.json's own declared post at 6dc2596 (the S9 candidate, standing in for the S9 artifact's product map until S9 seals); post is sha256 of the bytes at this commit. S9's own released paths (build.mjs, preview.css) are not parent product pins and are not declared. today-app.cjs and gym-app.mjs are declared released (pre = S9 post, post = null) under brief 4.3; their RELEASE-FROM-SEAL line is a STOP. New paths are every non-Markdown path this branch adds or changes that S9 does not declare. Re-measure all of it at S9_PARENT_COMMIT.",
+    "PRODUCT MAP. pre is S9.json's own declared post at 6dc2596 (the S9 candidate, standing in for the S9 artifact's product map until S9 seals); post is sha256 of the bytes at this commit. S9's own released paths (build.mjs, preview.css) are not parent product pins and are not declared. today-app.cjs and gym-app.mjs are declared released (pre = S9 post, post = null) under brief 4.3; their RELEASE-FROM-SEAL line is a STOP. New paths are every path this branch adds or changes that S9 does not declare, except Markdown reports outside rebuild/engine/ and this spec itself; tracked Markdown UNDER rebuild/engine/ (PROPOSED-PICK-REPAIR-REPORT.md) is declared new because the engine-inventory cells walk every tracked file there (D-S10I-2). Re-measure all of it at S9_PARENT_COMMIT with rebuild/lanes/b/S10-REGEN.cjs (D-S10I-7).",
+    "CHILD today-17 KEEPS ITS HISTORICAL NAME (D-S10I-3): at S10 it runs 22 test files (S9's 17 plus the five gss-annex files), so the 17 in the name is not a count. Its needle stays the runner's grammar: one string of at least 8 characters, no line break, matched at the start of a line of the child's own TAP output (b-package.cjs CHILD-NEEDLE-EMPTY and CHILD-NEEDLE-NOT-A-TERMINAL-LINE), i.e. '# pass N' with N observed at the composed candidate; it is null until observed.",
     "INPUTS, in merge order: Track A TODAY-SPLIT b35a48e35a1f3e3c278c377934794a32b632535b (:662); Track B GSS 66d325308bc584950163c1c177799ce4953fa298 (:765); EPP 0d38b8e2633ee46b033f8386670bf6e25ef10862 with D-EPP-2 5a953d59a1fce5f27ff368b4997350a655f94f69 riding with it (:780 Q3, :785, :791), as its own engine-tier input. NATIVE-LOAD is excluded (:791).",
     "D-EPP-3, DECLARED DEPARTURE (f0a5eb1a; payer the S10 seal chain by :780 Q3): rebuild/engine/today.cjs and rebuild/engine/writers.cjs are sealed S8 product keys and are declared edited here with their composed posts. For an untapped PROPOSED entry the repaired engine deliberately departs from the frozen app's behaviour although no golden row moves; the file headers still say they were copied from frozen. Owed and NOT run: the port oracle on the synthetic fixture, the sensitivity pass, the private gate, exact-head CI on both systems.",
     "SEVEN PATHS EXISTED AT THE PARENT PINNED BY NO PACKAGE (measured against B-NTC, H3, S3-S9 product maps at 6dc2596) and change here, so under the runner's own rule (a file the parent pins in neither map is this package's own) they are declared role new with pre null although they are not new files: rebuild/m3/w7-preview/today/machine-settings-view.mjs (accepted post-GSS bytes, pinned as DECISIONS:628 G-R1 requires), rebuild/m3/w7-preview/today/today-model.cjs (not sealed at the parent, so no release is invented for it), rebuild/m4/workout/engine-capture.cjs (D-EPP-2), rebuild/m4/workout/test/engine-capture.test.cjs, rebuild/m4/workout/test/configuration-capture.test.cjs, rebuild/m4/import/test/s3/s3-portable-sources.json and rebuild/m4/spec/configured-history-candidate/run.cjs (D-CR-2 successor re-pins). Their parent bytes are recorded in the S10 integration report. DECISIONS:792 rules them declared new with pre null. None of the seven is an execution pin of the S9 artifact (runner proposed(): runner, packages/S9.json, the brief and every child argv target), measured.",
