@@ -74,6 +74,7 @@ import ResumePolicy from "../../../m4/workout/resume-policy.cjs";
 import HostRuntime from "../host/engine-runtime-host.cjs";
 import NativeTrend from "../../../m4/workout/native-trend-context.cjs";
 import LegacyOrder from "../../../m4/workout/legacy-order-mapping.cjs";
+import NativeLoadEffects from "../../../m4/workout/native-load-effects.cjs";
 
 const { createNullLaneWorkoutBasis } = WorkoutBasis;
 const { createWorkoutResumePolicy } = ResumePolicy;
@@ -246,8 +247,13 @@ export async function openTodayOverLocalEra({
     profile: Capture.SOURCE_PROFILE, sourceCodec: Source });
   const workoutCommands = Commands.createWorkoutCommands({ prescriptionCapture });
   const eraClock = clock || (live ? liveEraClock(live) : clock);
+  /* NATIVE-LOAD FC08 (NATIVE-LOAD-SPEC R7; DECISIONS:784-785). The trusted native-load
+     capability is installed HERE, at construction, and nowhere else: its ticket registry
+     is private to this installation, so a caller can hand the durable client nothing but
+     an opaque ticket this module issued for an issuance it holds. */
+  const nativeTickets = createNativeLoadTickets(crypto);
   const client = await openLocalDurableClient({ indexedDB, crypto, databaseName, namespace,
-    athleteId, deviceId, clock: eraClock, workoutCommands });
+    athleteId, deviceId, clock: eraClock, workoutCommands, nativeLoad: nativeTickets.capability });
 
   try {
     const opening = client.status();
@@ -261,13 +267,35 @@ export async function openTodayOverLocalEra({
     if (booted.ready !== true) throw new StorageFailure(booted.code || "LOCAL_HOST_BINDINGS_BOOT_REQUIRED", booted.state ?? 18);
     return buildEra({ client, prescriptionCapture, workoutCommands, booted, indexedDB, crypto,
       databaseName, namespace, athleteId, deviceId, clock: eraClock, liveDay, live, producerIdentity, planBasis, inputBasis,
-      resumeReason, nativeTrendContext });
+      resumeReason, nativeTrendContext, nativeTickets });
   } catch (error) { client.close(); throw error; }
+}
+
+/* FC08: the capability's ticket registry. validate() runs inside the T2 stage against
+   the generation actually staged: an unknown ticket refuses CAPABILITY_REQUIRED and a
+   generation whose operations differ from the one the host re-evaluated refuses
+   STALE_OFFER, so a raced write can never carry an old yes to disk. */
+function createNativeLoadTickets(crypto) {
+  const tickets = new Map();
+  const keyOf = generation => JSON.stringify(Object.values(generation?.collections?.ops || {})
+    .map(op => [op && op.op_id, op && op.canonical_content_commitment]).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
+  const fresh = () => Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
+  return Object.freeze({
+    keyOf,
+    issue(entry) { const id = fresh(); tickets.set(id, structuredClone(entry)); return id; },
+    retire(id) { tickets.delete(id); },
+    capability: Object.freeze({ validate(generation, args) {
+      const held = args && typeof args.ticket === "string" ? tickets.get(args.ticket) : undefined;
+      if (!held) return { refusal: { code: "NATIVE_LOAD_CAPABILITY_REQUIRED" } };
+      if (keyOf(generation) !== held.key) return { refusal: { code: "NATIVE_LOAD_STALE_OFFER" } };
+      return { proposalId: held.proposalId, issuance: structuredClone(held.issuance) };
+    } }),
+  });
 }
 
 function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexedDB, crypto,
   databaseName, namespace, athleteId, deviceId, clock, liveDay, live = null, producerIdentity, planBasis, inputBasis,
-  resumeReason, nativeTrendContext }) {
+  resumeReason, nativeTrendContext, nativeTickets }) {
   let open = true;
   const ignored = [];
   const assertOpen = () => { if (!open) throw new StorageFailure("LOCAL_CLIENT_CLOSED", 3); };
@@ -478,6 +506,30 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
           mapping ? { ...options, importAnchor: mapping.anchor } : options) });
     };
 
+    /* NATIVE-LOAD FC08 (NATIVE-LOAD-SPEC R7, "Guarded durable command"): the existing
+       null registrar, DECORATED. register() runs the one source fold first, from the
+       immutable supplied state, the authenticated generation and the registered facts,
+       and hands the reconstructed programme to the REAL registrar; workoutInput stays
+       the real registrar's identity-gated reader. New captures and the card therefore
+       read the accepted native effects and their landings, and a refused fold refuses
+       the new prescription by name. No captured Start is touched. */
+    const nativeEngine = Object.freeze({ revision: NativeLoadEffects.PRODUCER_REVISION,
+      at: d => HostRuntime.createEngineRuntime({ clock: engineClockFor(d, live),
+        nativeTrendContext: nativeTrendContext || trendBinding.resolve }) });
+    const nativeLoadRegistrar = config => {
+      const real = SourceProjection.createNullSelectionRegistrar(config);
+      return Object.freeze({ ...real, register(args = {}) {
+        const fold = NativeLoadEffects.foldNativeLoad({ base: args.state, generation: args.generation,
+          workoutFacts: args.workoutFacts, engine: nativeEngine, athleteId });
+        if (fold.status !== "ready") {
+          const issue = fold.issues.find(x => NativeLoadEffects.BLOCKING_CODES.includes(x.code)) || { code: "NATIVE_LOAD_RECORD_INVALID" };
+          const error = new Error(issue.code); error.code = issue.code; throw error;
+        }
+        const state = { ...fold.state }; delete state.workoutFacts;
+        return real.register({ ...args, state });
+      } });
+    };
+
     /* THE CAUSAL FRONTIER, DERIVED FROM THE DURABLE LOG ON EVERY RESOLUTION —
        A2 review round 2's finding, kept exactly: nothing is remembered across
        page loads, and the parents the guard checks are the parents the resolver
@@ -497,7 +549,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
          repository. The installation's own answer still has to agree. */
       isCurrentSession: epoch => alive === true && bindings.isCurrentSession(epoch),
       createDurablePublicClient,
-      createNullSelectionRegistrar: SourceProjection.createNullSelectionRegistrar,
+      createNullSelectionRegistrar: nativeLoadRegistrar,
       createSourceProjectionReader: SourceProjection.createSourceProjectionReader,
       createEngineWorkoutCapture: Adapter.createEngineWorkoutCapture,
       createEngineHistoryProjector,
@@ -521,6 +573,120 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       startOrderRefusal,
       // Detaches THIS handle only — see createReadingHost().close().
       close() { alive = false; } });
+  }
+
+  /* ------------------------------------------------------- native load (FC08)
+     NATIVE-LOAD-SPEC R7 createNativeLoadHost(scope) -> {project, check, respond, close}.
+     The trusted installation binding: it loads and authenticates through the SAME
+     host bindings the workout uses (its own gym handle over this repository), builds
+     the fold and the evaluation from that one generation, and keeps every issuance
+     behind an opaque handle. The page receives display values and a handle, never an
+     editable issuance. A yes re-evaluates against a freshly loaded generation and
+     commits through the installation's trusted capability (FC06/FC07); a decline or a
+     cancel writes nothing. Imported (string-lane) generations are refused
+     SOURCE_FRONTIER_UNPROVEN here: their admission family (FC09/FC10) is not built. */
+  async function createNativeLoadHost(options = {}) {
+    assertOpen();
+    reconcile("createNativeLoadHost", options);
+    const { day, engineState } = options;
+    if (typeof day !== "string" || !DAY_RE.test(day)) throw new TypeError("createNativeLoadHost requires day");
+    if (!engineState || !Array.isArray(engineState.exercises)) throw new TypeError("createNativeLoadHost requires engineState");
+    const gym = await createGymHost({ day, engineState, plannedSplitSlotId: "native-load/" + day });
+    let alive = true;
+    const handles = new WeakMap();
+    const nullSource = Source.basis({ W: 0, log_digest: Source.createPrefixHasher().digest(), selection_id: null });
+    const engine = Object.freeze({ revision: NativeLoadEffects.PRODUCER_REVISION,
+      at: d => HostRuntime.createEngineRuntime({ clock: engineClockFor(d, live),
+        nativeTrendContext: nativeTrendContext || gym.trendBinding.resolve }) });
+    const refused = (code, extra = {}) => ({ acknowledged: false, state: 3, code, copy: null, ...extra });
+    // `base` lets the page fold from ITS immutable basis (spec B: the fold always reloads
+    // its immutable source base, never a state already handed to adoptBasis).
+    async function project(base = engineState) {
+      if (!alive) return { ok: false, code: "NATIVE_LOAD_CAPABILITY_REQUIRED" };
+      if (!base || !Array.isArray(base.exercises)) return { ok: false, code: "NATIVE_LOAD_RECORD_INVALID" };
+      const snap = await gym.repository.load();
+      const imported = snap.generation.collections?.[Source.COLLECTION];
+      if (imported && typeof imported === "object" && Object.keys(imported).length) return { ok: false, code: "NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN" };
+      const read = await gym.host.client.readWorkoutHistory();
+      if (!read || read.read !== true) return { ok: false, code: (read && read.code) || "NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN" };
+      if (read.source_revision !== snap.revision) return { ok: false, code: "NATIVE_LOAD_STALE_OFFER" };
+      const workoutFacts = gym.host.historyProjector.project(read.history, snap.generation, { sourceRevision: read.source_revision });
+      const args = { base, generation: snap.generation, workoutFacts, engine, source: nullSource, athleteId,
+        plan: { plan_basis: planBasis, input_basis: inputBasis } };
+      const fold = gym.trendBinding.withFacts(workoutFacts, () => NativeLoadEffects.foldNativeLoad(args));
+      const newest = new Map();
+      for (const id of (workoutFacts && workoutFacts.order ? workoutFacts.order.start_ids : [])) {
+        const session = workoutFacts.sessions.find(s => s.start_op_id === id);
+        for (const e of (session ? session.record.entries : [])) if (e && e.completion) newest.set(e.lift_lineage_id, { lift_lineage_id: e.lift_lineage_id,
+          completion_op_id: e.completion.op_id, normal: e.completion.kind === "normal", date: session.effective.local_date });
+      }
+      return { ok: true, snap, workoutFacts, args, fold, lifts: [...newest.values()] };
+    }
+    const evaluate = (p, request) => gym.trendBinding.withFacts(p.workoutFacts, () => NativeLoadEffects.checkNativeLoad({ ...p.args, request })).evaluation;
+    async function savedResponse(held) {
+      const p = await project();
+      const ops = Object.values((p.ok ? p.snap.generation : (await gym.repository.load()).generation).collections?.ops || {});
+      const rejected = (p.ok ? p.snap.generation : { collections: {} }).collections?.rejected || {};
+      const op = ops.find(o => o && o.class === "plan" && o.kind === "proposal-response" && !rejected[o.op_id] && o.payload &&
+        o.payload.proposal_id === held.proposal_id && JSON.stringify(o.payload.issuance) === JSON.stringify(held.issuance));
+      if (!op || !p.ok || !p.fold || !p.fold.spent.some(x => x.spend_id === held.issuance.body.spend_id)) return null;
+      return op;
+    }
+    return Object.freeze({
+      day,
+      async project({ base } = {}) {
+        const p = await project(base === undefined ? engineState : base);
+        if (!p.ok) return { ok: false, code: p.code };
+        return { ok: true, status: p.fold.status, state: p.fold.state ? structuredClone(p.fold.state) : null,
+          effects: structuredClone(p.fold.effects), issues: structuredClone(p.fold.issues), lifts: structuredClone(p.lifts),
+          revision: p.snap.revision };
+      },
+      async check(request = {}) {
+        const p = await project();
+        if (!p.ok) return { status: "refused", offers: [], refusal: { code: p.code, refs: [], field: null } };
+        const evaluation = evaluate(p, { lift_lineage_id: request.lift_lineage_id, completion_op_id: request.completion_op_id,
+          intent: request.intent === undefined ? "check" : request.intent });
+        const moment = clock.now();
+        const offers = evaluation.status !== "offer" ? [] : evaluation.offers.map(offer => {
+          const { proposal_id, issuance } = NativeLoadEffects.issuanceFor(offer, { revision: engine.revision, source: JSON.stringify(nullSource), moment });
+          const handle = Object.freeze({ profile: "earned/native-load-handle/v1" });
+          handles.set(handle, { proposal_id, issuance, request: structuredClone({ lift_lineage_id: request.lift_lineage_id,
+            completion_op_id: request.completion_op_id, intent: request.intent === undefined ? "check" : request.intent }) });
+          const body = offer.body;
+          return Object.freeze({ handle, proposalId: proposal_id, lift: body.lift_lineage_id, kind: body.kind,
+            state: body.candidate ? body.candidate.state : null, unit: "lb",
+            loads: body.target_load.vector.map(v => v.value), current: body.base_load.vector.map(v => (v ? v.value : null)),
+            reason: offer.reason });
+        });
+        return { status: evaluation.status, offers, refusal: evaluation.refusal ? structuredClone(evaluation.refusal) : null };
+      },
+      async respond({ handle, proposal_id, answer } = {}) {
+        if (answer === "decline" || answer === "cancel") return { acknowledged: false, dismissed: true };
+        if (answer !== "accept") return refused("NATIVE_LOAD_RECORD_INVALID");
+        const held = alive && handle && typeof handle === "object" ? handles.get(handle) : undefined;
+        if (!held) return refused("NATIVE_LOAD_CAPABILITY_REQUIRED");
+        if (proposal_id !== held.proposal_id) return refused("NATIVE_LOAD_SCOPE_MISMATCH");
+        const already = await savedResponse(held);
+        if (already) return { acknowledged: true, alreadySaved: true, op_id: already.op_id };
+        const p = await project();
+        if (!p.ok) return refused(p.code);
+        const evaluation = evaluate(p, held.request);
+        const fresh = evaluation.status === "offer" && evaluation.offers.some(offer =>
+          NativeLoadEffects.proposalDigest(NativeLoadEffects.PRODUCER, offer.body, offer.reason) === held.proposal_id);
+        if (!fresh) return refused("NATIVE_LOAD_STALE_OFFER", { refusal: evaluation.refusal ? structuredClone(evaluation.refusal) : null });
+        const ticket = nativeTickets.issue({ proposalId: held.proposal_id, issuance: held.issuance, key: nativeTickets.keyOf(p.snap.generation) });
+        let result;
+        try { result = await client.respondNativeLoad({ ticket }); }
+        catch (error) { result = refused(error && error.code ? error.code : "STAGING_FAILED"); }
+        finally { nativeTickets.retire(ticket); }
+        if (result && result.acknowledged === true) return { acknowledged: true, op_id: result.op_id, durableRevision: result.durableRevision };
+        // Lost acknowledgement: report already-saved only when the exact response is on disk AND folded.
+        const late = await savedResponse(held);
+        if (late) return { acknowledged: true, alreadySaved: true, op_id: late.op_id };
+        return refused((result && result.code) || "NATIVE_LOAD_NOT_SAVED", { state: result && Number.isSafeInteger(result.state) ? result.state : 3 });
+      },
+      close() { alive = false; gym.close(); },
+    });
   }
 
   /* ----------------------------------------------------------- the check-in
@@ -716,7 +882,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       ops: booted.ops, derivedStale: booted.derivedStale, derivedCode: booted.derivedCode,
       importRebaseRequired: booted.importRebaseRequired === true,
       leaseRenewedUntil: booted.leaseRenewedUntil || null }),
-    createReadingHost, createGymHost, createCheckInHost, createSetupHost,
+    createReadingHost, createGymHost, createCheckInHost, createSetupHost, createNativeLoadHost,
     /* C4b-D1. The day this installation's OWN writes (the weigh-in path, the
        lease window, the enrolment stamp) are stamped with, right now. Every host
        stamps its own `day` instead; see createGymHost. */

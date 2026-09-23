@@ -199,6 +199,18 @@ function takeProposedDebut(s, id) {
   } catch (e) { return s; }
 }
 
+// NATIVE-LOAD FG01 (NATIVE-LOAD-SPEC R7 section C, engine item 2): the honest-opener
+// governor, moved unchanged out of completeSession so the native evaluator can replay it
+// on an isolated lift. completeSession calls it once, at the original site.
+function updateOpenerHold(ex, en, push) {
+    if (en.rir != null) {
+      ex.rirHist = [...(ex.rirHist || []).slice(-2), en.rir];
+      if (en.rir >= 1 && ex.holdFlag) { ex.holdFlag = false; push(`${ex.n.toUpperCase()} — HOLD RELEASED`, `opener back to ${en.rir} RIR — honest again, loads can earn`); }
+      const h2 = ex.rirHist.slice(-2);
+      if (h2.length === 2 && h2.every((x) => x === 0)) { ex.holdFlag = true; push(`${ex.n.toUpperCase()} — RIR 0 TWICE`, "opener running hot two sessions straight — load HELD until an honest session lands"); }
+    }
+}
+
 // Copied from frozen src/app.jsx @ fe516c1:2559-2777.
 function completeSession(state, iso, entries, slp, extras = {}) {
   /* SPLIT items h + i — every booked entry carries its provenance: wKey (the
@@ -231,12 +243,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     ex.lastMeta = { d: iso, w: en.w, reps: r.slice(), rir: en.rir ?? null, rirSets: buildRirSets(en, r.length), debt: !slp.clean };
 
     /* opener RIR — the honest-opener rule with teeth */
-    if (en.rir != null) {
-      ex.rirHist = [...(ex.rirHist || []).slice(-2), en.rir];
-      if (en.rir >= 1 && ex.holdFlag) { ex.holdFlag = false; push(`${ex.n.toUpperCase()} — HOLD RELEASED`, `opener back to ${en.rir} RIR — honest again, loads can earn`); }
-      const h2 = ex.rirHist.slice(-2);
-      if (h2.length === 2 && h2.every((x) => x === 0)) { ex.holdFlag = true; push(`${ex.n.toUpperCase()} — RIR 0 TWICE`, "opener running hot two sessions straight — load HELD until an honest session lands"); }
-    }
+    updateOpenerHold(ex, en, push);
 
     /* FIX 3d — computed ONCE at the top of the walk: 3c put it above the
        reclaim branch, which left own/std and ladder — both earlier, both
@@ -2925,5 +2932,5 @@ function rulebook(s) {
   ];
 }
 
-return { DT_PALETTE, DT, sweepLadders, sessionFromDraft, takeProposedDebut, completeSession, applyRead, proteinTargetForRegime, bhFDR, sleepSpanH, parseHM, todayCaff, caffAt, fadeRead, sessionDebrief, debriefWords, rirPlan, weekReview, closeEvent, refeedBumps, theOneThing, weekDigest, debtLedger, INS_MAP, dossierData, dossierText, trialArmOn, activeTrial, dayProtocol, PLAIN_MAP, plainify, labDocket, STATUS_RANK, labSections, labStatusList, SELECTION_AUDIT, exerciseSelection, _weeklyFreq, volumePush, sweepVolume, sweepStalls, isLabFeedLine, diaryFeed, sweepLab, runAdaptive, _stampPlan, applyProposal, applySuggestion, noteSuggestion, dismissSuggestion, applyAgentProposal, dismissAgentProposal, dismissProposal, undoAdjustment, undoRead, GLOSSARY, LEDGER_DICT, kitLetter, askContext, CONSTITUTION, filingsFor, MORNING_REGISTRY, MORNING_PARKED, MUSCLE_CHIPS, minuteNeeds, booksToday, liveBooks, briefAnswered, nextTrainingISO, stepValue, UI_KEY, applyDisc, readDisc, COMPOUND_IDS, REST_BASE, REST_TERMINAL_BUMP, restFor, restLine, mergeSessionDrafts, phaseAfterSet, backLift, gymEntries, REST_CUT_S, restCut, effortWords, resumePhase, writeDaily, captureAsk, expDigest, rulebook, proteinTargetFn: E.proteinTarget };
+return { DT_PALETTE, DT, sweepLadders, sessionFromDraft, takeProposedDebut, completeSession, updateOpenerHold, applyRead, proteinTargetForRegime, bhFDR, sleepSpanH, parseHM, todayCaff, caffAt, fadeRead, sessionDebrief, debriefWords, rirPlan, weekReview, closeEvent, refeedBumps, theOneThing, weekDigest, debtLedger, INS_MAP, dossierData, dossierText, trialArmOn, activeTrial, dayProtocol, PLAIN_MAP, plainify, labDocket, STATUS_RANK, labSections, labStatusList, SELECTION_AUDIT, exerciseSelection, _weeklyFreq, volumePush, sweepVolume, sweepStalls, isLabFeedLine, diaryFeed, sweepLab, runAdaptive, _stampPlan, applyProposal, applySuggestion, noteSuggestion, dismissSuggestion, applyAgentProposal, dismissAgentProposal, dismissProposal, undoAdjustment, undoRead, GLOSSARY, LEDGER_DICT, kitLetter, askContext, CONSTITUTION, filingsFor, MORNING_REGISTRY, MORNING_PARKED, MUSCLE_CHIPS, minuteNeeds, booksToday, liveBooks, briefAnswered, nextTrainingISO, stepValue, UI_KEY, applyDisc, readDisc, COMPOUND_IDS, REST_BASE, REST_TERMINAL_BUMP, restFor, restLine, mergeSessionDrafts, phaseAfterSet, backLift, gymEntries, REST_CUT_S, restCut, effortWords, resumePhase, writeDaily, captureAsk, expDigest, rulebook, proteinTargetFn: E.proteinTarget };
 };

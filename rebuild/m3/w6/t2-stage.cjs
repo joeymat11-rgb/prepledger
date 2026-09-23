@@ -17,8 +17,25 @@ function snapshotBackend(backend, seededNames = []) {
   }
   return collections;
 }
-function createT2Stage(configProvider, { allowInbound = false, workoutCommands: selectedWorkoutCommands = workoutCommands } = {}) {
+/* NATIVE-LOAD FC06 (NATIVE-LOAD-SPEC R7; DECISIONS:784-785). 'respond' is NOT a generic
+   command: it is dispatched explicitly, positionally, as client.respond(proposalId,
+   'accept', ownedIssuance), and only after the TRUSTED native-load capability installed
+   at construction (FC07) has validated the request against THIS staged generation and
+   handed back the issuance it owns. A caller supplies no issuance and no answer; a
+   decline never reaches this stage. Without the capability 'respond' refuses
+   NATIVE_LOAD_CAPABILITY_REQUIRED and nothing is prepared. */
+function nativeRespond(client, nativeLoad, generation, args) {
+  const refused = code => ({ acknowledged: false, state: 3, code, copy: Client.copy.SAVE_FAILED });
+  if (!nativeLoad || typeof nativeLoad.validate !== "function") return refused("NATIVE_LOAD_CAPABILITY_REQUIRED");
+  let owned;
+  try { owned = nativeLoad.validate(clone(generation), clone(args)); } catch { owned = null; }
+  if (!owned || owned.refusal || typeof owned.proposalId !== "string" || !owned.issuance)
+    return refused(owned && owned.refusal && typeof owned.refusal.code === "string" ? owned.refusal.code : "NATIVE_LOAD_STALE_OFFER");
+  return client.respond(owned.proposalId, "accept", clone(owned.issuance));
+}
+function createT2Stage(configProvider, { allowInbound = false, workoutCommands: selectedWorkoutCommands = workoutCommands, nativeLoad } = {}) {
   if (typeof configProvider !== "function") throw new Error("T2 configuration provider required");
+  if (nativeLoad !== undefined && typeof nativeLoad?.validate !== "function") throw new Error("Trusted native-load capability requires validate()");
   return (generation, command, args, integration) => {
     const backend = Client.memoryBackend(generation.collections);
     const checkpoint = backend.get("meta", "checkpoint");
@@ -61,6 +78,7 @@ function createT2Stage(configProvider, { allowInbound = false, workoutCommands: 
     let result, kind = "local-operation";
     if (command === null) result = { acknowledged: false, readOnly: true };
     else if (COMMANDS.has(command)) result = client[command](args);
+    else if (command === "respond") result = nativeRespond(client, nativeLoad, generation, args);
     else if (allowInbound && trusted.record && trusted.proof && ["@disposition", "@pull", "@snapshot", "@lease", "@time", "@currentHead"].includes(command)) {
       kind = "inbound-proof";
       try {

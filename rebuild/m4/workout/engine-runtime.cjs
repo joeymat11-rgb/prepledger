@@ -35,9 +35,17 @@
 // profile supersedes the parent's pin on this file; no writer, seed, migration or merge
 // becomes reachable, and the module exports stay createEngineRuntime, COMPOSITION,
 // absentProvider.
-const MODULES=Object.freeze(['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers']);
+//
+// WIDENED BY NATIVE-LOAD (rebuild/coach/NATIVE-LOAD-SPEC.md R7 FC04; owner grant
+// DECISIONS:784-785). 'native-load' is appended after writers and two PURE names
+// join the surface: evaluateNativeLoad (a reader returning an Evaluation) and
+// applyNativeLoadDecision (a transition returning a copy; it writes no disk). The
+// surface is therefore no longer reader-only: it is readers plus one pure native-load
+// capability. E, earnWalk, updateOpenerHold, _deriveSightingFull, completeSession,
+// seed, migrate and merge still never escape.
+const MODULES=Object.freeze(['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers','native-load']);
 const factories=MODULES.map(name=>require('../../engine/'+name+'.cjs'));
-const EXPOSED=Object.freeze(['genSession','rirPlan','dayWeather','cleanAtDate','sessionMembership']);
+const EXPOSED=Object.freeze(['genSession','rirPlan','dayWeather','cleanAtDate','sessionMembership','evaluateNativeLoad','applyNativeLoadDecision']);
 // Source-owned exact lookup (the same read the seeded engine performs); it
 // embeds no athlete data. It is a reached dependency of today.pickStructural.
 const exById=(s,id)=>s.exercises.find(e=>e.id===id);
@@ -66,7 +74,8 @@ function createEngineRuntime({clock,ids,drafts,nativeTrendContext}={}){
  // the caller never receives E, and the two day predicates are handed out with
  // the engine's own arity and the engine's own return value, unwrapped.
  return Object.freeze({genSession:(s,iso,slp)=>E.genSession(s,iso,slp),rirPlan:(s,ex,slp)=>E.rirPlan(s,ex,slp),
-  dayWeather:(s,iso)=>E.dayWeather(s,iso),cleanAtDate:(s,iso)=>E.cleanAtDate(s,iso),sessionMembership:(s,iso)=>E.sessionMembership(s,iso)});
+  dayWeather:(s,iso)=>E.dayWeather(s,iso),cleanAtDate:(s,iso)=>E.cleanAtDate(s,iso),sessionMembership:(s,iso)=>E.sessionMembership(s,iso),
+  evaluateNativeLoad:(s,request)=>E.evaluateNativeLoad(s,request),applyNativeLoadDecision:(s,decision,context)=>E.applyNativeLoadDecision(s,decision,context)});
 }
 // Record of what the exposed readers are composed from. Private
 // initialization (every factory, the writer table) is distinct from the
@@ -74,7 +83,7 @@ function createEngineRuntime({clock,ids,drafts,nativeTrendContext}={}){
 const COMPOSITION=Object.freeze({profile:'earned/engine-runtime/v1',modules:MODULES,exposed:EXPOSED,
  seeded:Object.freeze({exById:'source-owned exact lookup, no athlete data'}),
  absent:Object.freeze({HISTORY:'not supplied; reach fails ENGINE_RUNTIME_HISTORY_PROVIDER_REQUIRED',ROLLUPS:'not supplied; reach fails ENGINE_RUNTIME_ROLLUPS_PROVIDER_REQUIRED',SEED:'not supplied; factory destructuring only, sole body use is runAdaptive (outside this surface)'}),
- privateInitialization:'writers.cjs is instantiated on the private table to obtain rirPlan; its completion/adaptive writers never escape',
+ privateInitialization:'writers.cjs is instantiated on the private table to obtain rirPlan and the moved governor updateOpenerHold, which only native-load.cjs calls; its completion/adaptive writers never escape. native-load.cjs is the one pure capability: evaluateNativeLoad reads, applyNativeLoadDecision returns a transformed copy; neither writes a disk or reads a clock',
  forbiddenImports:Object.freeze(['seed.cjs','migrate.cjs','merge.cjs'])});
 // absentProvider is exported for test guards only; the runtime binds it itself.
 module.exports={createEngineRuntime,COMPOSITION,absentProvider};
