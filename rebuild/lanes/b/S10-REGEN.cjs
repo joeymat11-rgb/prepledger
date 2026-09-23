@@ -1,6 +1,7 @@
 'use strict';
-/* S10-REGEN (D-S10I-7, REVIEW-S10-INTEGRATION-l1). ONE COMMAND, RUN AFTER S10 IS MERGE-FORWARDED
-   (never rebased, brief 12.12) ONTO THE SEALED S9 PARENT:
+/* S10-REGEN (D-S10I-7, REVIEW-S10-INTEGRATION-l1; B5 and D-REGEN-INPUT of Astra S10-INTEGRATION-
+   REVIEW-L2). ONE COMMAND, RUN AFTER S10 IS MERGE-FORWARDED (never rebased, brief 12.12) ONTO THE
+   SEALED S9 PARENT:
 
      node rebuild/lanes/b/S10-REGEN.cjs --parent <S9_PARENT_COMMIT> [--receipt-line N] [--write [--allow-stale-notes]]
 
@@ -18,87 +19,201 @@
    --receipt-line is REQUIRED with --write: parent.options[0].receiptLedgerLine is the S9 receipt's
    ledger coordinate, a parent binding the runner re-reads (it is optional only for a dry run).
 
-   Without --write it is a DRY RUN: it prints what would change and writes nothing. --write refuses
-   unless the sealed S9 artifact exists at the parent, so a candidate value can never be baked in.
-   It reads bytes only (git show / sha256); it loads no engine module. */
+   THE PATH BOUNDARY (B5). Nothing is read outside a POSITIVE, reviewed scope:
+   (1) SCOPE below is the fixed list of S10 product roots (every declared S10 path, every S9 product
+       and execution pin, measured to lie under one of them); FIXED_INPUTS are the only files read
+       before discovery, and they are validated first.
+   (2) Discovery is `git diff --name-only <P> HEAD -- <SCOPE...>`, never an unscoped diff; every
+       git call that names a path passes it after an explicit `--` (ls-tree), and blob bytes are read
+       only by object id (cat-file) after that path passed validation.
+   (3) EVERY path - from the specs, the artifact, the execution pins and the diff - is validated
+       BEFORE ANY READ OF ANY OF THEM: inside SCOPE; no absolute path, `..`, backslash or control
+       character; not in the forbidden set (src/, rebuild/conform/private, any ledger/ directory, any
+       *soak* name); a regular file mode in Git (never a symlink 120000 or submodule 160000) at the
+       parent and at HEAD where present; and on disk neither the file nor any directory above it
+       inside the repository is a symlink or junction. One failure refuses the whole run by name.
+   (4) The protected five (rebuild/engine/seed, migrate, merge, index, oracle-shim) are NEVER read:
+       their post is their pre only if Git holds the same object id at the parent and at HEAD and
+       the working tree is clean for them; otherwise the run refuses.
+   D-REGEN-INPUT: --write also requires the parent's review envelope to be status ACCEPTED, and a
+   parent-released path is excluded from the WHOLE declared union, not only from the diff.
+   Without --write it is a DRY RUN and writes nothing. It loads no engine module. */
 const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process'), crypto = require('node:crypto');
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const SPEC = 'rebuild/lanes/b/tooling/packages/S10.json', S9SPEC = 'rebuild/lanes/b/tooling/packages/S9.json';
-const RUNNER = 'rebuild/lanes/b/tooling/b-package.cjs';
-const sha = b => crypto.createHash('sha256').update(b).digest('hex');
-const git = (a, opt) => cp.execFileSync('git', a, { cwd: REPO, maxBuffer: 1e9, ...(opt || {}) });
-const show = (rev, f) => { try { return git(['show', rev + ':' + f], { stdio: ['ignore', 'pipe', 'ignore'] }); } catch { return null; } };
-const shaAt = (rev, f) => { const b = show(rev, f); return b === null ? null : sha(b); };
-const arg = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
+const RUNNER = 'rebuild/lanes/b/tooling/b-package.cjs', REGIONS = 'rebuild/lanes/c/today-split-spike/regions.json';
+const SCOPE = ['.github/workflows/rebuild.yml', '.github/workflows/shared-preflight.yml', 'rebuild/engine/',
+  'rebuild/lanes/b/S10-REGEN.cjs', 'rebuild/lanes/b/S9-UI-PINS-BRIEF.md', 'rebuild/lanes/b/tooling/',
+  'rebuild/lanes/c/p3-today-hotfix/', 'rebuild/lanes/c/passphrase-normalize/', 'rebuild/lanes/c/s9-today-carry/',
+  'rebuild/lanes/c/today-split-spike/', 'rebuild/lanes/c/today-split/', 'rebuild/lanes/c/ui-port/',
+  'rebuild/lanes/d/b-lom/', 'rebuild/lanes/d/f2/', 'rebuild/lanes/d/import-retract/', 'rebuild/lanes/d/p3-capture-start/',
+  'rebuild/lanes/d/p3-followons/', 'rebuild/lanes/d/p3-layout-v2/', 'rebuild/lanes/d/p3-port-fix/',
+  'rebuild/lanes/d/p3-real-shape/', 'rebuild/lanes/d/p3-replay-all/', 'rebuild/lanes/d/p3-replay-measure/',
+  'rebuild/lanes/d/plan-edit/', 'rebuild/lanes/tooling/test/', 'rebuild/m1/MOCK.md', 'rebuild/m1/approved-2026-09-08/',
+  'rebuild/m3/setup/port/', 'rebuild/m3/w6/host/', 'rebuild/m3/w6/local/', 'rebuild/m3/w6/test/', 'rebuild/m3/w7-preview/',
+  'rebuild/m4/import/', 'rebuild/m4/spec/', 'rebuild/m4/workout/'];
+const PROTECTED = new Set(['seed', 'migrate', 'merge', 'index', 'oracle-shim'].map((n) => 'rebuild/engine/' + n + '.cjs'));
+const FORBIDDEN = [/(^|\/)src\//, /^rebuild\/conform\/private(\/|$)/, /(^|\/)ledger\//, /soak/i];
+const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
+const git = (a) => cp.execFileSync('git', a, { cwd: REPO, maxBuffer: 1e9, stdio: ['ignore', 'pipe', 'ignore'] });
+const arg = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
 const WRITE = process.argv.includes('--write');
-const fail = m => { console.error('S10-REGEN REFUSED: ' + m); process.exit(2); };
+const fail = (m) => { console.error('S10-REGEN REFUSED: ' + m); process.exit(2); };
 if (WRITE && !/^[1-9][0-9]*$/.test(arg('--receipt-line') || ''))
   fail('--write needs --receipt-line N (the S9 receipt ledger line, parent.options[0].receiptLedgerLine); the runner re-reads that line');
 
+// ---- (3) validation, used before every read -------------------------------------------------
+const inScope = (f) => SCOPE.some((r) => (r.endsWith('/') ? f.startsWith(r) : f === r));
+function shape(f) {
+  if (typeof f !== 'string' || !f || f.startsWith('/') || /^[A-Za-z]:/.test(f) || f.includes('\\') || /[\x00-\x1f]/.test(f)
+    || f.split('/').some((s) => s === '..' || s === '.' || s === '')) return 'not a plain repository-relative path';
+  if (FORBIDDEN.some((re) => re.test(f))) return 'in the forbidden set';
+  if (!inScope(f)) return 'outside the S10 product scope';
+  return null;
+}
+const entryCache = new Map();
+function prefetch(rev, paths) {          // metadata only: mode and object id, explicit paths after --
+  const todo = paths.filter((f) => !entryCache.has(rev + ':' + f));
+  for (let i = 0; i < todo.length; i += 150) {
+    const chunk = todo.slice(i, i + 150);
+    for (const f of chunk) entryCache.set(rev + ':' + f, null);
+    for (const line of git(['ls-tree', '--full-tree', rev, '--', ...chunk]).toString().split('\n').filter(Boolean)) {
+      const m = /^(\d{6}) (\w+) ([0-9a-f]{40})\t(.*)$/.exec(line);
+      if (!m) continue;
+      if (entryCache.has(rev + ':' + m[4])) entryCache.set(rev + ':' + m[4], { mode: m[1], type: m[2], oid: m[3] });
+    }
+  }
+}
+function treeEntry(rev, f) { if (!entryCache.has(rev + ':' + f)) prefetch(rev, [f]); return entryCache.get(rev + ':' + f); }
+function diskLinks(f) {                  // the file and every directory above it inside the repository
+  const parts = f.split('/');
+  for (let i = 1; i <= parts.length; i++) {
+    let st = null; try { st = fs.lstatSync(path.join(REPO, ...parts.slice(0, i))); } catch { return null; }
+    if (st.isSymbolicLink()) return parts.slice(0, i).join('/');
+  }
+  return null;
+}
+const validated = new Map();
+function validate(f, revs) {
+  const why = shape(f);
+  if (why) return why;
+  for (const rev of revs) {
+    const e = treeEntry(rev, f);
+    if (e && (e.bad || e.type !== 'blob' || !['100644', '100755'].includes(e.mode)))
+      return 'not a regular file in Git at ' + String(rev).slice(0, 7) + ' (' + (e.bad || e.mode + ' ' + e.type) + ')';
+    validated.set(rev + ':' + f, e);
+  }
+  const link = diskLinks(f);
+  if (link) return 'a symlink or junction on disk at ' + link;
+  return null;
+}
+function validateAll(paths, revs, label) {
+  const bad = [];
+  const shaped = paths.filter((f) => !shape(f));
+  for (const rev of revs) prefetch(rev, [...new Set(shaped)]);
+  for (const f of paths) { const why = validate(f, revs); if (why) bad.push(f + ' (' + why + ')'); }
+  if (bad.length) fail('REGEN-PATH-REFUSED ' + label + ': ' + bad.slice(0, 10).join('; ') + (bad.length > 10 ? ' ... ' + bad.length : ''));
+}
+// Reads happen ONLY through these two, and only for a path validate() accepted at that revision.
+function blobAt(rev, f) {
+  if (PROTECTED.has(f)) throw new Error('S10-REGEN never reads a protected engine file: ' + f);
+  if (!validated.has(rev + ':' + f)) throw new Error('S10-REGEN read before validation: ' + rev + ':' + f);
+  const e = validated.get(rev + ':' + f);
+  return e ? cp.execFileSync('git', ['cat-file', 'blob', e.oid], { cwd: REPO, maxBuffer: 1e9 }) : null;
+}
+function diskAt(f) {
+  if (PROTECTED.has(f)) throw new Error('S10-REGEN never reads a protected engine file: ' + f);
+  if (!validated.has('HEAD:' + f)) throw new Error('S10-REGEN disk read before validation: ' + f);
+  try { return fs.readFileSync(path.join(REPO, ...f.split('/'))); } catch { return null; }
+}
+const shaAt = (rev, f) => { const b = blobAt(rev, f); return b === null ? null : sha(b); };
+
+// ---- (1) the parent and the fixed inputs, validated first --------------------------------------
 const P = (() => { const p = arg('--parent'); if (!p) fail('--parent <S9_PARENT_COMMIT> is required');
   try { return git(['rev-parse', '--verify', p + '^{commit}']).toString().trim(); } catch { fail('not a commit: ' + p); } })();
 try { git(['merge-base', '--is-ancestor', P, 'HEAD']); } catch { fail('the parent ' + P.slice(0, 7) + ' is not an ancestor of HEAD; merge-forward first, never rebase'); }
-const S10 = JSON.parse(fs.readFileSync(path.join(REPO, SPEC), 'utf8'));
-const S9 = JSON.parse(show(P, S9SPEC) || fail('no ' + S9SPEC + ' at the parent'));
-const option = S10.parent.options.find(o => o.id === 'S9') || fail('S10.json names no S9 parent option');
-const artRaw = show(P, option.artifact), revRaw = show(P, option.review);
+const HEADSHA = git(['rev-parse', 'HEAD']).toString().trim();
+validateAll([SPEC, S9SPEC, RUNNER, REGIONS], [P, 'HEAD'], 'fixed input');
+const S10 = JSON.parse(diskAt(SPEC).toString('utf8'));
+const s9raw = blobAt(P, S9SPEC); if (!s9raw) fail('no ' + S9SPEC + ' at the parent');
+const S9 = JSON.parse(s9raw.toString('utf8'));
+const option = S10.parent.options.find((o) => o.id === 'S9') || fail('S10.json names no S9 parent option');
+validateAll([option.artifact, option.review], [P], 'parent artifact');
+const artRaw = blobAt(P, option.artifact), revRaw = blobAt(P, option.review);
 const pinOf = (e, f) => { if (typeof e === 'string') return e; if (e && typeof e === 'object' && 'pre' in e && 'post' in e) return e.post === null ? e.pre : e.post; fail('parent pin shape ' + f); };
 
 let pmap, epins, mode, parentReleased;
 if (artRaw) {
-  const art = JSON.parse(artRaw); mode = 'SEALED ARTIFACT ' + option.artifact + ' ' + sha(artRaw).slice(0, 12);
+  const art = JSON.parse(artRaw.toString('utf8')); mode = 'SEALED ARTIFACT ' + option.artifact + ' ' + sha(artRaw).slice(0, 12);
   pmap = Object.fromEntries(Object.entries(art.product || {}).map(([f, e]) => [f, pinOf(e, f)]));
-  epins = art.executionPins || {};
+  epins = { ...(art.executionPins || {}) };
   parentReleased = new Set(Object.keys(art.released || {}));
+  if (WRITE) {                                            // D-REGEN-INPUT: an ACCEPTED parent only
+    let review = null; try { review = revRaw && JSON.parse(revRaw.toString('utf8')); } catch { review = null; }
+    if (!review || review.status !== 'ACCEPTED') fail('the parent review ' + option.review + ' is not an ACCEPTED envelope at ' + P.slice(0, 7));
+  }
 } else {
   if (WRITE) fail('no sealed S9 artifact ' + option.artifact + ' at ' + P.slice(0, 7) + '; --write needs the seal, a dry run does not');
   mode = 'CANDIDATE (no artifact at the parent): pre from S9.json posts, execution pins recomputed as proposed() would';
   pmap = Object.fromEntries(Object.entries(S9.product).filter(([, v]) => v.role !== 'released').map(([f, v]) => [f, v.post]));
-  epins = { [RUNNER]: shaAt(P, RUNNER), [S9SPEC]: shaAt(P, S9SPEC) };
-  if (S9.brief && S9.brief.file && shaAt(P, S9.brief.file)) epins[S9.brief.file] = shaAt(P, S9.brief.file);
-  for (const c of S9.children) for (const a of c.argv) if (!a.startsWith('--')) epins[a] = shaAt(P, a);
+  const targets = [RUNNER, S9SPEC, ...(S9.brief && S9.brief.file ? [S9.brief.file] : [])];
+  for (const c of S9.children) for (const a of c.argv) if (!a.startsWith('--')) targets.push(a);
+  validateAll([...new Set(targets)], [P], 'parent execution pin');
+  epins = {};
+  for (const t of new Set(targets)) { const e = validated.get(P + ':' + t); if (e) epins[t] = PROTECTED.has(t) ? null : shaAt(P, t); }
   parentReleased = new Set(Object.entries(S9.product).filter(([, v]) => v.role === 'released').map(([f]) => f));
 }
-// A path the PARENT released leaves the sealed inventory; S10 never re-pins it (brief 4.3, 9 item 5).
 
-// The declared set: what S10 declares now, every parent product pin, and every path HEAD changed since P.
-const changed = git(['diff', '--name-only', P, 'HEAD']).toString().split('\n').filter(Boolean)
-  .filter(f => f !== SPEC && !parentReleased.has(f) && (!f.endsWith('.md') || f.startsWith('rebuild/engine/')));
-const declared = new Set([...Object.keys(S10.product), ...Object.keys(pmap), ...changed]);
+// ---- (2) discovery, scoped; then EVERY path validated before any product read ---------------------
+const changed = git(['diff', '--name-only', P, 'HEAD', '--', ...SCOPE]).toString().split('\n').filter(Boolean);
+validateAll([...Object.keys(S10.product), ...Object.keys(pmap), ...Object.keys(epins), ...changed], [P, 'HEAD'], 'declared or changed');
+const candidates = [...Object.keys(S10.product), ...Object.keys(pmap),
+  ...changed.filter((f) => f !== SPEC && (!f.endsWith('.md') || f.startsWith('rebuild/engine/')))];
+const droppedReleased = [...new Set(candidates.filter((f) => parentReleased.has(f)))].sort();
+const declared = new Set(candidates.filter((f) => !parentReleased.has(f)));
+
+function protectedPost(f) {                                 // never read: object ids and status only
+  const a = validated.get(P + ':' + f), b = validated.get('HEAD:' + f);
+  const dirty = git(['status', '--porcelain', '--', f]).toString().trim();
+  if (!a || !b || a.oid !== b.oid || dirty) fail('protected engine file changed between the parent and HEAD, or is dirty: ' + f);
+  return pmap[f] || null;
+}
 const product = {}, moves = [], problems = [], parentUnpinned = [];
 for (const f of [...declared].sort()) {
-  const post = shaAt('HEAD', f), was = S10.product[f];
+  const was = S10.product[f];
+  const post = PROTECTED.has(f) ? protectedPost(f) : shaAt('HEAD', f);
   if (was && was.role === 'released') {
     if (!Object.hasOwn(pmap, f)) problems.push('released path is not a parent product pin: ' + f);
     product[f] = { pre: pmap[f] || null, post: null, role: 'released' };
   } else if (post === null) { problems.push('declared path absent at HEAD: ' + f); continue; }
   else if (Object.hasOwn(pmap, f)) product[f] = { pre: pmap[f], post, role: pmap[f] === post ? 'carried' : 'edited' };
   else if (Object.hasOwn(epins, f)) { if (epins[f] === post && !was) continue; product[f] = { pre: epins[f], post, role: 'superseded-by-child' }; }
-  else { if (shaAt(P, f) !== null) parentUnpinned.push(f); product[f] = { pre: null, post, role: 'new' }; }
+  else { if (validated.get(P + ':' + f)) parentUnpinned.push(f); product[f] = { pre: null, post, role: 'new' }; }
   if (!was || was.pre !== product[f].pre || was.post !== product[f].post || was.role !== product[f].role)
     moves.push(f + ': ' + (was ? was.role + ' ' + String(was.pre).slice(0, 8) + '->' + String(was.post).slice(0, 8) : 'undeclared') +
       '  =>  ' + product[f].role + ' ' + String(product[f].pre).slice(0, 8) + '->' + String(product[f].post).slice(0, 8));
 }
-for (const f of Object.keys(S10.product)) if (!Object.hasOwn(product, f)) moves.push(f + ': dropped (an unchanged execution pin needs no declaration)');
-for (const [f, p] of Object.entries(product)) if (p.role !== 'released' && p.post !== null) {
-  const disk = fs.existsSync(path.join(REPO, f)) ? sha(fs.readFileSync(path.join(REPO, f))) : null;
-  if (disk !== p.post) problems.push('disk differs from HEAD (commit first): ' + f);
+for (const f of Object.keys(S10.product)) if (!Object.hasOwn(product, f)) moves.push(f + ': dropped' + (parentReleased.has(f) ? ' (released by the parent)' : ' (an unchanged execution pin needs no declaration)'));
+for (const [f, p] of Object.entries(product)) if (p.role !== 'released' && p.post !== null && !PROTECTED.has(f)) {
+  const disk = diskAt(f);
+  if (disk === null || sha(disk) !== p.post) problems.push('disk differs from HEAD (commit first): ' + f);
 }
 
-// D-SPLIT-PARENT (brief 3.1), at the parent.
-const regions = JSON.parse(fs.readFileSync(path.join(REPO, 'rebuild/lanes/c/today-split-spike/regions.json'), 'utf8'));
+// D-SPLIT-PARENT (brief 3.1), at the parent: object ids only.
+const regions = JSON.parse(diskAt(REGIONS).toString('utf8'));
 const findKey = (o, k) => { if (!o || typeof o !== 'object') return null; if (Object.hasOwn(o, k)) return o[k]; for (const v of Object.values(o)) { const r = findKey(v, k); if (r) return r; } return null; };
 const blobs = (findKey(regions, 'sourceBlobs') || {}).s9 || fail('regions.json carries no sourceBlobs.s9');
-const split = Object.values(blobs).map(({ path: f, oid }) => { let got = null; try { got = git(['rev-parse', P + ':' + f]).toString().trim(); } catch {}
-  return { f, oid, got, ok: got === oid }; });
+validateAll(Object.values(blobs).map((b) => b.path), [P], 'D-SPLIT-PARENT source');
+const split = Object.values(blobs).map(({ path: f, oid }) => { const e = validated.get(P + ':' + f); return { f, oid, got: e ? e.oid : null, ok: !!e && e.oid === oid }; });
 
 const roles = {}; for (const p of Object.values(product)) roles[p.role] = (roles[p.role] || 0) + 1;
-console.log('S10-REGEN ' + (WRITE ? 'WRITE' : 'DRY RUN') + ' at parent ' + P + ' / HEAD ' + git(['rev-parse', 'HEAD']).toString().trim());
+console.log('S10-REGEN ' + (WRITE ? 'WRITE' : 'DRY RUN') + ' at parent ' + P + ' / HEAD ' + HEADSHA);
 console.log('  mode: ' + mode);
+console.log('  scope: ' + SCOPE.length + ' reviewed roots; ' + validated.size + ' path/revision pair(s) validated before any product read; ' + changed.length + ' changed path(s) in scope');
 console.log('  product: ' + Object.keys(product).length + ' paths ' + JSON.stringify(roles) + '; ' + moves.length + ' entr(ies) would change');
 for (const m of moves.slice(0, 40)) console.log('    ' + m);
 if (moves.length > 40) console.log('    ... ' + (moves.length - 40) + ' more');
-console.log('  parent-released paths left undeclared: ' + [...parentReleased].sort().join(' '));
+console.log('  parent-released paths left undeclared: ' + ([...parentReleased].sort().join(' ') || 'none') + (droppedReleased.length ? '; dropped from the declared union: ' + droppedReleased.join(' ') : ''));
 console.log('  parent-unpinned paths declared new (DECISIONS:792): ' + parentUnpinned.length + (parentUnpinned.length ? ' - ' + parentUnpinned.join(' ') : ''));
 console.log('  S9.json execution-pin pre at the parent: ' + String(epins[S9SPEC]).slice(0, 12) + (product[S9SPEC] ? ' (declared ' + product[S9SPEC].role + ')' : ' (unchanged, not declared)'));
 console.log('  parent.options[0]: artifact sha256 ' + (artRaw ? sha(artRaw) : 'ABSENT') + ', review sha256 ' + (revRaw ? sha(revRaw) : 'ABSENT') +
@@ -106,11 +221,12 @@ console.log('  parent.options[0]: artifact sha256 ' + (artRaw ? sha(artRaw) : 'A
 console.log('  runnerSha256 at HEAD ' + shaAt('HEAD', RUNNER));
 for (const s of split) console.log('  D-SPLIT-PARENT ' + (s.ok ? 'EQUAL ' : 'STOP  ') + s.f + ' expected ' + s.oid + ' at parent ' + s.got);
 for (const p of problems) console.log('  PROBLEM ' + p);
-if (split.some(s => !s.ok)) problems.push('D-SPLIT-PARENT');
+if (split.some((s) => !s.ok)) problems.push('D-SPLIT-PARENT');
+
 // D-S10I-10: regenerate the measured notes; flag the carried ones that still cite the candidate.
 const execSup = Object.entries(product).filter(([, p]) => p.role === 'superseded-by-child').map(([f, p]) => f + ' pre ' + p.pre + ' post ' + p.post);
 const MEASURED = [
-  ['PRODUCT MAP', 'PRODUCT MAP (regenerated by rebuild/lanes/b/S10-REGEN.cjs at parent ' + P + '). pre is the parent pin read at that commit (' + mode + '); post is sha256 of the bytes at HEAD ' + git(['rev-parse', 'HEAD']).toString().trim() + '. Parent-released paths are not declared: ' + ([...parentReleased].sort().join(', ') || 'none') + '. New paths are every path HEAD changed since the parent that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself; tracked Markdown under rebuild/engine/ is declared because the engine-inventory cells walk every tracked file there. Roles: ' + JSON.stringify(roles) + '.'],
+  ['PRODUCT MAP', 'PRODUCT MAP (regenerated by rebuild/lanes/b/S10-REGEN.cjs at parent ' + P + '). pre is the parent pin read at that commit (' + mode + '); post is sha256 of the bytes at HEAD ' + HEADSHA + '. Parent-released paths are not declared: ' + ([...parentReleased].sort().join(', ') || 'none') + '. New paths are every path HEAD changed since the parent, inside the S10 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself; tracked Markdown under rebuild/engine/ is declared because the engine-inventory cells walk every tracked file there. Roles: ' + JSON.stringify(roles) + '.'],
   ['PARENT-UNPINNED PATHS', 'PARENT-UNPINNED PATHS (regenerated at ' + P + '): ' + parentUnpinned.length + ' path(s) existed at the parent pinned by neither its product map nor its execution pins and change here, so they are declared role new with pre null (DECISIONS:792): ' + (parentUnpinned.join(', ') || 'none') + '.'],
   ['EXECUTION PIN SUPERSEDED', 'EXECUTION PIN SUPERSEDED (regenerated at ' + P + '): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: ' + (execSup.join('; ') || 'none') + '.']];
 const OLD_PREFIX = { 'PRODUCT MAP': ['PRODUCT MAP'], 'PARENT-UNPINNED PATHS': ['PARENT-UNPINNED PATHS', 'SEVEN PATHS'], 'EXECUTION PIN SUPERSEDED': ['EXECUTION PIN SUPERSEDED'] };
