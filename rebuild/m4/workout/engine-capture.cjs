@@ -88,7 +88,7 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
     const id=JSON.stringify([card.id,i+1]),load=loadCell(loads[i]);
     slots.push({logical_set_slot:id,lift_lineage_id:card.id,label:card.n,
      load,
-     reps:card.baselineAsk?{state:'not_prescribed',display:'Record the reps performed',source_json:null}:valueCell(String(target),{value:target,unit:'rep'}),
+     reps:card.baselineAsk?{state:'not_prescribed',display:'Record the reps performed',source_json:null}:valueCell(String(target),{value:target,unit:'rep',...(Number.isSafeInteger(original.hi)&&original.hi>0?{window_hi:original.hi}:{})}),
      effort:valueCell(reserve+' reps in reserve',{target:reserve,unit:'rep'}),setup:textCell(card.setup),
      reason:textCell([card.note,card.live,...effort.why].filter(x=>typeof x==='string'&&x.length).join('\n')),confidence:unknown()});
     layout.push({logical_set_slot:id,lift_lineage_id:card.id,position:i+1,prescribed_effort:{state:'specified',target:reserve},...(configured?{prescribed_load:readLoad(load)}:{})});

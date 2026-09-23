@@ -179,7 +179,8 @@ export const NATIVE_LOAD_PROPOSED_COPY = Object.freeze({
 });
 // The fold issues that make a lift's new prescription unavailable and carry the spend
 // whose compensation resolves them (spec :157 BASIS_REPAIR_REQUIRED; R8 :156 load_basis).
-const heldIssue = x => x && typeof x.lift === "string" && typeof x.spend_id === "string" &&
+// Spec R9.2 :158: a hold superseded by a later adoption is history, never a notice.
+const heldIssue = x => x && typeof x.lift === "string" && typeof x.spend_id === "string" && !x.superseded_by &&
   (x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" || (x.code === "NATIVE_LOAD_EFFECT_CONFLICT" && x.field === "load_basis"));
 const noticesOf = issues => (Array.isArray(issues) ? issues : []).filter(heldIssue)
   .map(x => ({ lift: x.lift, code: x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" ? "disputed" : "conflict" }));
@@ -216,6 +217,12 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
           if (typeof lift === "string") spends.set(e.spend_id, lift);
         }
         for (const x of (projected.issues || []).filter(heldIssue)) spends.set(x.spend_id, x.lift);
+        // Spec R9.1 :158 NO TRAP exit (a): a genuine accepted spend kept behind a lift hold
+        // (never applied, so neither an effect nor a held issue names it) still lists its undo.
+        for (const x of projected.spent || []) if (x && !x.cancelled && !spends.has(x.spend_id)) {
+          let lift = null; try { const d = JSON.parse(x.spend_id); lift = d[0] === "native-load" ? d[1] : null; } catch (_) { lift = null; }
+          if (typeof lift === "string") spends.set(x.spend_id, lift);
+        }
         for (const [spend, lift] of spends) {
           const newest = projected.lifts.find(l => l.lift_lineage_id === lift && l.normal);
           if (!newest) continue;

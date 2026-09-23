@@ -246,12 +246,14 @@ test('R3-B2 DISPUTED CARD [Y] (Astra B2, spec :157; round 4 D-B2-1 :156): a set 
   entry.gymHost.close(); era.close();
   const again = await reopenAt(fault, D3), three = await dayEntry(again, D3), card = await three.entry.gym.read();
   // Round 4 (Claude l2 D-B2-1, spec :156): only the disputed lift's slot is unavailable, not the whole day.
+  // Round 13 (spec R9.2 :158 TRAINABLE WHILE HELD): the held lift is no longer left off the
+  // card; its w/wSets project null, so its slots are the baseline ask (load not_prescribed).
   assert.equal(card.phase, 'ready', card.code || '');
-  assert.notEqual(card.lift.id, 'demo-press', 'disputed 45 is never current advice: demo-press is left off the card');
   // Round 5 (Claude l3 D-B3-2): the WHOLE prepared session, not only its first lift.
   const whole = await three.entry.gymHost.host.client.prepareWorkout({ planned_split_slot_id: 'earned-today-preview/' + D3 });
   assert.equal(whole.prepared, true, whole.code);
-  assert.deepEqual([...new Set(whole.view.slots.map(s => s.lift_lineage_id))], ['demo-row'], 'demo-press is absent from every slot');
+  assert.deepEqual([...new Set(whole.view.slots.map(s => s.lift_lineage_id))].sort(), ['demo-press', 'demo-row'], 'the held lift stays trainable');
+  assert.ok(whole.view.slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load && s.load.state === 'not_prescribed'), 'demo-press: the baseline ask');
   assert.ok(!whole.view.slots.some(s => /^45 lb/.test(s.load && s.load.display || '')), 'no 45 anywhere on the card');
   const host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) });
   const body = (await responsesOf(again))[0].payload.issuance.body;
@@ -377,8 +379,12 @@ test('R4-B10 BASELINE UNDO [Y] (Astra L2 B10; spec :110 "Only compensation may r
 test('R4-DB21 ONE SLOT, NOT THE DAY [Y] (Claude l2 D-B2-1; spec :156 "mark affected new prescription unavailable", :157 "labeled disputed"): the disputed demo-press is left off D3, demo-row is prescribed, and the panel labels demo-press disputed', async () => {
   const fault = faultDatabase(), { again, three } = await disputedAtD3(fault), card = await three.entry.gym.read();
   assert.equal(card.phase, 'ready', card.code || '');
-  assert.equal(card.lift.id, 'demo-row', 'the rest of the day is prescribed');
-  assert.match(card.prescription.line, /^40 lb/);
+  // Round 13 (spec R9.2 :158): the day is never refused and the held lift is the baseline ask;
+  // the rest of the day is prescribed as usual.
+  const whole = await three.entry.gymHost.host.client.prepareWorkout({ planned_split_slot_id: 'earned-today-preview/' + D3 });
+  assert.equal(whole.prepared, true, whole.code);
+  assert.ok(whole.view.slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load && s.load.display || '')), 'the rest of the day is prescribed');
+  assert.ok(whole.view.slots.some(s => s.lift_lineage_id === 'demo-press') && whole.view.slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load && s.load.state === 'not_prescribed'), 'demo-press asks for a working load');
   await three.entry.refresh();
   const doc = shell(), phone = doc.getElementById('phone');
   await three.entry.open({ doc, phone, back: () => {} });
@@ -425,7 +431,9 @@ for (const baseline of [false, true]) test('R5-B12' + (baseline ? 'b' : 'a') + '
   one.entry.gymHost.close();
   const host = await era.createNativeLoadHost({ day: D1, engineState: moved }), held = await host.project();
   assert.deepEqual(held.issues.map(i => [i.code, i.field, i.lift]), [['NATIVE_LOAD_EFFECT_CONFLICT', 'load_basis', 'demo-press']]);
-  assert.equal(held.state.exercises.find(e => e.id === 'demo-press').w, now);
+  // Round 13 (spec R9.2 :158 TRAINABLE WHILE HELD): the registered projection of a held lift is
+  // w null (the baseline ask); the plan's own weight (now) returns once the hold resolves.
+  assert.equal(held.state.exercises.find(e => e.id === 'demo-press').w, null);
   const body = (await responsesOf(era))[0].payload.issuance.body;
   const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
   assert.equal(undo.status, 'offer', 'nothing captured it, so the undo is reachable: ' + JSON.stringify(undo.refusal));
@@ -440,7 +448,8 @@ for (const baseline of [false, true]) test('R5-B12' + (baseline ? 'b' : 'a') + '
 test('R5-D10 TODAY COUNT AGREES WITH THE CARD [Y] (Astra L3 D10; spec :164 "Both new captures and Today read that same projection"): on the disputed two-lift D3 Today counts 1 exercise, as the card captures', async () => {
   const fault = faultDatabase(), { again, three } = await disputedAtD3(fault);
   await three.entry.refresh();
-  assert.equal(three.model.read().workout.exerciseCount, 1, 'demo-press is off the card, so Today does not count it');
+  // Round 13 (spec R9.2 :158): the held lift stays on the card as the baseline ask, and Today counts it.
+  assert.equal(three.model.read().workout.exerciseCount, 2, 'Today counts the card the gym prescribes, the held lift included');
   three.entry.gymHost.close(); again.close();
 });
 
@@ -630,4 +639,272 @@ test('R9-B24 ASTRA L6 saved yes survives a later rep-window change as held autho
  const again=await reopenAt(fault,D3),host=await again.createNativeLoadHost({day:D3,engineState:withPress(D3,{hi:15})}),p=await host.project();
  console.log('L6_WINDOW_REPLAY '+JSON.stringify({oldHi:12,newHi:15,w:pressOf(p).w,quarantined:pressOf(p).quarantined,queue:nativeQueue(p.state,'demo-press').map(q=>[q.done,q.newW]),effects:p.effects.map(e=>e.kind),issues:p.issues.map(i=>i.code),responses:(await responsesOf(again)).length}));
  host.close();again.close();assert.ok(p.effects.length,'the consented target is not discarded by a changed current rep window');
+});
+
+// ROUND 10: Astra L7 B27 (native-load-astra-l7-0e4fc74/panel-l7.mjs), body verbatim. Round
+// 10's STOP witness; round 11 closes it with FC16 (window_hi in the capture, spec R9 :127).
+test('R10-B27 ASTRA L7 raised window with overperformed sets cannot reprice old work',async()=>{
+ const fault=faultDatabase(),era=await reopenAt(fault,D1);
+ for(const day of [D1,D2]){const {entry}=await dayEntry(era,day);assert.equal((await train(entry,day===D1?12:15)).finished.ok,true);await entry.nativeLoad.settled();entry.gymHost.close();}
+ const host=await era.createNativeLoadHost({day:D2,engineState:withPress(D2,{hi:14})}),p=await host.project();
+ const lift=p.lifts.find(l=>l.lift_lineage_id==='demo-press'),ev=await host.check(lift);
+ const start=(await opsOf(era)).filter(o=>o.kind==='session-start').at(-1);
+ const captured=start.prescription_capture.slots.filter(s=>s.lift_lineage_id==='demo-press').map(s=>JSON.parse(s.reps.source_json).value);
+ console.log('L7_RAISED_WINDOW '+JSON.stringify({oldHi:12,newHi:14,actualReps:15,captured,status:ev.status,offers:ev.offers.map(o=>({kind:o.kind,loads:o.loads})),refusal:ev.refusal,responses:(await responsesOf(era)).length}));
+ host.close();era.close();assert.equal(ev.status,'refused','a window raise must not make an old completion eligible under a different governing window');
+});
+
+// ROUND 11 (spec R9 N26 WINDOW-CAPTURE on the actual durable host; FC16 capture).
+for (const hi of [12, 14]) test('N26 WINDOW-CAPTURE [Y] (spec R9 :127, FC16): D1 [12,12], D2 captured with window_hi 12 and performed [15,15]; ' + (hi === 12 ? 'hi left at 12 -> no window refusal, FC01 offers 45 on the Close' : 'hi raised to 14 -> PLAN_CHANGED [D2 Close Ref], no offer, no response'), async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  for (const day of [D1, D2]) { const { entry } = await dayEntry(era, day); assert.equal((await train(entry, day === D1 ? 12 : 15)).finished.ok, true); await entry.nativeLoad.settled(); entry.gymHost.close(); }
+  const start = (await opsOf(era)).filter(o => o.kind === 'session-start').at(-1);
+  const cells = start.prescription_capture.slots.filter(s => s.lift_lineage_id === 'demo-press').map(s => JSON.parse(s.reps.source_json));
+  assert.deepEqual(cells.map(c => c.window_hi), [12, 12], 'FC16: every specified reps cell carries the governing window');
+  const host = await era.createNativeLoadHost({ day: D2, engineState: withPress(D2, { hi }) }), p = await host.project();
+  const lift = p.lifts.find(l => l.lift_lineage_id === 'demo-press'), ev = await host.check(lift);
+  const close = (await opsOf(era)).filter(o => o.kind === 'session-close').at(-1);
+  if (hi === 12) { assert.equal(ev.status, 'offer', JSON.stringify(ev.refusal)); assert.deepEqual(ev.offers.find(o => o.lift === 'demo-press').loads, [45, 45]); }
+  else { assert.equal(ev.status, 'refused'); assert.equal(ev.refusal.code, 'NATIVE_LOAD_PLAN_CHANGED'); assert.deepEqual(ev.refusal.refs.map(r => r.op_id), [close.op_id]); assert.equal(ev.refusal.field, null); }
+  assert.equal((await responsesOf(era)).length, 0);
+  host.close(); era.close();
+});
+// ROUND 13 (spec R9.2 :158 NO TRAP, D1 :311 N27) on the actual durable host.
+const D4 = '2030-02-14';
+const NativeLoadEffects = require('../../../../m4/workout/native-load-effects.cjs');
+const slotsOf = async (entry, day) => {
+  const whole = await entry.gymHost.host.client.prepareWorkout({ planned_split_slot_id: 'earned-today-preview/' + day });
+  assert.equal(whole.prepared, true, whole.code);
+  return whole.view.slots;
+};
+// A record claiming an earlier cut, as a foreign or buggy writer would leave it in the local
+// log: the guarded host never issues one (tickets), so it is written straight through the
+// durable repository, after the genuine yes.
+async function forgeEarlyCut(entry) {
+  const repo = entry.gymHost.repository, snap = await repo.load(), gen = structuredClone(snap.generation), ops = gen.collections.ops;
+  const yes = Object.values(ops).find(o => o.kind === 'proposal-response');
+  const starts = Object.values(ops).filter(o => o.kind === 'session-start').sort((a, b) => a.device_seq - b.device_seq);
+  const body = structuredClone(yes.payload.issuance.body), root = JSON.stringify(['fx-start-absent', body.lift_lineage_id, 'fx-close-absent']), d = JSON.parse(body.spend_id);
+  body.consumes = [root]; d[4] = [root]; body.spend_id = JSON.stringify(d); body.evidence = [];
+  body.basis.order = { ...body.basis.order, start_ids: [starts[0].op_id], frontier: 1 };
+  const issuance = { ...structuredClone(yes.payload.issuance), body };
+  const op = { ...structuredClone(yes), op_id: yes.op_id + '-early-cut', device_seq: Math.max(...Object.values(ops).map(o => o.device_seq)) + 1,
+    payload: { ...structuredClone(yes.payload), proposal_id: NativeLoadEffects.proposalDigest(issuance.producer, body, issuance.reason), issuance } };
+  ops[op.op_id] = op;
+  await repo.commit({ revision: snap.revision, token: snap.token }, gen);
+  return { op, yes };
+}
+test('N27 (a) NO-TRAP [Y] (spec R9.2 :158, :157 gate, D1 :311 (a)): a record claiming an earlier cut cannot enter the installation\'s log (the T2 stage refuses the tampered generation on reopen); the same hold class reached through the host (yes 45, then the plan moved to 42.5: the unprovable-order hold) refuses the earn by that hold, offers Undo (retires Q45, no w write), prescribes demo-press as the baseline ask while demo-row is normal, and after D3 trained at 42.5 offers adopt-baseline 42.5 whose yes supersedes the hold; the D4 card is 42.5', async () => {
+  {
+    const fault = faultDatabase(), era = await reopenAt(fault, D1);
+    hostGate(era);
+    const entry = await yesTo(era, 'demo-press');
+    await forgeEarlyCut(entry);
+    entry.gymHost.close(); era.close();
+    let refused = null;
+    try { const again = await reopenAt(fault, D3); const h = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }); const p = await h.project(); refused = p.ok ? null : p.code; h.close(); again.close(); }
+    catch (error) { refused = error && (error.code || error.message); }
+    assert.equal(refused, 'T2_INTEGRITY_UNPROVEN', 'the admission path refuses a record the installation did not write');
+  }
+  const moved = day => withPress(day, { w: 42.5 });
+  for (const exit of ['undo', 'adopt']) {
+    const fault = faultDatabase(), era = await reopenAt(fault, D1);
+    hostGate(era);
+    const entry = await yesTo(era, 'demo-press');
+    entry.gymHost.close(); era.close();
+    const again = await reopenAt(fault, D3), host = await again.createNativeLoadHost({ day: D3, engineState: moved(D3) });
+    const yes = (await responsesOf(again))[0], body = yes.payload.issuance.body, c2 = body.evidence.at(-1).close.op_id;
+    const earn = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: c2 });
+    assert.equal(earn.status, 'refused', exit);
+    // Round 14 (spec R9.3 :162, G3): D2 closed before the hold on its numeric 40 card, so its
+    // check refuses PLAN_CHANGED [its Close Ref]; the hold stays named on the projection.
+    assert.deepEqual([earn.refusal.code, earn.refusal.refs.map(r => r.op_id)], ['NATIVE_LOAD_PLAN_CHANGED', [c2]], exit);
+    assert.ok((await host.project()).issues.some(i => i.code === 'NATIVE_LOAD_EFFECT_CONFLICT' && i.refs.some(r => r.op_id === yes.op_id)), 'the hold is named');
+    const p0 = await host.project();
+    assert.deepEqual(nativeQueue(p0.state, 'demo-press'), [], 'the held projection prescribes no held native entry');
+    assert.equal(pressOf(p0).w, null, 'held: w projects null');
+    if (exit === 'undo') {
+      const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: c2, intent: { compensate: body.spend_id } });
+      assert.equal(undo.status, 'offer', JSON.stringify(undo.refusal));
+      assert.equal((await host.respond({ handle: undo.offers[0].handle, proposal_id: undo.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+      const p = await host.project();
+      assert.equal(pressOf(p).w, 42.5, 'retire-only: the plan weight, no w write');
+      host.close(); again.close();
+      continue;
+    }
+    host.close();
+    const three = await dayEntryWith(again, D3, moved(D3)), slots = await slotsOf(three.entry, D3);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), 'every other lift normal');
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), 'demo-press: the baseline ask');
+    assert.equal((await train(three.entry, 12, '1', { load: '42.5' })).finished.ok, true);
+    await three.entry.nativeLoad.settled();
+    await three.entry.nativeLoad.check();
+    const offer = three.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+    assert.ok(offer, 'exit (b): an adoption is offered on the held lift ' + JSON.stringify(three.entry.nativeLoad.view().refusals));
+    assert.deepEqual([offer.kind, offer.loads], ['adopt-baseline', [42.5, 42.5]]);
+    assert.equal((await three.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+    three.entry.gymHost.close(); again.close();
+    const later = await reopenAt(fault, D4), four = await dayEntryWith(later, D4, moved(D4)), view = await four.entry.gym.read();
+    assert.equal(view.phase, 'ready', view.code || '');
+    assert.equal(view.lift.id, 'demo-press'); assert.match(view.prescription.line, /^42\.5 lb/, 'the adopted 42.5 is the working weight');
+    const h = await later.createNativeLoadHost({ day: D4, engineState: moved(D4) }), p = await h.project();
+    assert.ok(p.issues.filter(i => i.code === 'NATIVE_LOAD_EFFECT_CONFLICT').every(i => i.superseded_by), 'the holding record stays recorded, superseded');
+    h.close(); four.entry.gymHost.close(); later.close();
+  }
+});
+test('N27 (b) NO-TRAP descendant variant [Y] (spec R9.2 :158, D1 :311 (b)): D1 at 45 adopted (w 45), D2 trained on the 45 card, D1 set removed -> BASIS_REPAIR_REQUIRED; Undo refuses COMPENSATION_DESCENDANTS; the D3 card asks for demo-press; D3 at 45 offers adopt-baseline 45; its yes -> the D4 card is 45', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const one = await dayEntry(era, D1);
+  assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true);
+  await one.entry.nativeLoad.settled(); await one.entry.nativeLoad.check();
+  const adopt = one.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.equal(adopt && adopt.kind, 'adopt-observed', JSON.stringify(one.entry.nativeLoad.view()));
+  assert.equal((await one.entry.nativeLoad.accept(adopt.proposalId)).acknowledged, true);
+  one.entry.gymHost.close();
+  const two = await dayEntry(era, D2);
+  assert.match((await two.entry.gym.read()).prescription.line, /^45 lb/, 'control: D2 carries the adopted 45');
+  assert.equal((await train(two.entry)).finished.ok, true);
+  await two.entry.nativeLoad.settled();
+  const history = await two.entry.gymHost.host.client.readWorkoutHistory();
+  const s1 = history.history.sessions.find(s => s.projection.close_records.length && s.projection.start_record.current.effective.local_date === D1);
+  const target = s1.projection.facts.filter(f => f.included === true && f.lift_lineage_id === 'demo-press')[0].source_op_id;
+  const edit = await two.entry.gymHost.host.client.prepareWorkoutEdit({ target_op_id: target });
+  assert.equal(edit.prepared, true, edit.code);
+  assert.equal((await two.entry.gymHost.host.client.commitWorkoutEdit({ editId: edit.editId, action: 'remove', change: 'SYNTHETIC correction' })).acknowledged, true);
+  two.entry.gymHost.close(); era.close();
+  const again = await reopenAt(fault, D3), host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) });
+  const body = (await responsesOf(again))[0].payload.issuance.body;
+  const p = await host.project();
+  assert.ok(p.issues.some(i => i.code === 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED' && i.lift === 'demo-press'), JSON.stringify(p.issues));
+  const last = p.lifts.find(l => l.lift_lineage_id === 'demo-press');
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: last.completion_op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'refused'); assert.equal(undo.refusal.code, 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', 'the guard is unchanged');
+  host.close();
+  const three = await dayEntry(again, D3), slots = await slotsOf(three.entry, D3);
+  assert.ok(slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), 'demo-press: the baseline ask');
+  assert.equal((await train(three.entry, 12, '1', { load: '45' })).finished.ok, true);
+  await three.entry.nativeLoad.settled(); await three.entry.nativeLoad.check();
+  const offer = three.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.ok(offer, 'exit (b) ' + JSON.stringify(three.entry.nativeLoad.view().refusals));
+  assert.deepEqual([offer.kind, offer.loads], ['adopt-baseline', [45, 45]]);
+  assert.equal((await three.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  three.entry.gymHost.close(); again.close();
+  const later = await reopenAt(fault, D4), four = await dayEntry(later, D4), view = await four.entry.gym.read();
+  assert.equal(view.phase, 'ready', view.code || '');
+  assert.equal(view.lift.id, 'demo-press'); assert.match(view.prescription.line, /^45 lb/, 'the adopted 45, the dispute superseded');
+  // Mutant R13-fa02-superseded: a superseded hold is history, so the panel no longer labels
+  // demo-press disputed (R4-DB21 is the control: an active hold is labeled).
+  await four.entry.refresh();
+  const doc = shell(), phone = doc.getElementById('phone');
+  await four.entry.open({ doc, phone, back: () => {} });
+  assert.equal(q(doc, '[data-native-load="notice"][data-lift="demo-press"]'), null, 'no disputed label after the exit');
+  four.entry.gymHost.close(); later.close();
+});
+// Round 14 (spec R9.3 :158-163, D1 :316 (c)-(e)): the same cases on the real host.
+async function removeSetOf(client, day, lift) {
+  const history = await client.readWorkoutHistory();
+  const session = history.history.sessions.find(s => s.projection.close_records.length && s.projection.start_record.current.effective.local_date === day);
+  const target = session.projection.facts.filter(f => f.included === true && f.lift_lineage_id === lift)[0].source_op_id;
+  const edit = await client.prepareWorkoutEdit({ target_op_id: target });
+  assert.equal(edit.prepared, true, edit.code);
+  assert.equal((await client.commitWorkoutEdit({ editId: edit.editId, action: 'remove', change: 'SYNTHETIC correction' })).acknowledged, true);
+}
+test('N27 (c) B-R9-6 [Y] (spec R9.3 :159-161, D1 :316 (c)): yes Q45; D3 captured 45 but demo-press was performed at 40 (no landing); a D2 set removed -> BASIS_REPAIR_REQUIRED; Undo refuses COMPENSATION_DESCENDANTS; the D4 capture: demo-row 40, demo-press the baseline ask, Q hidden, prepared (no ENGINE_CAPTURE_BASELINE_UNPROVEN); a cold reopen projects the same; D4 at 40 offers adopt-baseline 40; its yes -> w 40, Q done/SUPERSEDED, spend kept', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  entry.gymHost.close(); era.close();
+  const again = await reopenAt(fault, D3), three = await dayEntry(again, D3);
+  assert.match((await three.entry.gym.read()).prescription.line, /^45 lb/, 'control: the D3 card captures Q45');
+  assert.equal((await train(three.entry, 12, '1', { loadFor: { 'demo-press': 40 } })).finished.ok, true);
+  await three.entry.nativeLoad.settled();
+  await removeSetOf(three.entry.gymHost.host.client, D2, 'demo-press');
+  three.entry.gymHost.close(); again.close();
+  const cold = async () => {
+    const e = await reopenAt(fault, D4), h = await e.createNativeLoadHost({ day: D4, engineState: basisFor(D4) }), p = await h.project();
+    const out = JSON.stringify([p.state, p.issues]); h.close(); e.close(); return out;
+  };
+  const first = await cold();
+  assert.equal(await cold(), first, 'cold replay identical');
+  const four = await reopenAt(fault, D4), host = await four.createNativeLoadHost({ day: D4, engineState: basisFor(D4) }), p = await host.project();
+  const yes = (await responsesOf(four))[0], body = yes.payload.issuance.body;
+  assert.ok(p.issues.some(i => i.code === 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED' && i.lift === 'demo-press'), JSON.stringify(p.issues));
+  assert.deepEqual(nativeQueue(p.state, 'demo-press'), [], 'Q hidden from the projection');
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.deepEqual([undo.status, undo.refusal && undo.refusal.code], ['refused', 'NATIVE_LOAD_COMPENSATION_DESCENDANTS']);
+  host.close();
+  const day4 = await dayEntry(four, D4), slots = await slotsOf(day4.entry, D4);
+  assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), 'demo-row normal');
+  assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), 'demo-press: the baseline ask');
+  assert.equal((await train(day4.entry, 12, '1', { load: '40' })).finished.ok, true);
+  await day4.entry.nativeLoad.settled(); await day4.entry.nativeLoad.check();
+  const offer = day4.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.ok(offer, 'exit (b) ' + JSON.stringify(day4.entry.nativeLoad.view().refusals));
+  assert.deepEqual([offer.kind, offer.loads], ['adopt-baseline', [40, 40]]);
+  assert.equal((await day4.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  const h2 = await four.createNativeLoadHost({ day: D4, engineState: basisFor(D4) }), p2 = await h2.project();
+  assert.equal(p2.state.exercises.find(e => e.id === 'demo-press').w, 40, 'w = the adopted 40');
+  assert.deepEqual(p2.state.queue.filter(q => q.native_load_spend === body.spend_id).map(q => [q.done, q.state]), [[true, 'SUPERSEDED']]);
+  assert.ok(p2.spent.some(x => x.spend_id === body.spend_id && !x.cancelled), 'spend kept');
+  h2.close(); day4.entry.gymHost.close(); four.close();
+});
+test('N27 (d) G2 APPLIED BASE [Y] (spec R9.3 :160, D1 :316 (d)): yes to a 60 baseline (applied w 60, prior null); a D1 set removed -> held, no descendants; the Undo is issued on the applied state (base 60, target null: RESTORE) and its yes leaves no working weight', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const b = day => withPress(day, { w: null });
+  const one = await dayEntryWith(era, D1, b(D1));
+  assert.equal((await train(one.entry, 12, '1', { load: '60' })).finished.ok, true);
+  await one.entry.nativeLoad.settled(); await one.entry.nativeLoad.check();
+  const offer = one.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.equal(offer && offer.kind, 'adopt-baseline');
+  assert.equal((await one.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  await removeSetOf(one.entry.gymHost.host.client, D1, 'demo-press');
+  const host = await era.createNativeLoadHost({ day: D1, engineState: b(D1) }), p = await host.project();
+  assert.ok(p.issues.some(i => i.code === 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED' && i.lift === 'demo-press'), JSON.stringify(p.issues));
+  const body = (await responsesOf(era))[0].payload.issuance.body;
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'offer', JSON.stringify(undo.refusal));
+  assert.deepEqual(undo.offers[0].loads, [null, null], 'the prior image: no working weight');
+  assert.equal((await host.respond({ handle: undo.offers[0].handle, proposal_id: undo.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+  const u = (await responsesOf(era)).find(o => o.payload.issuance.body.kind === 'compensate').payload.issuance.body;
+  assert.deepEqual([u.base_load.scalar && u.base_load.scalar.value, u.target_load.scalar], [60, null], 'issued on the applied state: RESTORE-shaped');
+  const after = await host.project();
+  assert.equal(after.state.exercises.find(e => e.id === 'demo-press').w, null, 'restored: no working weight, not the 60 left applied');
+  assert.ok(!after.issues.some(i => i.code === 'NATIVE_LOAD_RECORD_INVALID'), JSON.stringify(after.issues));
+  host.close(); one.entry.gymHost.close(); era.close();
+});
+test('N27 (e) G3 [Y] (spec R9.3 :162, D1 :316 (e)): yes Q45 then the plan moved to 42.5 (the hold): the D2 completion, closed before the hold on its numeric 40 card, refuses PLAN_CHANGED [its Close Ref] with no adoption (the device-B case needs a second device, which this single-installation host cannot produce: FC12 N27 (e) carries it)', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  entry.gymHost.close(); era.close();
+  const moved = day => withPress(day, { w: 42.5 });
+  const again = await reopenAt(fault, D3), host = await again.createNativeLoadHost({ day: D3, engineState: moved(D3) });
+  const yes = (await responsesOf(again))[0], c2 = yes.payload.issuance.body.evidence.at(-1).close.op_id;
+  const r = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: c2 });
+  assert.deepEqual([r.status, r.refusal && r.refusal.code, r.refusal && r.refusal.refs.map(x => x.op_id), r.offers || []], ['refused', 'NATIVE_LOAD_PLAN_CHANGED', [c2], []]);
+  host.close(); again.close();
+});
+// Round 15 (spec R9.4 :159, D1 :316 (f)). The host never writes a legacy entry; a legacy
+// (non-native) queue entry reaches it only through the page's basis state, as migrated or
+// imported legacy programmes carry one. That is the path exercised here.
+test('N27 (f) D-R9-LEGACY-ENTRY [Y] (spec R9.4 :159, D1 :316 (f)): yes Q45, then a basis whose plan moved to 42.5 (the hold) and which carries an unfinished legacy DEBUT 50 for demo-press: the D3 capture prepares (no ENGINE_CAPTURE_BASELINE_UNPROVEN), demo-row 40, demo-press the baseline ask; the projection hides the legacy entry; a cold reopen projects the same', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  entry.gymHost.close(); era.close();
+  const legacy = day => { const s = withPress(day, { w: 42.5 }); s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 50, t: 'SYNTHETIC legacy debut' }); return s; };
+  const cold = async () => {
+    const e = await reopenAt(fault, D3), h = await e.createNativeLoadHost({ day: D3, engineState: legacy(D3) }), p = await h.project();
+    const out = { text: JSON.stringify([p.state, p.issues]), p }; h.close(); e.close(); return out;
+  };
+  const first = await cold();
+  assert.ok(first.p.issues.some(i => i.code === 'NATIVE_LOAD_EFFECT_CONFLICT' && i.lift === 'demo-press' && !i.superseded_by), 'demo-press is held ' + JSON.stringify(first.p.issues));
+  assert.deepEqual(first.p.state.queue.filter(q => q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)), [], 'every unfinished debut/unlock entry of the held lift is hidden');
+  assert.equal((await cold()).text, first.text, 'cold replay identical');
+  const again = await reopenAt(fault, D3), three = await dayEntryWith(again, D3, legacy(D3)), slots = await slotsOf(three.entry, D3);
+  assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), 'demo-row normal');
+  assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), 'demo-press: the baseline ask, never the legacy 50');
+  three.entry.gymHost.close(); again.close();
 });

@@ -536,12 +536,12 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
            createNativeLoadHost().project()'s state, which Today adopts in memory as the
            same projection (spec :164 "Both new captures and Today read that same
            projection"; review D10). Its engine meaning elsewhere is "invalid record", so
-           nothing may persist or heal this projection. The panel labels the lift. Only when every lift
-           of the day is held does the day refuse, by that code. */
+           nothing may persist or heal this projection. The panel labels the lift.
+           Round 13 (spec R9.2 :158 TRAINABLE WHILE HELD, revising round 3/4 B2/DB21): the held
+           lift is no longer quarantined and the day is never refused; its w and wSets project
+           null, so genSession gives its baseline ask and the athlete can train it again and
+           reach the adoption exit. */
         const held = heldProjection(fold, runtime, day);
-        if (held.lifts.size && held.lifts.size === held.onCard.length) {
-          const error = new Error(held.issues[0].code); error.code = held.issues[0].code; throw error;
-        }
         const state = { ...held.state }; delete state.workoutFacts;
         return real.register({ ...args, state });
       } });
@@ -592,21 +592,13 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       close() { alive = false; } });
   }
 
-  /* The ONE held-lift projection (spec :156/:157; D-B2-1, D10), shared by the decorated
-     registrar and createNativeLoadHost().project(): a lift on `day`'s card with
-     BASIS_REPAIR_REQUIRED or a blocking issue is quarantined and its native queue entry
-     dropped, in a copy of the fold state only. */
+  /* The ONE held-lift projection (spec :156/:157, R9.2 :158; D-B2-1, D10), shared by the
+     decorated registrar and createNativeLoadHost().project(). */
   function heldProjection(fold, runtime, day) {
-    const member = runtime.sessionMembership(fold.state, day);
-    const onCard = member ? member.exercise_ids : [];
-    const issues = fold.issues.filter(x => onCard.includes(x.lift) && (x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" || NativeLoadEffects.BLOCKING_CODES.includes(x.code)));
-    const lifts = new Set(issues.map(x => x.lift));
-    const state = { ...fold.state };
-    if (lifts.size) {
-      state.exercises = state.exercises.map(e => (e && lifts.has(e.id) ? { ...e, quarantined: true } : e));
-      state.queue = state.queue.filter(q => !(q && lifts.has(q.exId) && typeof q.native_load_spend === "string"));
-    }
-    return { state, lifts, issues, onCard };
+    // Spec R9.2 :158: FC03's one held-lift projection (w/wSets null, held native entries not
+    // prescribed), shared by the decorated registrar and createNativeLoadHost().project().
+    void runtime; void day;
+    return NativeLoadEffects.heldProjection(fold);
   }
 
   /* ------------------------------------------------------- native load (FC08)
@@ -681,6 +673,8 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
         const shown = p.fold.state ? heldProjection(p.fold, engine.at(day), day).state : null;
         return { ok: true, status: p.fold.status, state: shown ? structuredClone(shown) : null,
           effects: structuredClone(p.fold.effects), issues: structuredClone(p.fold.issues), lifts: structuredClone(p.lifts),
+          // Spec R9.1 :158 NO TRAP: every accepted spend (held-back ones included) and whether it is cancelled.
+          spent: p.fold.spent.map(x => ({ spend_id: x.spend_id, cancelled: !!x.cancelled_by })),
           revision: p.snap.revision };
       },
       async check(request = {}) {

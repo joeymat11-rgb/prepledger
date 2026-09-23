@@ -176,6 +176,8 @@ function evaluate(state, request) {
   const lifts = state.exercises.filter((x) => x && x.id === req.lift_lineage_id);
   if (lifts.length !== 1) refuse('LIFT_UNRESOLVED', [], 'lift_lineage_id');
   const ex = lifts[0], lift = ex.id;
+  // R9.2 :156 SUPPORTED wSets: ABSENT, present-null (the scalar repeats) or an array.
+  if (Object.hasOwn(ex, 'wSets') && ex.wSets !== null && !Array.isArray(ex.wSets)) refuse('RECORD_INVALID', [], 'load_basis.wSets');
   const rows = liftRows(state, lift);
   const idx = rows.findIndex((r) => r.close === req.completion_op_id);
   if (idx < 0) refuse('COMPLETION_REQUIRED', [], 'completion_op_id');
@@ -396,6 +398,88 @@ function governorEvent(state, decision, context) {
   }
   return { status: changed ? 'applied' : 'unchanged', state: s, effect: null, refusal: null };
 }
+// DERIVABLE (spec R9 :156, every accept and record, before any re-evaluation): the
+// decision's target must be one its OWN recorded basis could have produced through the
+// unchanged engine readers; no rung rule is introduced. ex' = {w, inc, steps} of
+// basis.load_basis, whose w and wSets must equal the recorded base_load. Earn: newW is
+// E.nextLoad(ex') (r1) or, only with a rung ladder, a PROPOSED candidate and a terminal
+// original reserve of at least 3 in the latest consumed completion, E.nextLoad(ex', r1)
+// (earn.cjs:75); newWSets and target_load follow earn.cjs:63,80,88,97. Adoption: target is
+// the latest consumed completion's actual original loads, all equal. Compensation: it
+// names a spend of this lift in the fold (context.spent). Mismatch: RECORD_INVALID.
+// R9.1 (B-R9-1) DECODE FIRST: the durable v1 record is read as written. A presence wrapper
+// decodes to its value when present, else to ABSENT, which is never null; a Load decodes
+// by value AND unit 'lb'; anything else is malformed (UNREADABLE).
+const ABSENT = Symbol('absent'), UNREADABLE = Symbol('unreadable');
+const dec = (x) => (map(x) && typeof x.present === 'boolean' ? (x.present ? x.value : ABSENT) : UNREADABLE);
+const loadValue = (x) => (x === null ? null : map(x) && x.unit === 'lb' && typeof x.value === 'number' && Number.isFinite(x.value) ? x.value : UNREADABLE);
+const wellFormedLoad = (x) => x === null || (map(x) && ((x.unit === 'lb' && typeof x.value === 'number' && Number.isFinite(x.value)) || (x.kind === 'configuration' && text(x.configuration_key))));
+function derivable(d, spent, refs, ex) {
+  const bad = (field) => refuse('RECORD_INVALID', refs, field);
+  const T = d.target_load;
+  // R9.2 :156 CORRESPONDENCE, kind-aware (B-R9-1), for every kind. (c1) the recorded image
+  // agrees with itself as wrappers: load_basis.w = base_load.fields.w and load_basis.wSets =
+  // base_load.fields.wSets, presence and value both (ABSENT and present-null stay distinct).
+  const lb0 = map(d.basis) && map(d.basis.load_basis) ? d.basis.load_basis : {};
+  const fields = map(d.base_load.fields) ? d.base_load.fields : {};
+  const wrapped = (x) => map(x) && typeof x.present === 'boolean';
+  if (!wrapped(lb0.w) || !wrapped(fields.w) || !same(lb0.w, fields.w) || !wrapped(lb0.wSets) || !wrapped(fields.wSets) || !same(lb0.wSets, fields.wSets)) bad('base_load');
+  const w = dec(lb0.w), wSets = dec(lb0.wSets), inc = dec(lb0.inc), steps = dec(lb0.steps);
+  // SUPPORTED wSets: ABSENT, present-null (the scalar repeats, as planVector does) or an array.
+  if (!(wSets === ABSENT || wSets === null || Array.isArray(wSets))) bad('load_basis.wSets');
+  if (inc === UNREADABLE || steps === UNREADABLE) bad('base_load');
+  // (c2) base_load is exactly the issuance projection of that image (baseLoad above):
+  // ABSENT projects as no w; scalar loadOf(w); vector all null of length max(1, sets) when
+  // w is null or ABSENT, else planVector.
+  const noW = w === ABSENT || w === null;
+  if (!noW && typeof w !== 'number' && typeof w !== 'string') bad('base_load');
+  const n = Math.max(1, (Number.isSafeInteger(lb0.sets) ? lb0.sets : 0) || 1);
+  const wantScalar = noW ? null : loadOf(w);
+  const wantVector = noW ? Array.from({ length: n }, () => null) : planVector({ w, sets: n, ...(Array.isArray(wSets) ? { wSets } : {}) }).map(loadOf);
+  if (!same(d.base_load.scalar, wantScalar) || !same(d.base_load.vector, wantVector)) bad('base_load');
+  if (d.kind === 'compensate') {
+    // R9.1/R9.2 (B-R9-4): compensates names a live, un-landed fold spend of this lift (the
+    // tombstone, :342; no descendant, :336). By the RECORD'S OWN SHAPE, never by replay
+    // state: a RETIRE shows its own base (target = base_load, :352-353) and is display only,
+    // well formed; a RESTORE (target unlike its own base) must name an ADOPTION and equal
+    // that adoption's recorded base_load, which replay restores.
+    const target = decodeSpend(d.compensates), x = spent.find((y) => map(y) && y.spend_id === d.compensates);
+    if (!target || target.lift !== d.lift_lineage_id || !x || (x.cancelled_by && x.cancelled_by !== d.spend_id) || x.close_ref) bad('compensates');
+    if (!map(T) || !Array.isArray(T.vector) || !wellFormedLoad(T.scalar === undefined ? UNREADABLE : T.scalar) || !T.vector.every(wellFormedLoad)) bad('target_load');
+    const retireShaped = same(T.scalar, d.base_load.scalar) && same(T.vector, d.base_load.vector);
+    if (!retireShaped) {
+      const adopted = x.kind === 'adopt-baseline' || x.kind === 'adopt-observed';
+      if (!adopted || !map(x.base_load) || !same(T.scalar, x.base_load.scalar) || !same(T.vector, x.base_load.vector)) bad('target_load');
+    }
+    return;
+  }
+  // (c3) by kind: earn and adopt-observed need a numeric w; adopt-baseline needs w null or
+  // ABSENT (scalar null, vector all null by c2).
+  if ((d.kind === 'earn' || d.kind === 'adopt-observed') && !(typeof w === 'number' && Number.isFinite(w))) bad('base_load');
+  if (d.kind === 'adopt-baseline' && !noW) bad('base_load');
+  const last = d.evidence.length ? d.evidence[d.evidence.length - 1] : null;
+  const originals = last && Array.isArray(last.sets) ? last.sets.filter((x) => map(x) && x.origin !== 'added') : [];
+  const tv = T.vector.map((x) => (map(x) ? x.value : null)), ts = map(T.scalar) ? T.scalar.value : null;
+  if (d.kind === 'earn') {
+    const ex1 = { w, ...(inc !== ABSENT ? { inc } : {}), ...(steps !== ABSENT ? { steps } : {}) };
+    const r1 = E.nextLoad(ex1);
+    if (r1 == null) bad('target_load');
+    const c = d.candidate, terminal = originals.length ? originals[originals.length - 1] : null;
+    const reserve = terminal && map(terminal.current) ? terminal.current.reserve : null;
+    const deep = map(reserve) && reserve.tag === 'at_least' && reserve.value >= 3;
+    const r2 = E.loadRungs(ex1) && c.state === 'PROPOSED' && deep ? E.nextLoad(ex1, r1) : null;
+    if (!(c.newW === r1 || (r2 != null && c.newW === r2))) bad('target_load');
+    // newWSets only when dec(wSets) is an array (earn.cjs tests Array.isArray).
+    const newWSets = Array.isArray(wSets) ? wSets.map((y) => y + (c.newW - w)) : null;
+    if (!same(c.newWSets === undefined ? null : c.newWSets, newWSets)) bad('candidate');
+    const vector = newWSets || originals.map(() => c.newW);
+    if (ts !== c.newW || !same(tv, vector) || !T.vector.every((y) => map(y) && y.unit === 'lb')) bad('target_load');
+    return;
+  }
+  const actual = originals.map((y) => (map(y.current) && map(y.current.load) ? y.current.load.value : null));
+  if (!actual.length || !actual.every((v) => typeof v === 'number' && Number.isFinite(v) && v > 0 && v === actual[0]) || ts !== actual[0] || !same(tv, actual)) bad('target_load');
+  if (d.kind === 'adopt-observed' && w === ts) bad('target_load');
+}
 function transition(state, decision, context) {
   if (map(context) && context.event === 'governor') return governorEvent(state, decision, context);
   const d = validDecision(decision);
@@ -407,6 +491,7 @@ function transition(state, decision, context) {
   const spent = Array.isArray(context.spent) ? context.spent : [];
   if (context.event === 'close') return landing(s, ex, d, context, responseRefs);
   if (!responseRefs.length) refuse('CAPABILITY_REQUIRED', [], 'authority');
+  derivable(d, spent, responseRefs, ex);
   if (spent.some((x) => map(x) && x.spend_id === d.spend_id)) return { status: 'unchanged', state: s, effect: null, refusal: null };
   const clash = spent.filter((x) => map(x) && Array.isArray(x.consumes) && x.consumes.some((c) => d.consumes.includes(c)));
   if (clash.length) refuse('EFFECT_CONFLICT', [...responseRefs, ...clash.flatMap((x) => refsOf(x.response_refs))].sort(byOp));

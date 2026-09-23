@@ -14,6 +14,8 @@ const FAMILY = 'native-load';
 const DECISION = 'earned/native-load-decision/v1';
 const ISSUANCE_KEYS = ['body', 'moment', 'producer', 'reason', 'revision', 'source'];
 const BLOCKING = new Set(['NATIVE_LOAD_RECORD_INVALID', 'NATIVE_LOAD_EFFECT_CONFLICT', 'NATIVE_LOAD_SOURCE_OVERLAP']);
+// FC01's DERIVABLE refusal fields (spec R9 :156).
+const UNDERIVABLE = new Set(['target_load', 'candidate', 'base_load', 'compensates', 'load_basis.wSets']);
 // Accept refusals that a later state of the programme causes, not the record itself.
 const HELD_BACK = new Set(['NATIVE_LOAD_LEGACY_PENDING', 'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED']);
 
@@ -169,19 +171,64 @@ function startWindowCapture(start, lift) {
   const out = [];
   for (const cell of pc) {
     if (!map(cell) || cell.lift_lineage_id !== lift || !map(cell.reps) || cell.reps.state !== 'specified' || !text(cell.reps.source_json)) continue;
-    try { const v = JSON.parse(cell.reps.source_json); if (map(v) && v.unit === 'rep' && Number.isFinite(v.value)) out.push(v.value); } catch (_) { /* unreadable: not a window */ }
+    try {
+      const v = JSON.parse(cell.reps.source_json);
+      if (map(v) && v.unit === 'rep' && Number.isFinite(v.value)) out.push({ value: v.value, window_hi: Number.isSafeInteger(v.window_hi) && v.window_hi > 0 ? v.window_hi : null });
+    } catch (_) { /* unreadable: not a window */ }
   }
   return out;
+}
+// Spec R9.1 :127 WINDOW BINDING (earn branch only): is the window this completion was
+// captured under provably the lift's current hi? Only an FC16 capture proves it: every
+// specified reps cell carries window_hi and each equals the current hi. A capture made
+// before FC16 (no reps cell, or any cell without window_hi) cannot prove its window, even
+// when the current hi equals the largest target (targets sit above hi through the
+// delivered floor, or below it), so it never proves one: every new earn check refuses.
+function windowUnproven(cells, hi) {
+  if (!cells.length || cells.some((c) => c.window_hi === null)) return true;
+  return cells.some((c) => c.window_hi !== hi);
 }
 // FC01 refusals that come after its step 2 (plan identity) in the evaluation order.
 const AFTER_STEP_2 = new Set(['NATIVE_LOAD_PREFIX_UNRESOLVED', 'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED', 'NATIVE_LOAD_SOURCE_OVERLAP', 'NATIVE_LOAD_PROVISIONAL',
   'NATIVE_LOAD_WINDOW_NOT_TOP', 'NATIVE_LOAD_EFFORT_UNRESOLVED', 'NATIVE_LOAD_ORDER_RULE_UNREPRESENTABLE', 'NATIVE_LOAD_NO_NEXT_LOAD', 'NATIVE_LOAD_HELD_OR_HOT']);
+// FC01 refusals that only the earn branch (steps 4-10) makes (native-load.cjs:259-301).
+const EARN_READER_CODES = new Set(['NATIVE_LOAD_PROVISIONAL', 'NATIVE_LOAD_WINDOW_NOT_TOP', 'NATIVE_LOAD_EFFORT_UNRESOLVED',
+  'NATIVE_LOAD_ORDER_RULE_UNREPRESENTABLE', 'NATIVE_LOAD_NO_NEXT_LOAD', 'NATIVE_LOAD_HELD_OR_HOT']);
 // Spec R8 :156 (D7b): the reconstructed lift no longer has the base the accept recorded.
 function movedBase(ex, body) {
   const img = (k) => (Object.hasOwn(ex, k) ? { present: true, value: ex[k] === undefined ? null : json(ex[k]) } : { present: false, value: null });
   const f = map(body.base_load) && map(body.base_load.fields) ? body.base_load.fields : {};
   const forks = map(body.basis) && map(body.basis.technique) && Array.isArray(body.basis.technique.forks) ? body.basis.technique.forks : [];
   return !same(img('w'), f.w) || !same(img('wSets'), f.wSets) || !same(json(ex.forks || []), forks);
+}
+// Spec R9.2 :158: the named refusals that hold a lift (earns refused, the adoption exit open).
+const HOLD_CODES = new Set(['NATIVE_LOAD_RECORD_INVALID', 'NATIVE_LOAD_EFFECT_CONFLICT', 'NATIVE_LOAD_SOURCE_OVERLAP', 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED']);
+const activeHolds = (issues, lift) => (issues || []).filter((i) => i && i.lift === lift && HOLD_CODES.has(i.code) && !i.superseded_by);
+// TRAINABLE WHILE HELD (spec R9.2 :158): a held lift's new prescription is unavailable, so its
+// w and wSets project null (genSession's baseline ask) and its native queue entries are not
+// prescribed. A projection only: nothing durable is written, history is kept.
+// Spec R9.4 :159 (D-R9-LEGACY-ENTRY): the REGISTERED projection (legacy: true) also hides every
+// unfinished legacy debut/unlock entry of a held lift, so today.cjs never picks it and no
+// legacy newW reaches the baseline-ask card (engine-capture.cjs:64 would refuse the day). The
+// check and the fold keep legacy entries visible, so a legacy entry keeps its own branch
+// (LEGACY_PENDING, :162); the entries stay in the fold state either way.
+const HIDDEN_LEGACY_KINDS = new Set(['debut', 'unlock']);
+function projectHeld(state, lifts, { legacy = false } = {}) {
+  const set = new Set(lifts);
+  if (!set.size) return state;
+  return { ...state,
+    exercises: state.exercises.map((x) => (x && set.has(x.id) ? { ...x, w: null, wSets: null } : x)),
+    queue: state.queue.filter((q) => !(q && set.has(q.exId) && (typeof q.native_load_spend === 'string' || (legacy && !q.done && HIDDEN_LEGACY_KINDS.has(q.kind))))) };
+}
+// The registered projection of a fold: every lift with an active hold, projected as above.
+function heldProjection(fold) {
+  const issues = (fold && fold.issues ? fold.issues : []).filter((i) => i && typeof i.lift === 'string' && HOLD_CODES.has(i.code) && !i.superseded_by);
+  const lifts = new Set(issues.map((i) => i.lift));
+  return { state: fold && fold.state ? projectHeld(fold.state, [...lifts], { legacy: true }) : null, lifts, issues };
+}
+// The lift a native-load spend_id names (its canonical JSON's second member), or null.
+function decodeLift(spendId) {
+  try { const d = JSON.parse(spendId); return Array.isArray(d) && d[0] === 'native-load' && typeof d[1] === 'string' ? d[1] : null; } catch { return null; }
 }
 // The load authority root of a spend_id (canonical JSON ['native-load', lift, root,
 // technique, consumes]); null when it is not a native-load spend or has no root.
@@ -255,6 +302,106 @@ function structural(op, byId, athleteId, base) {
   return null;
 }
 
+// STRUCTURAL CORRESPONDENCE (spec R9 :155, B26): a record that is NOT re-evaluated
+// (revision absent, its cut not reproducible, or its basis corrected) applies only when
+// S1-S8 all hold; the first failure names its field. Returns that field, or null.
+// Technique basis as spendIdOf reads it: the latest reset fork (plan.cjs:31 resetForksOf).
+const resetForks = (forks) => (Array.isArray(forks) ? forks : []).filter((f) => f && (f.kind ? f.kind !== 'context' : !f.split));
+function correspondence(body, { facts, byId, source }) {
+  const lift = body.lift_lineage_id;
+  const isOp0 = (id, kind) => { const o = byId.get(id); return !!o && o.class === 'session' && o.kind === kind; };
+  // Spec R9.1 :155 (B-R9-4): a compensation keeps the existing cancellation identity: S1
+  // body lift = the compensated spend's lift; S2 the canonical compensation spend; consumes
+  // and evidence both []; S3-S5 and S8 vacuous; S6 and S7 as for every record.
+  if (body.kind === 'compensate') {
+    let target = null;
+    try { target = JSON.parse(body.compensates); } catch (_) { target = null; }
+    if (!Array.isArray(target) || target[1] !== lift) return 'lift_lineage_id';
+    if (body.spend_id !== JSON.stringify(['native-load-compensation', lift, body.compensates])) return 'spend_id';
+    if (body.consumes.length) return 'consumes';
+    if (body.evidence.length) return 'evidence';
+    const order0 = map(body.basis.order) && Array.isArray(body.basis.order.start_ids) ? body.basis.order.start_ids : null;
+    if (!order0 || order0.some((id) => !isOp0(id, 'session-start'))) return 'basis.order';
+    if (source !== undefined && !same(body.basis.source, source)) return 'basis.source';
+    return null;
+  }
+  const roots = body.consumes.map((r) => { try { const k = JSON.parse(r); return Array.isArray(k) && k.length === 3 && text(k[0]) && text(k[2]) ? { start: k[0], lift: k[1], close: k[2] } : null; } catch (_) { return null; } });
+  // S1 lift: the lift of every consumes root.
+  if (roots.some((r) => !r || r.lift !== lift)) return 'lift_lineage_id';
+  // S2 spend: the canonical encoding from the body's own lift, authority, technique, consumes.
+  let d = null;
+  try { d = JSON.parse(body.spend_id); } catch (_) { d = null; }
+  if (body.kind === 'compensate') {
+    if (body.spend_id !== JSON.stringify(['native-load-compensation', lift, body.compensates])) return 'spend_id';
+  } else {
+    const forks = resetForks(map(body.basis.technique) ? body.basis.technique.forks : []);
+    const technique = forks.length ? String(forks.slice().sort((a, b) => (a.from < b.from ? -1 : 1)).pop().from) : null;
+    if (!Array.isArray(d) || d.length !== 5 || !(d[2] === null || text(d[2])) ||
+        body.spend_id !== JSON.stringify(['native-load', lift, d[2], technique, body.consumes])) return 'spend_id';
+  }
+  // S3 authentic work: an authenticated Start and its normal Close, the lift typed in it.
+  const isOp = (id, kind) => { const o = byId.get(id); return !!o && o.class === 'session' && o.kind === kind; };
+  for (const r of roots) {
+    const hit = sessionOf(facts, r.close, lift);
+    if (!isOp(r.start, 'session-start') || !isOp(r.close, 'session-close') || !hit || hit.session.start_op_id !== r.start ||
+        !map(hit.entry.completion) || hit.entry.completion.kind !== 'normal') return 'consumes';
+  }
+  // S4 evidence: exactly the consumed pairs; every set item equal to the authentic slot.
+  const pair = (a, b) => JSON.stringify([a, b]);
+  const pairs = body.evidence.map((i) => pair(i && i.start && i.start.op_id, i && i.close && i.close.op_id)).sort();
+  if (!same(pairs, roots.map((r) => pair(r.start, r.close)).sort())) return 'evidence';
+  const authentic = (ref) => ref === null || (map(ref) && byId.has(ref.op_id) && byId.get(ref.op_id).canonical_content_commitment === ref.commitment);
+  const cur = (c) => (c ? { load: c.load, reps: c.reps, reserve: c.reserve === undefined ? null : c.reserve } : null);
+  for (const item of body.evidence) {
+    const hit = sessionOf(facts, item.close.op_id, lift);
+    if (!hit || !authentic(item.start) || !authentic(item.close) || !Array.isArray(item.sets) || item.sets.length !== hit.entry.slots.length) return 'evidence';
+    for (let i = 0; i < item.sets.length; i++) {
+      // A set removed after the evidence was issued keeps its fact among removed_facts; the
+      // correspondence is to that authentic fact (the removal is the later edit, :157).
+      const set = item.sets[i], slot = hit.entry.slots[i];
+      const gone = Array.isArray(slot.removed_facts) ? slot.removed_facts.filter((x) => map(x) && map(set) && map(set.original) && x.source_op_id === set.original.op_id) : [];
+      const f = slot.fact || (gone.length === 1 ? gone[0] : null);
+      if (!map(set) || set.slot !== slot.logical_set_slot || set.position !== slot.position || set.origin !== (slot.origin === undefined ? null : slot.origin)) return 'evidence';
+      const original = f ? f.source_op_id : text(slot.skip_op_id) ? slot.skip_op_id : null;
+      if ((set.original ? set.original.op_id : null) !== original || !authentic(set.original)) return 'evidence';
+      const edits = Array.isArray(set.edits) ? set.edits : null, now = f && Array.isArray(f.edit_op_ids) ? f.edit_op_ids : [];
+      if (!edits || edits.length > now.length || edits.some((r, k) => !map(r) || r.op_id !== now[k] || !authentic(r))) return 'evidence';
+      const performed = slot.state === 'performed' && f;
+      if (edits.length === now.length && !same(set.current, performed && f.current ? cur(f.current) : null)) return 'evidence';
+      // Before any edit the slot's value is its original fact (a later removal or correction
+      // changes the current value, never the value the evidence recorded).
+      if (edits.length === 0 && now.length > 0 && !same(set.current, f && f.original ? cur(f.original) : null)) return 'evidence';
+    }
+  }
+  // S5 coverage: every consumed Start and Close and every Ref the evidence names.
+  const covered = new Set((Array.isArray(body.basis.coverage) ? body.basis.coverage : []).map((c) => (map(c) ? c.op_id : null)));
+  const named = [...roots.flatMap((r) => [r.start, r.close]), ...body.evidence.flatMap((i) => i.sets.flatMap((s) => [s.original, ...(s.edits || [])]).filter((r) => r).map((r) => r.op_id))];
+  if (named.some((id) => !covered.has(id))) return 'basis.coverage';
+  // S6 order: authenticated Starts only, naming every consumed Start.
+  const order = map(body.basis.order) && Array.isArray(body.basis.order.start_ids) ? body.basis.order.start_ids : null;
+  if (!order || order.some((id) => !isOp(id, 'session-start')) || roots.some((r) => !order.includes(r.start))) return 'basis.order';
+  // S7 source: the generation's admitted source basis.
+  if (source !== undefined && !same(body.basis.source, source)) return 'basis.source';
+  // S8 anchor: base_load equals the latest consumed Start's capture; the actual loads anchor the result.
+  if (body.kind === 'earn' || body.kind === 'adopt-observed' || body.kind === 'adopt-baseline') {
+    const rank = new Map(((facts && facts.order && facts.order.start_ids) || []).map((id, k) => [id, k]));
+    const latest = roots.slice().sort((a, b) => (rank.get(a.start) ?? -1) - (rank.get(b.start) ?? -1)).pop();
+    if (!latest) return 'base_load';
+    const hit = sessionOf(facts, latest.close, lift), originals = hit.entry.slots.filter((s) => s.origin !== 'added');
+    const cap = captureOf(byId.get(latest.start), { ...hit.entry, slots: originals });
+    const baseVec = Array.isArray(body.base_load.vector) ? body.base_load.vector.map((x) => (map(x) && typeof x.value === 'number' ? x.value : null)) : [];
+    // Actual loads as the evidence recorded them (S4 has bound each set to its authentic fact);
+    // a set removed or corrected after issuance is the later edit (:157), not a forgery.
+    const item = body.evidence.find((x) => x.close.op_id === latest.close);
+    const actual = item.sets.filter((s) => s.origin !== 'added').map((s) => (s.state === 'performed' && map(s.current) && map(s.current.load) ? s.current.load.value : null));
+    if (body.kind === 'adopt-baseline') { if (baseVec.some((v) => v !== null)) return 'base_load'; }
+    else if (!cap.every((v) => typeof v === 'number') || !same(baseVec, cap)) return 'base_load';
+    if (body.kind === 'earn' && !same(actual, cap)) return 'base_load';
+    const tv = Array.isArray(body.target_load.vector) ? body.target_load.vector.map((x) => (map(x) ? x.value : null)) : [];
+    if (body.kind !== 'earn' && !same(tv, actual)) return 'target_load';
+  }
+  return null;
+}
 // Did a consumed completion change after the record was issued (spec B, "After an
 // accepted basis is corrected")? Compared by operation identity and typed value.
 function evidenceChanged(body, facts) {
@@ -293,26 +440,51 @@ function checkedCompletion(body, facts) {
 const refusedFold = (issue) => ({ status: 'refused', state: null, effects: [], spent: [], issues: [issue], coverage: [] });
 
 // ---------- the fold (spec B "Apply and fold", every current projection) ----------
-function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = {}) {
+function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, source } = {}) {
   if (!map(base) || !Array.isArray(base.exercises) || !Array.isArray(base.queue)) return refusedFold({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [], field: 'base' });
   if (!map(engine) || !text(engine.revision) || typeof engine.at !== 'function') return refusedFold({ code: 'NATIVE_LOAD_CAPABILITY_REQUIRED', refs: [], field: 'engine' });
   const facts = map(workoutFacts) ? workoutFacts : null;
   let state = withFacts(base, facts);
   const { ops, byId } = operationsOf(generation);
+  // ADMISSION GATE (spec R9.1 :157): a native plan record is admitted only when committed
+  // through this installation's guarded host into its own local log. A generation that
+  // carries an imported source (the codec's 'sourceImports' collection, w5/source/codec.cjs:6)
+  // is refused before folding whenever it holds any native record, exactly as the local host
+  // refuses it (today-bindings.mjs project), so every FC03 caller (import replay included)
+  // folds no native record from an imported or foreign source.
+  const imports = map(generation) && map(generation.collections) && map(generation.collections.sourceImports) ? generation.collections.sourceImports : null;
+  if (imports && Object.keys(imports).length && ops.some(isNative)) return refusedFold({ code: 'NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN', refs: [], field: 'source' });
   const issues = [], effects = new Map(), spent = [], groups = new Map();
+  // A spend index entry. kind and base_load (the record's own) let FC01 judge a RESTORE-shaped
+  // undo against the adoption it names (spec R9.2 :156), whatever the replay state.
+  const entryOf = (b, refs) => ({ spend_id: b.spend_id, consumes: b.consumes.slice(), response_refs: refs, close_ref: null, cancelled_by: null, kind: b.kind, base_load: json(b.base_load) });
   // Spec :156 PER LIFT: a record or conflict that cannot be admitted makes ONLY its own
   // lift's new native prescription unavailable (every later effect of that lift is held
   // back and check refuses by the same code); other lifts and every fact save stand. An
   // issue whose lift cannot be resolved carries lift:null and holds back every check.
-  const disputed = new Set();
+  // lift -> its holds. A record refused RECORD_INVALID holds the lift from its own place in
+  // the authenticated log, never from the cut it claims (spec R9.2 :158, D1 :311 (a): a
+  // record claiming an earlier cut, written after a genuine yes, does not hold that yes);
+  // any other named refusal holds every later record of the lift.
+  const disputed = new Map();
   const liftOf = (op) => { const b = map(op.payload) && map(op.payload.issuance) && map(op.payload.issuance.body) ? op.payload.issuance.body : null;
     return b && text(b.lift_lineage_id) && base.exercises.some((x) => x && x.id === b.lift_lineage_id) ? b.lift_lineage_id : null; };
-  const dispute = (issue) => { issues.push(issue); if (issue.lift) disputed.add(issue.lift); };
+  const dispute = (issue) => {
+    issues.push(issue);
+    if (!issue.lift) return;
+    const holdOps = (issue.refs || []).map((r) => byId.get(r.op_id)).filter(Boolean);
+    disputed.set(issue.lift, [...(disputed.get(issue.lift) || []), { issue, ops: holdOps, logOrdered: issue.code === 'NATIVE_LOAD_RECORD_INVALID' }]);
+  };
+  // Is this record held back by the lift's holds? A log-ordered hold holds only records
+  // that are not proven to precede it in the log.
+  const behindHolds = (lift, recOps) => (disputed.get(lift) || []).some((h) => !h.issue.superseded_by &&
+    (!h.logOrdered || !h.ops.length || !h.ops.every((hop) => provenBefore(recOps, hop, byId))));
   // The native-load family: every native accept is admitted, coalesced or refused BY NAME.
   for (const op of ops) {
     if (!(op.class === 'plan' && op.kind === 'proposal-response' && map(op.payload) && map(op.payload.issuance) && op.payload.issuance.producer === PRODUCER)) continue;
     const why = structural(op, byId, athleteId, base);
-    if (why) { dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [refOf(op)], field: 'payload', reason: why, lift: liftOf(op) }); continue; }
+    // A consumed reference absent from the log is spec R9 S3 (authentic work): field 'consumes'.
+    if (why) { dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [refOf(op)], field: why === 'consumed reference absent' ? 'consumes' : 'payload', reason: why, lift: liftOf(op) }); continue; }
     const body = op.payload.issuance.body, g = groups.get(body.spend_id);
     if (!g) groups.set(body.spend_id, { body, ops: [op], seq: op.device_seq || 0, device: op.device_id });
     else if (same(g.body, body)) g.ops.push(op);
@@ -340,9 +512,14 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
   const all = [...groups.values()];
   for (const g of all) for (const h of all) if (g !== h && g.body.spend_id < h.body.spend_id && g.body.lift_lineage_id === h.body.lift_lineage_id &&
     g.body.consumes.some((c) => h.body.consumes.includes(c))) { g.conflict = true; h.conflict = true; g.others = (g.others || []).concat(h.ops); h.others = (h.others || []).concat(g.ops); }
+  // Every lift any conflicting body names is held, never the lift of whichever record the
+  // log happened to list first (round 11, property seed 1003155: bodies of one spend naming
+  // different lifts made the delivery order choose the held lift).
   for (const g of all) if (g.conflict) {
-    const refs = [...new Map([...g.ops, ...(g.others || [])].map((op) => [op.op_id, refOf(op)])).values()].sort(byOp);
-    if (!issues.some((i) => i.code === 'NATIVE_LOAD_EFFECT_CONFLICT' && same(i.refs, refs))) dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs, field: null, lift: g.body.lift_lineage_id });
+    const members = [...g.ops, ...(g.others || [])];
+    const refs = [...new Map(members.map((op) => [op.op_id, refOf(op)])).values()].sort(byOp);
+    const lifts = [...new Set(members.map((op) => op.payload.issuance.body.lift_lineage_id))].sort();
+    for (const lift of lifts) if (!issues.some((i) => i.code === 'NATIVE_LOAD_EFFECT_CONFLICT' && i.lift === lift && same(i.refs, refs))) dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs, field: null, lift });
   }
   // SOURCE ORDER, never a device-local counter (review B6; spec :150 "established causal
   // acceptance order", :156 "witnessed causal/source order"): a Close sits at its Start's
@@ -366,10 +543,10 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
   // the digest of every exercise record as the projection showed it (after the governor
   // replay over the facts of that cut), plan.structural_queue_sha256 the queue, and
   // coverage every fact op. Equal digests and covered fact ops: the same inputs.
-  const sameCut = (b, cut) => {
+  const sameCut = (b, cut, S = state) => {
     const p = map(b.basis) && map(b.basis.plan) ? b.basis.plan : {};
-    if (sha(state.queue) !== p.structural_queue_sha256) return false;
-    let s0 = withFacts(state, cut);
+    if (sha(S.queue) !== p.structural_queue_sha256) return false;
+    let s0 = withFacts(S, cut);
     try {
       const gv = engine.at(dayOf({ evidence: [] }, cut)).applyNativeLoadDecision(s0, null, { event: 'governor', basis: null, spent: [], authority: null, completion: null });
       if (gv && gv.status === 'applied' && map(gv.state)) s0 = gv.state;
@@ -392,7 +569,25 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
   for (const ev of events) {
     if (ev.type === 'accept') {
       const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = [...g.ops, ...(g.alt || [])].map(refOf).sort(byOp), lift = body.lift_lineage_id;
-      if (disputed.has(lift)) continue; // same-lift dependencies wait behind the named refusal
+      // Same-lift records wait behind a named refusal (the hold stands; nothing guesses past
+      // it), but spec R9.1 :158 NO TRAP: a VALID record behind the hold is still accepted
+      // history (kept in the spend index, never applied), so its undo stays reachable, and a
+      // recorded undo is judged and applied as usual (RETIRE when unapplied).
+      // Spec R9.2 :158 NO TRAP exit (b): an adoption of the athlete's actual loads on a held
+      // lift, recorded after EVERY holding record, is judged on the held projection it was
+      // issued on (w/wSets null, held native entries hidden) and supersedes the holds.
+      const holdIssues = activeHolds(issues, lift);
+      // The held projection's w is null, so the exit is always an adopt-baseline (c3: base null);
+      // an adopt-observed issued on a held effect's weight is its dependent (R7-P1), not an exit.
+      // "After" is the check's own order (walk seeds 20261013, 20261282, 20261316): a holding
+      // record is proven before the adoption's response, or before the Start of the completion
+      // it adopts when that Start is itself proven before the response.
+      const anchors = [g.ops[0], ...body.consumes.map((c) => { try { const k = JSON.parse(c); return Array.isArray(k) ? byId.get(k[0]) : null; } catch { return null; } })
+        .filter((s) => s && s.kind === 'session-start' && provenBefore([s], g.ops[0], byId))];
+      const exitB = body.kind === 'adopt-baseline' && holdIssues.length > 0 &&
+        holdIssues.flatMap((i) => i.refs || []).every((r) => { const hop = byId.get(r.op_id); return !!hop && anchors.some((a) => provenBefore([hop], a, byId)); });
+      const V = exitB ? projectHeld(state, [lift]) : state;
+      const behind = !exitB && behindHolds(lift, g.ops);
       const overlap = spent.filter((x) => x.spend_id !== body.spend_id && x.consumes.some((c) => body.consumes.includes(c)));
       if (overlap.length) { dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs: [...refs, ...overlap.flatMap((x) => x.response_refs)].sort(byOp), field: null, lift }); continue; }
       const rt = engine.at(dayOf(body, facts));
@@ -415,8 +610,34 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
       // A same-lift effect issued on the working weight a HELD effect adopted (its spend_id's
       // load authority root is that spend) depends on it and is held with it: it read an
       // authority this fold never applied (property seeds 20269845, 20274085).
-      const exNow = state.exercises.find((x) => x && x.id === lift);
-      if (body.kind !== 'compensate' && exNow && (movedBase(exNow, body) || held.has(authorityRoot(body.spend_id)))) {
+      // A record must BE a valid record before it can be held as accepted history: S1-S8
+      // and DERIVABLE (spec R9 :155-156) run before the unprovable-order hold below
+      // (round 11, property seed 20261111: a forged record under a later-moved base was
+      // held with its spend kept, so a compensation could cancel it and a plan return
+      // then dropped that proof).
+      const changed = evidenceChanged(body, facts);
+      const present = iss.revision === engine.revision;
+      const atCut = (b) => factsAtCut(facts, b.basis.order.start_ids, b.basis.order.frontier);
+      const members = body.kind === 'compensate' ? [...g.ops, ...g.alt].map((op) => op.payload.issuance.body) : [body];
+      const reproducible = present && !changed && members.every((b) => sameCut(b, atCut(b), V));
+      // STRUCTURAL CORRESPONDENCE (spec R9 :155): a record that is not re-evaluated applies
+      // only when S1-S8 hold; the first failure refuses that lift by the failing field.
+      if (!reproducible) {
+        const field = correspondence(body, { facts, byId, source });
+        if (field) {
+          const owner = field === 'lift_lineage_id' ? (() => { try { const k = JSON.parse(body.consumes[0]); return base.exercises.some((x) => x && x.id === k[1]) ? k[1] : lift; } catch (_) { return lift; } })() : lift;
+          dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs, field, lift: owner }); continue;
+        }
+      }
+      // DERIVABLE (spec R9 :156, FC01): every record, reproduced or not, before any
+      // re-evaluation. FC01's own transition makes the judgement; its result is reused.
+      const t = rt.applyNativeLoadDecision(V, body, { event: 'accept', basis: body.basis, spent: json(spent),
+        authority: { response_refs: refs, issuance: iss, source_cut: iss.source }, completion: null });
+      if (t.status === 'refused' && t.refusal && t.refusal.code === 'NATIVE_LOAD_RECORD_INVALID' && UNDERIVABLE.has(t.refusal.field)) {
+        dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs, field: t.refusal.field, lift }); continue;
+      }
+      const exNow = V.exercises.find((x) => x && x.id === lift);
+      if (!behind && !exitB && body.kind !== 'compensate' && exNow && (movedBase(exNow, body) || held.has(authorityRoot(body.spend_id)))) {
         const issue = { code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs, field: 'load_basis', lift, spend_id: body.spend_id };
         issues.push(issue); held.set(body.spend_id, issue);
         if (body.kind === 'earn') {
@@ -424,7 +645,7 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
             authority: { response_refs: refs, issuance: iss, source_cut: iss.source }, completion: null });
           if (t.status === 'applied') { state = t.state; effects.set(body.spend_id, t.effect); }
         }
-        spent.push({ spend_id: body.spend_id, consumes: body.consumes.slice(), response_refs: refs, close_ref: null, cancelled_by: null });
+        spent.push(entryOf(body, refs));
         continue;
       }
       // A refused accept transition. A yes that a LATER state precondition holds back (a legacy
@@ -438,16 +659,15 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
         issues.push(issue);
         if (body.kind !== 'compensate' && HELD_BACK.has(issue.code) && !spent.some((x) => x.spend_id === body.spend_id)) {
           issue.spend_id = body.spend_id; held.set(body.spend_id, issue);
-          spent.push({ spend_id: body.spend_id, consumes: body.consumes.slice(), response_refs: refs, close_ref: null, cancelled_by: null });
+          spent.push(entryOf(body, refs));
         }
       };
-      const changed = evidenceChanged(body, facts);
       if (changed) {
         const issue = { code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs, field: null, lift, spend_id: body.spend_id };
         issues.push(issue); repair.set(body.spend_id, issue);
       }
-      if (iss.revision === engine.revision) {
-        if (!changed) {
+      if (present) {
+        if (reproducible) {
           // A CANCELLATION (spec R8 :121 "permanently cancels the targeted effect"; its
           // transition reads only the effect it names, never its recorded target) is valid
           // when, at the original cut of ANY of its records, that effect was eligible for
@@ -464,20 +684,18 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
           // projection, and a later edit never revokes consent: the body applies as written,
           // exactly as under an absent revision. Newer plan authority is judged only by :156
           // (movedBase above). Nothing is guessed (review B23: no name candidates).
-          const at = (b) => factsAtCut(facts, b.basis.order.start_ids, b.basis.order.frontier);
-          const records = body.kind === 'compensate' ? [...g.ops, ...g.alt].map((op) => op.payload.issuance.body) : [body];
+          const at = atCut, records = members;
           let again = null, reproduced;
-          if (records.some((b) => !sameCut(b, at(b)))) reproduced = true;
-          else if (body.kind === 'compensate') {
+          if (body.kind === 'compensate') {
             reproduced = records.some((b) => {
-              const cut = at(b), ev2 = rt.evaluateNativeLoad(withFacts(state, cut), { lift_lineage_id: b.lift_lineage_id, completion_op_id: checkedCompletion(b, cut),
+              const cut = at(b), ev2 = rt.evaluateNativeLoad(withFacts(V, cut), { lift_lineage_id: b.lift_lineage_id, completion_op_id: checkedCompletion(b, cut),
                 intent: { compensate: b.compensates }, basis: b.basis });
               again = again || ev2;
               return ev2.status === 'offer' && ev2.offers.some((o) => o.body.compensates === b.compensates);
             });
           } else {
             const cut = at(body);
-            const ev2 = rt.evaluateNativeLoad(withFacts(state, cut), { lift_lineage_id: body.lift_lineage_id,
+            const ev2 = rt.evaluateNativeLoad(withFacts(V, cut), { lift_lineage_id: body.lift_lineage_id,
               completion_op_id: checkedCompletion(body, cut), intent: 'check', basis: body.basis });
             again = ev2;
             reproduced = ev2.status === 'offer' && ev2.offers.some((o) => same(o.body, body) && o.reason === iss.reason);
@@ -491,14 +709,28 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
           }
         }
       } else issues.push({ code: 'NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED', refs, field: null, lift });
-      const t = rt.applyNativeLoadDecision(state, body, { event: 'accept', basis: body.basis, spent: json(spent),
-        authority: { response_refs: refs, issuance: iss, source_cut: iss.source }, completion: null });
+      if (behind && body.kind !== 'compensate') {
+        if (!spent.some((x) => x.spend_id === body.spend_id)) spent.push(entryOf(body, refs));
+        continue;
+      }
       if (t.status !== 'applied') {
         if (t.refusal) refusedAccept(t.refusal);
         continue;
       }
-      state = t.state;
-      spent.push({ spend_id: body.spend_id, consumes: body.consumes.slice(), response_refs: refs, close_ref: null, cancelled_by: null });
+      if (exitB) {
+        // The adopted loads become w; the lift's held native entries are retired (their
+        // spends kept); every hold of the lift is superseded, kept as recorded history.
+        // The projection's wSets null is not carried into the programme: the adopted loads are
+        // one scalar w for every set (engine-capture reads any present wSets as a vector).
+        const nx = { ...t.state.exercises.find((x) => x && x.id === lift) };
+        if (nx.wSets === null) delete nx.wSets;
+        state = { ...state, exercises: state.exercises.map((x) => (x && x.id === lift ? nx : x)),
+          queue: state.queue.map((q) => (q && q.exId === lift && !q.done && typeof q.native_load_spend === 'string' ? { ...q, done: true, state: 'SUPERSEDED' } : q)) };
+        for (const i of holdIssues) i.superseded_by = body.spend_id;
+        for (const book of [repair, held]) for (const [k, v] of [...book]) if (v.lift === lift) book.delete(k);
+        disputed.delete(lift);
+      } else state = t.state;
+      spent.push(entryOf(body, refs));
       if (body.kind === 'compensate') {
         const target = spent.find((x) => x.spend_id === body.compensates);
         if (target) target.cancelled_by = body.spend_id;
@@ -564,19 +796,29 @@ function checkNativeLoad(args = {}) {
   const { generation, workoutFacts, engine, source, athleteId, plan, request } = args;
   const fold = foldNativeLoad(args);
   const refused = (refusal) => ({ fold, evaluation: { profile: PRODUCER, status: 'refused', basis: null, offers: [], refusal } });
-  if (fold.status !== 'ready') { const i = fold.issues.find((x) => BLOCKING.has(x.code)); return refused({ code: i.code, refs: i.refs, field: i.field || null }); }
+  if (fold.status !== 'ready') { const i = fold.issues.find((x) => BLOCKING.has(x.code)) || fold.issues[0]; return refused({ code: i.code, refs: i.refs, field: i.field || null }); }
   if (!map(request) || !text(request.lift_lineage_id) || !text(request.completion_op_id)) return refused({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [], field: 'request' });
   // Spec :156 per lift: this lift's (or an unattributable) blocking issue refuses its check by the same code and refs.
   // Spec R8 :156: an unprovable-order conflict keeps its own compensation reachable
   // ("dispatched before this refusal"), so only that spend's undo passes it.
   const undoOf = map(request.intent) && text(request.intent.compensate) ? request.intent.compensate : null;
-  const blocking = fold.issues.find((x) => BLOCKING.has(x.code) && (x.lift === request.lift_lineage_id || x.lift === null || x.lift === undefined) &&
-    !(undoOf && x.spend_id === undoOf));
-  if (blocking) return refused({ code: blocking.code, refs: blocking.refs, field: blocking.field || null });
-  // Spec :157: a disputed basis refuses further load authorization until "an eligible
-  // compensating choice" resolves it, so only the compensation of a disputed spend passes.
-  const disputed = fold.issues.filter((x) => x.code === 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED' && x.lift === request.lift_lineage_id);
-  const undo = !!undoOf && disputed.some((x) => x.spend_id === undoOf);
+  const lift = request.lift_lineage_id;
+  // An unattributable refusal (lift null) still holds back every check.
+  const unattributed = fold.issues.find((x) => BLOCKING.has(x.code) && (x.lift === null || x.lift === undefined));
+  if (unattributed) return refused({ code: unattributed.code, refs: unattributed.refs, field: unattributed.field || null });
+  // Spec R9.2 :158 NO TRAP: a hold refuses EARNS only. Its refusal names the holding
+  // record(s): a record-level refusal first, else the disputed bases (spec :157/:161).
+  const holds = activeHolds(fold.issues, lift);
+  const holdRefusal = () => {
+    const first = holds.find((x) => BLOCKING.has(x.code));
+    if (first) return refused({ code: first.code, refs: first.refs, field: first.field || null });
+    return refused({ code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs: holds.flatMap((x) => x.refs).sort(byOp), field: null });
+  };
+  // Exit (a): the undo of every genuine accepted spend of the lift (kept in the spend index,
+  // not yet cancelled) is dispatched before the hold refusal; FC01 and the capture guard
+  // below judge it (COMPENSATION_DESCENDANTS unchanged).
+  const undoable = !!undoOf && fold.spent.some((x) => x.spend_id === undoOf && !x.cancelled_by && decodeLift(undoOf) === lift);
+  if (undoOf && holds.length && !undoable) return holdRefusal();
   // Spec :153 "only if no later Start captured the accepted effect" (review B9). FC01's
   // request carries no Start capture (:91), which lives on the authenticated Start op
   // (:122), so this check reads it here and refuses by FC01's own name and refs.
@@ -591,7 +833,32 @@ function checkNativeLoad(args = {}) {
       if (g && capturedAfter(g, ops, byId)) return refused({ code: 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', refs: x.response_refs.slice(), field: null });
     }
   }
-  if (disputed.length && !undo) return refused({ code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs: disputed.flatMap((x) => x.refs).sort(byOp), field: null });
+  // Exit (b): on a held lift, a completion ordered after EVERY holding record is evaluated on
+  // the held projection (w/wSets null, held native entries hidden, so TARGET_QUEUED blocks
+  // earns only and step 2 sees no plan change); only its step-3 adoption is offered.
+  if (holds.length && !undoOf) {
+    if (!map(workoutFacts) || !map(workoutFacts.order)) return holdRefusal();
+    const { byId } = operationsOf(generation), hit0 = sessionOf(workoutFacts, request.completion_op_id, lift);
+    const start = hit0 ? byId.get(hit0.session.start_op_id) : null;
+    const after = !!start && holds.flatMap((x) => x.refs || []).every((r) => { const hop = byId.get(r.op_id); return !!hop && provenBefore([hop], start, byId); });
+    // Spec R9.3 :162 (G3): a completion not proven after every holding record is never
+    // offered an adoption. If its Start captured a numeric load (a card closed after the
+    // hold included), the projection differs from its capture: PLAN_CHANGED [Close Ref];
+    // otherwise the hold's own refusal.
+    if (!after) {
+      if (hit0 && start && captureOf(start, hit0.entry).some((v) => typeof v === 'number'))
+        return refused({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs: [refOf(byId.get(request.completion_op_id))].filter(Boolean), field: null });
+      return holdRefusal();
+    }
+    const shown = projectHeld(fold.state, [lift]);
+    const pb = basisOf({ state: shown, generation, workoutFacts, source, athleteId, plan, lift, spent: fold.spent });
+    const ev = engine.at(hit0.session.effective.local_date).evaluateNativeLoad(shown, { lift_lineage_id: lift, completion_op_id: request.completion_op_id, intent: 'check', basis: pb });
+    if (ev.status === 'offer' && ev.offers.length && ev.offers.every((o) => map(o.body) && (o.body.kind === 'adopt-baseline' || o.body.kind === 'adopt-observed'))) return { fold, evaluation: ev };
+    // Spec R9.4 :162: a lift with a legacy PROPOSED entry keeps LEGACY_PENDING (the check sees
+    // legacy entries; only the registered projection hides them, :159), by FC01's own refusal.
+    if (ev.status === 'refused' && map(ev.refusal) && ev.refusal.code === 'NATIVE_LOAD_LEGACY_PENDING') return { fold, evaluation: ev };
+    return holdRefusal();
+  }
   if (!map(workoutFacts) || !map(workoutFacts.order)) return refused({ code: 'NATIVE_LOAD_COMPLETION_REQUIRED', refs: [], field: 'workoutFacts' });
   const basis = basisOf({ state: fold.state, generation, workoutFacts, source, athleteId, plan, lift: request.lift_lineage_id, spent: fold.spent });
   const hit = sessionOf(workoutFacts, request.completion_op_id, request.lift_lineage_id);
@@ -622,7 +889,20 @@ function checkNativeLoad(args = {}) {
       const cap = originals.every((s) => s.prescribed_load === undefined) ? startPlanCapture(start, request.lift_lineage_id) : [];
       const planNow = Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => (ex.w == null ? null : Array.isArray(ex.wSets) && ex.wSets[i] != null ? ex.wSets[i] : ex.w));
       const window = startWindowCapture(start, request.lift_lineage_id), hi = ex.hi === undefined ? null : ex.hi;
-      if ((cap.length && !same(cap, planNow)) || (Number.isFinite(hi) && window.some((v) => v > hi)))
+      // Spec R9.1 :127: the window binds only the earn branch (FC01 steps 4-10). Adoption
+      // (step 3: w null, or a performed load unlike the plan) and compensation never are.
+      // An offer names its branch; a refusal is placed by FC01's own step-3 predicate.
+      const loadAt = (s) => (s.state === 'performed' && s.fact && s.fact.current && map(s.fact.current.load) ? s.fact.current.load.value : undefined);
+      // Spec R9.2 :127 C2: only after step 3 has CHOSEN earn. A refusal from before step 3
+      // (an unresolved slot) or from the adoption branch keeps FC01's own code. Earn-only
+      // reader codes are earn; SOURCE_OVERLAP and VECTOR_ADOPTION_UNDEFINED occur in both
+      // branches and are placed by FC01's step-3 predicate (w present and every original
+      // slot performed at the planned load).
+      const code = evaluation.status === 'refused' && map(evaluation.refusal) ? evaluation.refusal.code : null;
+      const step3Earn = ex.w != null && originals.length > 0 && originals.every((s, i) => s.state === 'performed' && loadAt(s) === planNow[i]);
+      const earnBranch = evaluation.status === 'offer' ? evaluation.offers.some((o) => map(o.body) && o.body.kind === 'earn')
+        : EARN_READER_CODES.has(code) || ((code === 'NATIVE_LOAD_SOURCE_OVERLAP' || code === 'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED') && step3Earn);
+      if ((cap.length && !same(cap, planNow)) || (earnBranch && windowUnproven(window, hi)))
         return refused({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs: [{ op_id: cov.op_id, commitment: cov.commitment }], field: null });
     }
   }
@@ -650,6 +930,7 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:9688ad8abc639ea867cb833eebd5d33c8d8aa8f0db356e6283038d6bf6bb741e';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:75575de7814b4d4e3b032ac29471d93f165357491db12a4a3682ff481a4e82f9';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
-module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf };
+module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf,
+  heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]) };

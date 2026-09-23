@@ -92,3 +92,183 @@ Red on 4b83f4c product bytes with this round's tests: FC12 R8-P2/P3/P4 x2, R9-B2
 - Mutants (r9\mutants-summary.txt CE4F7FFB): 59 run, 54 KILLED, including R9-gate-never (B20/B23/B24/P4/walk, host too), R9-gate-always (R2-PERLIFT, R9-FORGED), R9-gate-programme, R9-gate-coverage (R9-B24c), R9-gate-governor (R9-FORGED), R9-window and R9-after-step2 (R9-B25, host). LIVE: R7-canon-order, R7-canon-cut, R7-comp-any (l6-accepted equivalents) and R7-comp-reprice (FC12 and FA03): now equivalent, since eligibility is only judged on a reproduced cut, where the compensation body reproduces byte for byte. Round 8's R1 transition-refusal branch was unreachable under the gate and is removed; R8-P2/P3 stay green through the R2 path (R8-refused-accept-r2 KILLED).
 - Full local set (80 files): 4b83f4c 1135/68, this tree 1135/67, only the base-only checkout row differs (r9\full-base.txt 931CCBEE, r9\full-head.txt 3DFB23FA).
 - Round-9 sha256: native-load-effects.cjs d5b7495f...d70f (656); FC12 test 1c06cc20...e892 (1822); FA03 test 629dcafa...15bc (634); unchanged: native-load.cjs ba423a0a..., today-bindings.mjs e65ce4f0..., today-entry.mjs 897e0b1a.... All LF, no added non-ASCII.
+
+## Round 10 (UNCOMMITTED on 0e4fc74; Astra L7 REJECT B26/B27; Claude l7 D-B7-1): STOP, product unchanged
+- Red witnesses written first, kept as node:test TODO rows until the PM rules: FC12 R10-B26 (Astra's 12 forged-cut cases x R1/R2; 21 of 24 cells admit or fail to name the forgery) and R10-B26b (forged-digest adoption writes 110); FA03 R10-B27 (Astra's callback: raised hi 12->14, captured [12,12], performed 15 -> offer 45/45) (r10\red-fc12.txt 05E6403D, r10\red-fa03.txt 6A09C966).
+- STOP: the prescribed fix folds the append-only log to the issuance's coverage frontier and reads the programme and queue "as they stood then". FC03/FC08 cannot: the programme and structural queue the evaluator reads are today-model's `basis` (today-model.cjs:185), which adoptBasis REPLACES wholesale (:444) and stateFromOps (:246) never derives from ops (only readings, food, sleep replay onto it). The client does log Layer-1 plan-mutation ops (client/index.cjs:208, :222, :270), but projecting them onto engine exercise records happens in the admitted-source pipeline (seed/migrate/merge, protected) at W, not in any FC03/FC08 input. The window at a Start's frontier (B27) is likewise absent: engine-capture's cell holds per-set rep targets only.
+- Options for the PM (each beyond FC03/FC08): (A) log every basis adoption/plan edit as an authenticated op carrying the programme image, and give FC03 a public projector to the frontier; (B) snapshot the evaluator inputs with the issuance (changes the durable issuance shape, spec :101); (C) B27 only: capture the governing window in engine-capture.cjs (outside the D-EPP-2 grant); (D) interim inside FC03, semantics to be ruled: a non-reproducible record applies only with full structural correspondence (lineage, authentic consumed Start/Close ops, evidence equal to the consumed facts, target derivable from the record's own recorded basis), otherwise RECORD_INVALID; closes all 12 Astra cases but is not a reconstruction.
+
+## Round 11 (UNCOMMITTED on 0e4fc74 with round 10; spec R9 draft sha256 88371bfd, PM direction, FC16 in the FC set)
+- Red first (this round's rows before product): FC12 R10-B26, R10-B26b (TODO removed), N25 FORGED-RECORD, N26 WINDOW-CAPTURE fail 4/96 (r11\red-fc12.txt 317833AE); FA03 R10-B27 (TODO removed) and two N26 host rows fail 3/30 (r11\red-fa03.txt 5A2E34FA). Walk/fix reds: R11-FORGED-HELD (r11\red2-fc12.txt E20ED273), R11-CONFLICT-LIFTS (r11\red3-fc12.txt CF8F2E20), and FA03 R3-B2 regressed by the first S4/S8 draft (r11\g2-fa03.txt ACA746AE field evidence, g3-fa03.txt ED3BB409 field base_load). Green: FC12 101/101 (r11\g8-fc12.txt 5CCF407C), FA03 30/30 (r11\g7-fa03.txt 6388ED4D). B23, B24, B24c, P4, R9-B25, R9-FORGED stay green.
+- :127 WINDOW BINDING (FC03 windowMoved): an FC16 cell's window_hi must equal the current hi; a legacy capture moved when a target exceeds the current hi, or the performed original top exceeds the largest target while the current hi is above it. Runs after the legacy/queue checks, before readers; G6 PLAN_CHANGED [Close Ref], field null.
+- FC16 engine-capture.cjs :91 only (the D-EPP-2 :69 hunk is NOT in this tree): reps source_json gains window_hi = original.hi when a positive safe integer, key omitted otherwise; not_prescribed cells unchanged. Carriers (pins found red-first, NOT edited): rebuild/m4/import/test/s3/s3-portable-sources.json:418 and rebuild/m4/spec/configured-history-candidate/run.cjs:24 pin 309c75d8...8785, now 94685ca4...3c15 (r11\pins-base.txt A3C128CE green, pins-head.txt 958F7C67 red); rebuild/m3/w7-preview/today/build.mjs:186 lists it as a pinned build input (the build id moves). The local 80-file set shows no new failure (the carriers' consumers are CI/scratch-tree only); engine-capture.test.cjs (CI) reads .value only.
+- S1-S8 (FC03 correspondence) for every record not re-evaluated (absent revision, cut not reproduced, or corrected basis), in spec order, first failure RECORD_INVALID refs = response Refs, field named; S1 owner is the consumes lift. DERIVABLE (FC01 derivable(), in transition after the capability check) for every record before re-evaluation; FC03 disputes its target_load/candidate/base_load/compensates refusals. Both now run BEFORE the R8 :156 unprovable-order hold (walk seed 20261111: a forged record under a later-moved base was held with its spend kept, a compensation "cancelled" it, and a plan return dropped that proof).
+- S4 reads a set removed after issuance from removed_facts, and S8's actual loads are the evidence's (S4-bound) values, so a later removal/correction stays BASIS_REPAIR (:157), not a forgery (FA03 R3-B2).
+- Conflict fix (walk seed 1003155, I3 two-device): bodies of one spend naming different lifts now hold EVERY named lift; the held lift no longer depends on log order.
+- Walk (R8-PROPERTY + round 11): I7 forged records in 13 variants (body, programme, queue, coverage, lift, spend, consumes, evidence emptied, evidence value, source, order, base, derivable) must fold RECORD_INVALID naming their Ref (or wait unapplied behind a named hold of their forged lift); I8 moved-window checks (FC16 and legacy, over-performance [12,12,11]/[13,12,12]) never offer. 3 x 17,000 = 51,000, seeds 20261001/1000001/5000001: 0 counterexamples; 5,158 forged records, 3,846 moved-window checks, 5,202 RECORD_INVALID (r11\p11-17k-*.json CFB93BB9, 681199C3, 30C3665A). Red runs kept: p11a-17k-20261001-red.json 560D75A3 (3), p11b-17k-1000001.json AACABBF7 (1), p11-400.json 77109A29 (1). Model-only corrections: uncaptured lifts get no capture cells (seed 20261192: a not_prescribed cell beside a typed 97.5 prescription is unreachable from engine-capture; the reachable baseline-ask-then-plan-edit refuses PLAN_CHANGED); I7 admits waiting behind a named hold (seed 20267386); I2 admits a yes AND its undo both waiting unapplied behind a named hold (seeds 20262492, 20264171), still failing a live effect whose undo is skipped.
+- Mutants (r11\mutants-summary.txt E6A645BD, table B77FCFB4, rerun BFBBBC05): 88, 82 KILLED after two added rows (R11-FORGED-CANONICAL kills R11-S2 and R11-derivable-base beyond R2-REVISION). LIVE: R7-canon-order, R7-canon-cut, R7-comp-any, R7-comp-reprice(+host) (accepted equivalents), R11-S8-adopt (equivalent: DERIVABLE's adoption clause reads the same S4-bound evidence loads), R11-window-legacy-host (the host now writes FC16 captures; the legacy clause is killed in FC12 N26 and the walk).
+- Full local set (80 files) vs 0e4fc74 (temporary nlr-base worktree, removed): 1135 tests, head 67 fail, base 68, only the base-only checkout row differs (r11\full-compare2.txt 5B1D85BA).
+- DISCLOSED: PRODUCER_REVISION re-bound to 07d5a7d9...6a2d86 (FC01 bytes changed). R9-FORGED's forged 110 now names target_load (DERIVABLE runs first); a reason-tamper variant keeps the re-evaluation 'issuance' field tested. DEVIATION: DERIVABLE's compensate clause checks only that compensates names a fold effect of this lift; "target equals that effect's recorded base_load" is NOT built because it conflicts with retire-only cancellation (B15/B18). RESIDUAL: load_basis.inc/steps unanchored (:157); an S4 set with a strict prefix of its edits has an unverifiable intermediate value (accepted); with no capture cell S8 reads the typed prescribed_load; a forged record claiming an early cut holds its lift's later genuine yes and undo unapplied (fail closed, :155 lift hold).
+- Round-11 sha256 (superseded by round 12): native-load.cjs 8beb3e9e...65d1 (560); native-load-effects.cjs 7059468c...a026 (786); engine-capture.cjs 94685ca4...3c15 (134); FC12 test 9b9399d4...4c4b (2086); FA03 test 2d398b94...8f44 (663). All LF, no added non-ASCII.
+
+## Round 12 (UNCOMMITTED on 0e4fc74 with rounds 10-11; spec R9.1 df90e70f): deltas built, :158 exit (b) STOP
+- Spec delta: R9 (88371bfd) is not in git; reconstructed as R8 (r8spec.md) plus r9spec.diff and compared line by line (r12\spec\delta.txt 0C004585): changed :127, :155-158, :209, :229, :274, :277-278, :309-312, :386-387.
+- Red first (r12\red-fc12.txt BBA2B48D, 8 fail + N27b TODO): R12-RESTORE, R12-COMPENSATION-IDENTITY, R12-DECODE, N27, N28, N26 x3 (the stricter legacy rule, the B-R9-3 floor/fresh rows, adoption/compensation not window-bound). N24 R9.1 (RETIRE, both orders, R1/R2, tombstone) was green before and after. Green: FC12 109/109 + 1 TODO (r12\g6-fc12.txt 92DDD47D), FA03 30/30 (r12\g4-fa03.txt 2EBEAD68).
+- :127 (FC03 windowUnproven): the window binds the earn branch only (an earn offer, or a refusal whose completion FC01's step-3 predicate places on the earn side); adoption and compensation never. An earn check is refused PLAN_CHANGED [Close Ref], field null, unless EVERY specified reps cell carries window_hi equal to the current hi; a pre-FC16, mixed or absent capture always refuses (legacy-earning cost).
+- :155 compensation identity in correspondence(): S1 body lift = the compensated spend's lift, S2 canonical, consumes = [] and evidence = [], S3-S5/S8 vacuous, S6/S7 applied. S8 actual loads were already the S4-bound evidence values (round 11).
+- :156 FC01 derivable(): DECODE FIRST (dec() = value or ABSENT, never null; Loads by value and unit 'lb'; UNREADABLE wrappers refuse base_load); base_load.vector must equal dec(wSets) (plan fallback per position) or dec(w) repeated. RESTORE/RETIRE: compensates must be a live, un-landed fold spend of the lift (tombstone); a record that claims a restore (target unlike its own base_load) of an APPLIED adoption must equal the adopted authority's prior image; a retire record is display-only (well formed). INTERPRETATION for the PM: classifying the replay by the replay-time state alone makes R7-B18a/b (an undo issued while the adoption was held, replayed after the base returned) RECORD_INVALID and reverses consent; the record's own issued shape (a RETIRE issuance shows target = its own base_load) keeps B18 and still binds every restore claim. PRODUCER_REVISION re-bound to 9828a210...8b09.
+- :157 ADMISSION GATE: FC03 now also refuses, before folding, any generation that carries an imported source ('sourceImports', w5/source/codec.cjs:6) together with any native record: SOURCE_FRONTIER_UNPROVEN, zero effects and spends (the host already refused it, today-bindings.mjs project). N28: Astra's input A (PROPOSED 110) and B (DEBUT 105) are admitted when locally constructed under an absent revision (RESIDUAL, named) and refused inside an imported generation. The ACTUAL host import path (FC09/FC10 unbuilt) is not exercised locally: named debt D-R9-DELIVERY.
+- :158 NO TRAP exit (a), built: a record behind a named hold is still examined; a valid one is kept as accepted history (spent, never applied) and a recorded undo applies as usual (RETIRE); check dispatches the undo of any live spend of the lift before every hold refusal (FC03); FC08 project() exposes spent and FA02 lists the undo of every live spend (FC01 still decides eligibility). N27 (FC12) green under R1 and R2. Host/panel N27 not built: a hold that needs an invalid record cannot be made through the guarded host (tickets), so it needs repository injection.
+- :158 exit (b) STOP: there is no authenticated plan-op writer for a working weight. plan-edit v1 (rebuild/m4/workout/plan-edit-commands.cjs EXERCISE/CHANGES) has no 'w' member (update carries n/day/sets/hi/inc/steps; add/replace force w:null, plan-edit-model.cjs:347); plan-edit-host.mjs is not composed into the today host; FC03 reads no plan op (plan changes reach it only through the immutable base). Missing, all outside the NATIVE-LOAD FC set: (1) a plan-edit member (and validation) for w/wSets; (2) its projection into the engine basis; (3) an FC03 rule that such an op ordered after every holding record supersedes the holds for later work (:156); (4) host wiring and an FA02 control, whose text would be NEW copy (PROPOSED for Joe, e.g. "Set working weight"). N27b is kept as a TODO witness (red).
+- Fixture carriers (disclosed): FC12 foldArgs now gives every typed completion an FC16 Start capture (loads from prescribed_load, reps window_hi = the base hi), captureOn keeps an existing reps cell; R8-P4 x2 and R9-B24c pass FC16 reps to captureLifts; R9-B25's "captured window still offers" control becomes PLAN_CHANGED (legacy cost) with an added FC16 control; N26 row 1's legacy "unchanged window offers" control likewise.
+- Walk: capture mode per completion (FC16 70%, legacy, none for typed only; seed 20261315 showed a capture-less host v1 adoption fails S8 under R2 only, unreachable because the host always captures); I8 = no earn offer unless FC16 at the current hi; I2 exemption (round 11) removed; I7 requires the forgery to be named (RECORD_INVALID or EFFECT_CONFLICT); I9 gate on every walk. 3 x 17,000 = 51,000: 0 counterexamples; 4,474 forged, 8,784 moved-window checks, 25,983 legacy/absent checks, 13,959 gate refusals, 2,159 undos (r12\p12-17k-*.json E27B2FAE, 11AA16B1, EDE47EAF). Earlier counterexamples stand as deterministic rows (R8-P2/P3/P4, R11-*), all green.
+- Mutants (r12\mutants-summary.txt 1DCDCEE6, rerun 54B62955): 103 (round-11 set re-anchored + 15 round-12), 97 killed counting only non-TODO rows. LIVE: R7-canon-order, R7-canon-cut, R7-comp-any, R7-comp-reprice-host (accepted equivalents), R11-S8-adopt (equivalent to DERIVABLE's adoption clause), R11-window-legacy-host (the host writes FC16 only; killed in FC12 and the walk). R12-tombstone gained a real killer (R1 second undo behind a hold).
+- Full local set (80 files) vs 0e4fc74: 1135 tests, 68/68 failing in both, 0 new (r12\full-compare.txt 24BA6AB2); base worktree removed.
+- Round-12 sha256: native-load.cjs c80ddc76...f09b (594); native-load-effects.cjs cd9c731c...f7d5 (828); engine-capture.cjs 94685ca4...3c15 (134, unchanged); today-bindings.mjs 28825f0e...5479 (1104); today-entry.mjs 83be0441...0861 (772); FC12 test b448a504...fac (2314); FA03 test 2d398b94...8f44 (663, unchanged). All LF, no added non-ASCII.
+
+## Round 13 (UNCOMMITTED on 0e4fc74 with rounds 10-12; spec R9.2 a41c8793): :158 exit (b) built, N27 (a)/(b) real-host rows
+- Spec delta: R9.2 diffed word-by-word against the R9.1 reconstruction (r13\wdiff1.txt 194ADD26): changed :127 (C2 order), :156 (c1/c2/c3, supported wSets, RESTORE/RETIRE by shape), :158 (NO TRAP rewritten), :160-161 (a later accepted adoption resolves the hold), :228, :277, :311 (N27 a/b). DECISIONS:794 is not in any local worktree (earned-astra-96 DECISIONS.md ends at 577 lines, earned-nlr at 581): built from the spec text only.
+- Red first: FC12 r13\red-fc12.txt A24484EB (7 fail: R12-DECODE, N27 a, N27 b, N27 earns-only, R13-C2, R13-DECODE, R13-RESTORE-SHAPE); FA03 r13\red-fa03.txt D9A2D063 (5 fail: R3-B2, R4-DB21, R5-D10, N27 a, N27 b); walk-found R13-EXIT-ORDER r13\red-exitorder-fc12.txt D6C428DC. R13-EXIT-160 was written after the exit code existed (its red is N27 a/b). Green: FC12 117/117 (r13\g10-fc12.txt 5871150D), FA03 32/32 (r13\g5-fa03.txt D69DFFF8).
+- :127 C2 (FC03): the window rule binds only the earn branch: an earn offer, an earn-reader refusal (PROVISIONAL, WINDOW_NOT_TOP, EFFORT_UNRESOLVED, ORDER_RULE_UNREPRESENTABLE, NO_NEXT_LOAD, HELD_OR_HOT), or SOURCE_OVERLAP/VECTOR_ADOPTION_UNDEFINED when step 3 chose earn (w non-null, every original slot performed at the planned load). PREFIX_UNRESOLVED and adoption-side refusals keep FC01's code.
+- :156 (FC01 derivable): c1 load_basis.w/wSets wrappers equal base_load.fields (presence and value); SUPPORTED wSets (ABSENT, present-null, array; else RECORD_INVALID load_basis.wSets, also at issuance); c2 base_load = the issuance projection (null vector of length max(1,sets) when w is null or ABSENT, else planVector); c3 earn/adopt-observed need numeric w, adopt-baseline needs none. RESTORE/RETIRE by the record's own shape: target = its own base_load is a display-only RETIRE; any other target must name a live adoption and equal that adoption's base_load. PRODUCER_REVISION re-bound to 75575de7...82f9.
+- :158 NO TRAP (FC03/FC08/FA02): a held lift (an active RECORD_INVALID, EFFECT_CONFLICT, SOURCE_OVERLAP or BASIS_REPAIR_REQUIRED of that lift) projects w/wSets null and its native entries hidden (heldProjection, shared by FC08), so the card is the baseline ask and the day is never refused; the null is not a plan change for step 2; holds refuse earns only (TARGET_QUEUED on a held lift likewise); undo of a live spend is dispatched first (FA02 lists Undo only where FC01 allows it, else the adoption offer). Exit (b): a completion whose Start is proven after every holding record is evaluated on the projection and only its adoption is offered; the accepted adopt-baseline, proven after every holding record (directly, or through the Start of the completion it adopts), sets w to the adopted loads, retires the held native entries (done, SUPERSEDED, spends kept) and marks every hold superseded_by its spend. A RECORD_INVALID hold applies from the invalid record's place in the log (records proven before every copy of it are not held back).
+- N27 (a)/(b) per D1 :311: FC12 rows for both, the earns-only row, R13-EXIT-160, R13-EXIT-ORDER. Real host (FA03): (a) the early-cut record cannot enter the installation's log (reopen refuses T2_INTEGRITY_UNPROVEN, asserted), so the host exits are shown on an EFFECT_CONFLICT hold (plan moved to 42.5): an undo branch and an adoption branch (adopt-baseline 42.5, D4 card 42.5, hold superseded); (b) D1 adopt-observed 45, D2 on 45, D1 set removed, undo refused COMPENSATION_DESCENDANTS, D3 baseline ask, adopt-baseline 45, D4 card 45 and no disputed label. The round-12 N27b TODO is retired.
+- Expectation changes, all per R9.2: R3-B2 (demo-press stays on the card as the baseline ask), R4-DB21 (the day is prepared, demo-press slots not_prescribed), R5-D10 (count 2), R5-B12a/b (held projection w null), N24 display-999 (now RESTORE-shaped: RECORD_INVALID, no cancellation), R12-DECODE ABSENT (EFFECT_CONFLICT load_basis, not RECORD_INVALID).
+- INTERPRETATIONS for the PM: (1) exit (b) is adopt-baseline only (the projection has w null; an adopt-observed issued on a held effect's weight stays its dependent, R7-P1); (2) "after every holding record" = proven by causality or one device's sequence; a device-B copy with no causal link is not after; (3) an exit adoption's recorded base is the projection, so a later base-w change neither conflicts with it nor stales an offer rooted in it, and its undo restores the baseline ask (w null), not the plan's w; (4) residuals: a completion captured on a numeric card but closed after the hold gets PLAN_CHANGED rather than an adoption; a lift with a legacy PROPOSED entry keeps LEGACY_PENDING.
+- Walk: held lifts trained on the baseline ask; I10 = a held lift trained again is offered adopt-baseline (skipped only for an unattributable hold, a legacy PROPOSED entry, or a completion dated before a declared fork, whose next training is checked in turn); 70% accepted, and the lift must then be unheld. Model corrections found by the walk, each disclosed in the file: the Start of a baseline-ask session names the plan ops it folded as causal parents; a second-device copy names the ops it synced; the two-device layout's device-B sequence now ascends with its causal chain (1000+i; the old 1000-i contradicted its own parents); exit ledger entries and the I1/I5 oracles follow interpretation (3). Product fix from the walk: the fold's exit order now also accepts a holding record proven before the adopted completion's Start (R13-EXIT-ORDER). 3 x 17,000 = 51,000 walks, 0 counterexamples (r13\p13-17k-*.json 488636D3, A8DB8374, 4AEF52B3; test bytes BF1D2284, later edits add deterministic rows only): 4,211 exits offered, 2,900 accepted, 27,920 forged, 2,362 undos, 13,990 gate refusals, 8,888 moved-window and 25,913 legacy/absent checks. Earlier attempts kept: attempt1/2/3 files.
+- Mutants (r13\mutants-summary.txt 871BBAA7; 133 = round 12 re-anchored + 30 R13): 120 killed by behaviour in the full run, 125 with the gap rows. Gap rows added from them and shown red under their mutant (r13\mutants-gaps2.txt 23DAF442): R13-exit-any-order (R13-EXIT-ORDER fold control), R13-C2-step3 (R13-C2 VECTOR_ADOPTION_UNDEFINED case), R13-c3-baseline and R13-c3-earn (new R13-C3; before it only the R2-REVISION byte pin failed), R13-fa02-superseded (N27 b host: no label after the exit). LIVE: R7-canon-order, R7-canon-cut, R7-comp-any, R7-comp-reprice-host, R11-S8-adopt, R11-window-legacy-host (as round 12); R7-comp-reprice lost its only killer (the N24 display-999 case, now RESTORE-shaped under :156); R12-decode-absent is pin-only and equivalent under R9.2 (ABSENT and null decode the same for w, inc and steps once c1 has compared the wrappers).
+- Full local set (80 files) vs 0e4fc74: 1135 tests, 67 failing in both, 0 new; base-only 1 (the checkout-guard row, environmental) (r13\full-compare.txt 39A6BCD2); base worktree removed.
+- Round-13 sha256: native-load.cjs 52c15538...dee1 (596); native-load-effects.cjs e22d249f...2671 (920); engine-capture.cjs 94685ca4...3c15 (134, unchanged); today-bindings.mjs 4265e661...93db (1096); today-entry.mjs bf94563e...a333 (773); FC12 test 7cc48162...b9c4 (2515); FA03 test bffbe57c...01ea (801). All LF, no added non-ASCII.
+
+## Round 14 (UNCOMMITTED on 0e4fc74 with rounds 10-13; spec R9.3 8a9dea77): G2 pinned, G3 built, N27 (c)-(e)
+- Spec delta vs R9.2 (r14\ldiff.txt DE1BA771): :158 rewritten and split into :158-163 (HELD PROJECTION, EXIT (a) with APPLIED BASE, EXIT (b), OTHER COMPLETIONS, SCOPE); :173, :227, :282 wording; :316 adds N27 (c)-(e); :392 named debts. Everything else matches round 13.
+- G2 APPLIED BASE (:160): already true of the round-13 build. FC03 dispatches an Undo before the exit (b) branch and evaluates it on fold.state (the applied state). The held projection is used only for exit (b) and for the registered and Today state. So a disputed applied adopt-baseline (applied 60, prior null) already issues base 60 and target null (RESTORE), and its yes gives w null. This round pins it:
+  - FC12 N27 (d);
+  - FA03 N27 (d) on the real host;
+  - walk I11.
+  None of them was red before, because the defect was not present. The red is under mutant R14-undo-projection, which evaluates the Undo on the projection: N27 (d), R5-B12a/b, R6-B14a/b, R12-COMPENSATION-IDENTITY and the walk (I11) fail in FC12 and PROPERTY, and N27 (d) and R5-B12a/b fail on the host.
+- G3 NAMED REFUSALS (:162), built red-first. Before the fix, N27 (e) failed with RECORD_INVALID where PLAN_CHANGED was expected (r14\red-fc12.txt 86014BE3). The same file's N27 (c) failure was a fixture error, since fixed (genSession on a non-split day). FC03 rule: on a held lift, a completion whose Start is not proven after every holding record gets:
+  - PLAN_CHANGED [its Close Ref] when its Start captured a numeric load;
+  - otherwise the hold's own refusal and refs, never an adoption.
+- Expectation changes per :162, each commented in the file: FC12 R2-CONFLICT, R2-PERLIFT, R3-B2, R4-N24, N27 (a) and N27 earns-only; FA03 N27 (a). Each checked a completion closed before its hold on a numeric card and expected the hold code; each now expects PLAN_CHANGED [Close Ref] and still asserts the named hold on the fold or projection.
+- CONFLICT FOR THE PM: D1 :316 (a) still reads "Earn check on fx-press: the hold refusal, refs [the invalid record's Ref]". That check is on C2, which was closed before the hold on a numeric 100 card, so :162 and :316 (e) require PLAN_CHANGED [C2 Close Ref]. Round 14 follows :162.
+- N27 (c) B-R9-6, FC12 and FA03:
+  - Q105 (host: Q45) is accepted. The next session captured it but was performed at the old load, so nothing landed. An evidence set is then corrected, giving BASIS_REPAIR_REQUIRED.
+  - Undo refuses COMPENSATION_DESCENDANTS.
+  - Next card: the second lift is normal and the press is the baseline ask (w null, isDebutNow false). The host day prepares, so ENGINE_CAPTURE_BASELINE_UNPROVEN is never reached. Q is hidden.
+  - Cold replay is identical.
+  - Training at the old load offers adopt-baseline. Its yes gives w = that load, Q done/SUPERSEDED, spend kept.
+- N27 (e) device-B case: FC12 only. The single-installation host cannot produce an unlinked second-device completion.
+- Walk: I11 = an Undo of a DISPUTED APPLIED adoption must be issued on the applied state (base = applied w, target = the adoption's prior image), and its yes must restore that prior image. Half the corrections of an adopted completion now try that Undo at once.
+  - The I1 oracle was corrected for a yes rooted in a cancelled exit, whose prior image is null (seed 1006807, the first attempt; attempt files kept).
+  - 3 x 17,000 = 51,000 walks on the final test bytes 06059416, 0 counterexamples (r14\p14-17k-*.json 73191A83, 3D07BF01, E5ED29DA).
+  - Coverage: 160 disputed-applied Undos checked by I11, 103 refused COMPENSATION_DESCENDANTS, 4,167 exits offered and 2,887 accepted, 27,918 forged, 2,464 undos.
+- Mutants (r14\mutants-summary.txt BF60246A): 139 total, the round-13 set plus six R14 mutants; R13-check-after was re-anchored. 131 are killed by behaviour, including every R14 mutant:
+  - R14-g3-revert, FC12 and host;
+  - R14-g3-any-capture, killed by the N27 (e) device-B case;
+  - R14-undo-projection, FC12, host and PROPERTY.
+  LIVE, as in round 13: R7-canon-order, R7-canon-cut, R7-comp-any, R7-comp-reprice, R7-comp-reprice-host, R11-S8-adopt, R11-window-legacy-host. R12-decode-absent is still caught only by the byte pin and is equivalent.
+- Green: FC12 120/120 (r14\g4-fc12.txt DB451E48), FA03 35/35 (r14\g1-fa03.txt 9EB53A41). Full local set (80 files) vs 0e4fc74: 1135 tests, 67 failing in both, 0 new; base-only 1, the environmental checkout-guard row (r14\full-compare.txt 39A6BCD2). The base worktree was removed.
+- Round-14 sha256:
+  - native-load.cjs 52c15538...dee1 (596, unchanged; the revision is unchanged);
+  - native-load-effects.cjs 8b9a444d...f57f (928);
+  - engine-capture.cjs 94685ca4...3c15 (134, unchanged);
+  - today-bindings.mjs 4265e661...93db (1096, unchanged);
+  - today-entry.mjs bf94563e...a333 (773, unchanged);
+  - FC12 test 06059416...0ebc (2611);
+  - FA03 test e357d7eb...b313 (889).
+  All LF, no added non-ASCII.
+
+## Round 15 (UNCOMMITTED on 0e4fc74 with rounds 10-14; spec R9.4 a575692, accc0f5d): legacy entries hidden on held lifts
+- Spec delta vs R9.3 (r15\ldiff.txt A8165CC9):
+  - :159: the held projection hides EVERY unfinished debut/unlock entry of a held lift, native and legacy (D-R9-LEGACY-ENTRY).
+  - :173 and :227: the same wording.
+  - :316: (a) now reads PLAN_CHANGED [C2 Close Ref], which round 14 already built; (f) is added.
+- Red first:
+  - FC12 N27 (f), r15\red-fc12.txt 9DCBC131: the legacy DEBUT 110 was visible in the held projection.
+  - FA03 N27 (f), r15\red-fa03.txt CC0DDAFC: the same failure on the real host (legacy DEBUT 50).
+  - FC12 R15-LEGACY-ON-HELD, r15\red2-fc12.txt 3E5CD84B: a held lift with a pending legacy PROPOSED returned the hold's RECORD_INVALID where :162 requires LEGACY_PENDING.
+- Green: FC12 122/122 (r15\g4-fc12.txt 3AFA7EF1), FA03 36/36 (r15\g2-fa03.txt 95A7F08B).
+- FC03 changes:
+  - `projectHeld(state, lifts, { legacy })`. heldProjection, the registered projection used by capture, Today and FC08, passes legacy: true. It then also hides a held lift's UNFINISHED legacy entries of kind debut or unlock; finished entries stay visible.
+  - The check and the fold keep legacy entries visible. So on a held lift, exit (b) sees FC01's LEGACY_PENDING and now returns it by name (:162) instead of the hold refusal.
+  - Legacy entries stay in the fold state either way; nothing durable is written.
+- The host path exists. The host never writes a legacy entry, but the page's basis state can carry one, as migrated or imported legacy programmes do. FA03 N27 (f) uses that path:
+  - yes Q45, then a basis whose plan moved to 42.5 (the hold) and which carries a legacy DEBUT 50;
+  - the projection hides it;
+  - the D3 capture prepares, with demo-row at 40 and demo-press as the baseline ask;
+  - a cold reopen is identical.
+- Walk:
+  - The legacy action now goes to a held lift 70% of the time, as PROPOSED or DEBUT.
+  - I12 checks four things: the registered projection shows no unfinished debut/unlock entry of a held lift; legacy entries stay in the fold state; a held lift with a legacy entry is the baseline ask on its card (w null, isDebutNow false); and cold and two-device replays agree (the existing I3).
+  - I10b: a held lift carrying a pending legacy entry, trained again, is never offered the adoption. It replaces round 13's skip.
+  - 3 x 17,000 = 51,000 walks on the final test bytes d7f07d69, 0 counterexamples (r15\p15-17k-*.json F6381049, 3648A949, 7B43C08E). The first attempt's files are kept, marked attempt1.
+  - Coverage: 3,858 walk steps checked a held lift with a legacy entry; 480 legacy-held checks refused LEGACY_PENDING; 165 disputed-applied Undos; 4,153 exits offered and 2,884 accepted.
+- Mutants (r15\mutants-summary.txt B8AD194A): 147 total, the round-14 set with R13-project-queue re-anchored plus 8 R15. 139 are killed by behaviour, including all 8 R15 mutants:
+  - legacy-hide, in FC12, on the host and in PROPERTY (I12);
+  - legacy-kinds;
+  - legacy-done;
+  - legacy-everywhere;
+  - legacy-pending, twice; in PROPERTY only the R15-LEGACY-ON-HELD row kills it, because I10b asserts that no adoption is offered, not the refusal's name.
+  LIVE: the seven accepted in round 14. R12-decode-absent is still caught only by the byte pin.
+- Full local set (80 files) vs 0e4fc74: 1135 tests, 67 failing in both, 0 new, 0 base-only (r15\full-compare.txt 8C94BD33). The base worktree was removed.
+- Round-15 sha256:
+  - native-load.cjs 52c15538...dee1 (596, unchanged since round 13; PRODUCER_REVISION 75575de7 unchanged);
+  - native-load-effects.cjs 5ab5406b...4fc1 (937);
+  - engine-capture.cjs 94685ca4...3c15 (134);
+  - today-bindings.mjs 4265e661...93db (1096);
+  - today-entry.mjs bf94563e...a333 (773);
+  - FC12 test d7f07d69...033d (2673);
+  - FA03 test 76e56ec3...1510 (889 -> 911).
+  All LF, no added non-ASCII.
+
+## REVIEW INDEX: the R9.4 build as it stands after round 15 (for a fresh independent review of rounds 10-15)
+- Base and scope:
+  - Rounds 10-15 are uncommitted on 0e4fc74, which holds rounds 1-9; the owner grant is DECISIONS:784-785.
+  - Spec: rebuild/coach/NATIVE-LOAD-SPEC.md R9.4 at origin/rebuild/c-native-load-spec a575692 (sha256 accc0f5d).
+  - Engine bytes touched: only the NATIVE-LOAD FC set.
+  - No new user copy. The round-4 PROPOSED copy constant awaits Joe.
+- Files and roles. For each, which spec lines it implements; the sha256s are in the round-15 bullet above.
+  - FC01 rebuild/engine/native-load.cjs (the evaluator and transition):
+    - :156 DERIVABLE, including c1 wrappers, c2 issuance projection, c3 by kind, supported wSets, and RESTORE/RETIRE by record shape;
+    - issuance refusal of an unsupported wSets;
+    - PRODUCER_REVISION bound to the engine bytes (R2-REVISION).
+  - FC03 rebuild/m4/workout/native-load-effects.cjs (fold and check):
+    - :127 window binding, earn branch only, after step 3;
+    - :155 S1-S8;
+    - :157 admission gate;
+    - :158-163 NO TRAP: holds, held projection (with the R9.4 legacy hide), exit (a) on the applied state, exit (b) proven after every holding record, :162 named refusals, LEGACY_PENDING kept;
+    - log-ordered RECORD_INVALID holds;
+    - :160 unprovable-order conflicts.
+  - FC08 rebuild/m3/w6/local/today-bindings.mjs: the host; its registrar and project() read FC03's heldProjection; the day is never refused.
+  - FA02 rebuild/m3/w7-preview/today/today-entry.mjs: the panel; it lists Undo only where FC01 allows it, otherwise the offer; a superseded hold is never a notice.
+  - FC16 rebuild/m4/workout/engine-capture.cjs :91: window_hi on reps cells (unchanged since round 11).
+  - FC12 rebuild/m4/spec/native-load-options.test.cjs: 122 rows plus the R8-PROPERTY walk (invariants I1-I12, I10b).
+  - FA03 rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs: 36 real-host rows.
+- Interpretations a reviewer should check against the spec:
+  1. Exit (b) is adopt-baseline only. An earlier adopt-observed on a held weight stays its dependent (R7-P1, spec :161).
+  2. "After" is proven by causality or by one device's own sequence (:161). A fold-side exit also accepts a holding record proven before the adopted completion's Start, when that Start precedes the response (R13-EXIT-ORDER).
+  3. An exit records the projection (w null) as its base. A later base-w change neither conflicts with it nor stales an offer rooted in it, and its Undo restores w null (:161).
+  4. RECORD_INVALID holds apply from the invalid record's place in the log. A record proven before every copy of it is not held back.
+  5. :162 applies to completions not proven after the holds. A completion after the holds that captured a numeric card, which the host cannot produce, keeps the hold refusal.
+  6. Legacy entries: hidden only in the registered projection. The check and the fold still see them, so LEGACY_PENDING is named.
+- Model conventions in the walk, each commented in the file:
+  - a baseline-ask Start names the plan ops it folded as causal parents;
+  - a second-device copy names the ops it synced;
+  - the two-device layout's device-B sequence follows its causal chain;
+  - exit ledger entries follow interpretation 3;
+  - I10 skips only an unattributable hold and a completion dated before a declared fork.
+- Known LIVE mutants and why:
+  - R7-canon-order, R7-canon-cut, R7-comp-any, R7-comp-reprice(-host): alternative-body canonicalisation; no distinguishing input found (accepted since round 12).
+  - R11-S8-adopt: equivalent to DERIVABLE's adoption clause.
+  - R11-window-legacy-host: the host writes FC16 only.
+  - R12-decode-absent: pin-only; equivalent under R9.2+ (ABSENT and null decode alike after c1).
+- Residuals and named debts (spec :392): D-R9-RECOVERY-SCOPE, D-R9-ADMISSION (the actual import path, FC09/FC10 unbuilt), D-R9-CAPTURE, D-R9-EDIT/RECOVERY, D-R9-DELIVERY.
+  - Host-unreachable cases are shown in FC12 only: the early-cut record (T2 refuses it), a second device, and a numeric card closed after a hold.
+  - A lift the athlete never trains again stays held; this is harmless (:163).
+- How to reproduce, from C:\Users\joeym\AppData\Local\Temp\nlr-build; every script takes %TEMP%\earned-runtime.lock:
+  - run.ps1 -Tests <file>: FC12, FA03 and the full list (local-candidates.txt);
+  - r8\run-prop8.ps1 -Runs 17000 -Seed <s> -All: the walk;
+  - r15\mutants.ps1: the mutants;
+  - hygiene.cjs: LF and ASCII.
+  The protected five are never loaded (guard.cjs).
