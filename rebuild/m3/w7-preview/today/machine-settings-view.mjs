@@ -8,19 +8,20 @@
 // refusal.
 //
 // IT OWNS NO VALIDATOR EITHER (brief section 2, mutants S-M4/S-M5). The only gate on a
-// capture is `machineOf` from rebuild/coach/machine-settings-commands.cjs, imported and
-// CALLED here to decide whether the page may offer to save - so the page's refusal and
-// the producer's refusal are the same decision, taken once, and there is no second
-// shape anywhere in this page's own folder.
+// capture is `machineOf` from rebuild/coach/machine-settings-commands.cjs. The exact
+// conversion/gate helpers are re-exported here for compatibility, but their bodies and
+// their only save-path call now live inside the sealed settings lane.
 //
 // NOTHING IS INTERPRETED. "four" stays "four". The rows are trimmed of surrounding
 // space (an empty box is an absent answer, not the string " ") and handed on in the
 // order the athlete gave them; no unit is added, no number parsed, no row sorted.
 import MachineSettings from '../../../coach/machine-settings-commands.cjs';
+import { machineFromDraft, acceptable } from './gym-settings-lane.mjs';
 
-const { machineOf, SETTINGS_MAX } = MachineSettings;
+const { SETTINGS_MAX } = MachineSettings;
 
 export const MAX_ROWS = SETTINGS_MAX;
+export { machineFromDraft, acceptable };
 
 /* The editor's transient state. Seeded from what is stored so a correction starts from
    the settings he already has rather than from an empty form; a lift with nothing
@@ -31,29 +32,6 @@ export function draftFrom(latest) {
     ? machine.settings.map((pair) => ({ name: pair.name, value: pair.value }))
     : [{ name: '', value: '' }];
   return { rows, cues: (machine && typeof machine.cues === 'string' ? machine.cues : '') };
-}
-
-/* The draft as the producer's `machine`, with empty rows dropped rather than sent as
-   blanks. Returns null when the draft says nothing at all, which is the one refusal
-   the page can name before the producer is asked. */
-export function machineFromDraft(draft, exerciseId) {
-  const out = { exercise_id: typeof exerciseId === 'string' ? exerciseId : '' };
-  const rows = (draft && Array.isArray(draft.rows) ? draft.rows : [])
-    .map((row) => ({ name: String(row.name || '').trim(), value: String(row.value || '').trim() }))
-    .filter((row) => row.name !== '' || row.value !== '');
-  if (rows.length) out.settings = rows;
-  const cues = String((draft && draft.cues) || '').trim();
-  if (cues) out.cues = cues;
-  if (!Object.hasOwn(out, 'settings') && !Object.hasOwn(out, 'cues')) return null;
-  return out;
-}
-
-/* THE ONE GATE, which is the producer's. `machineOf` either returns the canonical
-   object or throws its named code; nothing here re-implements what it checks. */
-export function acceptable(machine) {
-  if (!machine) return false;
-  try { machineOf(JSON.parse(JSON.stringify(machine))); return true; }
-  catch (_) { return false; }
 }
 
 /* The stored settings, verbatim and in the stored order. `put` is the caller's slot

@@ -95,10 +95,13 @@ const SETTINGS_COPY = Object.freeze({
    is cleared, and a caller that passes nothing gets a fresh one — which is exactly
    what every existing caller and every A2 test does. */
 export function newGymDraft() { return { effort: null, entry: { load: null, reps: null } }; }
+/* A supplied gym draft is the public lifetime of one transient card across remounts.
+   Keep the settings editor's editable state beside that object, never inside the
+   durable payload and never with its old token or control authority. */
+const SETTINGS_DRAFT_CARRY = new WeakMap();
 
 export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draft, settings } = {}) {
   if (!phone) throw new Error('Gym card: no host element');
-  let busy = false;
   /* D2 round 2, R2-1 - see `show`. True while THIS mount is the screen on the phone. */
   let owns = true;
   /* Navigation, of every kind: ownership is handed over BEFORE the page moves, so a
@@ -107,6 +110,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
      to a mount that is no longer the screen. */
   function leaveCard(go) {
     owns = false;
+    hooks.leave();
     return go();
   }
   const held = draft && typeof draft === 'object' ? draft : newGymDraft();
@@ -123,20 +127,30 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
      an encrypted store keeps exactly the card it has today: the block and the
      editor stay hidden, nothing is captured, and no jsdom mount in this repository
      changes, because jsdom has no indexedDB. Tests inject `settings` directly. */
-  /* THE SPLIT (spec B.9, DECISIONS:550 S-R4 and S-R12). What crosses is three frozen
-     objects and nothing else: `facade`, the read-only view of the sealed state; `hooks`,
-     the callback table, which is the only way released code changes it; and `painter`,
-     the paint handle, which is how the seal repaints the card. The gym seal touches ONE
-     released name, paint, at two call sites, which is why the handle has one entry and
-     not the two B.9 predicted: `owns` is named nowhere in the moved regions, and the
-     census is what says so. */
+  /* The card receives detached reads through `facade`, lifecycle and sealed bindings
+     through `hooks`, and the exactly pinned public passthrough through `api`. The lane
+     receives only this phone and the one-entry repaint handle; writer commands and editor
+     identities stay private to it. */
   const painter = Object.freeze({ repaint: () => paint() });
-  const { facade, hooks } = createGymSettingsLane(doc, model, settings, painter);
+  const { facade, hooks, api } = createGymSettingsLane(doc, phone, model, settings, painter);
   let settingsDraft = null;       // non-null only while the editor is open
+  let settingsDraftStart = null;  // the actual workout this editor belongs to
   let settingsDraftLift = null;   // the lift that draft belongs to
+  let settingsEditorToken = null;
+  let settingsDraftRevision = 0;  // input identity inside one editor token
   // A repaint replaces DOM nodes, not the draft's refusal. Weak keys also keep a
   // delayed result from assigning the old draft's message to a replacement draft.
   const settingsErrors = new WeakMap();
+  const settingsSubmittedRevisions = new WeakMap();
+  const clearSettingsCarry = () => SETTINGS_DRAFT_CARRY.delete(held);
+  const rememberSettings = (view, error) => {
+    if (!owns || !settingsDraft || !view || typeof view.startId !== 'string'
+      || !view.lift || typeof view.lift.id !== 'string') return;
+    SETTINGS_DRAFT_CARRY.set(held, Object.freeze({ startId: view.startId, liftId: view.lift.id,
+      draft: { rows: settingsDraft.rows.map((row) => ({ name: row.name, value: row.value })),
+        cues: settingsDraft.cues }, revision: settingsDraftRevision,
+      error: typeof error === 'string' ? error : '' }));
+  };
 
 
 
@@ -201,7 +215,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     put(map, 'workout-title', view.title || head);
     put(map, 'stub-note', note);
     put(map, 'workout-detail', detail || '');
-    root.querySelector('[data-go="today"]').addEventListener('click', event => {
+    hooks.listen(root.querySelector('[data-go="today"]'), 'click', event => {
       event.preventDefault(); leaveCard(() => onBack());
     });
     icons(root);
@@ -213,10 +227,10 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   function settingsPaint(root, map, view) {
     const block = map.get('settings-block');
     const editor = map.get('settings-editor');
-    if (!block || !editor) return;
-    if (!facade.lane()) { block.hidden = true; editor.hidden = true; hooks.open(); return; }
+    if (!block || !editor) return null;
+    if (!facade.available()) { block.hidden = true; editor.hidden = true; hooks.open(); return null; }
     const liftId = view.lift && typeof view.lift.id === 'string' ? view.lift.id : null;
-    if (!liftId) { block.hidden = true; editor.hidden = true; return; }
+    if (!liftId) { block.hidden = true; editor.hidden = true; return null; }
     /* NOT AWAITED. The read is started here and its answer arrives in its own repaint;
        this function, and therefore the whole card, is finished either way. */
     if (!facade.hasRead(liftId)) hooks.startRead(liftId);
@@ -227,65 +241,105 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const openControl = root.querySelector('[data-action="settings-open"]');
     /* UNTIL THE READ ANSWERS, THERE IS NOTHING TO CORRECT (finding 2). Offering the
        editor here would seed it from a null the athlete never chose. */
-    if (state !== 'known') { openControl.disabled = true; editor.hidden = true; return; }
+    if (state !== 'known') { openControl.disabled = true; editor.hidden = true; return null; }
     openControl.disabled = false;
-    openControl.addEventListener('click', () => {
-      settingsDraft = MachineSettingsView.draftFrom(latest);
+    if (!settingsDraft || !settingsEditorToken) {
+      const carried = SETTINGS_DRAFT_CARRY.get(held);
+      if (carried && carried.startId === view.startId && carried.liftId === liftId) {
+        const reopened = hooks.settingsEditOpened();
+        if (reopened) {
+          settingsEditorToken = reopened.editorToken;
+          settingsDraft = { rows: carried.draft.rows.map((row) => ({ name: row.name, value: row.value })),
+            cues: carried.draft.cues };
+          settingsDraftStart = carried.startId;
+          settingsDraftLift = carried.liftId;
+          settingsDraftRevision = carried.revision;
+          if (carried.error) settingsErrors.set(settingsEditorToken, carried.error);
+          rememberSettings(view, carried.error);
+        }
+      } else if (carried) clearSettingsCarry();
+    }
+    hooks.listen(openControl, 'click', () => {
+      const opened = hooks.settingsEditOpened();
+      if (!opened) return;
+      settingsEditorToken = opened.editorToken;
+      settingsDraft = MachineSettingsView.draftFrom(opened.latest);
+      settingsDraftStart = view.startId;
       settingsDraftLift = liftId;
+      settingsDraftRevision = 0;
+      rememberSettings(view, '');
       paint();
     });
-    if (!settingsDraft || settingsDraftLift !== liftId) { editor.hidden = true; return; }
+    if (!settingsDraft || !settingsEditorToken || settingsDraftLift !== liftId) {
+      editor.hidden = true;
+      return null;
+    }
     editor.hidden = false;
     const paintedDraft = settingsDraft;
+    const paintedToken = settingsEditorToken;
     MachineSettingsView.renderEditor(doc, map, { copy: SETTINGS_COPY, draft: paintedDraft, put,
-      onChanged: () => { paint(); } });
-    map.get('settings-error').textContent = plainOrDrop(settingsErrors.get(paintedDraft) || '', 'settings-error');
-    root.querySelector('[data-action="settings-cancel"]').addEventListener('click', () => {
+      onChanged: () => {
+        if (settingsDraft !== paintedDraft || settingsEditorToken !== paintedToken) return;
+        settingsDraftRevision += 1;
+        rememberSettings(view, settingsErrors.get(paintedToken) || '');
+        paint();
+      } });
+    hooks.listen(editor, 'input', () => {
+      if (settingsDraft === paintedDraft && settingsEditorToken === paintedToken
+        && editor.isConnected && phone.contains(editor)) {
+        settingsDraftRevision += 1;
+        rememberSettings(view, settingsErrors.get(paintedToken) || '');
+      }
+    });
+    map.get('settings-error').textContent = plainOrDrop(settingsErrors.get(paintedToken) || '', 'settings-error');
+    hooks.listen(root.querySelector('[data-action="settings-cancel"]'), 'click', () => {
       /* CANCELLING WRITES NOTHING. The draft is thrown away and the durable record is
          whatever it already was; the athlete is returned to the block. */
-      if (settingsDraft !== paintedDraft) return;
-      settingsDraft = null; settingsDraftLift = null; paint();
+      if (!owns || settingsDraft !== paintedDraft || settingsEditorToken !== paintedToken) return;
+      hooks.settingsEditClosed(paintedToken);
+      settingsDraft = null; settingsDraftStart = null; settingsDraftLift = null; settingsEditorToken = null;
+      clearSettingsCarry();
+      settingsDraftRevision = 0; paint();
     });
-    map.get('settings-save').addEventListener('click', () => {
-      hooks.saving(recordSettings(map, view, paintedDraft));
-    });
-  }
-
-  /* ONE op through the coach's producer (brief section 2). Both refusals below are
-     decided BEFORE anything is written, and the second of them is the producer's own
-     gate called through machine-settings-view.mjs - there is no validator here. */
-  async function recordSettings(map, view, submittedDraft) {
-    if (!owns || !submittedDraft || settingsDraft !== submittedDraft
-      || settingsDraftLift !== view.lift.id) return;
-    const refuse = (message) => {
-      settingsErrors.set(submittedDraft, message);
-      if (!owns || settingsDraft !== submittedDraft || settingsDraftLift !== view.lift.id) return;
-      // The map captured by Save may already be detached by another repaint.
-      const current = phone.querySelector('[data-slot="settings-error"]');
-      if (current) current.textContent = plainOrDrop(message, 'settings-error');
-    };
-    const machine = MachineSettingsView.machineFromDraft(submittedDraft, view.lift.id);
-    if (!machine) { refuse(SETTINGS_NOTHING); return; }
-    if (!MachineSettingsView.acceptable(machine)) {
-      refuse(SETTINGS_REFUSED);
-      return;
-    }
     const save = map.get('settings-save');
-    save.disabled = true;
-    let result = null;
-    try { result = await facade.lane().save(machine); }
-    finally { save.disabled = false; }
-    if (!result || result.ok !== true) {
-      refuse(SETTINGS_NOT_SAVED);
-      return;
-    }
-    if (settingsDraft === submittedDraft && settingsDraftLift === view.lift.id) {
-      settingsDraft = null; settingsDraftLift = null;
-    }
-    /* The capture is durable now, so the cached read for this lift is stale: drop it
-       and read the LOG again rather than painting what this mount remembers. */
-    hooks.dropRead(view.lift.id);
-    await hooks.startRead(view.lift.id);
+    save.disabled = facade.settingsBusy();
+    return () => hooks.bindSettingsSave(paintedToken,
+      () => {
+        settingsSubmittedRevisions.set(paintedToken, settingsDraftRevision);
+        return { rows: paintedDraft.rows, cues: paintedDraft.cues, revision: settingsDraftRevision };
+      }, async (outcome) => {
+        if (!outcome || outcome.kind === 'ignored') return;
+        if (outcome.editorToken !== paintedToken) return;
+        if (outcome.kind === 'saved') {
+          if (settingsEditorToken === paintedToken) {
+            const submittedRevision = settingsSubmittedRevisions.get(paintedToken);
+            const revised = Number.isSafeInteger(submittedRevision)
+              && settingsDraftRevision !== submittedRevision;
+            if (revised) {
+              const message = settingsErrors.get(paintedToken) || '';
+              const reopened = hooks.settingsEditOpened();
+              if (!reopened) return;
+              settingsEditorToken = reopened.editorToken;
+              if (message) settingsErrors.set(settingsEditorToken, message);
+              rememberSettings(view, message);
+            } else {
+              settingsDraft = null; settingsDraftStart = null; settingsDraftLift = null; settingsEditorToken = null;
+              clearSettingsCarry();
+              settingsDraftRevision = 0;
+            }
+          }
+          await paint();
+          return;
+        }
+        const message = outcome.kind === 'not-saved' ? SETTINGS_NOT_SAVED
+          : outcome.reason === 'empty' ? SETTINGS_NOTHING : SETTINGS_REFUSED;
+        settingsErrors.set(paintedToken, message);
+        rememberSettings(view, message);
+        const current = phone.querySelector('[data-slot="settings-error"]');
+        if (owns && settingsEditorToken === paintedToken && current) {
+          current.textContent = plainOrDrop(message, 'settings-error');
+        }
+      });
   }
 
   /* ---------------- the active set ---------------- */
@@ -301,13 +355,13 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     lines(reasonHost, showWhy ? all : all.slice(0, 1), 'change');
     const why = root.querySelector('[data-action="why"]');
     why.closest('.change').hidden = all.length < 2;
-    why.addEventListener('click', () => { showWhy = !showWhy; paint(); });
+    hooks.listen(why, 'click', () => { showWhy = !showWhy; paint(); });
 
     const setupNote = map.get('setup-note');
     const setupLink = root.querySelector('[data-action="setup"]');
     if (view.prescription.setup) {
       lines(setupNote, showSetup ? [view.prescription.setup] : [], 'small quiet');
-      setupLink.addEventListener('click', () => { showSetup = !showSetup; paint(); });
+      hooks.listen(setupLink, 'click', () => { showSetup = !showSetup; paint(); });
     } else { setupLink.hidden = true; setupNote.hidden = true; }
 
     const strip = map.get('strip');
@@ -325,7 +379,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
 
     put(map, 'plan', view.prescription.line);
     put(map, 'effort-target', view.prescription.effort);
-    settingsPaint(root, map, view);
+    const bindSettings = settingsPaint(root, map, view);
     put(map, 'entry-title', 'What you did · Set ' + view.set.position);
     put(map, 'previous', view.previous);
 
@@ -333,13 +387,13 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const reps = root.querySelector('#gym-reps');
     load.value = held.entry.load === null ? (view.entry.load === null ? '' : String(view.entry.load)) : held.entry.load;
     reps.value = held.entry.reps === null ? (view.entry.reps === null ? '' : String(view.entry.reps)) : held.entry.reps;
-    load.addEventListener('input', () => { held.entry.load = load.value; });
-    reps.addEventListener('input', () => { held.entry.reps = reps.value; });
+    hooks.listen(load, 'input', () => { held.entry.load = load.value; });
+    hooks.listen(reps, 'input', () => { held.entry.reps = reps.value; });
     for (const button of root.querySelectorAll('[data-step]')) {
       const [field, direction] = button.dataset.step.split(':');
       const size = field === 'load' ? (view.entry.step === null ? null : view.entry.step) : 1;
       if (size === null) { button.disabled = true; continue; }
-      button.addEventListener('click', () => {
+      hooks.listen(button, 'click', () => {
         const box = field === 'load' ? load : reps;
         const current = Number(box.value);
         const next = (Number.isFinite(current) ? current : 0) + Number(direction) * size;
@@ -357,7 +411,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       button.textContent = plainOrDrop(choice.label, 'effort-choice');
       // NOTHING is preselected: every answer starts aria-pressed="false".
       button.setAttribute('aria-pressed', String(!!held.effort && held.effort.label === choice.label));
-      button.addEventListener('click', () => {
+      hooks.listen(button, 'click', () => {
         held.effort = choice;
         for (const other of choices.querySelectorAll('.choice')) other.setAttribute('aria-pressed', String(other === button));
         root.querySelector('#gym-error').textContent = '';
@@ -372,24 +426,19 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     if (toCheckIn) {
       toCheckIn.hidden = typeof onCheckIn !== 'function';
       if (typeof onCheckIn === 'function') {
-        toCheckIn.addEventListener('click', () => leaveCard(() => onCheckIn()));
+        hooks.listen(toCheckIn, 'click', () => leaveCard(() => onCheckIn()));
       }
     }
 
     const help = root.querySelector('[data-action="clean-rep"]');
     const helpNote = map.get('clean-rep-note');
     lines(helpNote, showHelp ? CLEAN_REP_HELP : [], 'small quiet');
-    help.addEventListener('click', () => { showHelp = !showHelp; paint(); });
+    hooks.listen(help, 'click', () => { showHelp = !showHelp; paint(); });
 
     put(map, 'log-label', 'Log set ' + view.set.position);
-    const button = map.get('log');
-    button.addEventListener('click', async event => {
-      event.preventDefault();
-      if (busy) return;
-      busy = true;
-      const result = await model.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
-        load: load.value.trim(), reps: reps.value.trim(), effort: held.effort && held.effort.reserve });
-      busy = false;
+    const logOutcome = async (outcome) => {
+      if (!outcome || outcome.kind !== 'gym-result' || outcome.action !== 'logSet') return;
+      const result = outcome.result;
       if (!result.ok) {
         root.querySelector('#gym-error').textContent = plainOrDrop(refusalText(result), 'gym-error');
         return;
@@ -398,22 +447,23 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       held.effort = null; showWhy = false; showSetup = false; showHelp = false;
       await paint();
       if (onChanged) onChanged();
-    });
+    };
 
     const upNext = view.upNext;
     put(map, 'up-next', upNext ? upNext.label : '');
     if (!upNext) root.querySelector('.next-lift').hidden = true;
 
-    root.querySelector('[data-action="back"]').addEventListener('click', () => leaveCard(() => onBack()));
+    hooks.listen(root.querySelector('[data-action="back"]'), 'click', () => leaveCard(() => onBack()));
     if (view.message) root.querySelector('#gym-error').textContent = plainOrDrop(refusalText(view.message), 'gym-error');
     icons(root);
     show(root);
+    if (bindSettings) bindSettings();
+    hooks.bindGymAction('logSet', () => ({ load: load.value, reps: reps.value, effort: held.effort }), logOutcome);
   }
 
-  async function finishNow(view) {
-    busy = true;
-    const result = await model.finish({ startId: view.startId });
-    busy = false;
+  async function finishOutcome(view, outcome) {
+    if (!outcome || outcome.kind !== 'gym-result' || outcome.action !== 'finish') return;
+    const result = outcome.result;
     if (!result.ok) { refusalScreen(view, result); return; }
     if (onChanged) onChanged();
     leaveCard(() => onBack());
@@ -436,12 +486,12 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     put(map, 'next-plan', '');
     put(map, 'next-effort', '');
     put(map, 'primary-label', FINISH_WORKOUT);
-    map.get('primary').addEventListener('click', () => { if (!busy) finishNow(view); });
     for (const el of root.querySelectorAll('[data-action="back"]')) {
-      el.addEventListener('click', () => leaveCard(() => onBack()));
+      hooks.listen(el, 'click', () => leaveCard(() => onBack()));
     }
     icons(root);
     show(root);
+    hooks.bindGymAction('finish', () => undefined, (outcome) => finishOutcome(view, outcome));
   }
 
   /* ---------------- the saved set and the rest ---------------- */
@@ -464,26 +514,24 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     put(map, 'next-effort', next ? next.effort : '');
 
     put(map, 'primary-label', next ? 'Ready for set ' + next.position : FINISH_WORKOUT);
-    map.get('primary').addEventListener('click', async () => {
-      if (busy) return;
-      if (next) { model.forget(); await paint(); return; }
-      await finishNow(view);
-    });
-
-    root.querySelector('[data-action="undo"]').addEventListener('click', async () => {
-      if (busy) return;
-      busy = true;
-      const result = await model.undo({ startId: view.startId, opId: view.saved.opId });
-      busy = false;
+    const primaryOutcome = async (outcome) => {
+      if (next) { await paint(); return; }
+      await finishOutcome(view, outcome);
+    };
+    const undoOutcome = async (outcome) => {
+      if (!outcome || outcome.kind !== 'gym-result' || outcome.action !== 'undo') return;
+      const result = outcome.result;
       if (!result.ok) { put(map, 'rest-note', refusalText(result)); return; }
       await paint();
       if (onChanged) onChanged();
-    });
+    };
     for (const el of root.querySelectorAll('[data-action="back"]')) {
-      el.addEventListener('click', () => leaveCard(() => onBack()));
+      hooks.listen(el, 'click', () => leaveCard(() => onBack()));
     }
     icons(root);
     show(root);
+    hooks.bindGymAction(next ? 'forget' : 'finish', () => undefined, primaryOutcome);
+    hooks.bindGymAction('undo', () => undefined, undoOutcome);
   }
 
   /* The layer's own words, each part exactly ONCE (review B1). Several accepted
@@ -508,14 +556,30 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
        the screen, and answered after the athlete left it, paints nothing. The read
        still resolves and is still cached; it simply has no surface to claim. */
     if (!owns) return null;
-    const view = await model.read();
+    const view = await hooks.readView();
     if (!owns) return null;
-    if (view.phase === 'blocked') return refusalScreen(view, view);
-    if (view.phase === 'finished') return stub(view, WORKOUT_RECORDED,
-      view.sets + (view.sets === 1 ? ' set' : ' sets') + ' recorded', WORKOUT_RECORDED_TODAY);
+    if (!view) return null;
+    const viewLift = view.lift && typeof view.lift.id === 'string' ? view.lift.id : null;
+    const viewStart = typeof view.startId === 'string' ? view.startId : null;
+    const sameSettingsContext = settingsDraftLift === viewLift && settingsDraftStart === viewStart;
+    if (settingsEditorToken && (view.phase !== 'active' || !sameSettingsContext)) {
+      /* Saved is a temporary screen inside the same workout/lift. Its lane view has
+         already retired the old editor token, so retain only a detached draft and
+         let the next active view mint fresh editor authority. Every other departure
+         clears the carry exactly as before. */
+      const carryAcrossSaved = view.phase === 'saved' && sameSettingsContext;
+      if (carryAcrossSaved) rememberSettings(view, settingsErrors.get(settingsEditorToken) || '');
+      hooks.settingsEditClosed(settingsEditorToken);
+      settingsDraft = null; settingsDraftStart = null; settingsDraftLift = null; settingsEditorToken = null;
+      if (!carryAcrossSaved) clearSettingsCarry();
+      settingsDraftRevision = 0;
+    }
+    if (view.phase === 'blocked') return hooks.paint(() => refusalScreen(view, view));
+    if (view.phase === 'finished') return hooks.paint(() => stub(view, WORKOUT_RECORDED,
+      view.sets + (view.sets === 1 ? ' set' : ' sets') + ' recorded', WORKOUT_RECORDED_TODAY));
     if (view.phase === 'ready') {
       const started = await model.start();
-      if (!started.ok) return refusalScreen(view, started);
+      if (!started.ok) return hooks.paint(() => refusalScreen(view, started));
       if (onChanged) onChanged();
       return paint();
     }
@@ -525,11 +589,11 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
        reads the log per exercise id, started from settingsPaint and applied in its own
        repaint, so the card renders and the set is logged whether that read is pending,
        finished or failed. */
-    if (view.phase === 'saved') return renderSaved(view);
+    if (view.phase === 'saved') return hooks.paint(() => renderSaved(view));
     /* Every slot recorded but no saved set to show — reachable once a skip is wired
        (A3/A4): offer the finish rather than crashing on an absent active slot. */
-    if (view.phase === 'complete') return renderComplete(view);
-    return renderActive(view);
+    if (view.phase === 'complete') return hooks.paint(() => renderComplete(view));
+    return hooks.paint(() => renderActive(view));
   }
 
   /* The first paint, as every existing caller already awaits. The settings handles
@@ -538,13 +602,13 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
      event loop, and a check that polls the log needs to know when it has settled. */
   const first = paint();
   first.settings = Object.freeze({
-    pending: () => facade.pending(),
-    ready: () => facade.ready(),
-    lane: () => facade.lane(),
+    pending: () => api.pending(),
+    ready: () => api.ready(),
+    lane: () => api.lane(),
     /* The optional read, exposed so a CHECK can wait for it. Nothing on the card
        waits for it, which is the whole point of finding 1. */
-    read: () => facade.reading(),
-    stateFor: (liftId) => facade.stateFor(liftId),
+    read: () => api.read(),
+    stateFor: (liftId) => api.stateFor(liftId),
     /* D2 round 2, R2-1 - whether THIS mount is still the screen on the phone. */
     owns: () => owns,
   });
