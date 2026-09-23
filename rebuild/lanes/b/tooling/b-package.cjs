@@ -174,7 +174,11 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // reason S8 sits behind S7: DECISIONS:455 makes each reseal child the previous package's
 // own child, and DECISIONS:536 dispatches this one. Without the id here the argv gate at
 // :581 refuses `--package S9` outright, before a byte of its spec is read.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'B1', 'B2', 'B4', 'B3'];
+// S10 ADDS 'S10', directly behind S9 and still ahead of B1, for the same reason S9 sits
+// behind S8: DECISIONS:455 makes each reseal child the previous package's own child, and
+// DECISIONS:792 orders this registration (S10-WORKING-BRIEF.md c58b892). Without the id here
+// the argv gate refuses `--package S10` outright, before a byte of its spec is read.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'B1', 'B2', 'B4', 'B3'];
 // RETIRED IDS, and why this list has to exist at all. Removing an id from IDS and deleting
 // its spec file are ONE act - DECISIONS:487 stop 2 orders both for B-LOM - but TOOLING_FILES
 // below is derived from IDS, so the moment the id goes the deleted path stops being named
@@ -321,7 +325,12 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // delta is the accepted C-UI and carried-lane diff plus the two paths DECISIONS:536
 // releases, slice-plan work under DECISIONS:455 with no register D-id. It is an S- id, so
 // the shape assertion below admits it without a PM by-name ruling.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']);
+// 'S10' is in for the same reason a seventh time: a reseal whose product delta is the
+// accepted Today split, the accepted gym-settings writer and the EPP repair with D-EPP-2
+// riding with it (DECISIONS:662, :765, :780 Q3, :785, :791), slice-plan work under
+// DECISIONS:455 with no register D-id. It is an S- id, so the shape assertion below admits
+// it without a PM by-name ruling.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).
@@ -486,7 +495,13 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
   'rebuild/lanes/d/p3-real-shape/',
   'rebuild/lanes/d/p3-layout-v2/', 'rebuild/lanes/c/p3-today-hotfix/',
   'rebuild/lanes/c/passphrase-normalize/', 'rebuild/lanes/c/s9-today-carry/',
-  'rebuild/lanes/c/ui-port/', 'rebuild/lanes/d/f2/'];
+  'rebuild/lanes/c/ui-port/', 'rebuild/lanes/d/f2/',
+// ---- S10's one stands at the END, below S9's six: a widening ADDS, it never re-orders.
+// rebuild/lanes/c/today-split/ holds the accepted Today split's writer fence, declared new
+// by S10. S10-WORKING-BRIEF.md section 4.2 owes the fence a CI home; a declared child
+// mirrors that step, and childArgv() judges every target against this list. The root is
+// NOT added to PUBLIC_TAIL_ROOTS: a root earns a tail by being argued for.
+  'rebuild/lanes/c/today-split/'];
 // S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS (DECISIONS:467 process note 2, ticket
 // CI-TODAY-CHILD-FLAKE). Narrower than CHILD_ROOTS above on purpose: CHILD_ROOTS is every
 // root ANY declared child of ANY B package may execute from, including
