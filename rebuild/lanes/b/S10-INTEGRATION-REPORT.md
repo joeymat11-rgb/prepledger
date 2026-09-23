@@ -1,4 +1,4 @@
-# S10 integration report, round 2 (builder claude-opus-5-5, 2026-09-23)
+# S10 integration report, rounds 2 and 3 (builder claude-opus-5-5, 2026-09-23)
 Worktree %TEMP%\earned-s10int, branch rebuild/b-s10-integration; round 1 pushed by the PM at 7f8b228; round 2 is local commits only, nothing pushed.
 Parent: S9 CANDIDATE 6dc2596 (NOT sealed; every S10-WORKING-BRIEF.md c58b892 s.2.1 value is still a STOP). Rulings: DECISIONS:792 at 25c9276.
 Local runs: Windows, Node v24.19.0 (CI uses 22), runtime lock, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, preload guard that throws before any require/import/read of the protected five; guard log empty in every run.
@@ -33,21 +33,34 @@ S10.json coverage.superseded: the five parent carriers (nine gates), evidence s1
 Where the pin bites: qualify() compares mapping.source_pins to SOURCE_PINS (both from this module), so at runtime nothing reads disk; the disk check is engine-provider.test.cjs:136-154 (S3-PROVIDER-ENGINE-PINS): :143 SOURCE_PINS[f] == sha(disk), :144 manifest == sha(disk), for merge.cjs, today.cjs, engine-runtime.cjs. That cell reads merge.cjs (protected): CI-only.
 Red-first by scratch probe of its today.cjs clause only (%TEMP%\opus55-s10build\probe-lsp.cjs, not committed): before 26d39a2 FAIL (pin 685f6e1e, disk b4ebee3c, manifest b4ebee3c); after PASS. Note: production-mapping.cjs:228 embeds Profile.SOURCE_PINS, so the production mapping's source_pins (and its context digest) move with this pin; MAPPING_ID is ENGINE_REVISION-based and unchanged here.
 
-## Item 6: fence residue row (NOT changed; for review, then a PM ruling under :626 (4))
+## Item 6: fence residue row (diagnosis; RE-ANCHORED in round 3 at 9642243, see below)
 Row `RECORDED RESIDUE gym-app.mjs: released helper parameter mutation still passes` (fence :1442-1444 at 66d32530) plants after anchor `      () => ({ rows: paintedDraft.rows, cues: paintedDraft.cues }), async (outcome) => {`. That line existed at 04ea69e (gym-app.mjs:258; the GSS build had re-anchored the row there from b35a48e3's `recordSettings(map, view, submittedDraft)`). 46af1b8 "Preserve newer gym settings edits across save" (after 04ea69e, ancestor of 79d981a7 and 66d32530) rewrote it to add `revision: settingsDraftRevision`; at 66d32530 the snapshot is `return { rows: paintedDraft.rows, cues: paintedDraft.cues, revision: settingsDraftRevision };` (gym-app.mjs:309). The anchor matches nowhere, planted() asserts the plant landed, so the row fails before releasedRefusals runs: a stale anchor, not a fence verdict. The recorded residue (a mutation of paintedDraft passes the fence) is untested at the integrated bytes.
 
 ## Item 7 and item 8
 7: the seven parent-unpinned files stay role new, pre null (as ruled). Measured: none is an S9 execution pin.
 8: YES. b-package.cjs proposed() (b-package.cjs:3405 at d5c4138, :3389 at 6dc2596) pins RUNNER, packages/<ID>.json, the brief and every child argv target as executionPins; S10 edits S9.json (runnerSha256), so S9.json is declared superseded-by-child, pre a1f9fa38 (its bytes at 6dc2596, re-measure at the S9 seal), post 5369b99b. It is the only S9 execution pin S10 changes that is not an S9 product pin.
 
-## STOPs remaining
-1. Every s.2.1 placeholder, incl. S10_PACKAGE_ID, THEME, BRIEF-BY-SHA, the two token lines above, S9_PARENT_COMMIT/sourceBase and the S9 artifact sha; all child needles.
-2. Fence residue row (item 6) until ruled; the fence CI step is red on that row by construction until then.
-3. D-EPP-4 unpaid; D-EPP-3 gates owed (port oracle, sensitivity, private gate, exact-head CI).
-4. Copy lock; D3, D5 (eslint-scope), D6, D7, D9, S-R33, six scope rows, Track A re-cut/DOM cells, M/R/N classification: not done.
-5. machine-settings-ui three-way red-first on both OS; engine-capture.test/configuration-capture.test need PERFORMED_W6_DIR; coach ENGINE_REVISION moves only after a receipt.
+## Round 3 (Fable review l1 ACCEPT WITH NAMED DEBTS, 166f14cd; commits local, not pushed)
+| sha | debt | content and evidence |
+|---|---|---|
+| 9642243 | D-S10I-6 | Residue row re-anchored to `    const paintedDraft = settingsDraft;` (gym-app.mjs:278, unique; the plant mutates paintedDraft before renderEditor at :280 reads it). One hunk, anchor string only, no assertion change; PM ruling: not an S-R30 row, so :626 (4) does not bind it. Red first (guarded, `RECORDED RESIDUE` rows): 10/11 pass, the plant did not land; after: 11/11. Full fence: 404/404 (was 403/404) |
+| 469b369 | D-S10I-5 | rebuild/m4/import/test/engine-pins-unprotected.test.cjs: S3-PROVIDER-ENGINE-PINS' two equalities (SOURCE_PINS and the manifest == disk) for today.cjs and engine-runtime.cjs only, reading no protected file; registered by path in the M4 step and the m4-import child. Red first: with local-source-profile.cjs at 26d39a2~1, 0/1 naming today.cjs; head 1/1. The full cell (merge.cjs included) stays CI-only |
+| 1786b4b | D-S10I-7 | rebuild/lanes/b/S10-REGEN.cjs: `node rebuild/lanes/b/S10-REGEN.cjs --parent <S9_PARENT_COMMIT> [--receipt-line N] [--write]`, run after merge-forward (never rebase). Re-measures every pre from the sealed artifact's product map, changed S9 execution pins (S9.json superseded-by-child), parent.options[0] sha256/reviewSha256, sourceBase, runnerSha256, D-SPLIT-PARENT; parent-released paths stay undeclared; notes, children and coverage are carried. Dry run by default; --write refuses without the sealed artifact. Dry run at 6dc2596 (candidate mode): 295 paths, 0 entries differ from the committed S10.json; S9.json pre a1f9fa38; D-SPLIT-PARENT 3/3 EQUAL; --write refused, exit 2 |
+| 426fbb6 | D-S10I-2, -3 | S10.json (sha256 bf241376...): note [2] now says Markdown under rebuild/engine/ is declared. today-17 keeps its name and a note: it runs 22 files. Needle grammar re-checked: at least 8 chars, no line break, matched at line start (CHILD-NEEDLE-EMPTY, CHILD-NEEDLE-NOT-A-TERMINAL-LINE), so '# pass N', null until observed |
+D-S10I-4 is left to CI, as ordered: the hosted run must show that `--ci --package S10` refuses BY NAME (not a TypeError on the null fields).
+
+## STOPs remaining (D-S10I-1, complete list)
+1. Every s.2.1 placeholder: S9_PARENT_COMMIT/sourceBase, the S9 spec/receipt/verdict and both-OS CI ids, the S9 artifact and review sha256 and receipt line, S10_PACKAGE_ID, the S10 brief path/sha, THEME, BRIEF-BY-SHA and the two PROPOSED token lines above, all child needles.
+2. D-SPLIT-PARENT (3.1): re-measure the three sourceBlobs.s9 at S9_PARENT_COMMIT. They are EQUAL at 6dc2596 only; S10-REGEN.cjs prints the check and refuses --write on a mismatch.
+3. Exact-head both-OS rebuild run id and conclusion at the composed S10 candidate (10.2, :627); no green inferred from a lane run.
+4. CUI0 acceptance with its independent audit and its pins at the S9 parent, and the section 8 copy lock with its eight answers, source ownership and CI step (12.1, :732 A4). Neither exists.
+5. D-GSS-PASSTHROUGH: the destructure-aware census of api.lane at the integrated bytes (round 1 ran a regex census only: 0 product readers, 1 test reader); D-GSS-TIMER reported, not fixed (6.2).
+6. S-R30 re-assertion (4.2): at the integrated bytes no today-app exception row changed and each gym row matches its :628 ruling. Measured so far: the fence blob before S10's own hunks equals 66d32530's (09a6dd18), and S10's two fence hunks are the LOOK_EDITS row and the residue re-anchor, neither an exception-site row. A reviewer's final assertion is still owed.
+7. D-EPP-4 unpaid. D-EPP-3 gates owed: port oracle, sensitivity, private gate, exact-head CI.
+8. D3, D5 (the real eslint-scope stack), D6, D7, D9, the S-R33 boot row, the six inherited scope rows, the Track A re-cut and DOM/listener cells, and the M/R/N hunk classification (3.2, D-GSS-LINES): not done.
+9. machine-settings-ui three-way merge, red-first on both OS; engine-capture.test and configuration-capture.test need PERFORMED_W6_DIR; the coach ENGINE_REVISION moves only after a receipt.
+10. D-S10I-4 (CI) and the independent Astra review of 1cf99d3 onward.
 ## CI-only (not run locally)
-Today step (except gym and the five annexes), measure suites, proposed-pick, engine-provider (incl. S3-PROVIDER-ENGINE-PINS) and the m4-import step, `b-package --ci --package S10`, the other tooling suites (they spawn the runner), sealed-inventory-fence's real and fixture rows, the s10-sup cells' real rows, the split instruments.
-## Open questions
-- Re-anchor for the residue row, if ruled: `    const paintedDraft = settingsDraft;` (gym-app.mjs:278) is one candidate; not applied.
+Today step (except gym and the five annexes), measure suites, proposed-pick, engine-provider (incl. S3-PROVIDER-ENGINE-PINS) and the rest of the m4-import step, `b-package --ci --package S10`, the other tooling suites (they spawn the runner), sealed-inventory-fence's real and fixture rows, the s10-sup cells' real rows, the split instruments.
+## Open question
 - Should rebuild/lanes/c/today-split/ join PUBLIC_TAIL_ROOTS? Not argued here, so withheld.
