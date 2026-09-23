@@ -14,6 +14,8 @@ const FAMILY = 'native-load';
 const DECISION = 'earned/native-load-decision/v1';
 const ISSUANCE_KEYS = ['body', 'moment', 'producer', 'reason', 'revision', 'source'];
 const BLOCKING = new Set(['NATIVE_LOAD_RECORD_INVALID', 'NATIVE_LOAD_EFFECT_CONFLICT', 'NATIVE_LOAD_SOURCE_OVERLAP']);
+// Accept refusals that a later state of the programme causes, not the record itself.
+const HELD_BACK = new Set(['NATIVE_LOAD_LEGACY_PENDING', 'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED']);
 
 const json = (x) => JSON.parse(JSON.stringify(x));
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -143,26 +145,6 @@ function sameIssued(offer, held) {
   return iss.producer === PRODUCER && same(offer.body, iss.body) && offer.reason === iss.reason &&
     proposalDigest(PRODUCER, offer.body, offer.reason) === held.proposal_id && proposalDigest(iss.producer, iss.body, iss.reason) === held.proposal_id;
 }
-// The lift's display name as issued (review B20; spec :103 lineage, :120 no alias name,
-// :154 original cut): every FC01 explanation begins "<name>: ", and a name may itself hold
-// ": " (property seed 20260961). Re-validation tries the current name, then each prefix
-// before a ": " in the issued reason, and accepts only an EXACT body and reason
-// reproduction, so a wrong guess still refuses and nothing is weakened. Identity stays
-// the lineage id.
-function issuedNames(state, body, reason) {
-  const ex = state.exercises.find((x) => x && x.id === body.lift_lineage_id), now = ex ? String(ex.n || ex.id) : null, out = [null];
-  for (let at = text(reason) ? reason.indexOf(': ') : -1; at > 0 && out.length < 12; at = reason.indexOf(': ', at + 2)) {
-    const name = reason.slice(0, at);
-    if (name !== now && !out.includes(name)) out.push(name);
-  }
-  return out;
-}
-function withIssuedName(state, body, name) {
-  if (name === null) return state;
-  const s = json(state), ex = s.exercises.find((x) => x && x.id === body.lift_lineage_id);
-  if (ex) ex.n = name;
-  return s;
-}
 // One Start's captured prescription for one lift as the plan vector reads it: a numeric
 // load, a configuration key, or null for not prescribed (the engine-capture.cjs cells).
 function startPlanCapture(start, lift) {
@@ -180,6 +162,20 @@ function startPlanCapture(start, lift) {
   }
   return cells.sort((a, b) => a[0] - b[0]).map((c) => c[1]);
 }
+// The rep target each Start capture cell prescribed for one lift (the engine-capture.cjs
+// `reps` cell: {value, unit:'rep'}), in cell order; cells without one are skipped.
+function startWindowCapture(start, lift) {
+  const pc = map(start && start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
+  const out = [];
+  for (const cell of pc) {
+    if (!map(cell) || cell.lift_lineage_id !== lift || !map(cell.reps) || cell.reps.state !== 'specified' || !text(cell.reps.source_json)) continue;
+    try { const v = JSON.parse(cell.reps.source_json); if (map(v) && v.unit === 'rep' && Number.isFinite(v.value)) out.push(v.value); } catch (_) { /* unreadable: not a window */ }
+  }
+  return out;
+}
+// FC01 refusals that come after its step 2 (plan identity) in the evaluation order.
+const AFTER_STEP_2 = new Set(['NATIVE_LOAD_PREFIX_UNRESOLVED', 'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED', 'NATIVE_LOAD_SOURCE_OVERLAP', 'NATIVE_LOAD_PROVISIONAL',
+  'NATIVE_LOAD_WINDOW_NOT_TOP', 'NATIVE_LOAD_EFFORT_UNRESOLVED', 'NATIVE_LOAD_ORDER_RULE_UNREPRESENTABLE', 'NATIVE_LOAD_NO_NEXT_LOAD', 'NATIVE_LOAD_HELD_OR_HOT']);
 // Spec R8 :156 (D7b): the reconstructed lift no longer has the base the accept recorded.
 function movedBase(ex, body) {
   const img = (k) => (Object.hasOwn(ex, k) ? { present: true, value: ex[k] === undefined ? null : json(ex[k]) } : { present: false, value: null });
@@ -211,19 +207,6 @@ function provenBefore(acceptOps, start, byId) {
     }
   }
   return false;
-}
-// Re-validation at the ORIGINAL cut (spec :154): the equipment fields a later
-// equipment-only choice may change (step 2: steps/inc) are read as the issued basis
-// recorded them. Load, vector, count and window are NOT restored: a change there is a
-// plan change and keeps its own outcome.
-function atIssuedEquipment(state, body) {
-  const s = json(state), ex = s.exercises.find((x) => x && x.id === body.lift_lineage_id), lb = body.basis && body.basis.load_basis;
-  if (ex && map(lb)) for (const k of ['steps', 'inc']) {
-    const img = lb[k];
-    if (map(img) && img.present === true) ex[k] = json(img.value);
-    else if (map(img) && img.present === false) delete ex[k];
-  }
-  return s;
 }
 
 // ---------- the Basis of the current cut (spec B "Basis and exact durable decision shape") ----------
@@ -378,6 +361,34 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
   events.sort((a, b) => a.at - b.at || (a.type === b.type ? 0 : a.type === 'accept' ? -1 : 1) || a.frontier - b.frontier || a.seq - b.seq || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const repair = new Map(); // spend_id -> its BASIS_REPAIR_REQUIRED issue (spec :157)
   const held = new Map();   // spend_id -> its load_basis EFFECT_CONFLICT issue (spec R8 :156)
+  // Is a record's ORIGINAL cut reproduced by today's projection (DECISIONS:793, spec :154)?
+  // Its issued basis binds what the evaluator read at issuance: plan.programme_sha256 is
+  // the digest of every exercise record as the projection showed it (after the governor
+  // replay over the facts of that cut), plan.structural_queue_sha256 the queue, and
+  // coverage every fact op. Equal digests and covered fact ops: the same inputs.
+  const sameCut = (b, cut) => {
+    const p = map(b.basis) && map(b.basis.plan) ? b.basis.plan : {};
+    if (sha(state.queue) !== p.structural_queue_sha256) return false;
+    let s0 = withFacts(state, cut);
+    try {
+      const gv = engine.at(dayOf({ evidence: [] }, cut)).applyNativeLoadDecision(s0, null, { event: 'governor', basis: null, spent: [], authority: null, completion: null });
+      if (gv && gv.status === 'applied' && map(gv.state)) s0 = gv.state;
+    } catch (_) { return false; }
+    if (sha(s0.exercises) !== p.programme_sha256) return false;
+    const covered = new Set((Array.isArray(b.basis.coverage) ? b.basis.coverage : []).map((c) => (map(c) ? c.op_id : null)));
+    for (const s of (cut && cut.sessions) || []) {
+      if (!covered.has(s.start_op_id)) return false;
+      for (const e of (s.record && s.record.entries) || []) {
+        if (e && e.completion && !covered.has(e.completion.op_id)) return false;
+        for (const slot of (e && e.slots) || []) {
+          const f = slot.fact;
+          if (f && (!covered.has(f.source_op_id) || (Array.isArray(f.edit_op_ids) && f.edit_op_ids.some((id) => !covered.has(id))))) return false;
+          if (text(slot.skip_op_id) && !covered.has(slot.skip_op_id)) return false;
+        }
+      }
+    }
+    return true;
+  };
   for (const ev of events) {
     if (ev.type === 'accept') {
       const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = [...g.ops, ...(g.alt || [])].map(refOf).sort(byOp), lift = body.lift_lineage_id;
@@ -416,6 +427,20 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
         spent.push({ spend_id: body.spend_id, consumes: body.consumes.slice(), response_refs: refs, close_ref: null, cancelled_by: null });
         continue;
       }
+      // A refused accept transition. A yes that a LATER state precondition holds back (a legacy
+      // PROPOSED entry for the lift, a vector plan under an adoption) is accepted history
+      // (R8 :156 "Keep accepted history and facts"): its spend is kept and held unapplied, so
+      // no landing uses it and its recorded cancellation still cancels it (:121, :153; round-8
+      // seed 20261004); the issue keeps the transition's own name (:150, :176).
+      const refusedAccept = (refusal) => {
+        const issue = { code: refusal.code, refs, field: refusal.field, lift };
+        if (BLOCKING.has(issue.code)) { dispute(issue); return; }
+        issues.push(issue);
+        if (body.kind !== 'compensate' && HELD_BACK.has(issue.code) && !spent.some((x) => x.spend_id === body.spend_id)) {
+          issue.spend_id = body.spend_id; held.set(body.spend_id, issue);
+          spent.push({ spend_id: body.spend_id, consumes: body.consumes.slice(), response_refs: refs, close_ref: null, cancelled_by: null });
+        }
+      };
       const changed = evidenceChanged(body, facts);
       if (changed) {
         const issue = { code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs, field: null, lift, spend_id: body.spend_id };
@@ -428,29 +453,40 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
           // when, at the original cut of ANY of its records, that effect was eligible for
           // compensation; its recorded target is presentation, never re-priced against any
           // later base, including a return to the original one (reviews B15, B18). Every
-          // other record must reproduce its exact body and reason at its original cut, read
-          // with the lift's display name as issued (lineage, never the name, is identity:
-          // :103, :120; review B20) and its issued equipment (D7a).
+          // other record must reproduce its exact body and reason at its original cut.
+          // ORIGINAL CUT ONLY (DECISIONS:793, spec :154): a record is judged only against the
+          // inputs its evaluator read at issuance. The issued basis binds them (the whole
+          // programme, names, windows, caches and every lift's forks included, the structural
+          // queue, and the coverage of every fact op). When today's reconstruction of that cut
+          // is byte-identical by those digests, the record is re-evaluated on it; when it is
+          // not (a rename, a window or cache edit, another lift's fork, a later correction of
+          // an unconsumed fact), its inputs are no longer reproducible from the current
+          // projection, and a later edit never revokes consent: the body applies as written,
+          // exactly as under an absent revision. Newer plan authority is judged only by :156
+          // (movedBase above). Nothing is guessed (review B23: no name candidates).
           const at = (b) => factsAtCut(facts, b.basis.order.start_ids, b.basis.order.frontier);
+          const records = body.kind === 'compensate' ? [...g.ops, ...g.alt].map((op) => op.payload.issuance.body) : [body];
           let again = null, reproduced;
-          if (body.kind === 'compensate') {
-            reproduced = [...g.ops, ...g.alt].map((op) => op.payload.issuance.body).some((b) => {
+          if (records.some((b) => !sameCut(b, at(b)))) reproduced = true;
+          else if (body.kind === 'compensate') {
+            reproduced = records.some((b) => {
               const cut = at(b), ev2 = rt.evaluateNativeLoad(withFacts(state, cut), { lift_lineage_id: b.lift_lineage_id, completion_op_id: checkedCompletion(b, cut),
                 intent: { compensate: b.compensates }, basis: b.basis });
               again = again || ev2;
               return ev2.status === 'offer' && ev2.offers.some((o) => o.body.compensates === b.compensates);
             });
           } else {
-            const cut = at(body), equipped = atIssuedEquipment(state, body);
-            reproduced = issuedNames(equipped, body, iss.reason).some((name) => {
-              const ev2 = rt.evaluateNativeLoad(withFacts(withIssuedName(equipped, body, name), cut), { lift_lineage_id: body.lift_lineage_id,
-                completion_op_id: checkedCompletion(body, cut), intent: 'check', basis: body.basis });
-              again = again || ev2;
-              return ev2.status === 'offer' && ev2.offers.some((o) => same(o.body, body) && o.reason === iss.reason);
-            });
+            const cut = at(body);
+            const ev2 = rt.evaluateNativeLoad(withFacts(state, cut), { lift_lineage_id: body.lift_lineage_id,
+              completion_op_id: checkedCompletion(body, cut), intent: 'check', basis: body.basis });
+            again = ev2;
+            reproduced = ev2.status === 'offer' && ev2.offers.some((o) => same(o.body, body) && o.reason === iss.reason);
           }
           if (!reproduced) {
             if (again.status === 'refused' && again.refusal.code === 'NATIVE_LOAD_PLAN_CHANGED') { issues.push({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs, field: null, lift }); continue; }
+            // (Round 8's "refusal the transition itself makes" branch is subsumed: a later
+            // legacy entry changes the cut's structural queue digest, so such a record applies
+            // as written and the transition names its refusal below, under every revision.)
             dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs, field: 'issuance', reason: 'not reproduced at its original cut', lift }); continue;
           }
         }
@@ -458,7 +494,7 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
       const t = rt.applyNativeLoadDecision(state, body, { event: 'accept', basis: body.basis, spent: json(spent),
         authority: { response_refs: refs, issuance: iss, source_cut: iss.source }, completion: null });
       if (t.status !== 'applied') {
-        if (t.refusal) { const issue = { code: t.refusal.code, refs, field: t.refusal.field, lift }; if (BLOCKING.has(issue.code)) dispute(issue); else issues.push(issue); }
+        if (t.refusal) refusedAccept(t.refusal);
         continue;
       }
       state = t.state;
@@ -566,16 +602,28 @@ function checkNativeLoad(args = {}) {
   // choice"; :127, :148; review B22): FC01 compares the captured vector with the current plan
   // for typed v2 slots, which carry it. Host v1 slots do not; their capture lives on the
   // authenticated Start op (:122), so the same comparison is made here, by the same rule
-  // (planVector, null when w is null) and with FC01's name and refs. It only withholds an
-  // offer; every earlier refusal keeps FC01's precedence.
-  if (evaluation.status === 'offer' && (request.intent === undefined || request.intent === 'check') && hit) {
+  // (planVector, null when w is null) and with FC01's name and refs. The rep WINDOW is
+  // bound as far as the capture proves it (:126 "load/vector/count/window/technique remain
+  // identical", :184; review B25): every Start capture cell carries the rep target the
+  // window allowed then, so a captured target above the current window top proves the
+  // window changed since that completion and refuses PLAN_CHANGED, for typed and host
+  // slots alike. (The capture records targets, not the window itself: a change that keeps
+  // every captured target inside the new window is not provable here; reported.) Step 2
+  // precedes every reader, so the refusal replaces an offer or any refusal FC01 makes after
+  // its own step 2; earlier refusals keep FC01's precedence.
+  const judged = evaluation.status === 'offer' || (evaluation.status === 'refused' && map(evaluation.refusal) && AFTER_STEP_2.has(evaluation.refusal.code));
+  if (judged && (request.intent === undefined || request.intent === 'check') && hit) {
     const { byId } = operationsOf(generation), start = byId.get(hit.session.start_op_id);
     const originals = hit.entry.slots.filter((s) => s.origin !== 'added'), ex = fold.state.exercises.find((x) => x && x.id === request.lift_lineage_id);
-    const cap = start && originals.every((s) => s.prescribed_load === undefined) ? startPlanCapture(start, request.lift_lineage_id) : [];
-    if (cap.length && ex) {
+    // Spec :176 refs = [Close Ref], read from the basis coverage exactly as FC01 reads it;
+    // never an empty list (review D-B6-2).
+    const cov = basis.coverage.find((c) => map(c) && c.op_id === request.completion_op_id);
+    if (start && ex && cov) {
+      const cap = originals.every((s) => s.prescribed_load === undefined) ? startPlanCapture(start, request.lift_lineage_id) : [];
       const planNow = Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => (ex.w == null ? null : Array.isArray(ex.wSets) && ex.wSets[i] != null ? ex.wSets[i] : ex.w));
-      const close = byId.get(request.completion_op_id);
-      if (!same(cap, planNow)) return refused({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs: close ? [refOf(close)] : [], field: null });
+      const window = startWindowCapture(start, request.lift_lineage_id), hi = ex.hi === undefined ? null : ex.hi;
+      if ((cap.length && !same(cap, planNow)) || (Number.isFinite(hi) && window.some((v) => v > hi)))
+        return refused({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs: [{ op_id: cov.op_id, commitment: cov.commitment }], field: null });
     }
   }
   return { fold, evaluation };

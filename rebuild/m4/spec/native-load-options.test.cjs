@@ -1376,3 +1376,446 @@ test('R7-PROPERTY MODEL-BASED WALK (PM round 7; invariants I1-I5 above; seeded, 
  if(process.env.NATIVE_LOAD_PROPERTY_REPORT)require('node:fs').writeFileSync(process.env.NATIVE_LOAD_PROPERTY_REPORT,JSON.stringify({runs,seed0,found,coverage},null,1));
  assert.deepEqual(found,[],'counterexamples');
 });
+
+// Round-8 walk counterexamples, seeds 20261016 and 20261036 (I3, R1 vs R2): a legacy
+// structural PROPOSED entry appears for the lift after an adoption yes. R2 applies the
+// body and the transition refuses LEGACY_PENDING; R1 re-validated first, the evaluation
+// refused LEGACY_PENDING too, and the fold called the record RECORD_INVALID.
+test('R8-P2 A STATE PRECONDITION IS NOT A BAD RECORD (round-8 property seeds 20261016, 20261036; spec R8 :156 "every revision and delivery order reproduces the same conflict", :176): a yes held back by a later legacy PROPOSED entry folds LEGACY_PENDING under R1 and R2, and lands once the entry is gone',()=>{
+ effectsGate();
+ const c1=C(1,{reps:TOP,loads:100,effort:e(2,1,1)}),c2=C(2,{reps:TOP,loads:105,prescribed:100,effort:e(2,1,1)});
+ const ev=checkOf(foldArgs([c1,c2],[]),LIFT,c2);assert.equal(ev.status,'offer',JSON.stringify(ev.refusal));
+ const o=ev.offers.find(x=>decisionOf(x).target_load.scalar.value===105);assert.ok(o,'control: adopt 105 offered');
+ const r=acceptOp(o,{op_id:'fx-p-1',after:2}),legacy=()=>{const s=F0();s.queue.push({exId:LIFT,kind:'debut',done:false,state:'PROPOSED',newW:105,t:'SYNTHETIC legacy'});return s;};
+ const out={};
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([c1,c2],[r],rev,legacy()));
+  out[rev]={w:exOf(f.state).w,codes:[...new Set(f.issues.map(i=>i.code))].filter(c=>c!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').sort()};
+  const g=EFFECTS.m.foldNativeLoad(foldArgs([c1,c2],[r],rev,F0()));
+  assert.equal(exOf(g.state).w,105,'without the legacy entry the yes applies ('+rev+')');
+ }
+ assert.deepEqual(out['fx-revision-2'],out['fx-revision-1'],'R1 and R2 agree');
+ assert.deepEqual(out['fx-revision-1'],{w:100,codes:['NATIVE_LOAD_LEGACY_PENDING']},'held back by name, never RECORD_INVALID');
+});
+// Round-8 walk counterexample, seed 20261004 (I2): an earn yes, its undo recorded, then a
+// legacy PROPOSED entry for the lift. The accept's transition refuses LEGACY_PENDING, the
+// yes vanished from the spend index, and with it the proven cancellation.
+test('R8-P3 A HELD-BACK YES STAYS CANCELLED (round-8 property seed 20261004; spec R8 :121 "permanently cancels", :153 tombstone, :156 "Keep accepted history ... Compensation stays reachable"): after yes Q and its undo, a later legacy PROPOSED entry keeps the spend and its cancellation under R1 and R2, writes no w',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1'),A=decisionOf(s.offer).spend_id;
+ const u=checkOf(foldArgs(s.cs,[s.resp]),LIFT,s.cs[1],{compensate:A});assert.equal(u.status,'offer',JSON.stringify(u.refusal));
+ const U=acceptOp(u.offers[0],{op_id:'fx-resp-2',after:2}),undo=decisionOf(u.offers[0]).spend_id;
+ const legacy=()=>{const b=F0();b.queue.push({exId:LIFT,kind:'debut',done:false,state:'PROPOSED',newW:105,t:'SYNTHETIC legacy'});return b;};
+ const out={};
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs(s.cs,[s.resp,U],rev,legacy()));
+  const x=f.spent.find(y=>y.spend_id===A);
+  assert.ok(x,'the yes is kept in the spend index ('+rev+')');
+  assert.equal(x.cancelled_by,undo,'the proven cancellation is never lost ('+rev+')');
+  assert.equal(exOf(f.state).w,100,'no weight written ('+rev+')');
+  out[rev]={spent:f.spent.map(y=>[y.spend_id,y.cancelled_by]).sort(),codes:[...new Set(f.issues.map(i=>i.code))].filter(c=>c!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').sort()};
+  assert.ok(!f.issues.some(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'),JSON.stringify(f.issues));
+ }
+ assert.deepEqual(out['fx-revision-2'],out['fx-revision-1'],'R1 and R2 agree');
+});
+// Round-8 walk counterexample, seed 20273709 (I3, R1 vs R2): an earn yes on Fx Row from two
+// sessions shared with Fx Press, then a fork on Fx PRESS dated the second session (any
+// kind, even 'context'). The engine's noise comparator pools every lift's pairs by each
+// lift's own era (progression.cjs typicalError, frozen app.jsx:2130-2160), so the press
+// fork moves the pool and a fresh Fx Row check is PROVISIONAL. R1 re-validation of the
+// ROW yes then fails (RECORD_INVALID on fx-row); R2 applies it as written (:154).
+// Round 8 STOP, answered by DECISIONS:793: re-validation judges ONLY at the original cut,
+// with every input the evaluator read taken as of that cut (pooled readers included);
+// later edits elsewhere never revoke consent, so R1 folds as R2 (applied as written).
+for(const v1First of [false,true])test('R8-P4 ANOTHER LIFT\'S FORK (round-8 property seed 20273709; spec R8 :154, :156 "Distinct-lift independent effects commute"; DECISIONS:793): a fork on Fx Press never invalidates an accepted Fx Row earn, R1 and R2 alike'+(v1First?' (first session host v1)':''),()=>{
+ effectsGate();
+ // The walk's exact sessions: Fx Row misses then tops; Fx Press tops, its second opener honest (0 in reserve).
+ const both=(n,v1,rowReps,pressEffort)=>sess2(n,{entries:[{lift:LIFT,reps:TOP,effort:pressEffort},{lift:ROW,reps:rowReps,effort:e(2,1,1)}].map(x=>({...x,loads:[100,100,100],prescribed:[100,100,100],v1}))});
+ const cs=[both(1,v1First,[9,8,8],e(2,1,1)),both(2,false,TOP,e(0,1,1))],cap={[LIFT]:[100,100,100],[ROW]:[100,100,100]};
+ const at=(base,extra=[],rev='fx-revision-1')=>{const a=foldArgs(cs,extra,rev,base);for(const c of cs)captureLifts(a.generation,c,cap);return a;};
+ const ev=checkOf(at(withRow()),ROW,cs[1]);assert.equal(ev.status,'offer',JSON.stringify(ev.refusal));
+ const o=ev.offers.find(x=>decisionOf(x).kind==='earn');assert.ok(o,'control: an earn is offered for Fx Row');
+ const r=acceptOp(o,{op_id:'fx-p-1',after:2}),spend=decisionOf(o).spend_id;
+ const forked=()=>{const b=withRow();exOf(b).forks=[{from:dayAt(1),kind:'reset',why:'SYNTHETIC'}];return b;};
+ const out={};
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const a=at(forked(),[r],rev);
+  const f=EFFECTS.m.foldNativeLoad(a);
+  out[rev]={q:f.state.queue.filter(q=>q.native_load_spend===spend).map(q=>[q.newW,q.done]),bad:f.issues.filter(i=>i.lift===ROW&&i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').map(i=>i.code)};
+ }
+ const fresh=checkOf(at(forked()),ROW,cs[1]);
+ assert.deepEqual(out['fx-revision-2'],out['fx-revision-1'],'R1 and R2 agree (a fresh Fx Row check on the forked plan: '+JSON.stringify(fresh.refusal||fresh.offers.map(x=>decisionOf(x).kind))+')');
+ assert.deepEqual(out['fx-revision-1'],{q:[[105,false]],bad:[]},'the Fx Row yes stands');
+});
+// The same yes, then a later fact CORRECTION on Fx Press's shared session (an edit op
+// the yes never covered): the pooled comparator moves again; consent stands (DECISIONS:793).
+test('R9-B24c ANOTHER LIFT\'S LATER CORRECTION (DECISIONS:793; spec :154 original cut, :157 only consumed facts dispute): an Fx Press fact corrected after an Fx Row yes never revokes it, R1 and R2 alike',()=>{
+ effectsGate();
+ const both=(n,rowReps,pressEffort,fix)=>sess2(n,{entries:[{lift:LIFT,reps:TOP,effort:pressEffort,corrected:fix},{lift:ROW,reps:rowReps,effort:e(2,1,1)}].map(x=>({...x,loads:[100,100,100],prescribed:[100,100,100],v1:false}))});
+ const cap={[LIFT]:[100,100,100],[ROW]:[100,100,100]};
+ const at=(cs,base,extra=[],rev='fx-revision-1')=>{const a=foldArgs(cs,extra,rev,base);for(const c of cs)captureLifts(a.generation,c,cap);return a;};
+ const cs=[both(1,[9,8,8],e(2,1,1)),both(2,TOP,e(0,1,1))];
+ const o=checkOf(at(cs,withRow()),ROW,cs[1]).offers.find(x=>decisionOf(x).kind==='earn');assert.ok(o,'control: an earn is offered for Fx Row');
+ const r=acceptOp(o,{op_id:'fx-p-1',after:2}),spend=decisionOf(o).spend_id;
+ let moved=0;
+ for(const [s1,s2] of [[{1:9},null],[null,{3:7}],[{1:4,2:4,3:4},null],[null,{1:4,2:4,3:4}],[{1:14,2:14,3:14},{1:4,2:4,3:4}],[{1:4,2:4,3:4},{1:14,2:14,3:14}]]){
+  const fix=[s1,s2],later=[both(1,[9,8,8],e(2,1,1),s1||undefined),both(2,TOP,e(0,1,1),s2||undefined)],out={};
+  if(checkOf(at(later,withRow()),ROW,later[1]).status!=='offer')moved++;
+  for(const rev of ['fx-revision-1','fx-revision-2']){
+   const f=EFFECTS.m.foldNativeLoad(at(later,withRow(),[r],rev));
+   out[rev]={q:f.state.queue.filter(q=>q.native_load_spend===spend).map(q=>[q.newW,q.done]),bad:f.issues.filter(i=>i.lift===ROW&&i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').map(i=>i.code)};
+  }
+  assert.deepEqual(out['fx-revision-1'],{q:[[105,false]],bad:[]},'the Fx Row yes stands after correcting Fx Press '+JSON.stringify(fix));
+  assert.deepEqual(out['fx-revision-2'],out['fx-revision-1'],'R1 and R2 agree after '+JSON.stringify(fix));
+ }
+ assert.ok(moved>0,'control: at least one correction changes a fresh Fx Row judgement');
+});
+// Re-validation still runs whenever the original cut IS reproduced: a tampered record
+// (its body re-digested by the caller, spec :35 "A caller can hash its own body") is not
+// consent, including when the governor holds the lift at that cut (the cut's programme
+// digest includes the replayed hold).
+test('R9-FORGED ORIGINAL CUT STILL JUDGED (DECISIONS:793; spec :154, N05 forged): an adoption offered at 105 under a governor hold, re-digested at 110 and recorded, folds RECORD_INVALID under R1 and writes nothing',()=>{
+ effectsGate();
+ const cs=[C(1,{reps:TOP,loads:100,effort:e(0,1,1)}),C(2,{reps:TOP,loads:105,prescribed:100,effort:e(0,1,1)})];
+ const args=foldArgs(cs,[]);assert.equal(exOf(EFFECTS.m.foldNativeLoad(args).state).holdFlag,true,'control: the governor holds the lift at this cut');
+ const ev=checkOf(args,LIFT,cs[1]),o=ev.offers&&ev.offers.find(x=>decisionOf(x).target_load.scalar.value===105);assert.ok(o,'control: adopt 105 offered '+JSON.stringify(ev.refusal));
+ const honest=EFFECTS.m.foldNativeLoad(foldArgs(cs,[acceptOp(o,{op_id:'fx-p-1',after:2})]));assert.equal(exOf(honest.state).w,105,'control: the honest record applies');
+ const forged=structuredClone(o);forged.body.target_load.scalar.value=110;for(const v of forged.body.target_load.vector)v.value=110;
+ const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[acceptOp(forged,{op_id:'fx-p-1',after:2})]));
+ assert.equal(exOf(f.state||{exercises:[{id:LIFT,w:100}]}).w,100,'nothing written');
+ assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'&&i.field==='issuance'),JSON.stringify(f.issues));
+});
+
+// ---------- ROUND 9 (DECISIONS:793 original-cut ruling; Astra L6 B23-B25) ----------
+const R9_NAMES=[Array(12).fill('A').join(': '),Array(11).fill('A').join(': '),String.fromCharCode(0x3a9,58,32,0x416,58,32,0x529b),' ',': ','A:B::C: ','','x'.repeat(200)+': y'];
+test('R9-B23 NAMES ARE NOT IDENTITY (Astra L6 B23; spec :103, :120 lineage, :154 original cut; DECISIONS:793): a yes issued under a colon-rich, unicode or empty-like name survives a rename under R1 and R2, nothing guessed',()=>{
+ effectsGate();
+ const cs=[C(1,{reps:TOP,effort:e(2,1,1)}),C(2,{reps:TOP,effort:e(2,1,1)})];
+ for(const name of R9_NAMES){
+  const base=F0({n:name}),ev=checkOf(foldArgs(cs,[],'fx-revision-1',base),LIFT,cs[1]);
+  assert.equal(ev.status,'offer','control: offered under '+JSON.stringify(name)+' '+JSON.stringify(ev.refusal));
+  const resp=acceptOp(ev.offers[0],{after:2}),out={};
+  for(const rev of ['fx-revision-1','fx-revision-2']){
+   const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[resp],rev,F0({n:'Renamed'})));
+   out[rev]={q:f.state.queue.filter(q=>q.native_load_spend).map(q=>[q.done,q.newW]),spent:f.spent.length,bad:f.issues.filter(i=>i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').map(i=>i.code)};
+  }
+  assert.deepEqual(out['fx-revision-1'],{q:[[false,105]],spent:1,bad:[]},'consent survives the rename of '+JSON.stringify(name));
+  assert.deepEqual(out['fx-revision-2'],out['fx-revision-1'],'R1 and R2 agree for '+JSON.stringify(name));
+ }
+});
+test('R9-B24 A LATER WINDOW OR CACHE NEVER REVOKES A YES (Astra L6 B24; spec :154 original cut, :156; DECISIONS:793): after yes Q105 the rep window moves (hi 11, 12, 8) or the cached line changes; the effect, spend and queue stand under R1 and R2',()=>{
+ effectsGate();
+ const x=landingScenario('fx-revision-1');
+ for(const patch of [{hi:11},{hi:12},{hi:8},{last:[9,8,7]},{last:null},{lastMeta:{d:'2026-09-01'}}]){
+  const out={};
+  for(const rev of ['fx-revision-1','fx-revision-2']){
+   const f=EFFECTS.m.foldNativeLoad(foldArgs(x.cs,[x.resp],rev,F0(patch)));
+   out[rev]={w:exOf(f.state).w,q:f.state.queue.filter(q=>q.native_load_spend).map(q=>[q.done,q.newW]),effects:f.effects.map(y=>y.kind),spent:f.spent.length,
+    bad:f.issues.filter(i=>i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').map(i=>i.code)};
+  }
+  assert.deepEqual(out['fx-revision-1'],{w:100,q:[[false,105]],effects:['queued'],spent:1,bad:[]},'consent stands after '+JSON.stringify(patch));
+  assert.deepEqual(out['fx-revision-2'],out['fx-revision-1'],'R1 and R2 agree after '+JSON.stringify(patch));
+ }
+});
+// The Start capture with its window cell, as engine-capture.cjs writes it (loads and reps per slot).
+function captureWindow(gen,c,loads,hi){
+ captureOn(gen,c,loads);
+ for(const cell of gen.collections.ops[c.start].prescription_capture.slots)cell.reps={state:'specified',display:hi+' reps',source_json:JSON.stringify({value:hi,unit:'rep'})};
+ return gen;
+}
+// The capture records the rep TARGET per set (engine-capture.cjs `reps`), not the window:
+// a target above the current window top proves the window moved down since completion.
+test('R9-B25 COMPLETED WORK IS NOT PRICED UNDER A NEW WINDOW (Astra L6 B25; spec :126 "load/vector/count/window/technique", :184 PLAN_CHANGED): two tops whose Starts captured target 10, the window then edited down to 9 or 8 -> PLAN_CHANGED [Close Ref] (typed and host v1); the captured window still offers; a raised window never offers old work',()=>{
+ effectsGate();
+ const cs=[C(1,{reps:TOP,effort:e(2,1,1)}),C(2,{reps:TOP,effort:e(2,1,1)})];
+ const at=hi=>{const a=foldArgs(cs,[],'fx-revision-1',F0({hi}));for(const c of cs)captureWindow(a.generation,c,[100,100,100],10);return a;};
+ assert.equal(checkOf(at(10),LIFT,cs[1]).status,'offer','control: the captured window is current');
+ for(const hi of [9,8])expectRefusal(checkOf(at(hi),LIFT,cs[1]),'PLAN_CHANGED',[ref(cs[1].close)]);
+ assert.notEqual(checkOf(at(12),LIFT,cs[1]).status,'offer','a raised window never prices the old work');
+ const v1=[v1Of(cs[0]),v1Of(cs[1])],a=foldArgs(v1,[],'fx-revision-1',F0({hi:9}));for(const c of v1)captureWindow(a.generation,c,[100,100,100],10);
+ expectRefusal(checkOf(a,LIFT,v1[1]),'PLAN_CHANGED',[ref(v1[1].close)]);
+ // Step 2 precedes the window reader: a miss under the edited window is PLAN_CHANGED, not WINDOW_NOT_TOP.
+ const miss=[cs[0],C(2,{reps:[8,7,6],effort:e(2,1,1)})],b=foldArgs(miss,[],'fx-revision-1',F0({hi:9}));for(const c of miss)captureWindow(b.generation,c,[100,100,100],10);
+ {const f=EFFECTS.m.foldNativeLoad(b),bs=EFFECTS.m.basisOf({state:f.state,generation:b.generation,workoutFacts:b.workoutFacts,source:SOURCE,athleteId:ATH,lift:LIFT,spent:f.spent});
+  const raw=engineAt(miss[1].date).evaluateNativeLoad(f.state,{lift_lineage_id:LIFT,completion_op_id:miss[1].close,intent:'check',basis:bs});
+  assert.equal(raw.refusal&&raw.refusal.code,'NATIVE_LOAD_WINDOW_NOT_TOP','control: FC01 alone reaches the window reader');}
+ expectRefusal(checkOf(b,LIFT,miss[1]),'PLAN_CHANGED',[ref(miss[1].close)]);
+});
+
+// ======================================================================
+// ROUND 8 MODEL (Claude l6 D-B6-1): the round-7 walk plus the classes it lacked, and a
+// real oracle for I1. Seeded, deterministic, every projection the cold fold.
+// Added classes: fact corrections after the yes (BASIS_REPAIR_REQUIRED paths), technique
+// forks, a second lift (Fx Row) trained alone or in the same session, a legacy PROPOSED
+// structural queue entry (and its removal), wSets vector plans, the Close of a Start that
+// captured the card earlier (the Start sits where it was captured), host v1 sessions,
+// and delivery whose order is NOT provable (responses on a second device, no causal
+// parents, three different counter layouts).
+// I1 ORACLE, per lift, from a model ledger of every yes {lift, spend, kind, target, op}:
+//  no native authority -> w and wSets are exactly the plan's (a compensated or held
+//  adoption, an unlanded or held earn: none of them moves w);
+//  authority 'adopted' -> a recorded, non-cancelled, non-held adoption yes of that lift
+//  names it and w is its target;
+//  authority 'landed'  -> a recorded, non-cancelled, non-held earn yes of that lift names
+//  it, the fold reports its landing, w is its target, and the model has a CLOSED session
+//  whose Start captured exactly that target after the yes was recorded (spec :151).
+// I2-I5 as round 7, per lift; I6 the three unprovable delivery layouts (and R2) fold alike.
+// Round 9 (DECISIONS:793, Astra L6 D13): rep-window edits, cached-line changes, pathological
+// names (12 delimiters, unicode, empty, blank, long), Start captures with rep targets; the
+// round-8 stop-P4 exemption is removed, so every R1/R2 difference is a counterexample.
+// NATIVE_LOAD_PROPERTY8_RUNS (default 100), _SEED (default 20261001), _REPORT, _ALL.
+// ======================================================================
+function sess2(n,{date=dayAt(n-1),entries}){
+ const start='fx-start-'+n,close='fx-close-'+n,ops=[start];
+ const recs=entries.map(en=>{
+  const tag=en.lift===LIFT?'p':'r';
+  const slots=en.reps.map((r,k)=>{
+   const position=k+1,logical_set_slot=JSON.stringify([en.lift,position]),id='fx-set-'+n+'-'+tag+'-'+position,P=en.prescribed[k];
+   ops.push(id);
+   const original={load:lb(en.loads[k]),reps:rep(r),reserve:structuredClone(en.effort[k])},fix=en.corrected?en.corrected[position]:undefined;
+   const edit_op_ids=fix===undefined?[]:['fx-edit-'+n+'-'+tag+'-'+position];ops.push(...edit_op_ids);
+   const current=edit_op_ids.length?{...structuredClone(original),reps:rep(fix)}:structuredClone(original);
+   const slot={position,logical_set_slot,prescribed_load:P==null?{state:'not_prescribed'}:{state:'specified',source:lb(P)},state:'performed',
+    fact:{source_op_id:id,source_status:'stored-on-this-device',included:true,current,current_status:'stored-on-this-device',edit_op_ids,issues:[],original,logical_set_slot,lift_lineage_id:en.lift}};
+   if(en.v1)delete slot.prescribed_load;
+   return slot;
+  });
+  return {profile:en.v1?'earned/performed-lift/v1':'earned/performed-lift/v2',start_op_id:start,lift_lineage_id:en.lift,completion:{op_id:close,kind:'normal',status:'stored-on-this-device'},slots};
+ });
+ ops.push(close);
+ return {n,start,close,date,ops,session:{start_op_id:start,effective:{local_date:date,local_time:'10:00',utc_offset:'+00:00'},record:{entries:recs}}};
+}
+function captureLifts(gen,c,byLift,repsByLift){
+ const cell=v=>v==null?{state:'not_prescribed',display:'Find a working load',source_json:null}:{state:'specified',display:v+' lb',source_json:JSON.stringify({value:v,unit:'lb'})};
+ const reps=v=>({state:'specified',display:String(v),source_json:JSON.stringify({value:v,unit:'rep'})});
+ gen.collections.ops[c.start].prescription_capture={slots:c.session.record.entries.flatMap(en=>en.slots.map((slot,i)=>({logical_set_slot:slot.logical_set_slot,lift_lineage_id:en.lift_lineage_id,
+  load:cell(byLift[en.lift_lineage_id]?byLift[en.lift_lineage_id][i]:null),...(repsByLift&&Number.isFinite(repsByLift[en.lift_lineage_id])?{reps:reps(repsByLift[en.lift_lineage_id])}:{})})))};
+}
+// Round 9: pathological display names (delimiters, unicode, empty-like, long).
+const R9_WALK_NAMES=['Fx Press','Renamed Press','Bench (renamed)','Fx: Press','Fx Row',Array(12).fill('A').join(': '),': : :','',' ',String.fromCharCode(0x3a9,58,32,0x416),'x'.repeat(120)+': z'];
+const liftOfSpend=s=>{try{return JSON.parse(s)[1];}catch{return null;}};
+function propertySequence8(seed){
+ const rnd=mulberry32(seed),pick=xs=>xs[Math.floor(rnd()*xs.length)],chance=p=>rnd()<p;
+ const baseline=chance(0.25),rowOn=chance(0.5),origW=baseline?null:100;
+ const lifts=rowOn?[LIFT,ROW]:[LIFT];
+ const m={base:{},legacy:{},comps:[],extras:[],starts:[],proven:[],ledger:[],lastOffer:{},trace:[],k:0,cross:new Set()};
+ // Lifts with a yes that an edit of ANOTHER lift (fork, fact correction) followed.
+ const touch=X=>{for(const y of m.ledger)if(y.lift!==X&&y.kind!=='compensate')m.cross.add(y.lift);};
+ for(const L of lifts)m.base[L]={w:origW,wSets:null,forks:[],n:L===LIFT?'Fx Press':'Fx Row'};
+ const base=(patch={})=>{
+  const s=rowOn?withRow(origW===null?{w:null}:{}):F0(origW===null?{w:null}:{});
+  for(const L of lifts){const ex=s.exercises.find(x=>x.id===L),B=m.base[L];ex.w=B.w;if(B.wSets)ex.wSets=B.wSets.slice();else delete ex.wSets;ex.forks=structuredClone(B.forks);ex.n=patch.n?patch.n+' '+L:B.n;
+   if(B.hi!==undefined)ex.hi=B.hi;if(B.last!==undefined){if(B.last===null)delete ex.last;else ex.last=B.last.slice();}}
+  for(const L of lifts)if(m.legacy[L])s.queue.push(structuredClone(m.legacy[L]));
+  return s;
+ };
+ const gen=(o={})=>{
+  const a=foldArgs(m.comps.map(c=>c.built),m.extras,o.rev||'fx-revision-1',base(o.base));
+  const ops=a.generation.collections.ops;
+  for(const s of m.starts){if(!ops[s.anchor])continue;ops[s.built.start]={op_id:s.built.start,athlete_id:ATH,device_id:DEVICE,device_seq:ops[s.anchor].device_seq+0.5,class:'session',kind:'session-start',payload:{},canonical_content_commitment:commit(s.built.start)};captureLifts(a.generation,s.built,{[LIFT]:s.card});}
+  for(const c of m.comps){if(c.cap)captureLifts(a.generation,c.built,c.cap,c.hiAt);if(c.anchor&&ops[c.anchor])ops[c.built.start].device_seq=ops[c.anchor].device_seq+0.5;}
+  if(o.twoDevice){
+   const all=Object.values(ops).sort((x,y)=>x.device_seq-y.device_seq||(x.op_id<y.op_id?-1:1));
+   all.forEach((op,i)=>{if(i)op.causal_parents=[all[i-1].op_id];});
+   all.filter(op=>op.class==='plan').forEach((op,i)=>{op.device_id='fx-device-B';op.device_seq=1000-i;});
+  }
+  if(o.unproven){
+   // Responses recorded on a second device that shares no causal link with the sessions:
+   // their order against every Start is unprovable (spec :151, :156). Three layouts.
+   const resp=Object.values(ops).filter(op=>op.class==='plan').sort((x,y)=>x.device_seq-y.device_seq||(x.op_id<y.op_id?-1:1));
+   resp.forEach((op,i)=>{op.device_id='fx-device-B';delete op.causal_parents;op.device_seq=o.unproven==='late'?1000+i:o.unproven==='early'?(i+1)/1000:op.device_seq;});
+  }
+  return a;
+ };
+ const fold=o=>EFFECTS.m.foldNativeLoad(gen(o));
+ const heldCodes=['NATIVE_LOAD_EFFECT_CONFLICT','NATIVE_LOAD_BASIS_REPAIR_REQUIRED','NATIVE_LOAD_RECORD_INVALID'];
+ const held=(f,L)=>f.issues.some(i=>(i.lift===L||i.lift===null)&&heldCodes.includes(i.code));
+ const fail=(what,extra)=>{const e=new Error('PROPERTY8 '+what+' seed='+seed+' trace='+JSON.stringify(m.trace)+(extra?' '+JSON.stringify(extra):''));e.code='PROPERTY_COUNTEREXAMPLE';throw e;};
+ const exIn=(s,L)=>s.exercises.find(x=>x.id===L);
+ // The lift's EFFECTIVE plan (an edit that sets a field to the value it had is no edit).
+ const effOf=L=>JSON.stringify(exIn(base(),L));
+ const lastWith=L=>[...m.comps].reverse().find(c=>c.spec.entries.some(en=>en.lift===L));
+ const cardOf=(f,L)=>{const q=f.state.queue.find(x=>x&&x.exId===L&&!x.done&&typeof x.native_load_spend==='string');
+  if(q)return Array.isArray(q.newWSets)?q.newWSets.slice():[q.newW,q.newW,q.newW];const ex=exIn(f.state,L);return Array.isArray(ex.wSets)?ex.wSets.slice():[ex.w,ex.w,ex.w];};
+ const norm=f=>({state:f.state?lifts.map(L=>{const ex=structuredClone(exIn(f.state,L));delete ex.n;return ex;}):null,
+  queue:f.state?f.state.queue.filter(q=>q.native_load_spend).map(q=>{const x={...q};delete x.t;return x;}):null,
+  spent:f.spent.map(x=>[x.spend_id,x.cancelled_by,x.close_ref&&x.close_ref.op_id]).sort(),
+  issues:[...new Set(f.issues.filter(i=>i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').map(i=>i.code+'@'+i.lift))].sort()});
+ // Live = kept, not cancelled, not held back. A corrected basis (BASIS_REPAIR_REQUIRED)
+ // RETAINS its effect, labeled disputed (spec :157); it only refuses further authorization.
+ const live=(f,y)=>{const x=f.spent.find(s=>s.spend_id===y.spend);return !!x&&!x.cancelled_by&&!f.issues.some(i=>i.spend_id===y.spend&&i.code!=='NATIVE_LOAD_BASIS_REPAIR_REQUIRED');};
+ const checkInvariants=stage=>{
+  const f=fold();
+  if(f.status!=='ready'||!f.state){m.refusedFold=(m.refusedFold||0)+1;return f;}
+  for(const L of lifts){
+   const ex=exIn(f.state,L),B=m.base[L],auth=ex.native_load_authority,ctx={lift:L,base:B,auth,w:ex.w,wSets:ex.wSets,ledger:m.ledger.filter(y=>y.lift===L)};
+   if(!auth){
+    if(ex.w!==B.w||JSON.stringify(ex.wSets||null)!==JSON.stringify(B.wSets||null))fail('I1 weight moved without a live authority at '+stage,ctx);
+   }else if(auth.kind==='adopted'){
+    const y=m.ledger.find(y=>y.lift===L&&y.spend===auth.spend_id&&y.kind!=='earn'&&y.kind!=='compensate');
+    if(!y||!live(f,y))fail('I1 adopted authority without a live adoption yes at '+stage,ctx);
+    if(ex.w!==y.targetW)fail('I1 adopted w is not its target at '+stage,ctx);
+   }else if(auth.kind==='landed'){
+    const y=m.ledger.find(y=>y.lift===L&&y.spend===auth.spend_id&&y.kind==='earn');
+    if(!y||!live(f,y))fail('I1 landed authority without a live earn yes at '+stage,ctx);
+    if(ex.w!==y.targetW)fail('I1 landed w is not its target at '+stage,ctx);
+    if(!m.comps.some(c=>c.seen[L]&&JSON.stringify(c.seen[L])===JSON.stringify(y.target)&&c.capExtras.includes(y.op)))fail('I1 landed without a closed Start that captured the target after the yes at '+stage,ctx);
+   }else if(auth.kind==='compensated'){
+    // A cancellation restores the prior image (applied) or retires only (held): the
+    // cancelled weight never survives it. The prior image is the weight the cancelled yes
+    // was issued on: its load authority root's target when that yes is still live, else
+    // the plan's. It names a recorded cancellation of a recorded yes.
+    const y=m.ledger.find(y=>y.lift===L&&y.spend===auth.spend_id&&y.kind==='compensate'),t=m.ledger.find(y=>y.lift===L&&y.spend===auth.compensates);
+    if(!y||!t)fail('I1 compensated authority without a recorded cancellation of a recorded yes at '+stage,ctx);
+    const rootSp=(()=>{try{const d=JSON.parse(auth.compensates);return typeof d[2]==='string'?d[2]:null;}catch{return null;}})();
+    const root=rootSp?m.ledger.find(z=>z.lift===L&&z.spend===rootSp):null;
+    // A root that is itself a cancellation restored the plan's weight (seed 20270192).
+    const want=root&&root.kind!=='compensate'&&live(f,root)?root.targetW:B.w;
+    if(ex.w!==want)fail('I1 an agreed weight survives its cancellation at '+stage,{...ctx,want});
+    if(ex.w===t.targetW&&t.targetW!==want)fail('I1 the cancelled weight is current at '+stage,ctx);
+   }else fail('I1 unknown authority kind '+auth.kind+' at '+stage,ctx);
+  }
+  for(const p of m.proven){
+   const x=f.spent.find(y=>y.spend_id===p.target);
+   if(!x||!x.cancelled_by)fail('I2 proven cancellation lost at '+stage,{target:p.target});
+   const L=liftOfSpend(p.target),c=lastWith(L);
+   if(c&&!held(f,L)){const again=checkOf(gen(),L,c.built,{compensate:p.target});if(again.status==='offer')fail('I2 cancelled spend offered again at '+stage);}
+  }
+  return f;
+ };
+ const steps=8+Math.floor(rnd()*12);
+ for(let step=0;step<steps;step++){
+  const f=fold();
+  if(f.status!=='ready'||!f.state){m.trace.push('fold-refused');break;}
+  // Weights: the rare classes appear about once per walk so that yeses stay frequent.
+  const L=pick(lifts),action=pick(m.comps.length<2?['train','train','train','train','base','rename']:
+   ['train','train','train','train','check','check','check','check','undo','undo','base','rename','plan','capture','finish','reopen','dup','undo2',
+    ...(chance(0.5)?['correct','fork','legacy','vector']:[]),...(chance(0.5)?['window','cache']:[])]);
+  m.trace.push(action);
+  if(action==='train'){
+   const on=(rowOn?pick([[LIFT],[ROW],[LIFT,ROW],[LIFT,ROW]]):[LIFT]).filter(x=>!held(f,x));
+   if(!on.length){m.trace.push('skip-held');continue;}
+   const n=m.comps.length+1,v1=chance(0.3),cap={},entries=[];
+   for(const X of on){
+    const card=cardOf(f,X),lifted=card[0]===null?card.map(()=>pick([60,65])):chance(0.15)?card.map(v=>v+5):card.slice();
+    entries.push({lift:X,reps:pick([TOP,TOP,TOP,[10,9,7],[9,8,8]]),loads:lifted,prescribed:card,effort:chance(0.8)?e(2,1,1):e(0,1,1),v1});
+    if(v1||chance(0.5))cap[X]=card;
+   }
+   const spec={n,entries},seen={};
+   // What the landing reads (FC03 captureOf): the Start's capture cell, else a typed v2
+   // slot's own prescribed_load (the card it was prescribed), never a v1 slot's.
+   for(const en of entries)seen[en.lift]=cap[en.lift]?cap[en.lift]:en.v1?null:en.prescribed.slice();
+   // Round 9: the Start capture also carries a rep target per set (<= the window top then).
+   const hiAt={};for(const X of on)hiAt[X]=m.base[X].hi===undefined?10:m.base[X].hi;
+   m.comps.push({spec,built:sess2(n,spec),cap:Object.keys(cap).length?cap:null,hiAt,seen,capExtras:m.extras.map(x=>x.op_id)});
+   m.trace.push([n,on.map(x=>x===LIFT?'P':'R').join(''),entries[0].prescribed[0],entries[0].loads[0],v1?'v1':'v2',Object.keys(cap).length?'cap':'']);
+  }else if(action==='check'){
+   const c=lastWith(L);if(!c)continue;
+   const ev=checkOf(gen(),L,c.built);
+   if(ev.status==='offer'){
+    const offer=pick(ev.offers),d=decisionOf(offer),held0=EFFECTS.m.issuanceFor(offer,{revision:'fx-revision-1',source:JSON.stringify(SOURCE),moment:'2026-10-02T12:00:00.000Z'});
+    m.lastOffer[L]={held:held0,base:effOf(L),n:m.comps.length};
+    if(chance(0.7)){
+     const op_id='fx-p-'+(++m.k);m.extras.push(acceptOp(offer,{op_id,after:m.comps.length}));
+     m.ledger.push({lift:L,spend:d.spend_id,kind:d.kind,target:d.target_load.vector.map(v=>v?v.value:null),targetW:d.target_load.scalar?d.target_load.scalar.value:null,op:op_id});
+     m.trace.push('yes:'+d.kind+':'+(d.target_load.scalar&&d.target_load.scalar.value));
+    }
+   }else m.trace.push('refused:'+ev.refusal.code);
+  }else if(action==='undo'){
+   const c=lastWith(L);if(!c)continue;
+   const liveSp=f.spent.filter(x=>!x.cancelled_by&&liftOfSpend(x.spend_id)===L&&!x.spend_id.startsWith('["native-load-compensation"'));
+   if(!liveSp.length)continue;
+   const target=pick(liveSp).spend_id,ev=checkOf(gen(),L,c.built,{compensate:target});
+   if(ev.status==='offer'){const d=decisionOf(ev.offers[0]),op_id='fx-p-'+(++m.k);m.extras.push(acceptOp(ev.offers[0],{op_id,after:m.comps.length}));m.proven.push({target,undo:d.spend_id});
+    m.ledger.push({lift:L,spend:d.spend_id,kind:'compensate',target:null,targetW:null,op:op_id});m.trace.push('undo-yes');}
+  }else if(action==='base'||action==='plan'||action==='vector'||action==='fork'){
+   const B=m.base[L];
+   if(action==='fork'){if(B.forks.length>=2)continue;touch(L);B.forks.push({from:pick([dayAt(m.comps.length),dayAt(Math.max(0,m.comps.length-1)),dayAt(m.comps.length+1)]),kind:'reset',why:'SYNTHETIC'});m.trace.push(['fork',L,B.forks.at(-1).from]);}
+   else if(action==='vector'){if(B.w===null)continue;B.wSets=B.wSets?null:[B.w,B.w,B.w-5];m.trace.push(['vector',L,B.wSets]);}
+   else{B.w=pick(origW===null?[null,45,50]:[100,102.5,97.5,105]);B.wSets=B.wSets&&B.w!==null?[B.w,B.w,B.w-5]:null;m.trace.push([action,L,B.w]);}
+   const lo=m.lastOffer[L];
+   if(lo&&lo.base!==effOf(L)&&lo.n===m.comps.length){
+    const c=lastWith(L),ev=checkOf(gen(),L,c.built);
+    if(ev.status==='offer'&&ev.offers.some(o=>EFFECTS.m.sameIssued(o,lo.held)))fail('I5 stale offer still fresh after a plan edit',{lift:L});
+   }
+  }else if(action==='dup'){
+   if(!m.extras.length)continue;
+   const src=pick(m.extras);m.extras.push({...src,op_id:'fx-p-'+(++m.k),after:m.comps.length,device:'fx-device-B'});m.trace.push('dup');
+  }else if(action==='undo2'){
+   if(!m.proven.length)continue;
+   const p=pick(m.proven),idx=m.extras.findIndex(x=>x.payload.issuance.body.compensates===p.target),PL=liftOfSpend(p.target),c=lastWith(PL);
+   const save=m.extras;m.extras=m.extras.slice(0,idx);const ev=checkOf(gen(),PL,c.built,{compensate:p.target});m.extras=save;
+   if(ev.status==='offer'){const op_id='fx-p-'+(++m.k);m.extras.push({...acceptOp(ev.offers[0],{op_id,after:m.comps.length}),device:'fx-device-B'});m.trace.push('undo2-yes');}
+  }else if(action==='rename'){m.base[L].n=pick(R9_WALK_NAMES);m.trace.push(['rename',L,m.base[L].n]);}
+  else if(action==='window'||action==='cache'){
+   // Round 9: a later rep-window edit or cached-line change; never revokes a recorded yes
+   // (DECISIONS:793); a new check on work captured above the new window is PLAN_CHANGED.
+   const B=m.base[L];
+   if(action==='window'){B.hi=pick([9,10,11,12]);m.trace.push(['window',L,B.hi]);}
+   else{B.last=pick([null,[9,8,7],[10,10,10],[12,11,10]]);m.trace.push(['cache',L,B.last]);}
+   const lo=m.lastOffer[L];
+   if(lo&&lo.base!==effOf(L)&&lo.n===m.comps.length){
+    const c=lastWith(L),ev=checkOf(gen(),L,c.built);
+    if(ev.status==='offer'&&ev.offers.some(o=>EFFECTS.m.sameIssued(o,lo.held)))fail('I5 stale offer still fresh after a window or cache edit',{lift:L});
+   }
+  }
+  else if(action==='capture'){
+   if(held(f,LIFT)||m.starts.length)continue;
+   const card=cardOf(f,LIFT);if(card[0]===null)continue;
+   const built=sess2(900,{entries:[{lift:LIFT,reps:TOP,loads:card,prescribed:card,effort:e(2,1,1)}]}),lastExtra=m.extras.filter(x=>x.after===m.comps.length).at(-1);
+   m.starts.push({built,card,anchor:lastExtra?lastExtra.op_id:m.comps.at(-1).built.close,nAt:m.comps.length,capExtras:m.extras.map(x=>x.op_id)});m.trace.push(['capture',card]);
+  }else if(action==='finish'){
+   // The Close of the Start that captured the card: the session keeps its Start where it
+   // was captured, before any yes recorded after the capture.
+   const s=m.starts[0];if(!s||s.nAt!==m.comps.length)continue;
+   const n=m.comps.length+1,spec={n,entries:[{lift:LIFT,reps:pick([TOP,TOP,[10,9,7]]),loads:s.card.slice(),prescribed:s.card.slice(),effort:e(2,1,1),v1:false}]};
+   m.comps.push({spec,built:sess2(n,spec),cap:{[LIFT]:s.card.slice()},seen:{[LIFT]:s.card.slice()},capExtras:s.capExtras,anchor:s.anchor});m.starts=[];m.trace.push(['finish',s.card]);
+  }else if(action==='correct'){
+   // Mostly a completion some recorded yes consumed (the BASIS_REPAIR_REQUIRED path, :157).
+   const consumed=new Set(f.spent.flatMap(x=>{try{const d=JSON.parse(x.spend_id);return d[0]==='native-load'?d[4]:[];}catch{return [];}}));
+   const hits=m.comps.flatMap(c=>c.spec.entries.filter(en=>consumed.has(JSON.stringify([c.built.start,en.lift,c.built.close]))).map(en=>[c,en]));
+   const [c,en]=hits.length&&chance(0.8)?pick(hits):(()=>{const c0=pick(m.comps);return [c0,pick(c0.spec.entries)];})(),pos=1+Math.floor(rnd()*en.reps.length);
+   if(en.corrected||en.reps[pos-1]<2)continue;
+   en.corrected={[pos]:en.reps[pos-1]-1};touch(en.lift);c.built=sess2(c.spec.n,c.spec);m.trace.push(['correct',c.spec.n,en.lift,pos]);
+   const root=JSON.stringify([c.built.start,en.lift,c.built.close]);
+   if(f.spent.some(x=>{try{const d=JSON.parse(x.spend_id);return d[0]==='native-load'&&d[4].includes(root);}catch{return false;}})){
+    m.trace.push('correct-consumed');if(fold().issues.some(i=>i.code==='NATIVE_LOAD_BASIS_REPAIR_REQUIRED'))m.trace.push('correct-consumed-repair');
+   }
+  }else if(action==='legacy'){
+   if(m.legacy[L])delete m.legacy[L];
+   else m.legacy[L]={exId:L,kind:'debut',done:false,state:'PROPOSED',newW:(m.base[L].w===null?60:m.base[L].w+5),t:'SYNTHETIC legacy'};
+   m.trace.push(['legacy',L,!!m.legacy[L]]);
+  }
+  checkInvariants('step '+step);
+ }
+ const f=checkInvariants('end'),ref0=norm(f);
+ // Round 9 (DECISIONS:793): the round-8 'stop-P4' exemption is gone; every revision or
+ // delivery difference is a counterexample.
+ const differ=(what,o,a,b,extra)=>{if(JSON.stringify(a)===JSON.stringify(b))return;fail(what+' '+JSON.stringify(o),{ref:a,got:b,...extra});};
+ for(const o of [{rev:'fx-revision-2'},{twoDevice:true},{twoDevice:true,rev:'fx-revision-2'}])
+  differ('I3 differs under',o,ref0,norm(fold(o)),{refIssues:f.issues,ledger:m.ledger,comps:m.comps.map(c=>({spec:c.spec,cap:c.cap,anchor:c.anchor||null})),base:m.base,legacy:m.legacy});
+ const u0=norm(fold({unproven:'same'}));
+ for(const o of [{unproven:'late'},{unproven:'early'},{unproven:'same',rev:'fx-revision-2'},{unproven:'late',rev:'fx-revision-2'}])
+  differ('I6 unprovable order differs under',o,u0,norm(fold(o)),{});
+ const r=norm(fold({base:{n:'Property Rename'}}));
+ if(JSON.stringify(r)!==JSON.stringify(ref0))fail('I4 rename changes the outcome',{ref:ref0,got:r});
+ const tally={};for(const t of m.trace){const k=typeof t==='string'?t.split(':').slice(0,2).join(':'):Array.isArray(t)&&typeof t[0]==='string'?t[0]:null;if(k)tally[k]=(tally[k]||0)+1;}
+ for(const e2 of f.effects)tally['effect:'+e2.kind]=(tally['effect:'+e2.kind]||0)+1;
+ for(const i of f.issues)tally['issue:'+i.code]=(tally['issue:'+i.code]||0)+1;
+ for(const i of fold({unproven:'same'}).issues)tally['unproven-issue:'+i.code]=(tally['unproven-issue:'+i.code]||0)+1;
+ if(baseline)tally.baseline=1;if(rowOn)tally.rowOn=1;if(m.refusedFold)tally.refusedFold=m.refusedFold;if(m.stopP4)tally['stop-P4']=1;
+ for(const L of lifts)if(f.state&&exIn(f.state,L).native_load_authority)tally['authority:'+exIn(f.state,L).native_load_authority.kind]=(tally['authority:'+exIn(f.state,L).native_load_authority.kind]||0)+1;
+ Object.defineProperty(tally,'detail',{value:{trace:m.trace,issues:f.issues,spent:f.spent},enumerable:false});
+ return tally;
+}
+test('R8-PROPERTY MODEL WITH ORACLE (Claude l6 D-B6-1; invariants I1 oracle, I2-I6 above; seeded, deterministic)',()=>{
+ effectsGate();
+ const runs=Number(process.env.NATIVE_LOAD_PROPERTY8_RUNS||100),seed0=Number(process.env.NATIVE_LOAD_PROPERTY8_SEED||20261001);
+ const found=[],coverage={};
+ for(let i=0;i<runs;i++){
+  try{const t=propertySequence8(seed0+i);for(const [k,v] of Object.entries(t)){coverage[k]=(coverage[k]||0)+v;if(k.startsWith('issue:')||k.startsWith('authority:')||k==='stop-P4'){const s='seeds '+k;coverage[s]=coverage[s]||[];if(coverage[s].length<(k==='stop-P4'?50:5))coverage[s].push(seed0+i);}}}
+  catch(err){if(err&&err.code==='PROPERTY_COUNTEREXAMPLE'){found.push(err.message);if(!process.env.NATIVE_LOAD_PROPERTY8_ALL)break;}else throw new Error('seed='+(seed0+i)+' '+(err&&err.stack||err));}
+ }
+ if(process.env.NATIVE_LOAD_PROPERTY8_REPORT)require('node:fs').writeFileSync(process.env.NATIVE_LOAD_PROPERTY8_REPORT,JSON.stringify({runs,seed0,found,coverage},null,1));
+ assert.deepEqual(found,[],'counterexamples');
+});

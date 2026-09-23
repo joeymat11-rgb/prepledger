@@ -597,6 +597,37 @@ test('R7-B22 A NEW HOST REFUSES A PRE-EDIT CAPTURE [Y] (Astra L5 B22; spec :127,
   const checked = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: press.completion_op_id });
   assert.equal(checked.status, 'refused', 'no offer over the newer plan');
   assert.equal(checked.refusal.code, 'NATIVE_LOAD_PLAN_CHANGED');
+  // D-B6-2 (spec :176): refs = [Close Ref] of the checked completion, never [].
+  assert.deepEqual(checked.refusal.refs.map(r => r.op_id), [press.completion_op_id], 'refs = [Close Ref]');
+  assert.ok(checked.refusal.refs.every(r => typeof r.commitment === 'string' && r.commitment.length > 0), 'the Close Ref carries its commitment');
   assert.equal((await responsesOf(era)).length, 0);
   host.close(); era.close();
+});
+
+// ROUND 9: Astra L6's three failing host callbacks (native-load-astra-l6-4b83f4c/panel-l6.mjs),
+// bodies verbatim; DECISIONS:793 (re-validation at the original cut only) and :126/:184.
+test('R9-B23 ASTRA L6 colon-rich display name preserves the accepted target on rename',async()=>{
+ const fault=faultDatabase(),era=await reopenAt(fault,D1),oldName=Array(12).fill('A').join(': ');
+ for(const day of [D1,D2]){
+  const {entry}=await dayEntryWith(era,day,withPress(day,{n:oldName}));
+  assert.equal((await train(entry)).finished.ok,true);await entry.nativeLoad.settled();
+  if(day===D2){await entry.nativeLoad.check();const o=entry.nativeLoad.view().offers.find(o=>o.lift==='demo-press');assert.ok(o);assert.equal((await entry.nativeLoad.accept(o.proposalId)).acknowledged,true);}
+  entry.gymHost.close();
+ }
+ era.close();const again=await reopenAt(fault,D3),host=await again.createNativeLoadHost({day:D3,engineState:withPress(D3,{n:'Renamed'})}),p=await host.project();
+ const output={name:oldName,length:oldName.length,w:pressOf(p).w,quarantined:pressOf(p).quarantined,queue:nativeQueue(p.state,'demo-press').map(q=>[q.done,q.newW]),issues:p.issues.map(i=>i.code),responses:(await responsesOf(again)).length,closes:(await opsOf(again)).filter(o=>o.kind==='session-close').length};
+ console.log('L6_NAME '+JSON.stringify(output));host.close();again.close();assert.deepEqual(output.queue,[[false,45]],'consented 45 survives a display-only rename');
+});
+test('R9-B25 ASTRA L6 completed work cannot be newly priced under an edited rep window',async()=>{
+ const fault=faultDatabase(),era=await reopenAt(fault,D1),{entry}=await twoTops(era);assert.equal((await train(entry)).finished.ok,true);await entry.nativeLoad.settled();
+ const host=await era.createNativeLoadHost({day:D2,engineState:withPress(D2,{hi:10})}),p=await host.project(),lift=p.lifts.find(l=>l.lift_lineage_id==='demo-press'),ev=await host.check(lift);
+ const start=(await opsOf(era)).filter(o=>o.kind==='session-start').at(-1),cap=start.prescription_capture.slots.filter(s=>s.lift_lineage_id==='demo-press').map(s=>JSON.parse(s.reps.source_json));
+ console.log('L6_WINDOW_CHECK '+JSON.stringify({oldHi:12,newHi:10,capturedReps:cap,status:ev.status,offers:ev.offers.map(o=>({kind:o.kind,loads:o.loads})),refusal:ev.refusal,responses:(await responsesOf(era)).length}));
+ host.close();entry.gymHost.close();era.close();assert.equal(ev.refusal?.code,'NATIVE_LOAD_PLAN_CHANGED','governing rep window changed since completion');
+});
+test('R9-B24 ASTRA L6 saved yes survives a later rep-window change as held authority',async()=>{
+ const fault=faultDatabase(),era=await reopenAt(fault,D1),entry=await yesTo(era,'demo-press');entry.gymHost.close();era.close();
+ const again=await reopenAt(fault,D3),host=await again.createNativeLoadHost({day:D3,engineState:withPress(D3,{hi:15})}),p=await host.project();
+ console.log('L6_WINDOW_REPLAY '+JSON.stringify({oldHi:12,newHi:15,w:pressOf(p).w,quarantined:pressOf(p).quarantined,queue:nativeQueue(p.state,'demo-press').map(q=>[q.done,q.newW]),effects:p.effects.map(e=>e.kind),issues:p.issues.map(i=>i.code),responses:(await responsesOf(again)).length}));
+ host.close();again.close();assert.ok(p.effects.length,'the consented target is not discarded by a changed current rep window');
 });
