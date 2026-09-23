@@ -158,8 +158,20 @@ jobs:
       # committed and every declared child carries an observed needle, this step reports
       # the runner's own refusal by name rather than PASS; that is the expected pre-seal
       # state. The step NAME moves with it.
-      - name: Cumulative S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S9
+      # S10 SUCCEEDS M2-S9-UI-PINS HERE, by the same rule a ninth time, and the flip again
+      # lives INSIDE the package rather than at the fast-forward (ef21153's shape; the cost
+      # of doing it afterwards measured at DECISIONS:498). S10 composes the accepted Today
+      # split, the accepted gym-settings writer and the EPP repair with D-EPP-2 onto the S9
+      # parent (S10-WORKING-BRIEF.md c58b892; DECISIONS:780 Q3, :785, :791, :792). UNLIKE S9
+      # it DOES move rebuild/engine bytes - today.cjs and writers.cjs, one owner-worded
+      # clause each (DECISIONS:631 O-1a) - so it retires the nine byte-identity gates under
+      # its OWN reason and its own token line, with its own s10-* cells. Until its package
+      # id, THEME, BRIEF-BY-SHA, RELEASE-FROM-SEAL and GATE-SUPERSESSION lines stand on the
+      # chain branch, its artifact is committed and every declared child carries an
+      # observed needle, this step reports the runner's own refusal by name rather than
+      # PASS; that is the expected pre-seal state. The step NAME moves with it.
+      - name: Cumulative S10 Today split reseal, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S10
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
