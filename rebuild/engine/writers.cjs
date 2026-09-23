@@ -224,7 +224,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     const ex = exById(s, en.id);
     if (!ex || !en.reps || !en.reps.length) return;
     const r = en.reps.map((x) => Number(x) || 0);
-    const q = qFind((x) => x.exId === ex.id && !x.done && (x.kind === "debut" || x.kind === "unlock"));
+    const q = qFind((x) => x.exId === ex.id && !x.done && x.state !== "PROPOSED" && (x.kind === "debut" || x.kind === "unlock"));
 
     const prevMeta = ex.lastMeta;
     if (prevMeta && prevMeta.reps && String(prevMeta.w) === String(en.w) && r.reduce((a, b) => a + b, 0) < prevMeta.reps.reduce((a, b) => a + b, 0)) dipCount++;
