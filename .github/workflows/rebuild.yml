@@ -339,10 +339,23 @@ jobs:
       # and TZ, on both runners. The D-EPP-2 step text is the one CAPTURE-REPAIR-REPORT.md
       # (D-CR-1) names. engine-capture.test.cjs and configuration-capture.test.cjs still need
       # a provisioned PERFORMED_W6_DIR, which no workflow sets; they are not named here.
+      # AND BOTH CARRY THE :627 P-S9-3 CONDITION SHAPE (DECISIONS:792): the standing
+      # --ci --package step fails on every branch that is not the chain tip, GitHub then skips every step
+      # with no condition, and a guard skipped where it is needed guards nothing. Rows (32)
+      # and (33) of rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs read these lines.
       - name: E - EPP proposed-pick, an untapped PROPOSED never establishes a debut (D-EPP-1)
+        if: ${{ !cancelled() }}
         run: node --test rebuild/engine/test/proposed-pick.test.cjs
       - name: E - D-EPP-2 workout preparation excludes an untapped PROPOSED
+        if: ${{ !cancelled() }}
         run: node --test rebuild/m4/workout/test/engine-capture-proposed.test.cjs
+      # S10 GIVES THE TODAY SPLIT'S WRITER FENCE ITS CI HOME (S10-WORKING-BRIEF.md 4.2, 10.1):
+      # the tripwire on every writer acquisition site of the two released view files ran in
+      # no workflow at all. Same condition shape and the same reason; row (34) of the
+      # sealed-inventory fence cell reads this line. Named by exact path, never globbed.
+      - name: C - the Today split writer fence over the released view files
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/lanes/c/today-split/writer-fence.test.mjs
       # M2-S7-PORT-ADMISSION ADDS ITS OWN THREE LANE CELLS HERE, under the same
       # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason: they arrived
       # with P3-PORT-FIX and P3-PORT-FIX-2 (DECISIONS:509, :510) and no workflow names
