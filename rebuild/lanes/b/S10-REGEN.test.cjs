@@ -119,3 +119,31 @@ for (const [label, plant, name, why] of refusals) {
     assert.match(r.out, why);
   });
 }
+
+/* D-REGEN-INPUT (Astra L2): the helper's input contract at a SEALED parent, on the same ports. */
+function sealed(w, reviewStatus) {
+  const ART = 'rebuild/m4/spec/acceptance-s9-ui-pins.json', REV = 'rebuild/m4/spec/review-s9-ui-pins.json';
+  const BUILD = 'rebuild/m3/w7-preview/today/build.mjs';
+  w.at[P][ART] = JSON.stringify({ product: { [A]: sha('a0\n') }, executionPins: {}, released: { [BUILD]: { role: 'released' } } });
+  w.at[P][REV] = JSON.stringify({ version: 1, status: reviewStatus, receipt: null });
+  for (const r of [P, HEAD]) w.at[r][BUILD] = 'build\n';
+  w.disk[BUILD] = 'build\n';
+  const spec = JSON.parse(w.disk[SPEC]);
+  spec.product[BUILD] = { pre: sha('build\n'), post: sha('build\n'), role: 'carried' };
+  w.disk[SPEC] = JSON.stringify(spec); w.at[HEAD][SPEC] = w.disk[SPEC];
+  return w;
+}
+test('S10-REGEN D-REGEN-INPUT: --write refuses a parent whose review envelope is not ACCEPTED', () => {
+  const r = run(sealed(world(), 'PENDING'), ['--parent', 'fake', '--write', '--receipt-line', '1']);
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.exitCode, 2, r.out);
+  assert.match(r.out, /is not an ACCEPTED envelope/);
+});
+test('S10-REGEN D-REGEN-INPUT: a parent-released path leaves the WHOLE declared union, even when the draft carries it', () => {
+  const r = run(sealed(world(), 'ACCEPTED'));
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.match(r.out, /dropped from the declared union: rebuild\/m3\/w7-preview\/today\/build\.mjs/);
+  assert.match(r.out, /rebuild\/m3\/w7-preview\/today\/build\.mjs: dropped \(released by the parent\)/);
+  assert.equal(/build\.mjs: .*=>  new/.test(r.out), false, 'the released path became new');
+});
+
