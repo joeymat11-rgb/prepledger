@@ -43,7 +43,7 @@ const REPO = path.resolve(__dirname, '..', '..', '..');
 const SPEC = 'rebuild/lanes/b/tooling/packages/S10.json', S9SPEC = 'rebuild/lanes/b/tooling/packages/S9.json';
 const RUNNER = 'rebuild/lanes/b/tooling/b-package.cjs', REGIONS = 'rebuild/lanes/c/today-split-spike/regions.json';
 const SCOPE = ['.github/workflows/rebuild.yml', '.github/workflows/shared-preflight.yml', 'rebuild/engine/',
-  'rebuild/lanes/b/S10-REGEN.cjs', 'rebuild/lanes/b/S9-UI-PINS-BRIEF.md', 'rebuild/lanes/b/tooling/',
+  'rebuild/lanes/b/S10-REGEN.cjs', 'rebuild/lanes/b/S10-REGEN.test.cjs', 'rebuild/lanes/b/S9-UI-PINS-BRIEF.md', 'rebuild/lanes/b/tooling/',
   'rebuild/lanes/c/p3-today-hotfix/', 'rebuild/lanes/c/passphrase-normalize/', 'rebuild/lanes/c/s9-today-carry/',
   'rebuild/lanes/c/today-split-spike/', 'rebuild/lanes/c/today-split/', 'rebuild/lanes/c/ui-port/',
   'rebuild/lanes/d/b-lom/', 'rebuild/lanes/d/f2/', 'rebuild/lanes/d/import-retract/', 'rebuild/lanes/d/p3-capture-start/',
