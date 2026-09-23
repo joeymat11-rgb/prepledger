@@ -1781,6 +1781,25 @@ test("P-S9-3 (31) - the local-import step exists and carries the not-cancelled c
   assertNotCancelled(YML_LINES(), "rebuild/m3/w6/test/local-import.test.mjs");
 });
 
+/* S10, BY THE PM'S RULING DECISIONS:792 ("new E steps get the :627 P-S9-3 condition shape").
+   The EPP proposed-pick cell and the D-EPP-2 capture cell are D-EPP-1's whole point: a cell
+   that guards the two owner-worded clauses is worth nothing if GitHub skips it behind the
+   standing step, which fails on every branch that is not the chain tip. The writer fence of
+   the Today split gets its CI home in the same S10 hunk and the same condition, for the
+   same reason. Each row reads the WORKING TREE's rebuild.yml, finds its step by exact path
+   and never globs, as rows (18), (30) and (31) do. The three cells cannot hold these rows
+   themselves: proposed-pick and the capture cell are accepted engine-tier inputs S10
+   carries unchanged, and the fence's rows change only under a PM ruling (:626 (4)). */
+test("S10 P-S9-3 (32) - the EPP proposed-pick step exists and carries the not-cancelled condition", () => {
+  assertNotCancelled(YML_LINES(), "rebuild/engine/test/proposed-pick.test.cjs");
+});
+test("S10 P-S9-3 (33) - the D-EPP-2 capture step exists and carries the not-cancelled condition", () => {
+  assertNotCancelled(YML_LINES(), "rebuild/m4/workout/test/engine-capture-proposed.test.cjs");
+});
+test("S10 P-S9-3 (34) - the Today split writer fence step exists and carries the not-cancelled condition", () => {
+  assertNotCancelled(YML_LINES(), "rebuild/lanes/c/today-split/writer-fence.test.mjs");
+});
+
 /* P-S9-5, THE TWO RE-HOMED INVARIANTS. ci-second-gate.test.cjs:29 asserted three things
    at once: that .github/workflows/rebuild.yml equals a 2026 baseline object with exactly
    one command substituted, that both OS jobs are retained, and that no step was forgiven
