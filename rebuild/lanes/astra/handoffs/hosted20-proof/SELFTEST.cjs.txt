@@ -1,10 +1,12 @@
 'use strict';
 // SYNTHETIC self-test of the hosted20 runner (packet copy: SELFTEST.cjs.txt).
-// Usage: node SELFTEST.cjs.txt [runner] [inventory] [authorization] [resultOut]
-// Defaults are the sibling packet files HOSTED20-RUNNER.cjs.txt, HOSTED20-INVENTORY.json, AUTHORIZATION.json.
+// Usage: node SELFTEST.cjs.txt [runner] [inventory] [authorization] [resultOut] [workflow]
+// Defaults are the sibling packet files HOSTED20-RUNNER.cjs.txt, HOSTED20-INVENTORY.json, AUTHORIZATION.json,
+// HOSTED20-WORKFLOW.yml.txt (a resultOut of "-" writes no result file).
 // Every repository it builds is invented, in a fresh os.tmpdir() folder. It never touches the project
 // repository, never runs a real group, never loads an engine or protected module. The real inventory and
-// authorization are only handed to the runner to prove it refuses them.
+// authorization are only read as JSON by the runner's own load checks: to prove they are accepted under the
+// workflow's three pins and refused without them or with any other bytes.
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -14,7 +16,9 @@ const HERE = __dirname;
 const RUNNER = path.resolve(process.argv[2] || path.join(HERE, 'HOSTED20-RUNNER.cjs.txt'));
 const REAL_INV = path.resolve(process.argv[3] || path.join(HERE, 'HOSTED20-INVENTORY.json'));
 const REAL_AUTH = path.resolve(process.argv[4] || path.join(HERE, 'AUTHORIZATION.json'));
-const RESULT_OUT = process.argv[5] || null;
+const RESULT_OUT = process.argv[5] && process.argv[5] !== '-' ? process.argv[5] : null;
+const WORKFLOW = path.resolve(process.argv[6] || path.join(HERE, 'HOSTED20-WORKFLOW.yml.txt'));
+const RUN_BRANCH = 'rebuild/p-s9-hosted20-run';
 const WORK = fs.mkdtempSync(path.join(os.tmpdir(), 'hosted20-selftest-'));
 const SECRET = 'SYNTHETIC-PLANTED-' + crypto.randomBytes(8).toString('hex');
 const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
@@ -114,7 +118,7 @@ function main() {
   const excludedIds = [blobAt(server, ids.cur, 'excluded/secret.txt'), blobAt(server, ids.cur, 'excluded2/history.js'), blobAt(server, ids.cur, 'unrelated/other.txt'), blobAt(server, ids.old, 'excluded/secret-old.txt')];
   const allowedIds = I.currentMaterialization.files.map((f) => f.blob).concat(I.hydratedBlobPairs.map((p) => p.blob));
 
-  // A. The real packet stays inert.
+  // A. The real packet is refused without its three pins, and accepted under them only exactly as granted.
   const realEnv = { HOSTED20_SELFTEST: '0' };
   const invSha = sha256(fs.readFileSync(REAL_INV)); const runSha = sha256(fs.readFileSync(RUNNER));
   check('A1_real_inventory_refused_without_inventory_pin', stopped(runner(['probe', REAL_INV, REAL_AUTH, path.join(WORK, 'none')], realEnv), 'INVENTORY_SHA256_NOT_PINNED'));
@@ -122,7 +126,37 @@ function main() {
   const authSha = sha256(fs.readFileSync(REAL_AUTH));
   const pinned3 = { ...realEnv, HOSTED20_INVENTORY_SHA256: invSha, HOSTED20_RUNNER_SHA256: runSha, HOSTED20_AUTHORIZATION_SHA256: authSha };
   check('A3_real_authorization_refused_without_authorization_pin', stopped(runner(['probe', REAL_INV, REAL_AUTH, path.join(WORK, 'none')], { ...realEnv, HOSTED20_INVENTORY_SHA256: invSha, HOSTED20_RUNNER_SHA256: runSha }), 'AUTHORIZATION_SHA256_NOT_PINNED'));
-  check('A5_real_authorization_is_not_authorized_even_fully_pinned', stopped(runner(['probe', REAL_INV, REAL_AUTH, path.join(WORK, 'none')], pinned3), 'NOT_AUTHORIZED'));
+  // A5 (round 4, owner grant DECISIONS:784): the real authorization is ACCEPTED, but only under the pins the
+  // workflow file itself carries, and it says exactly what the grant says. loadInventory reads JSON only.
+  const wfText = fs.readFileSync(WORKFLOW, 'utf8');
+  const wfPin = (k) => { const m = new RegExp('^\\s+HOSTED20_' + k + '_SHA256: ([0-9a-f]{64})$', 'm').exec(wfText); return m ? m[1] : null; };
+  const wfPins = { HOSTED20_INVENTORY_SHA256: wfPin('INVENTORY'), HOSTED20_RUNNER_SHA256: wfPin('RUNNER'), HOSTED20_AUTHORIZATION_SHA256: wfPin('AUTHORIZATION') };
+  check('W1_workflow_pins_are_the_three_final_bytes', wfPins.HOSTED20_INVENTORY_SHA256 === invSha && wfPins.HOSTED20_RUNNER_SHA256 === runSha && wfPins.HOSTED20_AUTHORIZATION_SHA256 === authSha);
+  const wfCode = wfText.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
+  check('W2_workflow_triggers_only_on_push_to_the_run_branch', /\non:\n  push:\n    branches:\n      - rebuild\/p-s9-hosted20-run\n\npermissions:/.test(wfCode)
+    && !/workflow_dispatch|pull_request|schedule|workflow_run|repository_dispatch|tags:|paths:/.test(wfCode)
+    && /\n    if: \$\{\{ github\.event_name == 'push' && github\.ref == 'refs\/heads\/rebuild\/p-s9-hosted20-run' \}\}\n/.test(wfCode)
+    && wfCode.includes('test "$GITHUB_REF" = "refs/heads/' + RUN_BRANCH + '"') && wfCode.includes('test "$GITHUB_EVENT_NAME" = "push"')
+    && /\nconcurrency:\n  group: s9-hosted20-proof\n  cancel-in-progress: false\n/.test(wfCode));
+  let accepted = false;
+  const saved = {}; for (const k of Object.keys(wfPins)) { saved[k] = process.env[k]; process.env[k] = wfPins[k]; }
+  try {
+    const { inv: rInv, auth: rAuth } = require(RUNNER).loadInventory(REAL_INV, REAL_AUTH);
+    const authorized = rInv.groups.filter((g) => rAuth.groups[g.name] === 'AUTHORIZED');
+    const need = (p) => authorized.filter((g) => g.ownerPermissions.includes(p)).map((g) => g.name);
+    accepted = rAuth.status === 'REVIEWED_AND_AUTHORIZED' && authorized.length === 19 && [...rInv.__held].join() === 'b-lom'
+      && JSON.stringify([...rAuth.grants].sort()) === JSON.stringify(['CONSUME_PROTECTED_E_SEED_OR_FROZEN_RECORD_VALUES', 'EXECUTE_PROTECTED_ENGINE_COMPOSITION', 'READ_CURRENT_AND_FE516C1_SRC_APP_JSX'])
+      && need('EXECUTE_PROTECTED_ENGINE_COMPOSITION').length === 19 && need('CONSUME_PROTECTED_E_SEED_OR_FROZEN_RECORD_VALUES').length === 18
+      && !need('CONSUME_PROTECTED_E_SEED_OR_FROZEN_RECORD_VALUES').includes('m4-import') && need('READ_CURRENT_AND_FE516C1_SRC_APP_JSX').join() === 's9-sup-source-carriers'
+      && rAuth.authorizedBy.ledger === 'rebuild/DECISIONS.md' && rAuth.authorizedBy.decisionsLine === 784 && rAuth.authorizedBy.ownerQuote === 'I approve the hosted 19-group run.';
+  } catch { accepted = false; } finally { for (const k of Object.keys(saved)) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } }
+  check('A5_real_authorization_accepted_under_the_workflow_pins_exactly_as_granted', accepted);
+  // A7/A8: the real inventory still enforces each group's own permissions, even behind a matching pin.
+  const variantAuth = (name, fn) => { const a = JSON.parse(fs.readFileSync(REAL_AUTH, 'utf8')); fn(a); const f = save(name, a); return [f, { ...pinned3, HOSTED20_AUTHORIZATION_SHA256: sha256(fs.readFileSync(f)) }]; };
+  const [noApp, noAppEnv] = variantAuth('real-auth-no-app-grant.json', (a) => { a.grants = a.grants.filter((g) => g !== 'READ_CURRENT_AND_FE516C1_SRC_APP_JSX'); });
+  check('A7_real_inventory_refuses_a_missing_group_permission', stopped(runner(['probe', REAL_INV, noApp, path.join(WORK, 'none')], noAppEnv), 'OWNER_PERMISSION_MISSING'));
+  const [blom, blomEnv] = variantAuth('real-auth-blom.json', (a) => { a.groups['b-lom'] = 'AUTHORIZED'; });
+  check('A8_real_inventory_refuses_b_lom_authorized', stopped(runner(['probe', REAL_INV, blom, path.join(WORK, 'none')], blomEnv), 'SPLIT_GROUP_NOT_HELD'));
   // A forged authorization that grants everything, swapped in behind the reviewed pins.
   const forged = JSON.parse(fs.readFileSync(REAL_AUTH, 'utf8')); forged.status = 'REVIEWED_AND_AUTHORIZED';
   forged.grants = ['EXECUTE_PROTECTED_ENGINE_COMPOSITION', 'CONSUME_PROTECTED_E_SEED_OR_FROZEN_RECORD_VALUES', 'READ_CURRENT_AND_FE516C1_SRC_APP_JSX'];
@@ -252,9 +286,10 @@ function main() {
   check('J2_real_budget_is_fixed_300_min_with_45_min_groups', bRec.perGroupTimeoutMs === 45 * 60 * 1000);
 
   const ok = Object.values(results).every(Boolean);
-  const summary = { kind: 'synthetic-hosted20-runner-selftest', round: 3, date: '2026-09-22', git: must(git(WORK, ['--version']), 'ver'), node: process.version,
+  const summary = { kind: 'synthetic-hosted20-runner-selftest', round: 4, date: '2026-09-23', git: must(git(WORK, ['--version']), 'ver'), node: process.version,
     selftestFile: path.basename(__filename), selftestSha256: sha256(fs.readFileSync(__filename)), runnerSha256: sha256(fs.readFileSync(RUNNER)),
     realInventorySha256: invSha, realAuthorizationSha256: sha256(fs.readFileSync(REAL_AUTH)),
+    workflowFile: path.basename(WORKFLOW), workflowSha256: sha256(fs.readFileSync(WORKFLOW)),
     scope: 'invented files only in a fresh temp folder; no project bytes, no real group, no engine or protected module; proves the controls, not hosted Ubuntu behaviour and not OS network isolation',
     checks: Object.keys(results).length, passed: Object.values(results).filter(Boolean).length, results, verdict: ok ? 'PASS' : 'FAIL' };
   const text = JSON.stringify(summary, null, 2) + '\n';
