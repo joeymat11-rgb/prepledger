@@ -1,4 +1,4 @@
-# S10 integration report, rounds 2 and 3 (builder claude-opus-5-5, 2026-09-23)
+# S10 integration report, rounds 2 to 4 (builder claude-opus-5-5, 2026-09-23)
 Worktree %TEMP%\earned-s10int, branch rebuild/b-s10-integration; round 1 pushed by the PM at 7f8b228; round 2 is local commits only, nothing pushed.
 Parent: S9 CANDIDATE 6dc2596 (NOT sealed; every S10-WORKING-BRIEF.md c58b892 s.2.1 value is still a STOP). Rulings: DECISIONS:792 at 25c9276.
 Local runs: Windows, Node v24.19.0 (CI uses 22), runtime lock, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, preload guard that throws before any require/import/read of the protected five; guard log empty in every run.
@@ -49,17 +49,28 @@ Row `RECORDED RESIDUE gym-app.mjs: released helper parameter mutation still pass
 | 426fbb6 | D-S10I-2, -3 | S10.json (sha256 bf241376...): note [2] now says Markdown under rebuild/engine/ is declared. today-17 keeps its name and a note: it runs 22 files. Needle grammar re-checked: at least 8 chars, no line break, matched at line start (CHILD-NEEDLE-EMPTY, CHILD-NEEDLE-NOT-A-TERMINAL-LINE), so '# pass N', null until observed |
 D-S10I-4 is left to CI, as ordered: the hosted run must show that `--ci --package S10` refuses BY NAME (not a TypeError on the null fields).
 
+## Round 4 (Astra blind L1 of 1cf99d3: REJECT, B1-B4; commits local, not pushed)
+| sha | item | content and evidence (local runs guarded as above) |
+|---|---|---|
+| (9642243) | B1 | Already paid in round 3. Re-run at 47983ba: full writer fence 404/404, the residue row among them (the plant lands on `    const paintedDraft = settingsDraft;`, gym-app.mjs:278). Astra's in-memory anchor `      }, async (outcome) => {` also lands; both keep the mutation and the guard |
+| 12be4ea | B2 = D-EPP-4 | proposed-pick.test.cjs: rows R2-R4 become functions of the engine (bodies and all assertions unchanged); new EPP-R9 runs them on EPP-R7's in-memory half engines and requires RT to fail R2's card check (test:142) and R3's card/record check (test:160), RW R3's untapped check and R4's no-down-pull check, each at that assertion (EPP-D4-SENSITIVITY-REPORT shape). The real cell needs index.cjs: CI-only. Local proof on the twelve-public-factory composition (scratch %TEMP%\opus55-s10build\epp4-harness.cjs, R8 skipped): 0d38b8e cell 7/7, and still 7/7 with R2's or R3's main assertion deleted (the debt); S10 cell 8/8, and each of four deletions turns exactly EPP-R9 red (7/8) |
+| 995e684 | B3 | package.test.cjs: TODAY_REQUIRED_INPUTS gains today-readings.cjs, today-lanes.cjs, gym-settings-lane.mjs (H18's per-input refusal now covers 29); H18b pins 51/29; H18c baseline 51; controls unchanged, no row dropped. Measured by the cell's own rule on build.mjs text: 48/26 at 6dc2596, 51/29 at head, diff exactly those three. Source-slice harness (the file's before() builds the bundle: CI-only): RED before (H18b, H18c), GREEN 2/2 after; negative control: edited cells against 6dc2596's build.mjs refuse, naming the three |
+| 6f69c9b | B4 | boundary.test.mjs (g): releaseAccounts() accounts for a drifted sealed file only if the youngest declaring spec releases it (post null, pre == the older spec's sealed post, release block present, no child executing it); the view gets no post pin. Row S10 RELEASE-ACCOUNTING: control accepted, seven ungranted variants refused by name. Source-slice harness (page-stack import: CI-only; protected pins counted via S10.json carried, never read): RED before, undeclared [today-app.cjs]; after (with fdee511), undeclared [], today-app released by S10 from efaf6c0d |
+| 47983ba | D-REASON-TEXT | s10-engine-files-differential header no longer says the package moved nothing |
+| fdee511 | | S10.json (8ed50317...): 295 paths (231 carried, 20 edited, 2 released, 41 new, 1 superseded-by-child); S10-REGEN dry run at 6dc2596: 0 entries differ |
+Astra's named debts taken where feasible: D-REASON-TEXT (paid). The destructure-aware api.lane census is NOT feasible here: no parser resolves from this worktree (acorn absent at root, w6 and w5; the same gap as D5). The rest are the STOPs below.
+
 ## STOPs remaining (D-S10I-1, complete list)
 1. Every s.2.1 placeholder: S9_PARENT_COMMIT/sourceBase, the S9 spec/receipt/verdict and both-OS CI ids, the S9 artifact and review sha256 and receipt line, S10_PACKAGE_ID, the S10 brief path/sha, THEME, BRIEF-BY-SHA and the two PROPOSED token lines above, all child needles.
 2. D-SPLIT-PARENT (3.1): re-measure the three sourceBlobs.s9 at S9_PARENT_COMMIT. They are EQUAL at 6dc2596 only; S10-REGEN.cjs prints the check and refuses --write on a mismatch.
 3. Exact-head both-OS rebuild run id and conclusion at the composed S10 candidate (10.2, :627); no green inferred from a lane run.
 4. CUI0 acceptance with its independent audit and its pins at the S9 parent, and the section 8 copy lock with its eight answers, source ownership and CI step (12.1, :732 A4). Neither exists.
-5. D-GSS-PASSTHROUGH: the destructure-aware census of api.lane at the integrated bytes (round 1 ran a regex census only: 0 product readers, 1 test reader); D-GSS-TIMER reported, not fixed (6.2).
+5. D-GSS-PASSTHROUGH: the destructure-aware census of api.lane at the integrated bytes (round 1 ran a regex census only: 0 product readers, 1 test reader; no parser available locally); D-GSS-TIMER reported, not fixed (6.2).
 6. S-R30 re-assertion (4.2): at the integrated bytes no today-app exception row changed and each gym row matches its :628 ruling. Measured so far: the fence blob before S10's own hunks equals 66d32530's (09a6dd18), and S10's two fence hunks are the LOOK_EDITS row and the residue re-anchor, neither an exception-site row. A reviewer's final assertion is still owed.
-7. D-EPP-4 unpaid. D-EPP-3 gates owed: port oracle, sensitivity, private gate, exact-head CI.
+7. D-EPP-4: paid in bytes (12be4ea); its CI run of the real cell is owed. D-EPP-3 gates owed: port oracle, sensitivity, private gate, exact-head CI.
 8. D3, D5 (the real eslint-scope stack), D6, D7, D9, the S-R33 boot row, the six inherited scope rows, the Track A re-cut and DOM/listener cells, and the M/R/N hunk classification (3.2, D-GSS-LINES): not done.
 9. machine-settings-ui three-way merge, red-first on both OS; engine-capture.test and configuration-capture.test need PERFORMED_W6_DIR; the coach ENGINE_REVISION moves only after a receipt.
-10. D-S10I-4 (CI) and the independent Astra review of 1cf99d3 onward.
+10. D-S10I-4 (CI); Astra's re-review of B1-B4 at this head; the separate Claude final (D-ACCEPTANCE).
 ## CI-only (not run locally)
 Today step (except gym and the five annexes), measure suites, proposed-pick, engine-provider (incl. S3-PROVIDER-ENGINE-PINS) and the rest of the m4-import step, `b-package --ci --package S10`, the other tooling suites (they spawn the runner), sealed-inventory-fence's real and fixture rows, the s10-sup cells' real rows, the split instruments.
 ## Open question
