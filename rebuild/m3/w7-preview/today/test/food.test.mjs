@@ -839,7 +839,15 @@ test('N1.16 - the entry sets no width a 390px or 320px phone cannot hold', () =>
    the array and is therefore consulted first. Nothing else moves: the question
    the cell asks is still "does THIS LANE drift a sealed byte it has not
    declared", and the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9'];
+/* S10 ADDS 'S10', and the cell is unchanged in every other way. S10 is the reseal child
+   that composes the accepted Today split (b35a48e3), the accepted gym-settings writer
+   (66d32530) and the EPP engine repair with D-EPP-2 onto the S9 parent
+   (S10-WORKING-BRIEF.md c58b892; DECISIONS:780, :785, :791): the files it moves are moved
+   BY THAT PACKAGE, declared in packages/S10.json, so the declaring-spec chain has to know
+   about it. S10 releases today-app.cjs and gym-app.mjs with post: null, which the loop
+   below already skips. Youngest first, so 'S10' goes last and is consulted first; the
+   red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10'];
 function declaredPost(file) {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;
