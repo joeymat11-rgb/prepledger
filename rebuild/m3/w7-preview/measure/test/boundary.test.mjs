@@ -157,6 +157,49 @@ const declaredPost = (file) => {
   return null;
 };
 
+/* S10 RE-HOMES THE HISTORICAL INVARIANT UNDER THE AUTHORIZED RELEASE (Astra
+   S10-INTEGRATION-REVIEW-L1 B4; S10-WORKING-BRIEF.md section 9 item 6; the fall-through
+   S9's note above predicted "at S10"). S10 releases today-app.cjs (an S4-sealed path) with
+   post: null, so declaredPost skips S10 and returns S9's post, and the view's real bytes read
+   as undeclared drift. The fix is NOT to restore a post pin on the released view. A drifted
+   sealed file is instead ACCOUNTED FOR BY A RELEASE only when every clause below holds, each
+   read from the declaring specs themselves:
+     (1) the YOUNGEST spec that declares the path declares it role "released" (an older
+         release under a younger real pin is not a release);
+     (2) its post is null - no post-image is ever pinned on a released view;
+     (3) its pre is exactly the post the next-older declaring spec sealed, so the release
+         hands out the byte the seal stood at and no other;
+     (4) the releasing spec carries a release block (its RELEASE-FROM-SEAL citation, which
+         the runner's releaseRuling() binds to the ledger line; this cell checks its presence
+         and shape, the runner checks the line);
+     (5) no declared child of the releasing spec names the path in its argv (no
+         execution-route collision, brief section 9 item 6).
+   Anything else - a drift with no declaring spec, a release from the wrong byte, a released
+   path with a post, a release that is not the youngest declaration - is still red. The
+   loader is a parameter only so the negative-control rows below can hand it synthetic
+   chains; the real cell uses the real specs. */
+const loadChildSpec = (id) => {
+  try { return JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/' + id + '.json')); } catch { return null; }
+};
+function releaseAccounts(file, ids = CHILD_SPECS, load = loadChildSpec) {
+  const specs = ids.map((id) => ({ id, spec: load(id) }));
+  const declaring = specs.filter(({ spec }) => spec && spec.product && Object.hasOwn(spec.product, file));
+  if (!declaring.length) return { ok: false, why: 'no declaring spec' };
+  const youngest = declaring[declaring.length - 1], pin = youngest.spec.product[file];
+  if (pin.role !== 'released') return { ok: false, why: youngest.id + ' declares it ' + pin.role + ', not released' };
+  if (pin.post !== null) return { ok: false, why: youngest.id + ' releases it WITH a post' };
+  const older = declaring.slice(0, -1).reverse().find(({ spec }) => typeof spec.product[file].post === 'string');
+  if (!older || pin.pre !== older.spec.product[file].post)
+    return { ok: false, why: youngest.id + ' releases it from ' + String(pin.pre).slice(0, 12) + ', not from the sealed post ' + String(older && older.spec.product[file].post).slice(0, 12) };
+  const rel = youngest.spec.release;
+  if (!rel || typeof rel !== 'object' || !Object.hasOwn(rel, 'rulingLineSha256')
+    || !(rel.rulingLineSha256 === null || /^[a-f0-9]{64}$/.test(rel.rulingLineSha256)))
+    return { ok: false, why: youngest.id + ' carries no release block' };
+  const collision = (youngest.spec.children || []).find((c) => (c.argv || []).includes(file));
+  if (collision) return { ok: false, why: youngest.id + ' child ' + collision.name + ' executes the released path' };
+  return { ok: true, by: youngest.id, pre: pin.pre };
+}
+
 test('P-MEASURE (g) - no S4-sealed file drifts except where a declaring spec says so, and this lane\'s own drift is today-app.cjs', () => {
   const product = S4.product || {};
   const drifted = Object.keys(product).filter((file) => {
@@ -166,7 +209,7 @@ test('P-MEASURE (g) - no S4-sealed file drifts except where a declaring spec say
   });
   /* EVERY drift is accounted for by a declaring spec, named one by one rather
      than counted, and each drifted file stands at the post that spec declares. */
-  const undeclared = drifted.filter((file) => shaOf(file) !== declaredPost(file));
+  const undeclared = drifted.filter((file) => shaOf(file) !== declaredPost(file) && !releaseAccounts(file).ok);
   assert.deepEqual(undeclared, [],
     'an S4-sealed file drifts and no package on this branch declares the bytes it stands at');
   /* AND THE DRIFT UNDER today/ IS A NAMED SET, not a count.
@@ -241,6 +284,35 @@ test('P-MEASURE (g) - no S4-sealed file drifts except where a declaring spec say
     'machine-settings-ui.test.mjs stands at no post any declaring spec names');
   assert.equal(readRepo(restored).includes(DIR), false,
     'machine-settings-ui.test.mjs names this lane\'s directory: round 2\'s edit is back');
+});
+
+/* S10's negative controls for the release rule above, on synthetic declaring chains (no file
+   is read): the real release is accounted for, and every ungranted variant is refused BY
+   NAME. VIEW is only a name here; nothing below hashes or pins it. */
+test('S10 RELEASE-ACCOUNTING - a release accounts for a drifted sealed view only under all five clauses', () => {
+  const VIEW = 'rebuild/m3/w7-preview/today/today-app.cjs', SEALED = 'a'.repeat(64);
+  const chain = (young, extra = {}) => {
+    const specs = { S8: { product: { [VIEW]: { pre: 'b'.repeat(64), post: SEALED, role: 'edited' } } },
+      S9: { product: { [VIEW]: { pre: SEALED, post: SEALED, role: 'carried' } } },
+      S10: { product: { [VIEW]: young }, release: { rulingLineSha256: null }, children: [], ...extra } };
+    return [['S8', 'S9', 'S10'], (id) => specs[id] || null];
+  };
+  const released = { pre: SEALED, post: null, role: 'released' };
+  assert.equal(releaseAccounts(VIEW, ...chain(released)).ok, true, 'the control: the authorized release accounts for the drift');
+  const refused = (label, [ids, load], why) => {
+    const r = releaseAccounts(VIEW, ids, load);
+    assert.equal(r.ok, false, label + ' was accepted');
+    assert.match(r.why, why, label + ' refused for the wrong reason: ' + r.why);
+  };
+  refused('ungranted drift: the youngest spec pins a post', chain({ pre: SEALED, post: 'c'.repeat(64), role: 'edited' }), /not released/);
+  refused('a released view WITH a post', chain({ pre: SEALED, post: 'c'.repeat(64), role: 'released' }), /WITH a post/);
+  refused('a release from the wrong byte', chain({ pre: 'd'.repeat(64), post: null, role: 'released' }), /not from the sealed post/);
+  refused('a release with no release block', chain(released, { release: undefined }), /no release block/);
+  refused('a release whose child executes the view', chain(released, { children: [{ name: 'today-17', argv: ['--test', VIEW] }] }), /executes the released path/);
+  const [ids, load] = chain(released);
+  refused('an older release under a younger real pin', [[...ids, 'S11'], (id) => id === 'S11'
+    ? { product: { [VIEW]: { pre: SEALED, post: 'e'.repeat(64), role: 'edited' } } } : load(id)], /not released/);
+  refused('a drift no spec declares', [ids, () => null], /no declaring spec/);
 });
 
 test('P-MEASURE (g) - these cells are registered with the shared preflight that runs them', () => {
