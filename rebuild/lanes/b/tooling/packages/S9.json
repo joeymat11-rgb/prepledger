@@ -2,11 +2,16 @@
   "version": 1,
   "lanePackage": "S9",
   "packageId": "M2-S9-UI-PINS",
-  "status": "PROPOSED",
+  "status": "BRIEF-ACCEPTED",
   "brief": {
     "file": "rebuild/lanes/b/S9-UI-PINS-BRIEF.md",
     "sha256": "abf3f670835803b94ac768bf0c0b0a0de5d2570302abd7651179e9005efb3f58",
-    "acceptedLedgerLine": null
+    "acceptedLedgerLine": {
+      "ledgerLine": 789,
+      "role": "cowork",
+      "line": "- 2026-09-23 · cowork · BRIEF ACCEPTED BY SHA for M2-S9-UI-PINS: rebuild/lanes/b/S9-UI-PINS-BRIEF.md, sha256 abf3f670835803b94ac768bf0c0b0a0de5d2570302abd7651179e9005efb3f58 (122946 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "04b0f897d8869b73c1034f67f7ac805fbc032601fa1b810b78b4f20b26663913"
+    }
   },
   "sourceBase": "0cd07be7cf967dfbfea8c84947ba8477f58cfb5f",
   "dIds": [],
@@ -42,7 +47,7 @@
   "product": {
     ".github/workflows/rebuild.yml": {
       "pre": "8403d10b1a54d721a17e92cc0c2eb7fe119379b65cc4ba9625e6a7196ad9d532",
-      "post": "66f2ac9ceb19322a69b0b8a5ea725511fb208d546ac7662d4f0f751d9b3d9d0e",
+      "post": "bce0594f77b7b3abe04fe05b965267ee89ad7584d201b21155cdf32ae25908f0",
       "role": "edited"
     },
     ".github/workflows/shared-preflight.yml": {
@@ -1321,8 +1326,78 @@
     "moves": {},
     "successors": null,
     "superseded": {
-      "status": "TO_COMPLETE_BY_PM"
+      "rulingLineSha256": "b8d088af3eb8651d0b2eb16fd16b5461f1e1e9a281ec247634bdc186cf6ac5a0",
+      "gates": {
+        "source-carriers": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:787 (RULED) for M2-S9-UI-PINS, located by its own sha256 b8d088af3eb8...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet constants.cjs, merge.cjs, today.cjs and writers.cjs already stand outside the reconstruction at the parent M2-S8-REAL-SHAPE's own post, and the parent retired these same gates under DECISIONS:527, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s9-sup-source-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s9-sup-source-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s9-engine-files-differential"
+          }
+        },
+        "inherited-carriers": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:787 (RULED) for M2-S9-UI-PINS, located by its own sha256 b8d088af3eb8...: priorModule re-reads every prior engine module against the same sha-pinned carrier list and pins the visit order and the per-module carrier counts, so today.cjs and writers.cjs are refused there for the same reason as source-carriers, at the parent's own post which this package carries unmoved - executed and measured in s9-sup-inherited-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s9-sup-inherited-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s9-engine-files-differential"
+          }
+        },
+        "defect-witnesses": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:787 (RULED) for M2-S9-UI-PINS, located by its own sha256 b8d088af3eb8...: the FROZEN side of every one of its complete comparisons is built through native-carriers-parent-source.cjs into the same pinned reconstruction, so no witness can be produced on both sides once an inherited engine byte stands outside it; M2-S9-UI-PINS moves no engine byte, and the comparison it owes is measured instead against the accepted engine read from Git at this package's own sourceBase - executed and measured in s9-sup-defect-witnesses",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s9-sup-defect-witnesses"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s9-engine-files-differential"
+          }
+        },
+        "writers-differential": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:787 (RULED) for M2-S9-UI-PINS, located by its own sha256 b8d088af3eb8...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT, carried unmoved by every descendant through the parent M2-S8-REAL-SHAPE, and is carried here byte-identical to the parent's post - executed and measured in s9-sup-writers-differential",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s9-sup-writers-differential"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s9-engine-files-differential"
+          }
+        },
+        "second-gate": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:787 (RULED) for M2-S9-UI-PINS, located by its own sha256 b8d088af3eb8...: the independent second reading is taken over the reconstructed engine and pins the frozen source commit fe516c1 with a static inventory, so it refuses this tree before it compares anything; the second reading this package puts in its place is taken from Git at its own sourceBase against the disk composition - executed and measured in s9-sup-second-gate",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s9-sup-second-gate"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s9-engine-files-differential"
+          }
+        }
+      }
     }
+  },
+  "release": {
+    "rulingLineSha256": "46a64dc05fce197fce892070215828b06475d95c70280903c7a28dcee70950f9"
   },
   "carrierSuccessor": null,
   "witnessFlips": [],
@@ -1343,7 +1418,12 @@
       "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
       "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
     },
-    "theme": null,
+    "theme": {
+      "ledgerLine": 788,
+      "role": "cowork",
+      "line": "- 2026-09-23 · cowork · THEME M2-S9-UI-PINS - the reseal child that hands rebuild/m3/w7-preview/today/preview.css and rebuild/m3/w7-preview/today/build.mjs out of the seal and pins the whole approved 09-18 design pack that judges them, with the actual 09-08 runtime references retained and no CUI1 product or reference promotion (DECISIONS:732); its behaviour/delta contract is rebuild/lanes/b/S9-UI-PINS-BRIEF.md; its parent is M2-S8-REAL-SHAPE, rebuild/m4/spec/acceptance-s8-real-shape.json sha256 3cf58e0edd76a56353b35008ef154d484098b5017fedeb648eb64a0ae6568d48 (receipt DECISIONS:528); it changes no rebuild/engine byte and retires the same nine byte-identity gates again under its own token line. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "ff25c85a8ae41b46f124da911e9365565444d6f3db6fd5efe9536a477e2c4eb9"
+    },
     "review": {
       "role": "cowork",
       "prefix": "POSTFIX-ACCEPTANCE M2-S9-UI-PINS",
@@ -1378,7 +1458,7 @@
         "rebuild/m3/w7-preview/measure/test/baseline.test.mjs",
         "rebuild/m3/w7-preview/measure/test/boundary.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 685"
     },
     {
       "name": "measure-hermetic",
@@ -1397,7 +1477,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/local-real-day.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 15"
     },
     {
       "name": "a0-journeys",
@@ -1416,7 +1496,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s9-supersede-source-carriers.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 4"
     },
     {
       "name": "s9-sup-inherited-carriers",
@@ -1425,7 +1505,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s9-supersede-inherited-carriers.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 3"
     },
     {
       "name": "s9-sup-defect-witnesses",
@@ -1434,7 +1514,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s9-supersede-defect-witnesses.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 3"
     },
     {
       "name": "s9-sup-writers-differential",
@@ -1443,7 +1523,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s9-supersede-writers-differential.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 3"
     },
     {
       "name": "s9-sup-second-gate",
@@ -1452,7 +1532,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s9-supersede-second-gate.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 3"
     },
     {
       "name": "s9-engine-files-differential",
@@ -1484,7 +1564,7 @@
         "rebuild/m4/import/test/local-source-order.test.cjs",
         "rebuild/m4/import/test/browser-parity.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 62"
     },
     {
       "name": "m4-import-production",
@@ -1494,7 +1574,7 @@
         "rebuild/m4/import/test/production-mapping.test.cjs",
         "rebuild/m4/import/test/production-admission.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 28"
     },
     {
       "name": "d-import-retract",
@@ -1503,7 +1583,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/import-retract/retract.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 13"
     },
     {
       "name": "d-admission-swap",
@@ -1512,7 +1592,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/p3-followons/admission-swap.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 4"
     },
     {
       "name": "d-replay-measure",
@@ -1522,7 +1602,7 @@
         "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs",
         "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 9"
     },
     {
       "name": "d-capture-start",
@@ -1531,7 +1611,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 14"
     },
     {
       "name": "food-live-save",
@@ -1540,7 +1620,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/food-live-save.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 6"
     },
     {
       "name": "w7-import",
@@ -1553,7 +1633,7 @@
         "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs",
         "rebuild/m3/w7-preview/import/test/refusals.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 35"
     },
     {
       "name": "w6-host-seams",
@@ -1572,7 +1652,7 @@
         "rebuild/m3/w6/test/local-source-admission.test.mjs",
         "rebuild/m3/w6/test/local-source-consumer.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 26"
     },
     {
       "name": "d-replay-all",
@@ -1584,7 +1664,7 @@
         "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs",
         "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 28"
     },
     {
       "name": "b-lom",
@@ -1605,7 +1685,7 @@
         "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs",
         "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 35"
     },
     {
       "name": "d-real-shape",
@@ -1621,7 +1701,7 @@
         "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs",
         "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 62"
     },
     {
       "name": "sealed-inventory-fence",
@@ -1702,8 +1782,8 @@
     }
   ],
   "notes": [
-    "NONFINAL OFF-REPO PROPOSED draft; acceptedLedgerLine remains null.",
-    "Needles, authority claims, coverage prose, final closure and final hashes remain day-of work.",
+    "M2-S9-UI-PINS is M2-S8-REAL-SHAPE's child under the standing reseal ruling DECISIONS:455, briefed at rebuild/lanes/b/S9-UI-PINS-BRIEF.md (the DECISIONS:732 fold, paper of record caa0abf), with its THEME at DECISIONS:788, its BRIEF-BY-SHA at :789, its GATE-SUPERSESSION token line at :787 and its RELEASE-FROM-SEAL token line at :786. It releases exactly rebuild/m3/w7-preview/today/preview.css and rebuild/m3/w7-preview/today/build.mjs from the seal, pins the whole approved 09-18 design pack, retains the actual 09-08 runtime references, carries no CUI1 product or reference promotion (DECISIONS:732) and changes no rebuild/engine byte.",
+    "Needles are the counts observed in the accepted bounded runs (DECISIONS:771-:775) and in hosted run 35815674720 at 7fe1c5d5 under :784; s9-sup-source-carriers' \"# pass 4\" is a prediction (its hosted red was SUP-4 reading the then-absent coverage citation) that the execution of record must confirm; b-lom's needle stays null (HELD_SPLIT_REQUIRED), so this spec refuses CHILD-NEEDLE-EMPTY b-lom and cannot seal until a reviewed and granted split supplies an observed needle.",
     "Python font transport is workflow-only, never child argv.",
     "No deferred product or reference promotion is declared."
   ]

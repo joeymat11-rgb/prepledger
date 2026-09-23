@@ -146,8 +146,20 @@ jobs:
       # lines for M2-S8-REAL-SHAPE stand on the chain branch this step reports the
       # runner's own refusal by name rather than PASS; that is the expected pre-ruling
       # state, and the brief predicts the exact refusal. The step NAME moves with it.
-      - name: Cumulative S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S8
+      # M2-S9-UI-PINS SUCCEEDS M2-S8-REAL-SHAPE HERE, by the same rule an eighth time,
+      # and the flip again lives INSIDE the package rather than at the fast-forward:
+      # VERDICT-S6.md rule (a), the cost of doing it afterwards measured at
+      # DECISIONS:498, the shape of ef21153 mirrored. S9 releases exactly
+      # rebuild/m3/w7-preview/today/preview.css and build.mjs from the seal (DECISIONS:786)
+      # and pins the whole approved 09-18 design pack, with no CUI1 promotion
+      # (DECISIONS:732); it moves no rebuild/engine byte and it retires the same nine
+      # byte-identity gates again under its own token line (DECISIONS:787). Its THEME and
+      # BRIEF-BY-SHA lines stand at DECISIONS:788 and :789. Until its artifact is
+      # committed and every declared child carries an observed needle, this step reports
+      # the runner's own refusal by name rather than PASS; that is the expected pre-seal
+      # state. The step NAME moves with it.
+      - name: Cumulative S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S9
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
