@@ -132,7 +132,7 @@
     },
     "rebuild/engine/test/proposed-pick.test.cjs": {
       "pre": null,
-      "post": "19f78b8e901ddbb910cac7f796767aa7784479a0bc64e7664dd74eedb510448b",
+      "post": "3a1f00a160d3e8e33363b01d1f9483f3158048d04455588fe6c9fc899f82b1ce",
       "role": "new"
     },
     "rebuild/engine/today.cjs": {
@@ -752,7 +752,7 @@
     },
     "rebuild/m3/w7-preview/measure/test/boundary.test.mjs": {
       "pre": "d1057407a4f501a2e6b3688eb59e8769c6dd72bc1639651809eda9715c9807f9",
-      "post": "fd5f7ca3338442fcf24b21548669b59e1da2676368ca76ac4eab8ccf5407db04",
+      "post": "e4290f1a67fefab2a796fdef7f5a351a3ab675fa2177d475288bfd4d6c461ee8",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/measure/test/journey.test.mjs": {
@@ -897,8 +897,8 @@
     },
     "rebuild/m3/w7-preview/today/test/package.test.cjs": {
       "pre": "6f773e411ad12b9feca599a78206a9f4a112cbe1b22fc4f777e17ce6d5ddbc6a",
-      "post": "6f773e411ad12b9feca599a78206a9f4a112cbe1b22fc4f777e17ce6d5ddbc6a",
-      "role": "carried"
+      "post": "2980fa5142db88c4847e86ca5ea7353f3f45044227de08fdf6bc8321ada8a927",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/problem.test.mjs": {
       "pre": "a2c7a06ef11b4c1ac644eaac1230eb775ad006901edeaff9e62680fbc9a94b59",
@@ -1262,7 +1262,7 @@
     },
     "rebuild/m4/workout/test/s10-engine-files-differential.cjs": {
       "pre": null,
-      "post": "8bc3894c18463b09ec905ddc76e33b378e7e75ab022d4cf38c492f95469c2358",
+      "post": "e057a540528a28307d368b37c13cf4d7841fee4f0189c6bf6ce416b4ca63ed5b",
       "role": "new"
     },
     "rebuild/m4/workout/test/s10-supersede-defect-witnesses.test.cjs": {
