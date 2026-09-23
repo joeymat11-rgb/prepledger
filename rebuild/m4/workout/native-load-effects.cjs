@@ -124,9 +124,24 @@ function startCapture(start, lift) {
 }
 // Spec :153 "only if no later Start captured the accepted effect" (review B9): some
 // authenticated Start after the accept (provenBefore) captured exactly its target vector.
-function capturedAfter(g, ops, byId) {
+// Scoped to the EXACT effect (review B13; R8 :151 proven causality, :153, :154 original
+// cut): a Start can have captured this effect only while it was pending, i.e. after its
+// accept AND not after the compensation being judged (`undoOps`). A Start proven to follow
+// that compensation captured some other, later effect of the same vector, never this one.
+function capturedAfter(g, ops, byId, undoOps) {
   const lift = g.body.lift_lineage_id, want = (g.body.target_load && Array.isArray(g.body.target_load.vector) ? g.body.target_load.vector : []).map((x) => (map(x) ? x.value : null));
-  return ops.some((op) => op.class === 'session' && op.kind === 'session-start' && same(startCapture(op, lift), want) && provenBefore(g.ops, op, byId));
+  return ops.some((op) => op.class === 'session' && op.kind === 'session-start' && same(startCapture(op, lift), want) && provenBefore(g.ops, op, byId) &&
+    !(Array.isArray(undoOps) && undoOps.length && provenBefore(undoOps, op, byId)));
+}
+// Spec :60 "semantic equality compares the validated full data, not merely the client's
+// shortened proposal digest" and :148 "checks the ENTIRE issued body/reason/producer"
+// (review D11): a fresh offer equals the held issuance in producer, body and reason, and
+// both digest to the held proposal id.
+function sameIssued(offer, held) {
+  if (!map(offer) || !map(held) || !map(held.issuance)) return false;
+  const iss = held.issuance;
+  return iss.producer === PRODUCER && same(offer.body, iss.body) && offer.reason === iss.reason &&
+    proposalDigest(PRODUCER, offer.body, offer.reason) === held.proposal_id && proposalDigest(iss.producer, iss.body, iss.reason) === held.proposal_id;
 }
 // Spec R8 :156 (D7b): the reconstructed lift no longer has the base the accept recorded.
 function movedBase(ex, body) {
@@ -317,7 +332,7 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
       // that captured debut keeps its landing on its own Close.
       if (body.kind === 'compensate') {
         const target = groups.get(body.compensates);
-        if (target && capturedAfter(target, ops, byId)) { issues.push({ code: 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', refs, field: 'capture', lift }); continue; }
+        if (target && capturedAfter(target, ops, byId, g.ops)) { issues.push({ code: 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', refs, field: 'capture', lift }); continue; }
       }
       // Spec R8 :156 UNPROVABLE ORDER (D7b, table :196): the base this accept was issued on
       // (base_load w/wSets, technique) is not the reconstructed one and no authenticated plan
@@ -483,6 +498,6 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:ac17f4a93ee1931236ad99a740c78535620ef968d44827ca6891cc5fa89681fc';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:0bfbbe55d3552282927bbce3a2554c7a963495d39384f23cb96b85f02d73504e';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
-module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, completedLifts, operationsOf };
+module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf };

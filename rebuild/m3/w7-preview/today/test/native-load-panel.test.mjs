@@ -50,7 +50,8 @@ async function dayEntry(era, day, extra = {}) {
 // One whole U-day session through the gym model: every set logged at `reps`
 // with effort `effort` (a label of the approved choice set), then a normal Finish.
 // Round 4 options: start:false continues a Start already made; load fills a set whose card has no load (baseline).
-async function train(entry, reps = 12, effort = '1', { start = true, load: entered = null } = {}) {
+// Round 5 option: loadFor {lift: load} logs that lift at a load other than the card's (an observed load).
+async function train(entry, reps = 12, effort = '1', { start = true, load: entered = null, loadFor = {} } = {}) {
   const gym = entry.gym;
   const reserve = gym.effortChoices().find(c => c.label === effort).reserve;
   if (start) { const started = await gym.start(); assert.equal(started.ok, true, 'start ' + started.code); }
@@ -59,7 +60,7 @@ async function train(entry, reps = 12, effort = '1', { start = true, load: enter
     if (view.phase === 'saved') { if (view.complete) break; gym.forget(); continue; }
     if (view.phase !== 'active') break;
     const logged = await gym.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
-      load: String(view.entry.load === null && entered !== null ? entered : view.entry.load), reps: String(reps), effort: reserve });
+      load: String(Object.hasOwn(loadFor, view.set.lift) ? loadFor[view.set.lift] : view.entry.load === null && entered !== null ? entered : view.entry.load), reps: String(reps), effort: reserve });
     assert.equal(logged.ok, true, 'set ' + logged.code);
     gym.forget();
   }
@@ -247,6 +248,11 @@ test('R3-B2 DISPUTED CARD [Y] (Astra B2, spec :157; round 4 D-B2-1 :156): a set 
   // Round 4 (Claude l2 D-B2-1, spec :156): only the disputed lift's slot is unavailable, not the whole day.
   assert.equal(card.phase, 'ready', card.code || '');
   assert.notEqual(card.lift.id, 'demo-press', 'disputed 45 is never current advice: demo-press is left off the card');
+  // Round 5 (Claude l3 D-B3-2): the WHOLE prepared session, not only its first lift.
+  const whole = await three.entry.gymHost.host.client.prepareWorkout({ planned_split_slot_id: 'earned-today-preview/' + D3 });
+  assert.equal(whole.prepared, true, whole.code);
+  assert.deepEqual([...new Set(whole.view.slots.map(s => s.lift_lineage_id))], ['demo-row'], 'demo-press is absent from every slot');
+  assert.ok(!whole.view.slots.some(s => /^45 lb/.test(s.load && s.load.display || '')), 'no 45 anywhere on the card');
   const host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) });
   const body = (await responsesOf(again))[0].payload.issuance.body;
   const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
@@ -401,5 +407,39 @@ test('R4-D9 UNDO CONTROL [Y] (D9; spec :153; PROPOSED copy): after yes 45 the Ch
   entry.gymHost.close(); era.close();
   const again = await reopenAt(fault, D3), three = await dayEntry(again, D3);
   assert.match((await three.entry.gym.read()).prescription.line, /^40 lb/, 'the retired weight never reaches the card');
+  three.entry.gymHost.close(); again.close();
+});
+
+// ROUND 5 actual-host rows (Astra L3 B12, D10).
+for (const baseline of [false, true]) test('R5-B12' + (baseline ? 'b' : 'a') + ' HELD ADOPTION UNDO [Y] (Astra L3 B12; spec R8 :156, :196): ' + (baseline ? 'a 60 baseline (no working weight)' : 'an observed 45 over a 40 card') + ' is agreed, the next admitted base moves demo-press without an ordering op; the held adoption offers a retire-only undo whose yes keeps the new base and clears the conflict', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const first = baseline ? withPress(D1, { w: null }) : basisFor(D1), now = baseline ? 45 : 42.5, moved = withPress(D1, { w: now });
+  const one = await dayEntryWith(era, D1, first);
+  assert.equal((await train(one.entry, 12, '1', baseline ? { load: '60' } : { loadFor: { 'demo-press': '45' } })).finished.ok, true);
+  await one.entry.nativeLoad.settled();
+  await one.entry.nativeLoad.check();
+  const offer = one.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.equal(offer && offer.kind, baseline ? 'adopt-baseline' : 'adopt-observed');
+  assert.equal((await one.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  one.entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D1, engineState: moved }), held = await host.project();
+  assert.deepEqual(held.issues.map(i => [i.code, i.field, i.lift]), [['NATIVE_LOAD_EFFECT_CONFLICT', 'load_basis', 'demo-press']]);
+  assert.equal(held.state.exercises.find(e => e.id === 'demo-press').w, now);
+  const body = (await responsesOf(era))[0].payload.issuance.body;
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'offer', 'nothing captured it, so the undo is reachable: ' + JSON.stringify(undo.refusal));
+  assert.deepEqual(undo.offers[0].loads, [now, now], 'retire-only: the current base stands');
+  assert.equal((await host.respond({ handle: undo.offers[0].handle, proposal_id: undo.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+  const after = await host.project();
+  assert.equal(after.state.exercises.find(e => e.id === 'demo-press').w, now, 'no w write');
+  assert.deepEqual(after.issues.filter(i => i.code === 'NATIVE_LOAD_EFFECT_CONFLICT'), [], 'conflict cleared');
+  host.close(); era.close();
+});
+
+test('R5-D10 TODAY COUNT AGREES WITH THE CARD [Y] (Astra L3 D10; spec :164 "Both new captures and Today read that same projection"): on the disputed two-lift D3 Today counts 1 exercise, as the card captures', async () => {
+  const fault = faultDatabase(), { again, three } = await disputedAtD3(fault);
+  await three.entry.refresh();
+  assert.equal(three.model.read().workout.exerciseCount, 1, 'demo-press is off the card, so Today does not count it');
   three.entry.gymHost.close(); again.close();
 });

@@ -319,6 +319,12 @@ function earn(state, b, R, ex, lift, rows, idx, cur, closeRef, originals, line, 
   });
 }
 
+// Does the state carry ANY trace of an effect of this spend (applied, landed, retired or
+// compensated)? None means it was never applied.
+function heldTrace(state, ex, spendId) {
+  const a = map(ex.native_load_authority) ? ex.native_load_authority : null;
+  return state.queue.some((x) => x && x.native_load_spend === spendId) || !!(a && (a.spend_id === spendId || a.compensates === spendId));
+}
 // Compensation offer (spec B Apply, "At compensation"): only before any descendant
 // training or landing; it consumes no training and refunds no evidence.
 function compensation(state, req, ex, rows, R) {
@@ -332,9 +338,13 @@ function compensation(state, req, ex, rows, R) {
   if (lastConsumed < 0 || lastConsumed !== rows.length - 1) refuse('COMPENSATION_DESCENDANTS', authRefs);
   const q = state.queue.find((x) => x && x.native_load_spend === spendId && !x.done);
   const auth = map(ex.native_load_authority) && ex.native_load_authority.spend_id === spendId && ex.native_load_authority.kind === 'adopted' ? ex.native_load_authority : null;
-  if (!q && !auth) refuse('COMPENSATION_DESCENDANTS', authRefs);
+  // A frontier spend with NO trace in the state (no native queue entry, no authority that
+  // names it) is an accepted effect the fold HELD unapplied under an unprovable order (spec
+  // R8 :156); its compensation is retire-only: the current load stands (review B12).
+  const held = !q && !auth && !heldTrace(state, ex, spendId);
+  if (!q && !auth && !held) refuse('COMPENSATION_DESCENDANTS', authRefs);
   let target;
-  if (q) target = { scalar: loadOf(ex.w), vector: (ex.w == null ? [] : planVector(ex)).map(loadOf) };
+  if (q || held) target = { scalar: loadOf(ex.w), vector: (ex.w == null ? Array.from({ length: Math.max(1, ex.sets || 1) }, () => null) : planVector(ex)).map(loadOf) };
   else {
     const prior = auth.prior || {}, w = prior.w && prior.w.present ? prior.w.value : null;
     const wSets = prior.wSets && prior.wSets.present ? prior.wSets.value : null;
@@ -423,6 +433,9 @@ function compensate(s, ex, d, responseRefs) {
   const q = s.queue.find((x) => x && x.native_load_spend === d.compensates && !x.done);
   if (q) {
     q.done = true; q.state = 'COMPENSATED'; q.native_load_compensated_by = d.spend_id;
+  } else if (!heldTrace(s, ex, d.compensates)) {
+    // Retire-only (spec R8 :156, review B12): the held effect was never applied, so no
+    // field is written; the fold keeps its spend tombstone and clears its conflict.
   } else {
     const auth = map(ex.native_load_authority) ? ex.native_load_authority : null;
     if (!auth || auth.kind !== 'adopted' || auth.spend_id !== d.compensates || !map(auth.prior)) refuse('COMPENSATION_DESCENDANTS', responseRefs);

@@ -531,21 +531,18 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
            own slot. The registered projection marks that lift quarantined (the existing
            record-level "not available" fact exActive reads, E/plan.cjs) and drops its
            native queue entry, so the capture never offers the disputed load and the rest of
-           the day is prescribed as usual. Nothing is persisted: Today and later
-           projections still read the unquarantined fold, and the panel labels the lift.
-           Only when every lift of the day is held does the day refuse, by that code. */
-        const member = runtime.sessionMembership(fold.state, day);
-        const onCard = member ? member.exercise_ids : [];
-        const heldIssues = fold.issues.filter(x => onCard.includes(x.lift) && (x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" || NativeLoadEffects.BLOCKING_CODES.includes(x.code)));
-        const heldLifts = new Set(heldIssues.map(x => x.lift));
-        if (heldLifts.size && heldLifts.size === onCard.length) {
-          const error = new Error(heldIssues[0].code); error.code = heldIssues[0].code; throw error;
+           the day is prescribed as usual. The flag is PROJECTION-ONLY (Claude l3 note): it
+           is never persisted; it exists only in this registered copy and in
+           createNativeLoadHost().project()'s state, which Today adopts in memory as the
+           same projection (spec :164 "Both new captures and Today read that same
+           projection"; review D10). Its engine meaning elsewhere is "invalid record", so
+           nothing may persist or heal this projection. The panel labels the lift. Only when every lift
+           of the day is held does the day refuse, by that code. */
+        const held = heldProjection(fold, runtime, day);
+        if (held.lifts.size && held.lifts.size === held.onCard.length) {
+          const error = new Error(held.issues[0].code); error.code = held.issues[0].code; throw error;
         }
-        const state = { ...fold.state }; delete state.workoutFacts;
-        if (heldLifts.size) {
-          state.exercises = state.exercises.map(e => (e && heldLifts.has(e.id) ? { ...e, quarantined: true } : e));
-          state.queue = state.queue.filter(q => !(q && heldLifts.has(q.exId) && typeof q.native_load_spend === "string"));
-        }
+        const state = { ...held.state }; delete state.workoutFacts;
         return real.register({ ...args, state });
       } });
     };
@@ -593,6 +590,23 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       startOrderRefusal,
       // Detaches THIS handle only — see createReadingHost().close().
       close() { alive = false; } });
+  }
+
+  /* The ONE held-lift projection (spec :156/:157; D-B2-1, D10), shared by the decorated
+     registrar and createNativeLoadHost().project(): a lift on `day`'s card with
+     BASIS_REPAIR_REQUIRED or a blocking issue is quarantined and its native queue entry
+     dropped, in a copy of the fold state only. */
+  function heldProjection(fold, runtime, day) {
+    const member = runtime.sessionMembership(fold.state, day);
+    const onCard = member ? member.exercise_ids : [];
+    const issues = fold.issues.filter(x => onCard.includes(x.lift) && (x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" || NativeLoadEffects.BLOCKING_CODES.includes(x.code)));
+    const lifts = new Set(issues.map(x => x.lift));
+    const state = { ...fold.state };
+    if (lifts.size) {
+      state.exercises = state.exercises.map(e => (e && lifts.has(e.id) ? { ...e, quarantined: true } : e));
+      state.queue = state.queue.filter(q => !(q && lifts.has(q.exId) && typeof q.native_load_spend === "string"));
+    }
+    return { state, lifts, issues, onCard };
   }
 
   /* ------------------------------------------------------- native load (FC08)
@@ -657,7 +671,9 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       async project({ base } = {}) {
         const p = await project(base === undefined ? engineState : base);
         if (!p.ok) return { ok: false, code: p.code };
-        return { ok: true, status: p.fold.status, state: p.fold.state ? structuredClone(p.fold.state) : null,
+        // The registered projection (spec :164; D10): held lifts are unavailable here too.
+        const shown = p.fold.state ? heldProjection(p.fold, engine.at(day), day).state : null;
+        return { ok: true, status: p.fold.status, state: shown ? structuredClone(shown) : null,
           effects: structuredClone(p.fold.effects), issues: structuredClone(p.fold.issues), lifts: structuredClone(p.lifts),
           revision: p.snap.revision };
       },
@@ -693,8 +709,9 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
         const p = await project();
         if (!p.ok) return refused(p.code);
         const evaluation = evaluate(p, held.request);
-        const fresh = evaluation.status === "offer" && evaluation.offers.some(offer =>
-          NativeLoadEffects.proposalDigest(NativeLoadEffects.PRODUCER, offer.body, offer.reason) === held.proposal_id);
+        // Spec :60/:148 (review D11): the ENTIRE held issuance (producer, body, reason) must
+        // equal a fresh offer, not merely its shortened digest.
+        const fresh = evaluation.status === "offer" && evaluation.offers.some(offer => NativeLoadEffects.sameIssued(offer, held));
         if (!fresh) return refused("NATIVE_LOAD_STALE_OFFER", { refusal: evaluation.refusal ? structuredClone(evaluation.refusal) : null });
         const ticket = nativeTickets.issue({ proposalId: held.proposal_id, issuance: held.issuance, key: nativeTickets.keyOf(p.snap.generation) });
         let result;

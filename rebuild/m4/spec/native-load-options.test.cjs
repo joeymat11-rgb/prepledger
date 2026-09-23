@@ -1020,3 +1020,79 @@ test('R4-B11 UNDO AFTER TRAINING (Astra L2 B11/M13; spec :153 "After subsequent 
  assert.equal(EFFECTS.m.foldNativeLoad(args).state.queue.find(q=>q.native_load_spend===spend).done,false,'Q105 still pending: C3 captured 100');
  expectRefusal(checkOf(args,LIFT,c3,{compensate:spend}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-1')]);
 });
+
+// ======================================================================
+// ROUND 5 rows (Astra L3 B12, B13, D11; Claude l3 D-B3-1, D-B3-2). Invented inputs.
+// ======================================================================
+function heldAdoption({baseline}){
+ const c1=baseline?C(1,{reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}):C(1,{reps:TOP,loads:105,effort:e(2,1,1)});
+ const base=baseline?F0({w:null}):F0(),moved=()=>F0({w:baseline?45:102.5});
+ const checked=checkOf(foldArgs([c1],[],'fx-revision-1',base),LIFT,c1);
+ assert.equal(checked.status,'offer',JSON.stringify(checked.refusal));
+ const offer=checked.offers[0];assert.equal(decisionOf(offer).kind,baseline?'adopt-baseline':'adopt-observed');
+ return {c1,offer,spend:decisionOf(offer).spend_id,resp:acceptOp(offer,{after:1}),moved,now:baseline?45:102.5};
+}
+for(const baseline of [false,true])test('R5-B12'+(baseline?'b':'a')+' HELD ADOPTION UNDO (Astra L3 B12, Claude l3 D-B3-1; spec R8 :156 "Compensation stays reachable ... writes no w/wSets", :196): an '+(baseline?'adopt-baseline 60 (w null)':'adopt-observed 105 (w 100)')+' held by an unordered base change keeps a retire-only undo; its yes writes no w and clears the conflict',()=>{
+ effectsGate();
+ const h=heldAdoption({baseline});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp],rev,h.moved()));
+  assert.deepEqual(f.issues.map(i=>[i.code,i.field,i.lift]),[['NATIVE_LOAD_EFFECT_CONFLICT','load_basis',LIFT]]);
+  assert.equal(exOf(f.state).w,h.now,'the held adoption is never applied');
+ }
+ const args=foldArgs([h.c1],[h.resp],'fx-revision-1',h.moved());
+ const undo=checkOf(args,LIFT,h.c1,{compensate:h.spend});
+ assert.equal(undo.status,'offer','never COMPENSATION_DESCENDANTS when nothing captured or trained on it: '+JSON.stringify(undo.refusal));
+ const d=decisionOf(undo.offers[0]);assert.deepEqual([d.kind,d.compensates],['compensate',h.spend]);
+ assert.deepEqual(d.target_load.vector,Loads(h.now,h.now,h.now),'retire-only: the current load stands');
+ const g=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,acceptOp(undo.offers[0],{op_id:'fx-resp-2',after:1})],'fx-revision-1',h.moved()));
+ assert.equal(exOf(g.state).w,h.now,'no w write');
+ assert.ok(!g.issues.some(i=>i.code==='NATIVE_LOAD_EFFECT_CONFLICT'),'conflict cleared');
+ assert.equal(g.spent.find(x=>x.spend_id===h.spend).cancelled_by,d.spend_id,'tombstone kept');
+});
+test('R5-B13 UNDO SURVIVES A LATER FRESH YES (Astra L3 B13; spec R8 :151 proven causality, :153 "no later Start captured the accepted effect", :154 original cut): C1,C2 yes A 105, undo A, C3,C4 at 100, fresh yes B 105, C5 captures and lifts 105 -> A stays compensated and B lands',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1'),A=decisionOf(s.offer).spend_id;
+ const undo=checkOf(foldArgs(s.cs,[s.resp]),LIFT,s.cs[1],{compensate:A});assert.equal(undo.status,'offer');
+ const comp=acceptOp(undo.offers[0],{op_id:'fx-resp-2',after:2});
+ const c3=C(3,{reps:TOP,effort:e(2,1,1)}),c4=C(4,{reps:TOP,effort:e(2,1,1)}),four=[...s.cs,c3,c4];
+ const fresh=checkOf(foldArgs(four,[s.resp,comp]),LIFT,c4);
+ assert.equal(fresh.status,'offer','the fresh work earns again: '+JSON.stringify(fresh.refusal));
+ const B=decisionOf(fresh.offers[0]).spend_id;assert.notEqual(B,A);
+ const respB=acceptOp(fresh.offers[0],{op_id:'fx-resp-3',after:4});
+ const c5=C(5,{date:'2026-10-12',reps:TOP,loads:105,prescribed:105,effort:e(2,1,1)}),five=[...four,c5];
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const args=foldArgs(five,[s.resp,comp,respB],rev);captureOn(args.generation,c5,[105,105,105]);
+  const f=EFFECTS.m.foldNativeLoad(args);
+  assert.equal(f.spent.find(x=>x.spend_id===A).cancelled_by,decisionOf(undo.offers[0]).spend_id,'the earlier undo stays applied ('+rev+')');
+  assert.deepEqual(f.state.queue.filter(q=>q.native_load_spend).map(q=>[q.native_load_spend===A?'A':'B',q.done,q.state]),[['A',true,'COMPENSATED'],['B',true,'ESTABLISH']]);
+  assert.equal(exOf(f.state).w,105);
+  assert.ok(!f.issues.some(i=>['NATIVE_LOAD_COMPENSATION_DESCENDANTS','NATIVE_LOAD_RECORD_INVALID','NATIVE_LOAD_TARGET_QUEUED'].includes(i.code)),JSON.stringify(f.issues));
+ }
+});
+test('R5-RACED FOLD (Claude l3 D-B3-2; spec :153): a compensation recorded AFTER a Start captured its target is not applied by the fold: Q stays pending, no tombstone, issue COMPENSATION_DESCENDANTS names the undo',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1'),spend=decisionOf(s.offer).spend_id;
+ const undo=checkOf(foldArgs(s.cs,[s.resp]),LIFT,s.cs[1],{compensate:spend});
+ const args=foldArgs(s.cs,[s.resp,acceptOp(undo.offers[0],{op_id:'fx-resp-2',after:2})]);
+ const ops=args.generation.collections.ops;
+ ops[s.c3.start]={op_id:s.c3.start,athlete_id:ATH,device_id:DEVICE,device_seq:ops['fx-resp-2'].device_seq-0.5,class:'session',kind:'session-start',payload:{},canonical_content_commitment:commit(s.c3.start)};
+ captureOn(args.generation,s.c3,[105,105,105]);
+ const f=EFFECTS.m.foldNativeLoad(args);
+ const q=f.state.queue.find(x=>x.native_load_spend===spend);assert.deepEqual([q.done,q.state],[false,'DEBUT'],'the captured target is not retired');
+ assert.equal(f.spent.find(x=>x.spend_id===spend).cancelled_by,null);
+ assert.deepEqual(f.issues.find(i=>i.code==='NATIVE_LOAD_COMPENSATION_DESCENDANTS').refs,[ref('fx-resp-2')]);
+});
+test('R5-D11 FULL ISSUANCE EQUALITY (Astra L3 D11; spec :60 "semantic equality compares the validated full data, not merely the client\'s shortened proposal digest", :148): a held issuance whose body, reason or producer was substituted under the genuine proposal id is never fresh',()=>{
+ effectsGate();
+ const {cs}=landingScenario('fx-revision-1');
+ const ev=checkOf(foldArgs(cs,[]),LIFT,cs[1]),offer=ev.offers[0];
+ const held=EFFECTS.m.issuanceFor(offer,{revision:'fx-revision-1',source:JSON.stringify(SOURCE),moment:'2026-10-02T12:00:00.000Z'});
+ const sub=(patch)=>({proposal_id:held.proposal_id,issuance:{...structuredClone(held.issuance),...patch}});
+ const body150=structuredClone(held.issuance.body);body150.target_load={scalar:lb(150),vector:Loads(150,150,150)};
+ const swaps=[sub({body:body150}),sub({reason:'SYNTHETIC substituted reason'}),sub({producer:'earned/other/v1'})];
+ for(const x of swaps)assert.equal(EFFECTS.m.proposalDigest(EFFECTS.m.PRODUCER,offer.body,offer.reason),x.proposal_id,'the shortened digest alone would call it fresh');
+ assert.equal(typeof EFFECTS.m.sameIssued,'function','RED NATIVE_LOAD_FULL_EQUALITY_ABSENT: FC03 exposes no full issued-body comparison for FC08');
+ assert.equal(EFFECTS.m.sameIssued(offer,held),true,'the genuine issuance is fresh');
+ for(const x of swaps)assert.equal(EFFECTS.m.sameIssued(offer,x),false,'a substitution is never fresh');
+});
