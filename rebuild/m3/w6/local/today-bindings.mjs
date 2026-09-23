@@ -525,6 +525,19 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
           const issue = fold.issues.find(x => NativeLoadEffects.BLOCKING_CODES.includes(x.code)) || { code: "NATIVE_LOAD_RECORD_INVALID" };
           const error = new Error(issue.code); error.code = issue.code; throw error;
         }
+        /* Spec :156-157: a lift on this day's card whose accepted basis is disputed
+           (BASIS_REPAIR_REQUIRED) or whose native record is refused by name makes the
+           new prescription unavailable, by that code; the card never offers the old
+           accepted load as current advice. Other days and every fact save stand. */
+        const member = runtime.sessionMembership(fold.state, day);
+        const onCard = new Set(member ? member.exercise_ids : []);
+        const held = fold.issues.find(x => onCard.has(x.lift) && (x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" || NativeLoadEffects.BLOCKING_CODES.includes(x.code)));
+        if (held) {
+          const error = new Error(held.code); error.code = held.code;
+          if (held.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED")
+            error.reason = "Disputed: a workout behind your agreed next weight was corrected after you agreed, so that weight is not current advice.";
+          throw error;
+        }
         const state = { ...fold.state }; delete state.workoutFacts;
         return real.register({ ...args, state });
       } });

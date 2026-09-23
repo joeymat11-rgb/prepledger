@@ -792,3 +792,141 @@ test('R2-PERLIFT (D-B-2, spec :154/:156): a present-revision record that does no
  const again=EFFECTS.m.checkNativeLoad({...foldArgs(cs,[forged]),request:{lift_lineage_id:LIFT,completion_op_id:cs[1].close,intent:'check'}});
  expectRefusal(again.evaluation,'RECORD_INVALID',[ref('fx-resp-1')]);
 });
+
+// ======================================================================
+// ROUND 3 rows (Astra NATIVE-LOAD-BUILD-REVIEW-L1 REJECT of ec0dbff, sha E63139E0...):
+// B1, B2, B3, B4, B6, B8 (M3, M6, M11, M12), D5 (compensation, conflict order) and
+// D7a. Invented inputs; engine constants READ.
+// ======================================================================
+const ROW='fx-row';
+// The host projects earned/performed-lift/v1 entries whose slots carry no prescribed_load.
+const v1Of=c=>{const x=structuredClone(c);for(const en of x.session.record.entries){en.profile='earned/performed-lift/v1';for(const slot of en.slots)delete slot.prescribed_load;}return x;};
+// The immutable Start capture, in the engine-capture.cjs loadCell shape, one cell per slot.
+function captureOn(gen,c,loads){
+ gen.collections.ops[c.start].prescription_capture={slots:c.session.record.entries.flatMap(en=>en.slots.map((slot,i)=>({logical_set_slot:slot.logical_set_slot,lift_lineage_id:en.lift_lineage_id,
+  load:loads[i]==null?{state:'not_prescribed',display:'Find a working load',source_json:null}:{state:'specified',display:loads[i]+' lb',source_json:JSON.stringify({value:loads[i],unit:'lb'})}})))};
+ return gen;
+}
+const checkOf=(args,lift,c,intent='check')=>EFFECTS.m.checkNativeLoad({...args,request:{lift_lineage_id:lift,completion_op_id:c.close,intent}}).evaluation;
+// C2 exactly as the yes saw it, then its last set corrected 8 -> 7 AFTER the yes.
+function correctedScenario(){
+ const s=landingScenario('fx-revision-1'),c2x=C(2,{reps:TOP,effort:e(2,1,1),corrected:{3:7}});
+ return {...s,c2x,cs2:[s.cs[0],c2x],spend:decisionOf(s.offer).spend_id};
+}
+test('R3-B1 LANDING ON HOST FACTS (Astra B1, spec :151-152, :122 "using the immutable Start capture"): v1 slots carry no prescribed_load; the debut lands from the Start capture',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1'),c3=v1Of(s.c3),all=[...s.cs,c3];
+ const args=foldArgs(all,[s.resp]);captureOn(args.generation,c3,[105,105,105]);
+ const f=EFFECTS.m.foldNativeLoad(args);
+ assert.equal(f.status,'ready');
+ assert.equal(exOf(f.state).w,105,'the consented, captured and performed debut becomes the working weight');
+ assert.deepEqual(f.effects.map(x=>x.kind),['landed']);
+ const q=f.state.queue.find(x=>x.native_load_spend===decisionOf(s.offer).spend_id);assert.deepEqual([q.done,q.state],[true,'ESTABLISH']);
+ const old=foldArgs(all,[s.resp]);captureOn(old.generation,c3,[100,100,100]);
+ assert.equal(exOf(EFFECTS.m.foldNativeLoad(old).state).w,100,'a Start that captured the old load is not the debut, whatever was lifted');
+});
+test('R3-B2 DISPUTED BASIS (Astra B2, spec :157): C2 corrected after the yes -> BASIS_REPAIR_REQUIRED, effect retained, a later debut Close on that basis does NOT land; the compensating yes resolves it',()=>{
+ effectsGate();
+ const {cs2,resp,spend}=correctedScenario();
+ const c3=C(3,{date:'2026-10-12',reps:TOP,loads:105,prescribed:105,effort:e(2,1,1)});
+ const f=EFFECTS.m.foldNativeLoad(foldArgs([...cs2,c3],[resp]));
+ assert.equal(f.status,'ready');
+ assert.equal(exOf(f.state).w,100,'no landing on the disputed basis');
+ const issue=f.issues.find(i=>i.code==='NATIVE_LOAD_BASIS_REPAIR_REQUIRED');assert.ok(issue);assert.deepEqual(issue.refs,[ref('fx-resp-1')]);
+ const q=f.state.queue.find(x=>x.native_load_spend===spend);assert.deepEqual([q.done,q.state],[false,'DEBUT'],'effect kept, never a hidden rollback');
+ assert.deepEqual(f.effects.map(x=>x.kind),['queued']);
+ const args=foldArgs(cs2,[resp]);
+ expectRefusal(checkOf(args,LIFT,cs2[1]),'BASIS_REPAIR_REQUIRED',[ref('fx-resp-1')]);
+ const undo=checkOf(args,LIFT,cs2[1],{compensate:spend});
+ assert.equal(undo.status,'offer','the dispute never blocks its own compensation: '+JSON.stringify(undo.refusal));
+ const g=EFFECTS.m.foldNativeLoad(foldArgs(cs2,[resp,acceptOp(undo.offers[0],{op_id:'fx-resp-2',after:2})]));
+ assert.ok(!g.issues.some(i=>i.code==='NATIVE_LOAD_BASIS_REPAIR_REQUIRED'),'resolved by the compensating yes');
+ const q2=g.state.queue.find(x=>x.native_load_spend===spend);assert.deepEqual([q2.done,q2.state],[true,'COMPENSATED']);assert.equal(exOf(g.state).w,100);
+});
+test('R3-B3 COMPENSATION (Astra B3, D5, spec :153): an accepted, unused earn offers its compensation while its target is queued; the yes retires Q, keeps w and the spend tombstone; a cold replay folds the same',()=>{
+ effectsGate();
+ const {cs,resp,offer}=landingScenario('fx-revision-1'),spend=decisionOf(offer).spend_id;
+ const undo=checkOf(foldArgs(cs,[resp]),LIFT,cs[1],{compensate:spend});
+ assert.equal(undo.status,'offer','never TARGET_QUEUED: '+JSON.stringify(undo.refusal));
+ const d=decisionOf(undo.offers[0]);
+ assert.deepEqual([d.kind,d.compensates,d.consumes,d.evidence],['compensate',spend,[],[]]);
+ assert.deepEqual(d.target_load,{scalar:lb(100),vector:Loads(100,100,100)});
+ const comp=acceptOp(undo.offers[0],{op_id:'fx-resp-2',after:2}),f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[resp,comp]));
+ assert.equal(f.status,'ready');assert.equal(exOf(f.state).w,100);assert.deepEqual(f.issues,[]);
+ const q=f.state.queue.find(x=>x.native_load_spend===spend);assert.deepEqual([q.done,q.state,q.native_load_compensated_by],[true,'COMPENSATED',d.spend_id]);
+ assert.equal(f.spent.find(x=>x.spend_id===spend).cancelled_by,d.spend_id,'tombstone kept');
+ assert.deepEqual(f.effects.map(x=>x.kind),['compensated']);
+ assert.deepEqual(EFFECTS.m.foldNativeLoad(foldArgs(cs,[resp,comp])).state,f.state,'cold replay');
+ assert.notEqual(checkOf(foldArgs(cs,[resp,comp]),LIFT,cs[1]).status,'offer','compensation refunds no evidence');
+});
+// Two lifts completed under ONE Close, exactly as the host records a multi-lift session.
+function withRow(patch){const s=F0(patch);s.exercises.push({...structuredClone(exOf(s)),id:ROW,n:'Fx Row'});return s;}
+function twoLift(n,opts){
+ const c=C(n,opts),row=structuredClone(c.session.record.entries[0]);row.lift_lineage_id=ROW;
+ for(const slot of row.slots){slot.logical_set_slot=JSON.stringify([ROW,slot.position]);
+  if(slot.fact){const id='fx-rset-'+n+'-'+slot.position;slot.fact.source_op_id=id;slot.fact.logical_set_slot=slot.logical_set_slot;slot.fact.lift_lineage_id=ROW;c.ops.splice(c.ops.length-1,0,id);}}
+ c.session.record.entries.push(row);return c;
+}
+test('R3-B4 SHARED CLOSE (Astra B4): a yes on the SECOND lift of a shared Close, nothing edited -> no BASIS_REPAIR_REQUIRED, its target queued, its compensation reachable',()=>{
+ effectsGate();
+ const cs=[twoLift(1,{reps:TOP,effort:e(2,1,1)}),twoLift(2,{reps:TOP,effort:e(2,1,1)})],base=withRow();
+ const checked=checkOf(foldArgs(cs,[],'fx-revision-1',base),ROW,cs[1]);
+ assert.equal(checked.status,'offer',JSON.stringify(checked.refusal));
+ const spend=decisionOf(checked.offers[0]).spend_id,resp=acceptOp(checked.offers[0],{after:2}),args=foldArgs(cs,[resp],'fx-revision-1',base);
+ const f=EFFECTS.m.foldNativeLoad(args);
+ assert.deepEqual(f.issues.filter(i=>i.code==='NATIVE_LOAD_BASIS_REPAIR_REQUIRED'),[],'the unchanged second lift is not disputed');
+ assert.deepEqual(f.state.queue.filter(q=>!q.done).map(q=>[q.exId,q.newW]),[[ROW,105]]);
+ assert.equal(checkOf(args,ROW,cs[1],{compensate:spend}).status,'offer');
+});
+test('R3-B6 PROVEN CROSS-DEVICE DEBUT (Astra B6; spec :151 "Require acceptance before Start by proven causality", :156 "witnessed causal/source order"): device B Start naming device A accept as causal parent lands; without it the debut is reported unproven',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1'),args=foldArgs(s.all,[s.resp]);
+ let seq=0;for(const id of s.c3.ops){const op=args.generation.collections.ops[id];op.device_id='fx-device-B';op.device_seq=++seq;}
+ args.generation.collections.ops[s.c3.start].causal_parents=['fx-resp-1'];
+ const f=EFFECTS.m.foldNativeLoad(args);
+ assert.equal(exOf(f.state).w,105,'the proven debut lands whatever the local sequence numbers say');
+ assert.deepEqual(f.effects.map(x=>x.kind),['landed']);assert.ok(!f.issues.some(i=>i.code==='NATIVE_LOAD_DEBUT_BASIS_UNPROVEN'));
+ delete args.generation.collections.ops[s.c3.start].causal_parents;
+ const g=EFFECTS.m.foldNativeLoad(args);
+ assert.equal(exOf(g.state).w,100);
+ assert.deepEqual(g.issues.find(i=>i.code==='NATIVE_LOAD_DEBUT_BASIS_UNPROVEN').refs,[ref(s.c3.close),ref('fx-resp-1')],'unproven order is reported, never silent');
+});
+test('R3-M3 SPEND INDEX (Astra B8 M3): a folded yes is in the spend index exactly once and a re-check names its response as the TARGET_QUEUED authority',()=>{
+ effectsGate();
+ const {cs,resp,offer}=landingScenario('fx-revision-1'),args=foldArgs(cs,[resp]),f=EFFECTS.m.foldNativeLoad(args);
+ assert.deepEqual(f.spent.map(x=>[x.spend_id,x.response_refs,x.close_ref,x.cancelled_by]),[[decisionOf(offer).spend_id,[ref('fx-resp-1')],null,null]]);
+ expectRefusal(checkOf(args,LIFT,cs[1]),'TARGET_QUEUED',[ref('fx-resp-1')]);
+});
+test('R3-M6 SET COUNT (Astra B8 M6, spec step 2): a host-shaped v1 completion with two original slots against configured sets 3 -> PLAN_CHANGED, never a two-set baseline',()=>{
+ const c1=v1Of(C(1,{reps:[10,9],loads:60,prescribed:null,effort:e(2,1)})),s=withFacts(F0({w:null}),[c1]),E=engineAt(c1.date);
+ assert.deepEqual(E.performedHistoryRows(s).filter(r=>r.source==='performed').map(r=>r.start_op_id),[c1.start],'v1 facts admitted by the unchanged reader');
+ nativeGate(E);
+ expectRefusal(evaluate(E,s,request(s,[c1],c1)),'PLAN_CHANGED',[ref(c1.close)]);
+});
+test('R3-M11 CORRECTED AFTER YES (Astra B8 M11, spec :157): the fold sees the changed consumed completion, keeps the queued effect and names BASIS_REPAIR_REQUIRED, never RECORD_INVALID',()=>{
+ effectsGate();
+ const {cs2,resp,spend}=correctedScenario(),f=EFFECTS.m.foldNativeLoad(foldArgs(cs2,[resp]));
+ assert.deepEqual(f.issues.map(i=>[i.code,i.refs]),[['NATIVE_LOAD_BASIS_REPAIR_REQUIRED',[ref('fx-resp-1')]]]);
+ assert.deepEqual(f.effects.map(x=>[x.kind,x.spend_id]),[['queued',spend]]);
+});
+test('R3-M12 STORED DECLINE (Astra B8 M12, spec :100/:166): a native-shaped stored response whose answer is not accept is never consent -> RECORD_INVALID, nothing queued',()=>{
+ effectsGate();
+ const {cs,resp}=landingScenario('fx-revision-1'),declined=structuredClone(resp);declined.payload.answer='decline';
+ const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[declined]));
+ assert.deepEqual(f.state.queue,[]);assert.deepEqual(f.effects,[]);
+ assert.deepEqual(f.issues.find(i=>i.code==='NATIVE_LOAD_RECORD_INVALID').refs,[ref('fx-resp-1')]);
+});
+test('R3-D5 CONFLICT CONVERGENCE (D5, spec :156/:168): the two incompatible accepts in either delivery order fold to the same named conflict and the same programme',()=>{
+ effectsGate();
+ const {cs,base,offers}=n11Checked();
+ const a=acceptOp(offers[0],{after:2,op_id:'fx-resp-a'}),b=acceptOp(offers[1],{after:2,op_id:'fx-resp-b'});
+ const one=EFFECTS.m.foldNativeLoad(foldArgs(cs,[a,b],'fx-revision-1',base)),two=EFFECTS.m.foldNativeLoad(foldArgs(cs,[b,a],'fx-revision-1',base));
+ assert.deepEqual(two.issues,one.issues);assert.deepEqual(two.state,one.state);assert.deepEqual(two.spent,one.spent);
+ assert.ok(one.issues.some(i=>i.code==='NATIVE_LOAD_EFFECT_CONFLICT'));
+});
+test('R3-D7a ORIGINAL CUT (D7, spec :154 "validates each historical issuance at its ORIGINAL cut", step 2): an equipment-only inc change after the yes re-validates at the recorded load basis; the target stays queued',()=>{
+ effectsGate();
+ const {cs,resp,offer}=landingScenario('fx-revision-1'),f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[resp],'fx-revision-1',F0({inc:10})));
+ assert.deepEqual(f.issues,[],'no RECORD_INVALID for an increment chosen later');
+ assert.deepEqual(f.state.queue.map(q=>[q.native_load_spend,q.newW]),[[decisionOf(offer).spend_id,105]]);
+});

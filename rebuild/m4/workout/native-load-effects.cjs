@@ -87,9 +87,61 @@ function factsAtCut(facts, startIds, frontier) {
   return out;
 }
 function withFacts(state, facts) { const s = json(state); delete s.workoutFacts; if (facts) s.workoutFacts = json(facts); return s; }
-function sessionOf(facts, closeId) {
-  for (const s of (facts && facts.sessions) || []) for (const e of s.record.entries || []) if (e && e.completion && e.completion.op_id === closeId) return { session: s, entry: e };
+// A multi-lift session records every lift under ONE Close, so a completion is the
+// pair (Close, lift) and never the first entry that names the Close (review B4).
+function sessionOf(facts, closeId, lift) {
+  for (const s of (facts && facts.sessions) || []) for (const e of s.record.entries || [])
+    if (e && e.completion && e.completion.op_id === closeId && (lift === undefined || e.lift_lineage_id === lift)) return { session: s, entry: e };
   return null;
+}
+// The prescription a Start captured for one lift, per ORIGINAL position (spec :122
+// "using the immutable Start capture"; :151 "the captured prescription"). Read from
+// the authenticated Start op's prescription_capture cell for that logical slot (the
+// shape W/engine-capture.cjs loadCell writes); a typed slot's own prescribed_load is
+// used only when the Start carries no capture cell for it. Unreadable -> null.
+function captureOf(start, entry) {
+  const cells = new Map();
+  const pc = start && map(start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
+  for (const cell of pc) if (map(cell) && cell.lift_lineage_id === entry.lift_lineage_id && text(cell.logical_set_slot)) cells.set(cell.logical_set_slot, cell.load);
+  const read = (load) => {
+    if (!map(load) || load.state !== 'specified' || !text(load.source_json)) return null;
+    try { const v = JSON.parse(load.source_json); return map(v) && v.unit === 'lb' && Number.isFinite(v.value) ? v.value : null; } catch (_) { return null; }
+  };
+  return entry.slots.filter((s) => s.origin !== 'added').map((s) => (cells.has(s.logical_set_slot) ? read(cells.get(s.logical_set_slot))
+    : s.prescribed_load && s.prescribed_load.state === 'specified' && s.prescribed_load.source ? s.prescribed_load.source.value : null));
+}
+// Proven causality (spec :151 "Require acceptance before Start by proven causality";
+// :156 "same-lift dependencies follow witnessed causal/source order"): the accept is
+// an ancestor of the Start through causal_parents or device_predecessor_op_id, or it
+// precedes the Start in ONE device's own sequence. Nothing else orders two devices.
+function provenBefore(acceptOps, start, byId) {
+  if (acceptOps.some((op) => op.device_id === start.device_id && (op.device_seq || 0) < (start.device_seq || 0))) return true;
+  const want = new Set(acceptOps.map((op) => op.op_id)), seen = new Set(), stack = [start];
+  while (stack.length) {
+    const op = stack.pop();
+    const parents = [...(Array.isArray(op.causal_parents) ? op.causal_parents : []), ...(text(op.device_predecessor_op_id) ? [op.device_predecessor_op_id] : [])];
+    for (const id of parents) {
+      if (want.has(id)) return true;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const next = byId.get(id);
+      if (next) stack.push(next);
+    }
+  }
+  return false;
+}
+// Re-validation at the ORIGINAL cut (spec :154): the equipment fields a later
+// equipment-only choice may change (step 2: steps/inc) are read as the issued basis
+// recorded them. Load, vector, count and window are NOT restored: a change there is a
+// plan change and keeps its own outcome.
+function atIssuedEquipment(state, body) {
+  const s = json(state), ex = s.exercises.find((x) => x && x.id === body.lift_lineage_id), lb = body.basis && body.basis.load_basis;
+  if (ex && map(lb)) for (const k of ['steps', 'inc']) {
+    const img = lb[k];
+    if (map(img) && img.present === true) ex[k] = json(img.value);
+    else if (map(img) && img.present === false) delete ex[k];
+  }
+  return s;
 }
 
 // ---------- the Basis of the current cut (spec B "Basis and exact durable decision shape") ----------
@@ -144,7 +196,7 @@ function evidenceChanged(body, facts) {
   const shape = (s) => ({ slot: s.slot, position: s.position, state: s.state, original: s.original ? s.original.op_id : null,
     edits: (s.edits || []).map((r) => r.op_id), current: s.current });
   for (const item of body.evidence) {
-    const hit = sessionOf(facts, item.close && item.close.op_id);
+    const hit = sessionOf(facts, item.close && item.close.op_id, body.lift_lineage_id);
     if (!hit) return true;
     const now = hit.entry.slots.map((slot) => {
       const f = slot.fact, cur = slot.state === 'performed' && f && f.current ? f.current : null;
@@ -159,7 +211,7 @@ function evidenceChanged(body, facts) {
 }
 function dayOf(body, facts) {
   const closes = body.evidence.map((item) => item.close && item.close.op_id);
-  for (let i = closes.length - 1; i >= 0; i--) { const hit = sessionOf(facts, closes[i]); if (hit) return hit.session.effective.local_date; }
+  for (let i = closes.length - 1; i >= 0; i--) { const hit = sessionOf(facts, closes[i], body.lift_lineage_id); if (hit) return hit.session.effective.local_date; }
   const all = ((facts && facts.sessions) || []).map((s) => s.effective.local_date).sort();
   return all.length ? all[all.length - 1] : '1970-01-01';
 }
@@ -210,13 +262,23 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
     const refs = [...new Map([...g.ops, ...(g.others || [])].map((op) => [op.op_id, refOf(op)])).values()].sort(byOp);
     if (!issues.some((i) => i.code === 'NATIVE_LOAD_EFFECT_CONFLICT' && same(i.refs, refs))) dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs, field: null, lift: g.body.lift_lineage_id });
   }
-  const events = all.filter((g) => !g.conflict).map((g) => ({ type: 'accept', seq: g.seq, g }));
-  for (const id of (facts && facts.order ? facts.order.start_ids : [])) {
+  // SOURCE ORDER, never a device-local counter (review B6; spec :150 "established causal
+  // acceptance order", :156 "witnessed causal/source order"): a Close sits at its Start's
+  // rank in the authenticated workout order; an accept sits just after the last Start of
+  // the cut it was issued at. Equal places: accepts first, then fewer frontier effects
+  // (a compensation names the effect it undoes), then device sequence and op id.
+  const events = all.filter((g) => !g.conflict).map((g) => {
+    const cut = map(g.body.basis) && map(g.body.basis.order) && Array.isArray(g.body.basis.order.start_ids) ? g.body.basis.order.start_ids.length : 0;
+    const frontier = map(g.body.basis) && Array.isArray(g.body.basis.effect_frontier) ? g.body.basis.effect_frontier.length : 0;
+    return { type: 'accept', at: cut - 0.5, frontier, seq: g.seq, id: g.ops[0].op_id, g };
+  });
+  (facts && facts.order ? facts.order.start_ids : []).forEach((id, rank) => {
     const start = byId.get(id), session = facts.sessions.find((s) => s.start_op_id === id);
-    if (!start || !session) continue; // no causal witness in this log: nothing can land on it
-    for (const entry of session.record.entries || []) if (entry && entry.completion) events.push({ type: 'close', seq: start.device_seq || 0, start, session, entry });
-  }
-  events.sort((a, b) => a.seq - b.seq || (a.type === 'accept' ? -1 : 1));
+    if (!start || !session) return; // no causal witness in this log: nothing can land on it
+    for (const entry of session.record.entries || []) if (entry && entry.completion) events.push({ type: 'close', at: rank, frontier: 0, seq: 0, id, start, session, entry });
+  });
+  events.sort((a, b) => a.at - b.at || (a.type === b.type ? 0 : a.type === 'accept' ? -1 : 1) || a.frontier - b.frontier || a.seq - b.seq || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const repair = new Map(); // spend_id -> its BASIS_REPAIR_REQUIRED issue (spec :157)
   for (const ev of events) {
     if (ev.type === 'accept') {
       const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = g.ops.map(refOf).sort(byOp), lift = body.lift_lineage_id;
@@ -224,11 +286,14 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
       const overlap = spent.filter((x) => x.spend_id !== body.spend_id && x.consumes.some((c) => body.consumes.includes(c)));
       if (overlap.length) { dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs: [...refs, ...overlap.flatMap((x) => x.response_refs)].sort(byOp), field: null, lift }); continue; }
       const rt = engine.at(dayOf(body, facts)), changed = evidenceChanged(body, facts);
-      if (changed) issues.push({ code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs, field: null, lift: body.lift_lineage_id });
+      if (changed) {
+        const issue = { code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs, field: null, lift, spend_id: body.spend_id };
+        issues.push(issue); repair.set(body.spend_id, issue);
+      }
       if (iss.revision === engine.revision) {
         if (!changed) {
           const cut = factsAtCut(facts, body.basis.order.start_ids, body.basis.order.frontier);
-          const again = rt.evaluateNativeLoad(withFacts(state, cut), { lift_lineage_id: body.lift_lineage_id, completion_op_id: checkedCompletion(body, cut),
+          const again = rt.evaluateNativeLoad(withFacts(atIssuedEquipment(state, body), cut), { lift_lineage_id: body.lift_lineage_id, completion_op_id: checkedCompletion(body, cut),
             intent: body.kind === 'compensate' ? { compensate: body.compensates } : 'check', basis: body.basis });
           if (!(again.status === 'offer' && again.offers.some((o) => same(o.body, body) && o.reason === iss.reason))) {
             if (again.status === 'refused' && again.refusal.code === 'NATIVE_LOAD_PLAN_CHANGED') { issues.push({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs, field: null, lift }); continue; }
@@ -249,6 +314,9 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
         if (target) target.cancelled_by = body.spend_id;
         const e = effects.get(body.compensates);
         if (e) e.kind = 'compensated';
+        // Spec :157: the eligible compensating choice resolves the disputed basis.
+        const resolved = repair.get(body.compensates);
+        if (resolved) { issues.splice(issues.indexOf(resolved), 1); repair.delete(body.compensates); }
       } else effects.set(body.spend_id, t.effect);
       continue;
     }
@@ -258,15 +326,17 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId } = 
       const g = groups.get(q.native_load_spend);
       if (!g) continue;
       const want = g.body.target_load.vector.map((x) => x.value);
-      const got = ev.entry.slots.filter((s) => s.origin !== 'added').map((s) => (s.prescribed_load && s.prescribed_load.state === 'specified' ? s.prescribed_load.source.value : null));
+      const got = captureOf(ev.start, ev.entry);
       if (!same(want, got)) continue; // this Start did not capture the debut: nothing lands
       const close = byId.get(ev.entry.completion.op_id);
       if (!close) continue;
-      // Spec :153 "Require acceptance before Start by proven causality"; table :198 names the
+      // Spec :157: no landing on a disputed basis; its BASIS_REPAIR_REQUIRED issue stands.
+      if (repair.has(q.native_load_spend)) continue;
+      // Spec :151 "Require acceptance before Start by proven causality"; table :198 names the
       // outcome: DEBUT_BASIS_UNPROVEN, Close saved, target pending/disputed, w does not land.
-      // Order is witnessed only within one device's sequence (D-B-5): another device's yes
-      // before this Start is not proven, so the debut is REPORTED, never silently pending.
-      if (!(g.device === ev.start.device_id && g.seq < ev.seq)) {
+      // Proof is causal ancestry or one device's own sequence (provenBefore), never a
+      // device-local counter compared across devices: unproven is REPORTED, never silent.
+      if (!provenBefore(g.ops, ev.start, byId)) {
         issues.push({ code: 'NATIVE_LOAD_DEBUT_BASIS_UNPROVEN', refs: [refOf(close), ...g.ops.map(refOf).sort(byOp)], field: 'causality', lift });
         continue;
       }
@@ -298,11 +368,14 @@ function checkNativeLoad(args = {}) {
   // Spec :156 per lift: this lift's (or an unattributable) blocking issue refuses its check by the same code and refs.
   const blocking = fold.issues.find((x) => BLOCKING.has(x.code) && (x.lift === request.lift_lineage_id || x.lift === null || x.lift === undefined));
   if (blocking) return refused({ code: blocking.code, refs: blocking.refs, field: blocking.field || null });
+  // Spec :157: a disputed basis refuses further load authorization until "an eligible
+  // compensating choice" resolves it, so only the compensation of a disputed spend passes.
   const disputed = fold.issues.filter((x) => x.code === 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED' && x.lift === request.lift_lineage_id);
-  if (disputed.length) return refused({ code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs: disputed.flatMap((x) => x.refs).sort(byOp), field: null });
+  const undo = map(request.intent) && text(request.intent.compensate) && disputed.some((x) => x.spend_id === request.intent.compensate);
+  if (disputed.length && !undo) return refused({ code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs: disputed.flatMap((x) => x.refs).sort(byOp), field: null });
   if (!map(workoutFacts) || !map(workoutFacts.order)) return refused({ code: 'NATIVE_LOAD_COMPLETION_REQUIRED', refs: [], field: 'workoutFacts' });
   const basis = basisOf({ state: fold.state, generation, workoutFacts, source, athleteId, plan, lift: request.lift_lineage_id, spent: fold.spent });
-  const hit = sessionOf(workoutFacts, request.completion_op_id);
+  const hit = sessionOf(workoutFacts, request.completion_op_id, request.lift_lineage_id);
   const day = hit ? hit.session.effective.local_date : dayOf({ evidence: [] }, workoutFacts);
   const evaluation = engine.at(day).evaluateNativeLoad(fold.state, { lift_lineage_id: request.lift_lineage_id,
     completion_op_id: request.completion_op_id, intent: request.intent === undefined ? 'check' : request.intent, basis });
@@ -330,6 +403,6 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:c363ce4907448bb687d59400f65b597ef75950727a206ee2cb9e7ea6378eaba7';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:ff3788ecd4791721391f840f3ade805085975bbffec9c5f34668bbc1d5bf1957';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, completedLifts, operationsOf };

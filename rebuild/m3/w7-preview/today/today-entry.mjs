@@ -166,7 +166,7 @@ export const NATIVE_LOAD_COPY = Object.freeze({
   yes: "Yes",
   decline: "Not now",
 });
-function createNativeLoadController({ openHost, lifts: liftNames = () => new Map(), onSaved } = {}) {
+function createNativeLoadController({ openHost, lifts: liftNames = () => new Map(), onSaved, onClosedChecked } = {}) {
   let host = null, opening = null, busy = Promise.resolve(), region = null, doc = null;
   let view = { phase: "idle", offers: [], refusals: [], copy: null };
   const held = new Map();   // proposalId -> the host's offer (with its opaque handle)
@@ -247,7 +247,13 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
   }
   const api = Object.freeze({
     check: () => run(() => checkNow(undefined)),
-    afterClose: ({ closeOpId } = {}) => run(() => checkNow(closeOpId)),
+    // After a saved Close the programme may have moved (a landing): reconcile Today in
+    // the same serialized task, contained, so the saved workout is never affected.
+    afterClose: ({ closeOpId } = {}) => run(async () => {
+      const shown = await checkNow(closeOpId);
+      if (typeof onClosedChecked === "function") { try { await onClosedChecked(); } catch (_) { /* reported on the next refresh */ } }
+      return shown;
+    }),
     accept: proposalId => run(() => answer(proposalId, "accept")),
     decline: proposalId => run(() => answer(proposalId, "decline")),
     view: () => JSON.parse(JSON.stringify({ ...view, offers: view.offers.map(o => ({ proposalId: o.proposalId, lift: o.lift, kind: o.kind,
@@ -300,21 +306,33 @@ export async function createWorkoutEntry(model, options = {}) {
      its own capture. */
   let immutableBasis = typeof model.basisState === "function" ? model.basisState() : null;
   let lastAdopted = null;
+  /* THE RECONCILE (spec :165, review B5): "after the existing adoption chain as well as
+     after each relevant save/reopen". It folds from the immutable basis (never the state
+     it last handed to adoptBasis: a basis that differs from the last adopted one is a
+     NEW adoption and becomes the immutable one) and adopts the result, so Today and the
+     gym read one projection. With no native effect at all the fold equals the basis and
+     nothing is adopted, so the adoption gate (today-model setPendingAdoption) is never
+     lifted by this. It runs on a yes (onSaved), after a checked Close and on the entry's
+     exported refresh, which today-app.cjs calls after its adoption chain and on reopen. */
+  async function reconcile() {
+    if (!nativeLoad || !immutableBasis || typeof model.adoptBasis !== "function") return false;
+    const current = model.basisState();
+    if (lastAdopted === null || JSON.stringify(current) !== JSON.stringify(lastAdopted)) { immutableBasis = current; lastAdopted = null; }
+    const opened = await openedNativeHost();
+    if (!opened) return false;
+    const projected = await opened.project({ base: immutableBasis });
+    if (!projected || projected.ok !== true || !projected.state) throw new Error((projected && projected.code) || "NATIVE_LOAD_PROJECTION_FAILED");
+    const next = { ...projected.state }; delete next.workoutFacts;
+    if (lastAdopted === null && JSON.stringify(next) === JSON.stringify(immutableBasis)) return false;
+    model.adoptBasis(next);
+    lastAdopted = model.basisState();
+    return true;
+  }
   const nativeLoad = hosts && typeof hosts.createNativeLoadHost === "function" ? createNativeLoadController({
     openHost: () => openedNativeHost(),
     lifts: () => new Map((model.stateFromOps().exercises || []).map(e => [e.id, e.n || e.id])),
-    onSaved: async () => {
-      const opened = await openedNativeHost();
-      if (!opened || !immutableBasis || typeof model.adoptBasis !== "function") return;
-      const current = model.basisState();
-      if (lastAdopted === null || JSON.stringify(current) !== JSON.stringify(lastAdopted)) immutableBasis = current;
-      const projected = await opened.project({ base: immutableBasis });
-      if (!projected || projected.ok !== true || !projected.state) throw new Error("NATIVE_LOAD_PROJECTION_FAILED");
-      const next = { ...projected.state }; delete next.workoutFacts;
-      model.adoptBasis(next);
-      lastAdopted = model.basisState();
-      await refresh();
-    },
+    onSaved: async () => { await reconcile(); await refresh(); },
+    onClosedChecked: async () => { await reconcile(); },
   }) : null;
   let nativeHost = null;
   const openedNativeHost = async () => nativeHost || (nativeHost = hosts && typeof hosts.createNativeLoadHost === "function"
@@ -346,9 +364,19 @@ export async function createWorkoutEntry(model, options = {}) {
     return result;
   }
   await refresh();
+  /* The exported refresh reconciles first (spec :165; today-app.cjs:2503 calls it after
+     adoption). A projection that cannot be read is carried on the summary by code, and
+     Today keeps the basis it has rather than painting a newly folded one. */
+  async function reconcileAndRefresh() {
+    let nativeCode = null;
+    if (nativeLoad) { try { await reconcile(); } catch (error) { nativeCode = (error && error.message) || "NATIVE_LOAD_PROJECTION_FAILED"; } }
+    await refresh();
+    if (nativeCode) summary = { ...summary, nativeCode };
+    return summary;
+  }
   return {
     summary: () => summary,
-    refresh,
+    refresh: nativeLoad ? reconcileAndRefresh : refresh,
     recover,
     setOnRefresh(fn) { onRefresh = fn; },
     /* A3 review F7: the card's half-entered set is held BY THE ENTRY, not by the

@@ -1,66 +1,61 @@
 # NATIVE-LOAD build (common part + YES-only + route B): builder report
-Builder claude-opus-5-5, 2026-09-23. Worktree earned-nlr, branch rebuild/e-native-load-red at 6b8da5f, ALL UNCOMMITTED. Grant DECISIONS:784-785; spec R7 6ddf7af (sha256 98c0cf7a..., verified). Consent constant sealed 'yes-only'; adoption asks first (H6); route B = FB01 trigger + A button. No [NO-ONLY] clause built (FC15 not built). Protected five never loaded or read (preload guard refuses load AND fs reads; every run reports "protected-in-cache: none").
+Builder claude-opus-5-5, 2026-09-23. Worktree earned-nlr. Round 1 = ec0dbff (tests c772499), round 2 = f007506, round 3 UNCOMMITTED on f007506. Grant DECISIONS:784-785; spec R7 6ddf7af (sha256 98c0cf7a..., verified). Consent constant 'yes-only'; adoption asks first (H6); route B = FB01 trigger + A button. No [NO-ONLY] clause built. Protected five never loaded or read (preload guard refuses load AND fs reads; every run reports "protected-in-cache: none").
 
-## Step 1 (tests only) - red at precise gates
-- FC12 rebuild/m4/spec/native-load-options.test.cjs +14 [Y] rows: N02c/N03c/N04c/N11/N12/N13/N18/N21 evaluator rows; fold rows N21, N05 landing, N05 forged record, N15, N22.
-  Run: 38 tests, 1 pass (GUARD), 37 fail: 30 x RED NATIVE_LOAD_MODULE_ABSENT, 2 x RED UPDATE_OPENER_HOLD_NOT_EXPORTED, 5 x RED NATIVE_LOAD_EFFECTS_ABSENT, nothing else (%TEMP%\nlr-build\step1-red-fc12.txt).
-- FA03 rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs (new): A01, A02, B01, B02 over the real encrypted stack (fake-indexeddb, jsdom). Green preconditions first (two native U days trained, Finish acknowledged), then 4/4 RED NATIVE_LOAD_HOST_ABSENT (step1-red-fa03.txt).
-- Step-1 bytes: FC12 05eba6c4...3b16 (707 lines), FA03 27467c9a...0592 (200 lines); unchanged since (tests were never edited to go green).
+## Round 1 (ec0dbff), condensed
+- Red first: FC12 38 rows (1 pass GUARD, 37 red at RED NATIVE_LOAD_MODULE_ABSENT / UPDATE_OPENER_HOLD_NOT_EXPORTED / NATIVE_LOAD_EFFECTS_ABSENT); FA03 A01, A02, B01, B02 red at RED NATIVE_LOAD_HOST_ABSENT (%TEMP%\nlr-build\step1-red-*.txt). Green 38/38 + 4/4.
+- Files: FC01 rebuild/engine/native-load.cjs (evaluator/transition), FG01 writers.cjs (pure move of :234-239 into updateOpenerHold, +14/-7), FC03 rebuild/m4/workout/native-load-effects.cjs (fold/check/issuance), FC04 engine-runtime.cjs, FC05 engine-runtime-host.cjs, FC14 build-host.mjs, FC06 t2-stage.cjs, FC07 local-client.mjs, FC08 today-bindings.mjs, FB01 gym-model.mjs, FA02 today-entry.mjs, FC13 rebuild.yml.
+- Declared encodings: spend_id = JSON ['native-load', lift, native authority spend|null, last reset-fork date|null, consumes]; root = JSON [start, lift, close].
+- Red pins outside the inventory (not edited; successor re-pin owed): local-today-journey PAGE_PINS; host journey.test.mjs:414-417; food N1.18/N1.17; machine-settings-ui S10/S14; problem N2-08/N2-16; build R3/S6C.7b.
+- CI-only (load or name a protected module): m4/workout/test/{h3,s3..s9}-supersede-*, s3-companion-*, engine-history, h3-clean-init, engine-capture, native-next-targets-assembly; m4/spec/load-write*, workout-edit-model; m4/import/test/{engine-provider,production-mapping,production-admission,prepare,reading-replay,browser-parity,s3/harness}; m3/w6/test/{local-source-admission,local-source-commit,local-source-consumer,import-custody/engine-join,recovery-stage/source-import}; today/test/{adapter,catalogue,copy,package,setup,view,design}; S8 package step and build tests.
 
-## Step 2 (product) - green
-- Final run (lock held): FC12 38/38, FA03 4/4, engine-equivalence, native-trend-context: 86 tests, 86 pass (final-green.txt).
-- Planted defects (scratch, bytes restored and re-hashed): DEBUT withheld from offers -> 13 [Y] FC12 rows red; FB01 notification removed -> B01, B02 red; host re-evaluation at yes removed -> A02 red; registrar decorator removed -> A01 red.
-- Broad local run of the 80 suites that do not name a protected file, compared test-by-test with the same run on a scratch checkout of 6b8da5f (git worktree add, removed after): every failure except the pins in "New red pins" below is identical at the base (missing wrangler, recovery runner env, esbuild cannot resolve @noble/hashes, historical carriers).
+## Round 2 (f007506), condensed
+- R2 rows (ERA, REFS, DIGEST, CONFLICT, DEVICE, REVISION, PERLIFT) red then green; five planted mutants killed (%TEMP%\nlr-build\r2).
+- PRODUCER_REVISION bound to bytes: sha256 over "rebuild/engine/<m>.cjs" NUL sha256(bytes) LF for the 13 runtime modules then entered-load; row R2-REVISION recomputes it.
+- Per lift (spec :156): RECORD_INVALID / EFFECT_CONFLICT refuse only their lift; the programme always projects.
+- Five pin files restored to S9 bytes; their exact transforms are owed to the successor package as role "edited" (%TEMP%\nlr-build\r2\carrier-*.diff). Expected red until then: engine-equivalence, native-trend-context (local), journey, s3-companion-membership, s3-supersede-defect-witnesses (CI).
+- Import (D-B-1): imported generations refuse NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN; the legacy-mapped lane reaches PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED. FC09/FC10 not built.
 
-## Files changed (sha256 of working bytes) and spec line
-- rebuild/engine/native-load.cjs NEW 69958ed2...9487 (451): FC01, section C engine item 1. evaluateNativeLoad/applyNativeLoadDecision; typed effort token; two full views; spend suffix on _deriveSightingFull output; moved governor; unchanged earnWalk once; adoption; landing; compensation offer/transition.
-- rebuild/engine/writers.cjs c7b11beb...9739: FG01, section C item 2. Pure move of :234-239 into updateOpenerHold (six lines byte-identical, incl. their original em-dashes), one call at the site, one return-table member; +14/-7.
-- rebuild/m4/workout/native-load-effects.cjs NEW 27b79bb8...a91c (299): FC03. foldNativeLoad, checkNativeLoad, issuanceFor, basisOf; native-load family (strict record checks, digest, coalesce, EFFECT_CONFLICT, revision retention, BASIS_REPAIR_REQUIRED, landing with causal seq proof).
-- rebuild/m4/workout/engine-runtime.cjs b9a655ab...6350: FC04. MODULES +native-load, EXPOSED +2, forwarders, capability text.
-- rebuild/m3/w6/host/engine-runtime-host.cjs 06bce58c...5976: FC05 literal require mirror. build-host.mjs 750f8513...9386: FC14 ALLOWED_ENGINE.
-- rebuild/m3/w6/t2-stage.cjs 84b06b54...a482: FC06 explicit positional respond, trusted capability only.
-- rebuild/m3/w6/local/local-client.mjs 95039dcf...004c: FC07 construction-time capability, respondNativeLoad (not in COMMANDS), respondFailure in the sync validator.
-- rebuild/m3/w6/local/today-bindings.mjs a986310c...dabcb: FC08 ticket capability, decorated null registrar (fold before registration), createNativeLoadHost {project,check,respond,close}, lost-ack search.
-- rebuild/m3/w7-preview/today/gym-model.mjs 58a4fb2a...a339: FB01 onClosed after acknowledged normal Close, contained.
-- rebuild/m3/w7-preview/today/today-entry.mjs 783db9c9...450b: FA02 controller (Check next weight, offers, yes/Not now, failure copy), owned region + gym child mount, adoptBasis refresh from the immutable basis.
-- .github/workflows/rebuild.yml 764a4347...5e27: FC13 FC12 step; FA03 appended to the Today enumeration.
-- Tests: FC12/FA03 above; pinned updates below.
-
-## Pinned updates (exact transforms, comment cites the spec line)
-engine-equivalence.test.cjs:27 12->13 (d73291d4); journey.test.mjs:420-422 13 modules + 2 names (e4b29fdf); native-trend-context.test.cjs:453 (3d85838f); s3-companion-membership.test.cjs:186 (71fb7a6e); s3-supersede-defect-witnesses.test.cjs:152 (f4165de7).
-NOT edited (spec :298 and inventory say ancestor/byte pins get declared child carriers in R, never edits): native-next-targets.test.cjs:41/:43 (already red at base), s3/h3-supersede-inherited-carriers, native-carriers-source.cjs:89, native-next-target-candidate/fixture.cjs:70, reach.cjs:8,12, m4/import/test/s3/run.mjs:135-136, load-write.test.cjs:7.
-
-## New red pins OUTSIDE the inventory (not edited; need the successor's re-pin in R)
-local-today-journey.test.mjs PAGE_PINS (today-entry.mjs); journey.test.mjs:414-417 sha pins of engine-runtime.cjs and the host runtime; food.test.mjs N1.18, machine-settings-ui.test.mjs S10 (x2), problem.test.mjs N2-08 (today-bindings.mjs + PAGE_PINS byte pins, DECISIONS:144).
-
-## CI-only suites (name or load a protected module)
-All rebuild/m4/workout/test/{h3,s3..s9}-supersede-* and s3-companion-* (expected red on writers.cjs/engine dir/runtime bytes: carriers owed), engine-history, h3-clean-init; rebuild/m4/spec/load-write*.test.cjs, workout-edit-model; rebuild/m4/import/test/{engine-provider,production-mapping,production-admission,prepare,reading-replay,browser-parity,s3/harness}; rebuild/m3/w6/test/{local-source-admission,local-source-commit,local-source-consumer,import-custody/engine-join,recovery-stage/source-import}; today/test/{adapter,catalogue,copy,package,setup,view,design(one cell)}; plus the S8 package step (b-package.cjs) and build tests (esbuild deps).
-
-## Open items / STOPs
-1. STOP FC09/FC10 (import family): historical-cut reconstruction in import is unproven and every import test loads migrate (spec H5: stop the lane SOURCE_FRONTIER_UNPROVEN). Today an import carrying native accepts refuses by the existing names (LOCAL_SOURCE_EFFECT_UNMAPPED / ACCEPTED_ENGINE_CONTEXT_UNMAPPED); FC08 refuses checks on imported generations. N14 not built.
-2. STOP governor projection onto the card (step 6 last sentence): FC03 may call only the two exposed functions and N20 forbids exposing updateOpenerHold; no contract carries a hold-only projection. The evaluator replays the governor itself (idempotent over the legacy rirHist); the card's rirPlan does not see a native hold.
-3. N01 needs the accepted repaired parent (D-EPP-2 engine-capture.cjs:69-70 is not in this base).
-4. Rows not built: N06 (IDB kill/abort seams), N07 import orders, N08 after-yes and N16 durable compensation (FC01/FC08 support it, untested), N17, N20 bundle; FC14 build unverified locally (esbuild cannot resolve @noble/hashes here).
-5. PRODUCER_REVISION is the placeholder 'earned/native-load/v1+unsealed-build'; the seal child must bind it.
-6. Declared encodings (spec leaves them to the builder): spend_id = JSON ['native-load', lift, native authority spend or null, last reset-fork date or null, consumes]; root = JSON [start, lift, close]; consumes exclude already-spent roots and include the comparator when earnWalk received it; ex.native_load_authority records adopted/landed/compensated authority; adoption on a lift with wSets refuses VECTOR_ADOPTION_UNDEFINED; landing needs same-device seq order (single local era).
-7. Disclosures: one git grep ran without its path list (PowerShell array bug) and printed repo-wide file NAMES only, no content; one 5-line SHA self-check ran without the lock; dependencies resolved read-only through existing junctions of earned-adm/earned-astra-47 via a scratch loader (no junction or install created).
-Scratch: %TEMP%\nlr-build (guard.cjs, deps-loader.mjs, run.ps1, mutant.cjs, all TAP outputs). This report cannot carry its own hash.
-
-## Round 2 (on ec0dbff, uncommitted; answers REVIEW-NATIVE-LOAD-BUILD-l1 sha 84b450dd). SUPERSEDES above: "Pinned updates", open item 5, FC03 sha.
-- Red-first: 7 new FC12 rows. On ec0dbff 4 red (R2-CONFLICT, R2-DEVICE, R2-REVISION, R2-PERLIFT; r2\red.txt D9F6C82B); after the fix FC12 45/45 + FA03 4/4 = 49/49 (r2\green.txt D8402C9C).
-- D-B-3, each row red on its own mutant then green (r2\m-*.txt, bytes restored and re-hashed): m-era (native-load.cjs eraFresh guard) -> R2-ERA; m-refs (transition CAPABILITY_REQUIRED) -> R2-REFS; m-digest (fold proposal-digest check) -> R2-DIGEST; m-coalesce (same spend, different body) -> R2-CONFLICT; m-device (causal device rule) -> R2-DEVICE. m-era/m-refs also redden R2-REVISION (engine bytes moved), as they should.
-- D-B-5 (in spec, not a STOP): spec :153 "Require acceptance before Start by proven causality" and table :198 "Later Close at different vector, wrong capture or edited debut | DEBUT_BASIS_UNPROVEN; Close stays saved, target stays pending/disputed, w does not land". A Close whose Start captured the accepted target but whose yes sits on another device (or later in the same device's sequence) now raises issue NATIVE_LOAD_DEBUT_BASIS_UNPROVEN, refs [Close Ref, response Refs], field 'causality', lift; w stays, Q stays pending. Positive control: same device lands.
-- D-B-2: PRODUCER_REVISION = 'earned/native-load/v1+sha256:c363ce49...eaba7' = sha256 over "rebuild/engine/<m>.cjs" NUL sha256(bytes) LF for the 13 runtime modules then entered-load (the producer; FC03 itself excluded to avoid self-reference). The bundle cannot read files, so it is a constant CI verifies (row R2-REVISION in rebuild.yml's FC12 step); any engine byte change without re-binding reddens it.
-- Per lift (spec :156 "mark affected new prescription unavailable and report both refs. Other fact saves remain available"): the fold never refuses the programme now. RECORD_INVALID (structural or not reproduced at its cut) and EFFECT_CONFLICT (same spend with different bodies, or overlapping consumes, refused together before anything applies, never a clock winner) mark that lift disputed: its later effects wait, its check refuses by the same code and refs, every other lift and the day's prescription project; an issue with no resolvable lift holds back every check but not the programme. Rows R2-CONFLICT, R2-PERLIFT.
-- D-B-4, option chosen: KEEP THE EDITS OUT. The mechanism is the successor package's product map (S8.json/S9.json list these files role "carried", pre=post), issued only by the seal chain (spec :239, "This paper creates none of R"). The five files are byte-restored to their S9 post values. Owed entries for the successor package (role "edited"; exact transform diffs in %TEMP%\nlr-build\r2\carrier-*.diff, post bytes carrier-post-*):
-  rebuild/m3/w6/host/test/engine-equivalence.test.cjs pre f209f0ac...22ee post d73291d4...06d9aa (:27 12->13)
-  rebuild/m3/w6/host/test/journey.test.mjs pre 2ac6a7f2...0af9 post e4b29fdf...856447 (:420-422; its :414-417 sha pins still owe re-pins)
-  rebuild/m4/workout/test/native-trend-context.test.cjs pre cb4643af...79ab post 3d85838f...0372a6 (:453)
-  rebuild/m4/workout/test/s3-companion-membership.test.cjs pre 764ee616...3eb0 post 71fb7a6e...86fd2 (:186)
-  rebuild/m4/workout/test/s3-supersede-defect-witnesses.test.cjs pre 92781c5b...6682 post f4165de7...73ed0e9 (:152)
-  EXPECTED RED until that package lands: engine-equivalence (measured: "host runtime composes exactly...", 12 vs 13), native-trend-context (measured: EXPOSED row) (r2\expected-red.txt 7304DD33); journey, s3-companion-membership, s3-supersede-defect-witnesses (CI-only).
-- D-B-1, no code change. What an athlete with an admitted import sees today (static reading, not executed on his data):
-  (a) generation holding source-import rows (Source.COLLECTION): today-bindings.mjs:609 project() returns NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN; today-entry.mjs:182 throws, :194 sets phase 'failed', copy :161 "Your workout is saved. The next weight could not be checked." after every Finish (route B) and every button tap. Finish itself is unaffected (gym-model.mjs:553-554 contains the callback). No operation is written. The same condition already refuses the null-lane capture itself (source-projection.cjs:44 SOURCE_PROJECTION_IMPORT_PRESENT), unchanged by this build.
-  (b) admitted import carried as the legacy local selection (engineState.sessionLog + B-LOM mapping, today-bindings.mjs:474-487): the card works through the mapped engine (:489), but FC08's runtime (:598-600) is the raw host runtime without mapping.attach, so FC01 reaches performedHistoryRows and performed.cjs:180/:183 refuses PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED (passed through by native-load.cjs:40). The controller then shows phase 'refused' with copy today-entry.mjs:191/:164 "No new weight to agree to yet. Your saved sets are kept." - misleading wording for a refusal; no op written; the decorated registrar (today-bindings.mjs:519-529) folds nothing without accepts, so the card is unchanged.
-  Either way the trial cannot earn on such a phone until FC09/FC10 (or a ruled interim for case b, e.g. passing the mapping into FC08) exists. PM must measure the trial generation.
-- Round-2 file sha256: rebuild/m4/workout/native-load-effects.cjs 771c9819...9a5c (336); rebuild/m4/spec/native-load-options.test.cjs b1aebd96...301e (795; opsFor gained an optional device argument, no existing row changed); the five restored test files = their S9 pre values above; no other file changed. Scratch round 2: %TEMP%\nlr-build\r2.
+## Round 3 (answers Astra NATIVE-LOAD-BUILD-REVIEW-L1 REJECT, sha E63139E0...)
+Everything below was measured on f007506 first. Red: FC12 50/56 (6 red), FA03 4/8 (4 red) (r3\red-fc12.txt 9A22E3EA, r3\red-fa03.txt 6FB9111F). Green: FC12 56/56, FA03 8/8 (r3\green-fc12.txt 42414400, r3\green-fa03.txt 5B819D93). The tests were not edited between the red and green runs.
+- B1 (landing through the host): red R3-B1 fold "100 !== 105" and FA03 R3-B1 "40 !== 45". Cause: the fold compared per-slot prescribed_load, which host v1 slots lack. Fix: the fold reads the capture from the authenticated Start op's prescription_capture cells (the engine-capture.cjs loadCell shape) as spec :122 requires ("using the immutable Start capture"). FC01 landing checks context.completion.capture, plus any typed prescribed_load.
+- B2 (disputed basis, spec :157): red R3-B2 fold "105 !== 100" (it landed) and FA03 R3-B2 (card 'ready', "45 lb x 9 reps"). Fix:
+  - The fold keeps the effect and the BASIS_REPAIR_REQUIRED issue (now carrying spend_id) and never lands that spend.
+  - The FC08 registrar refuses the day's new prescription by code when a lift on that day's card (runtime.sessionMembership) has BASIS_REPAIR_REQUIRED or a blocking issue; for a dispute the refusal carries a "Disputed: ..." reason.
+  - Check refuses everything on that lift except the compensation of the disputed spend. The compensating yes resolves the dispute (FA03 row: card 40 again).
+- B3 (compensation unreachable): red R3-B3 "TARGET_QUEUED". Fix in FC01: compensation is dispatched before the pending-entry refusal (spec :153); descendants still refuse COMPENSATION_DESCENDANTS.
+- B4 (false dispute on the second lift): red R3-B4 (BASIS_REPAIR_REQUIRED lift fx-row) and FA03 R3-B4. Fix: sessionOf(facts, close, lift) matches the lift in evidenceChanged, dayOf and check.
+- B5 (Today versus gym on reopen): red FA03 R3-B5 (model queue []). Fix in FA02: reconcile() folds from the immutable basis and adopts the result.
+  - It runs on the entry's exported refresh (today-app.cjs:2503 calls it after its adoption chain), after a yes, and after a checked Close.
+  - With no native effect nothing is adopted, so the adoption gate is never lifted by it.
+  - A failed projection is carried as summary.nativeCode.
+- B6 (proven cross-device debut): red R3-B6 "100 !== 105". Deciding lines: spec :151 "Require acceptance before Start by proven causality" and :156 "same-lift dependencies follow witnessed causal/source order"; :150 "established causal acceptance order".
+  - Events are now ordered by source cut, never by a device-local sequence number. An accept sits after the Starts of its issue cut; a Close sits at its Start's rank.
+  - Proof means the accept is an ancestor of the Start through causal_parents or device_predecessor_op_id, or it precedes the Start in one device's own sequence. The round-2 rule required the same device, which was sufficient but too narrow. Without proof the result is still the DEBUT_BASIS_UNPROVEN issue (R2-DEVICE unchanged, R3-B6 second half).
+- B7: STOP (no carrier admitted).
+  - The spec requires the projection: step 6 (:135) "Fold projects only the resulting holdFlag into engine state"; :93 "Only the resulting holdFlag leaves"; :155 reconstruct the "governor view".
+  - It also closes every route to that projection:
+    - :93 N20 "asserts by NAME that updateOpenerHold and _deriveSightingFull are absent from both returned objects".
+    - :91 Evaluation is exactly {profile,status,basis,offers,refusal}.
+    - :92 event='accept'|'close' and "decision is the exact validated issuance body".
+    - :97 "No further exported helper, effect store, file or API is necessary".
+  - Evaluated (r3\b7-probe.txt 2BAD6A9E): the runtime exposes 7 names, updateOpenerHold is undefined, and a Transition without a decision or with another event refuses RECORD_INVALID 'decision'. FC03 therefore cannot obtain a hold for a lift with no accept.
+  - Owner/spec choice needed: admit ONE carrier, for example an applyNativeLoadDecision event 'governor' with no decision that returns state with only holdFlag projected, or a holdFlag member on the Evaluation.
+- B8 (single-clause mutants, all KILLED; r3\mutants-summary.txt 9BF573ED):
+  - M3 spent.push -> R3-M3 (plus B2/B3/B4 rows).
+  - M6 original-count clause -> R3-M6 (v1 two slots vs sets 3 -> PLAN_CHANGED; R2-REVISION also reddens).
+  - M11 changed=false -> R3-M11, R3-B2.
+  - M12 answer check -> R3-M12.
+  - New fixes: provenBefore -> R2-DEVICE, R3-B6; repair no-landing -> R3-B2; sessionOf lift match -> R3-B4.
+- D5: R3-B3 durable compensation plus cold replay; R3-D5 conflict convergence in both delivery orders. D7a: R3-D7a (red RECORD_INVALID) re-validates an accepted record with the issued steps/inc (spec :154 "at its ORIGINAL cut"); load, vector, count and window are not restored.
+- Regression: 18 local suites around the changed files show identical failures on f007506 and on this tree (18/666 each: pins, esbuild, guard-refused engine-capture and native-next-targets-assembly) (r3\regress-base.txt 90E4F919, r3\regress-head.txt C2505B88; temporary worktree removed).
+- PRODUCER_REVISION re-bound: earned/native-load/v1+sha256:ff3788ecd4791721391f840f3ade805085975bbffec9c5f34668bbc1d5bf1957.
+- Carried:
+  - D7b: a later w=102.5 after a yes. Spec :156 asks for EFFECT_CONFLICT for "accepts versus incomparable plan edits", but no authenticated plan op exists to prove order, so today R1 drops the effect (PLAN_CHANGED) while R2 applies it. This needs a ruling.
+  - D1 import family (FC09/FC10).
+  - D2 N01/repaired parent.
+  - D3 successor carriers and exact-head CI.
+  - D4 bundle and phone pages.
+  - D5 import rows and a kill during an open IDB transaction.
+  - D6.
+  - The panel has no compensation (undo) control: the host supports it, and FA02 does not specify one.
+- Round-3 sha256: native-load.cjs 24d84b13...ddd6 (458); native-load-effects.cjs 7cec6b2a...cb52 (409); today-bindings.mjs 3139ab93...4a8c (1070); today-entry.mjs 40aa0e08...0722 (715); FC12 test 2877352f...942d (933, +138); FA03 test 658ca74f...289f (285, +85). All LF, with no added non-ASCII. Scratch: %TEMP%\nlr-build\r3.

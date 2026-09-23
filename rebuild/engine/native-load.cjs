@@ -182,6 +182,9 @@ function evaluate(state, request) {
   const cur = rows[idx], closeRef = R(cur.close);
   if (cur.entry.completion.kind !== 'normal') refuse('COMPLETION_REQUIRED', [closeRef], 'completion_op_id');
   const frontier = b.effect_frontier;
+  // Compensation (spec :153) targets exactly the queued or adopted effect, so it is
+  // dispatched BEFORE the pending-entry refusal; its own rules refuse descendants.
+  if (req.intent !== 'check') return compensation(state, req, ex, rows, R);
   // Step 2: an unresolved NATIVE entry refuses before any reader runs (spec :126 refs rule).
   const pending = state.queue.filter((q) => q && q.exId === lift && !q.done && typeof q.native_load_spend === 'string');
   if (pending.length) {
@@ -191,7 +194,6 @@ function evaluate(state, request) {
   }
   const auth = map(ex.native_load_authority) ? ex.native_load_authority : null;
   if (auth && auth.kind === 'landed' && auth.close_op_id === cur.close) refuse('DEBUT_LANDED', [closeRef]);
-  if (req.intent !== 'check') return compensation(state, req, ex, rows, R);
   if (idx !== rows.length - 1) refuse('COMPLETION_SUPERSEDED', [closeRef]);
   // Legacy structural entries and special branches keep their own rules (spec B, LEGACY_PENDING).
   if (state.queue.some((q) => q && q.exId === lift && !q.done && typeof q.native_load_spend !== 'string' && STRUCTURAL.includes(q.kind))) refuse('LEGACY_PENDING', [closeRef], 'queue');
@@ -414,8 +416,13 @@ function landing(s, ex, d, context, responseRefs) {
   if (!entry || entry.lift_lineage_id !== ex.id || entry.start_op_id !== c.start.op_id || entry.completion.op_id !== closeRef.op_id || entry.completion.kind !== 'normal')
     refuse('DEBUT_BASIS_UNPROVEN', [closeRef], 'completion');
   const originals = originalSlots(entry);
-  const exact = originals.length === want.length && originals.every((slot, i) => slot.state === 'performed' &&
-    captured(slot) === want[i] && slot.fact.current.load.unit === 'lb' && slot.fact.current.load.value === want[i]);
+  // The captured prescription is the immutable Start capture the fold hands in
+  // (spec :122 context.completion.capture); a typed slot that also carries its own
+  // prescribed_load must agree with it. Host v1 slots carry none.
+  const capture = Array.isArray(c.capture) ? c.capture : null;
+  const exact = !!capture && capture.length === want.length && originals.length === want.length && originals.every((slot, i) => slot.state === 'performed' &&
+    capture[i] === want[i] && (slot.prescribed_load === undefined || captured(slot) === want[i]) &&
+    slot.fact.current.load.unit === 'lb' && slot.fact.current.load.value === want[i]);
   if (!exact) refuse('DEBUT_BASIS_UNPROVEN', [closeRef], 'completion');
   const session = s.workoutFacts && Array.isArray(s.workoutFacts.sessions) ? s.workoutFacts.sessions.find((x) => x.start_op_id === c.start.op_id) : null;
   if (!session) refuse('SOURCE_FRONTIER_UNPROVEN', [closeRef], 'completion');

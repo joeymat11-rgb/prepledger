@@ -197,3 +197,88 @@ test('B02 SAVED-IS-SAVED [Y]: an evaluator failure after Finish leaves the worko
   assert.equal((await opsOf(era)).filter(op => op.kind === 'session-close').length, 2, 'one Close per day, never a duplicate');
   entry.gymHost.close(); era.close();
 });
+
+// ROUND 3 actual-host rows (Astra NATIVE-LOAD-BUILD-REVIEW-L1 B1, B2, B3/B4, B5): the
+// real durable stack as above, every value invented.
+async function yesTo(era, lift) {
+  const { entry } = await twoTops(era);
+  assert.equal((await train(entry)).finished.ok, true);
+  await entry.nativeLoad.settled();
+  await entry.nativeLoad.check();
+  const offer = entry.nativeLoad.view().offers.find(o => o.lift === lift);
+  assert.ok(offer, 'an offer for ' + lift);
+  assert.equal((await entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  return entry;
+}
+const reopenAt = async (fault, day) => openTodayInstallation({ indexedDB: fault.indexedDB, crypto: webcrypto, day });
+const nativeQueue = (state, lift) => state.queue.filter(x => x.exId === lift && typeof x.native_load_spend === 'string');
+
+test('R3-B1 ACTUAL LANDING [Y] (Astra B1, spec :151-152): yes to 45, reopen, train the prescribed 45 and Finish -> the host projects w 45, ESTABLISH, and Today agrees', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  entry.gymHost.close(); era.close();
+  const again = await reopenAt(fault, D3), three = await dayEntry(again, D3);
+  assert.match((await three.entry.gym.read()).prescription.line, /^45 lb/);
+  assert.equal((await train(three.entry)).finished.ok, true);
+  await three.entry.nativeLoad.settled();
+  const host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), p = await host.project();
+  assert.equal(p.state.exercises.find(e => e.id === 'demo-press').w, 45, 'the consented, captured and performed debut becomes the working weight');
+  assert.ok(p.effects.some(x => x.kind === 'landed'));
+  assert.deepEqual(nativeQueue(p.state, 'demo-press').map(q => [q.done, q.state]), [[true, 'ESTABLISH']]);
+  await three.entry.refresh();
+  assert.equal(three.model.stateFromOps().exercises.find(e => e.id === 'demo-press').w, 45, 'Today reads the landed weight');
+  host.close(); three.entry.gymHost.close(); again.close();
+});
+
+test('R3-B2 DISPUTED CARD [Y] (Astra B2, spec :157): a set of the accepted basis removed after the yes -> the reopened card is not 45 advice but NATIVE_LOAD_BASIS_REPAIR_REQUIRED; the compensating yes resolves it', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  const history = await entry.gymHost.host.client.readWorkoutHistory();
+  const session = history.history.sessions.find(s => s.projection.close_records.length && s.projection.start_record.current.effective.local_date === D2);
+  const target = session.projection.facts.filter(f => f.included === true)[0].source_op_id;
+  const edit = await entry.gymHost.host.client.prepareWorkoutEdit({ target_op_id: target });
+  assert.equal(edit.prepared, true, edit.code);
+  assert.equal((await entry.gymHost.host.client.commitWorkoutEdit({ editId: edit.editId, action: 'remove', change: 'SYNTHETIC correction' })).acknowledged, true);
+  entry.gymHost.close(); era.close();
+  const again = await reopenAt(fault, D3), three = await dayEntry(again, D3), card = await three.entry.gym.read();
+  assert.notEqual(card.phase, 'ready', 'disputed 45 is never current advice: ' + JSON.stringify(card.prescription && card.prescription.line));
+  assert.ok(JSON.stringify([card.code, card.clientCode, card.copy]).includes('NATIVE_LOAD_BASIS_REPAIR_REQUIRED'), JSON.stringify([card.code, card.clientCode, card.copy]));
+  const host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) });
+  const body = (await responsesOf(again))[0].payload.issuance.body;
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'offer', JSON.stringify(undo.refusal));
+  assert.equal((await host.respond({ handle: undo.offers[0].handle, proposal_id: undo.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+  host.close(); three.entry.gymHost.close(); again.close();
+  const later = await reopenAt(fault, D3), four = await dayEntry(later, D3), view = await four.entry.gym.read();
+  assert.equal(view.phase, 'ready', view.code || '');
+  assert.match(view.prescription.line, /^40 lb/, 'the compensated card carries the prior weight');
+  four.entry.gymHost.close(); later.close();
+});
+
+test('R3-B4 SECOND LIFT [Y] (Astra B4 and B3): yes to demo-row, nothing edited -> no BASIS_REPAIR_REQUIRED for it, and its compensation is offered while its target is queued', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-row');
+  const host = await era.createNativeLoadHost({ day: D2, engineState: basisFor(D2) }), p = await host.project();
+  assert.deepEqual(p.issues.filter(i => i.code === 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED'), []);
+  const body = (await responsesOf(era))[0].payload.issuance.body;
+  const undo = await host.check({ lift_lineage_id: 'demo-row', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'offer', JSON.stringify(undo.refusal));
+  host.close(); entry.gymHost.close(); era.close();
+});
+
+test('R3-B5 REOPEN RECONCILES [Y] (Astra B5, spec :164-165): after yes 45, a cold reopen on D3 and the entry refresh give Today the programme the gym prescribes', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  entry.gymHost.close(); era.close();
+  const again = await reopenAt(fault, D3), next = await dayEntry(again, D3);
+  await next.entry.refresh();
+  assert.match((await next.entry.gym.read()).prescription.line, /^45 lb/);
+  const state = next.model.stateFromOps();
+  assert.deepEqual(nativeQueue(state, 'demo-press').map(q => [q.done, q.newW]), [[false, 45]], 'Today holds the accepted target the gym prescribes');
+  assert.equal(state.exercises.find(e => e.id === 'demo-press').w, 40, 'w unchanged until landing');
+  next.entry.gymHost.close(); again.close();
+});
