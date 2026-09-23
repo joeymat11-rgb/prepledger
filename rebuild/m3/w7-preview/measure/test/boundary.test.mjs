@@ -313,6 +313,18 @@ test('S10 RELEASE-ACCOUNTING - a release accounts for a drifted sealed view only
   refused('an older release under a younger real pin', [[...ids, 'S11'], (id) => id === 'S11'
     ? { product: { [VIEW]: { pre: SEALED, post: 'e'.repeat(64), role: 'edited' } } } : load(id)], /not released/);
   refused('a drift no spec declares', [ids, () => null], /no declaring spec/);
+  /* D-S10I-9, NAMED: A RE-RELEASE. S9 already released the path (post null) and S10 releases
+     it AGAIN; clause (3)'s nearest older PINNED post is then S8's, and the rule accounts for
+     the drift from there. It admits no drift the S9 release had not already admitted; whether
+     a re-release may be DECLARED at all is the runner's one-generation rule, not this cell's.
+     This control states the case so that a change to the rule shows up here by name. */
+  const reSpecs = { S8: { product: { [VIEW]: { pre: 'b'.repeat(64), post: SEALED, role: 'edited' } } },
+    S9: { product: { [VIEW]: { pre: SEALED, post: null, role: 'released' } }, release: { rulingLineSha256: null } },
+    S10: { product: { [VIEW]: released }, release: { rulingLineSha256: null }, children: [] } };
+  const re = releaseAccounts(VIEW, ['S8', 'S9', 'S10'], (id) => reSpecs[id] || null);
+  assert.equal(re.ok, true, 'the re-release control: ' + re.why);
+  assert.equal(re.by, 'S10', 'the youngest release is the one that accounts');
+  assert.equal(re.pre, SEALED, 'and it accounts from S8\'s pinned post, the nearest older post that is not null');
 });
 
 test('P-MEASURE (g) - these cells are registered with the shared preflight that runs them', () => {
