@@ -129,22 +129,27 @@ test('EPP-R1 PRODUCER-ORDER: completeSession twice at the top of the window, ter
   assert.equal(s.exercises[0].w, 100, 'the earn itself stores nothing');
 });
 
-test('EPP-R2 CARD-TAKES-THE-SELECTED-ENTRY: the card load equals the newW of the entry pickStructural selected, on the engine and on both shipped read compositions', () => {
-  const E = treeEngine();
+test('EPP-R2 CARD-TAKES-THE-SELECTED-ENTRY: the card load equals the newW of the entry pickStructural selected, on the engine and on both shipped read compositions', () =>
+  rowR2(treeEngine(), { native: nativeRt(), host: hostRt() }));
+/* D-EPP-4: rows R2, R3 and R4 are functions of the engine so that EPP-R9 can run the SAME
+   bodies, with the same assertions, against the half-repair engines. */
+function rowR2(E, compositions) {
   const s = mint(E);
   const picked = E.pickStructural(clone(s), NEXT_U, slp).main;
   assert.ok(picked, 'pickStructural selects an entry');
   assert.equal(picked.id, 'q_press_105_2026-09-03');
   assert.equal(picked.state, 'DEBUT');
-  const got = { engine: cardOf(E, s, NEXT_U), native: cardOf(nativeRt(), s, NEXT_U), host: cardOf(hostRt(), s, NEXT_U) };
+  const got = { engine: cardOf(E, s, NEXT_U) };
+  for (const [name, rt] of Object.entries(compositions)) got[name] = cardOf(rt, s, NEXT_U);
   for (const [name, c] of Object.entries(got)) {
     assert.equal(c.isDebutNow, true, name + ' isDebutNow');
     assert.equal(c.w, picked.newW, name + ' card load ' + c.w + ' against the selected entry ' + picked.newW);
   }
-});
+}
 
-test('EPP-R3 NO-UNTAPPED-ENTRY-IS-EVER-ESTABLISHED: finishing at the card load marks no PROPOSED entry ESTABLISH and stores no PROPOSED load', () => {
-  const E = treeEngine();
+test('EPP-R3 NO-UNTAPPED-ENTRY-IS-EVER-ESTABLISHED: finishing at the card load marks no PROPOSED entry ESTABLISH and stores no PROPOSED load', () =>
+  rowR3(treeEngine()));
+function rowR3(E) {
   const s = mint(E);
   const proposedIds = s.queue.filter((q) => !q.done && q.state === 'PROPOSED').map((q) => q.id);
   assert.deepEqual(proposedIds, ['q_press_110_2026-09-03_2r']);
@@ -158,10 +163,11 @@ test('EPP-R3 NO-UNTAPPED-ENTRY-IS-EVER-ESTABLISHED: finishing at the card load m
   assert.equal(r.w, 105, 'stored working weight');
   assert.deepEqual(r.wSets, [105, 105], 'stored per-set vector');
   assert.equal(r.card.w, r.w, 'card and record agree');
-});
+}
 
-test('EPP-R4 NO-DOWN-PULL-AND-NO-DOUBLE-DEBUT: after the debut lands the next card is not below the stored load, and one earn establishes at most one debut', () => {
-  const E = treeEngine();
+test('EPP-R4 NO-DOWN-PULL-AND-NO-DOUBLE-DEBUT: after the debut lands the next card is not below the stored load, and one earn establishes at most one debut', () =>
+  rowR4(treeEngine()));
+function rowR4(E) {
   const s = mint(E);
   const first = cardThenLand(E, s, NEXT_U);
   const second = cardThenLand(E, first.after, AFTER_U);
@@ -169,7 +175,7 @@ test('EPP-R4 NO-DOWN-PULL-AND-NO-DOUBLE-DEBUT: after the debut lands the next ca
   const established = second.after.queue.filter((q) => q.exId === 'press' && q.state === 'ESTABLISH');
   assert.ok(established.length <= 1, 'one earn established ' + established.length + ' debuts: ' + established.map((q) => q.newW).join(','));
   assert.ok(second.w >= first.w, 'stored load walked back from ' + first.w + ' to ' + second.w);
-});
+}
 
 test('EPP-R5 TAP CONTROL: after takeProposedDebut the card, the stored load and the open queue agree at the tapped load', () => {
   const E = treeEngine();
@@ -261,4 +267,26 @@ test('EPP-R8 IMPORT MERGE ROAD: the shipped import preparation (replay-core.cjs 
   assert.equal(r.w, 105, 'stored working weight');
   assert.equal(r.card.w, r.w, 'card and record agree');
   assert.ok(r.after.queue.some((q) => !q.done && q.state === 'PROPOSED' && q.newW === 110), 'the untapped offer still stands');
+});
+
+/* D-EPP-4, THE SELF-SENSITIVITY GUARD (REVIEW-EPP-l1 f0a5eb1a section 5; Astra 901ee41e section 4;
+   paid by S10, the package that wires this cell, DECISIONS:780 Q3 and :792). The seven semantic
+   mutants were killed, but deleting a row's MAIN assertion stayed green: the sensitivity pass
+   (EPP-D4-SENSITIVITY-REPORT.md) measured that the today.cjs clause's behavioural guard rests on
+   two single assertions, R2's card check and R3's card/record check. This row runs the SAME row
+   bodies against the two half-repair engines EPP-R7 already builds in memory, and requires each
+   to fail AT THE NAMED ASSERTION: today reverted (RT) fails R2's card check and R3's card/record
+   check; writers reverted (RW) fails R3's untapped-entry check and R4's no-down-pull check. So
+   deleting any of those assertions turns THIS row red. Nothing is written into the tree. */
+test('EPP-R9 SELF-SENSITIVITY (D-EPP-4): each half-repair engine fails R2/R3 (today reverted) and R3/R4 (writers reverted) at the named assertion', () => {
+  const RT = halfEngine('today'), RW = halfEngine('writers');
+  if (!RT.ok) assert.fail('EPP-R9: NOTHING TO REVERT in today.cjs (' + RT.why + ')');
+  if (!RW.ok) assert.fail('EPP-R9: NOTHING TO REVERT in writers.cjs (' + RW.why + ')');
+  const failsAt = (run, pattern, label) => assert.throws(run,
+    (e) => e instanceof assert.AssertionError && pattern.test(String(e.message)),
+    label + ': the row must fail at this assertion; if it passes, or fails elsewhere, the assertion that guards the clause is gone');
+  failsAt(() => rowR2(RT.engine, {}), /^engine card load 110 against the selected entry 105/, 'RT x R2 card check');
+  failsAt(() => rowR3(RT.engine), /^card and record agree/, 'RT x R3 card/record check');
+  failsAt(() => rowR3(RW.engine), /^q_press_110_2026-09-03_2r must still be PROPOSED \(untapped\), found ESTABLISH/, 'RW x R3 untapped-entry check');
+  failsAt(() => rowR4(RW.engine), /^next card 105 is below the stored 110/, 'RW x R4 no-down-pull check');
 });
