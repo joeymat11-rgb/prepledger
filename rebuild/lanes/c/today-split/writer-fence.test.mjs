@@ -1449,7 +1449,7 @@ const RESIDUE = [
   { shape: 'mutable object returned by facade',
     line: "const cached = facade.entryFor(liftId); if (cached) cached.state = 'failed';" },
   { shape: 'released helper parameter mutation',
-    anchor: "      () => ({ rows: paintedDraft.rows, cues: paintedDraft.cues }), async (outcome) => {",
+    anchor: '    const paintedDraft = settingsDraft;',
     line: "    paintedDraft.cues = 'Synthetic changed cue.';" },
   { shape: 'review F1 R4: computed writer through an intermediate local',
     line: "const store = model; const key = 'log' + 'Set'; store[key](m);" },
