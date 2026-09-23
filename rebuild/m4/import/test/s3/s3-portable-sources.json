@@ -315,7 +315,7 @@
     },
     {
       "path": "rebuild/m4/import/local-source-profile.cjs",
-      "sha256": "2de07820664ee2ec42c72fecd665a31dfb3768d607870745798c590bd79640e9"
+      "sha256": "1a93f5716550bbb97a6f37169d85a11df900c05e6b8ab933e5567ddbe2aaa454"
     },
     {
       "path": "rebuild/m4/import/prepare.cjs",
