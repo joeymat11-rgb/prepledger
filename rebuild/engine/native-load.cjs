@@ -1,5 +1,5 @@
 'use strict';
-// NATIVE-LOAD FC01 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.8 105cc28, sha256 28c73fa4..., on R9.4 a575692; first built on R7 6ddf7af).
+// NATIVE-LOAD FC01 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.9 679567a, sha256 ef0f5dd8..., on R9.4 a575692; first built on R7 6ddf7af).
 // earned/native-load/v1: the native evaluator and transition. Pure: no disk, no
 // clock read, no id minting, no mutation of any input. Every earning rule is the
 // engine's own, reached through the private table E (earnWalk, _deriveSightingFull,
@@ -158,10 +158,22 @@ function earnReason(ex, cand, rows, target, base, terminal, hot) {
   return name + ': you topped the rep window at ' + setLoads(base) + ' (workouts on ' + days + '). Offer: ' + setLoads(target) +
     ', ' + how + '. Nothing changes unless you say yes; it then applies on a later ' + name + ' workout.';
 }
-function adoptReason(ex, row, target, baseline) {
+// Spec R9.9 :152 MISSED CLOSE (wording PROPOSED, not approved copy): on a missed debut Close "the
+// card said" names the missed entry's target (the captured debut card) and the sentence names the
+// working weight, which the miss kept.
+function adoptReason(ex, row, target, baseline, missed) {
   const name = String(ex.n || ex.id);
+  const card = missed ? ' (the card said ' + setLoads(missed.map(loadOf)) + ', your first workout at the new weight you agreed; your working weight stayed ' + setLoads(planVector(ex).map(loadOf)) + ')'
+    : ' (the card said ' + setLoads(planVector(ex).map(loadOf)) + ')';
   return name + ': on ' + row.date + ' you completed every set at ' + setLoads(target) + (baseline ? ', and no working weight was on file'
-    : ' (the card said ' + setLoads(planVector(ex).map(loadOf)) + ')') + '. Offer: make that your working weight. This sets your working weight; it is not an earned increase. Nothing changes unless you say yes.';
+    : card) + '. Offer: make that your working weight. This sets your working weight; it is not an earned increase. Nothing changes unless you say yes.';
+}
+// Spec R9.9 :152 SELECTED ENTRY (DECISIONS:801 (1)): per original slot, the load the card generated
+// from native entry q prescribes: newWSets at its accepted layout, else newW on every captured
+// original slot whatever their number. A vector target at another layout has no such card (null).
+function entryTarget(q, count) {
+  if (Array.isArray(q.newWSets)) return q.newWSets.length === count ? q.newWSets.slice() : null;
+  return Array.from({ length: count }, () => q.newW);
 }
 
 // ---------- evaluation (spec B "Evaluation algorithm", steps 1-10) ----------
@@ -207,12 +219,18 @@ function evaluate(state, request) {
   const originals = originalSlots(cur.entry);
   const planNow = ex.w == null ? originals.map(() => null) : planVector(ex);
   const typed = cur.entry.profile === 'earned/performed-lift/v2';
-  // Spec R9.6 :152/:158: a MISSED DEBUT's own completion is exit-eligible; its numeric debut
-  // capture does not refuse PLAN_CHANGED. It is named by load_basis.authority_refs (the
-  // missed Close, :155 ADOPT-BASELINE ANCHOR), which FC03 fills only for such an exit.
-  const missedExit = refsOf(b.load_basis.authority_refs).some((r) => r.op_id === cur.close);
-  if (originals.length !== Math.max(1, ex.sets || 1) || (typed && !missedExit && !same(originals.map(captured), planNow)) || forks.some((f) => f && String(f.from) > cur.date))
-    refuse('PLAN_CHANGED', [closeRef, ...refsOf(b.load_basis.authority_refs), ...(forks.some((f) => f && String(f.from) > cur.date) ? forkRefs : [])]);
+  // Spec R9.9 :152/:127 MISSED CLOSE (DECISIONS:796 (c); l11 A1): this Close consumed a native
+  // entry of this lift as a MISSED DEBUT (the fold's mark: done, state 'MISSED',
+  // native_load_missed_by this Close) AND the request claims it (load_basis.authority_refs exactly
+  // [this Close's Ref], which FC03 fills on the check path). Its capture is then compared with the
+  // missed entry's target (newWSets, else newW on every captured original slot) instead of the
+  // plan; set-count and technique changes still refuse. Mark without claim: compared with the plan.
+  const missedQ = state.queue.find((q) => q && q.exId === lift && q.done === true && q.state === 'MISSED' && typeof q.native_load_spend === 'string' && q.native_load_missed_by === cur.close);
+  const missedClose = !!missedQ && Array.isArray(b.load_basis.authority_refs) && b.load_basis.authority_refs.length === 1 && same(refsOf(b.load_basis.authority_refs), [closeRef]);
+  const missedTarget = missedClose ? entryTarget(missedQ, originals.length) : null;
+  const forkLater = forks.some((f) => f && String(f.from) > cur.date);
+  if (originals.length !== Math.max(1, ex.sets || 1) || (typed && !same(originals.map(captured), missedClose ? missedTarget : planNow)) || forkLater)
+    refuse('PLAN_CHANGED', [closeRef, ...(missedClose ? [] : refsOf(b.load_basis.authority_refs)), ...(forkLater ? forkRefs : [])]);
   if (originals.some((slot) => slot.state === 'unresolved')) refuse('PREFIX_UNRESOLVED', [closeRef]);
   E.performedNumericEntry(cur.entry); // configuration magnitude keeps its own reader refusal
   const line = E.performedLine(cur.entry);
@@ -229,8 +247,11 @@ function evaluate(state, request) {
     const consumes = [root], target = { scalar: lb(values[0]), vector: values.map(lb) };
     const body = { profile: DECISION, kind, lift_lineage_id: lift, basis: json(b), evidence: evidenceOf([cur], R), base_load: baseLoad(ex),
       target_load: target, candidate: null, reason_key: REASON_KEYS[kind], spend_id: spendIdOf(ex, lift, consumes), consumes, compensates: null };
-    return [{ body, reason: adoptReason(ex, cur, target.vector, kind === 'adopt-baseline') }];
+    return [{ body, reason: adoptReason(ex, cur, target.vector, kind === 'adopt-baseline', missedClose ? missedTarget : null) }];
   }
+  // Spec R9.9 :152 MISSED CLOSE: a debut session is never the checked completion of an earn (a
+  // landing Close returns DEBUT_LANDED); its earn branch refuses PLAN_CHANGED [Close Ref], field null.
+  if (missedClose) refuse('PLAN_CHANGED', [closeRef]);
   return earn(state, b, R, ex, lift, rows, idx, cur, closeRef, originals, line, planNow);
 }
 
@@ -555,8 +576,9 @@ function compensate(s, ex, d, responseRefs, spent = []) {
 }
 
 // Qualified landing (spec B Apply, "For each later Close"): the SAME native entry, a
-// normal Close whose Start captured the accepted target, every original position
-// completed at exactly that vector. A rep miss at the target load still lands.
+// normal Close whose Start captured the card generated from it, every original position
+// completed at exactly its target. A rep miss at the target load still lands. Spec R9.9
+// :152: any other completion of that card consumes the entry as a MISSED DEBUT.
 function landing(s, ex, d, context, responseRefs) {
   if (d.kind !== 'earn') refuse('RECORD_INVALID', [], 'decision.kind');
   const c = map(context.completion) ? context.completion : null;
@@ -568,7 +590,6 @@ function landing(s, ex, d, context, responseRefs) {
   if (!q) refuse('DEBUT_BASIS_UNPROVEN', [closeRef], 'queue');
   let entry = null;
   try { entry = E.performedEntry(c.entry); } catch (_) { entry = null; }
-  const want = d.target_load.vector.map((x) => x.value);
   if (!entry || entry.lift_lineage_id !== ex.id || entry.start_op_id !== c.start.op_id || entry.completion.op_id !== closeRef.op_id || entry.completion.kind !== 'normal')
     refuse('DEBUT_BASIS_UNPROVEN', [closeRef], 'completion');
   const originals = originalSlots(entry);
@@ -576,19 +597,25 @@ function landing(s, ex, d, context, responseRefs) {
   // (spec :122 context.completion.capture); a typed slot that also carries its own
   // prescribed_load must agree with it. Host v1 slots carry none.
   const capture = Array.isArray(c.capture) ? c.capture : null;
-  const exact = !!capture && capture.length === want.length && originals.length === want.length && originals.every((slot, i) => slot.state === 'performed' &&
-    capture[i] === want[i] && (slot.prescribed_load === undefined || captured(slot) === want[i]) &&
-    slot.fact.current.load.unit === 'lb' && slot.fact.current.load.value === want[i]);
-  // Spec R9.6 :152 MISSED DEBUT (D-FRESH-1, H11 option 2): the Start captured exactly this
-  // target, every original slot is performed and unedited, and the actual loads differ. It
-  // does not land and is named field 'missed_target', which FC03 folds as a lift hold.
-  // A wrong capture or an edited debut keeps DEBUT_BASIS_UNPROVEN 'completion' (no hold).
-  const missed = !exact && !!capture && capture.length === want.length && originals.length === want.length && originals.every((slot, i) => slot.state === 'performed' &&
-    capture[i] === want[i] && (slot.prescribed_load === undefined || captured(slot) === want[i]) &&
-    !(Array.isArray(slot.fact.edit_op_ids) && slot.fact.edit_op_ids.length) &&
-    map(slot.fact.current.load) && slot.fact.current.load.unit === 'lb' && Number.isFinite(slot.fact.current.load.value));
-  if (missed) refuse('DEBUT_BASIS_UNPROVEN', [closeRef], 'missed_target');
-  if (!exact) refuse('DEBUT_BASIS_UNPROVEN', [closeRef], 'completion');
+  // Spec R9.9 :152 SELECTED ENTRY and LAYOUT (DECISIONS:801 (1)): the Start's card was generated
+  // from q: a scalar target's newW on every captured original slot (whatever their number), a
+  // vector target equal to newWSets; a typed slot's own prescribed_load must agree. Otherwise
+  // this Close neither lands nor consumes (wrong capture).
+  const tgt = entryTarget(q, originals.length);
+  const selected = !!capture && capture.length > 0 && capture.length === originals.length && !!tgt &&
+    originals.every((slot, i) => capture[i] === tgt[i] && (slot.prescribed_load === undefined || captured(slot) === tgt[i]));
+  if (!selected) refuse('DEBUT_BASIS_UNPROVEN', [closeRef], 'completion');
+  // It lands iff every original slot is performed at its target load (a rep miss still lands; a
+  // vector target only at its accepted layout, which SELECTED ENTRY already requires).
+  const exact = originals.every((slot, i) => slot.state === 'performed' && map(slot.fact.current.load) &&
+    slot.fact.current.load.unit === 'lb' && slot.fact.current.load.value === tgt[i]);
+  // Spec R9.9 :152 MISSED DEBUT (H11 option 1, DECISIONS:796 (c)): whatever was lifted (another
+  // load, a skipped or unresolved slot, an edit off the target, every slot skipped) the debut is
+  // done: the entry is consumed MISSED by this Close and NOTHING else is written.
+  if (!exact) {
+    q.done = true; q.state = 'MISSED'; q.native_load_missed_by = closeRef.op_id;
+    return { status: 'applied', state: s, effect: effectOf('missed', d, responseRefs, closeRef), refusal: null };
+  }
   const session = s.workoutFacts && Array.isArray(s.workoutFacts.sessions) ? s.workoutFacts.sessions.find((x) => x.start_op_id === c.start.op_id) : null;
   if (!session) refuse('SOURCE_FRONTIER_UNPROVEN', [closeRef], 'completion');
   q.done = true; q.state = 'ESTABLISH';

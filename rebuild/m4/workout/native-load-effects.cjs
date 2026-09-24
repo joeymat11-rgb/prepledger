@@ -1,5 +1,5 @@
 'use strict';
-// NATIVE-LOAD FC03 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.8 105cc28, sha256 28c73fa4..., on R9.4 a575692; first built on R7 6ddf7af):
+// NATIVE-LOAD FC03 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.9 679567a, sha256 ef0f5dd8..., on R9.4 a575692; first built on R7 6ddf7af):
 // the ONE shared source fold and the native-load response family. Pure and
 // synchronous: it reads an immutable base programme, the authenticated operations
 // of one generation and the registered typed workout facts, and reconstructs load,
@@ -126,15 +126,38 @@ function startCapture(start, lift) {
   }
   return cells.sort((a, b) => a[0] - b[0]).map((c) => c[1]);
 }
+// Spec R9.9 :152 SELECTED ENTRY (DECISIONS:801 (1)): is `cap` (one Start's captured loads, per
+// original position) the card generated from native entry e ({newW, newWSets}, a queue entry or an
+// earn candidate)? Non-empty and newW on every cell, whatever their number, when e has no
+// newWSets; exactly newWSets otherwise (a vector card at another layout is never captured).
+function selectedEntry(cap, e) {
+  if (!Array.isArray(cap) || !cap.length || !map(e)) return false;
+  return Array.isArray(e.newWSets) ? same(cap, e.newWSets) : cap.every((v) => v === e.newW);
+}
+// The load entry e prescribes on each of `count` captured original slots (newWSets, else newW).
+const entryTargetOf = (e, count) => (Array.isArray(e.newWSets) ? e.newWSets.slice() : Array.from({ length: count }, () => e.newW));
+// Spec R9 :156 DERIVABLE (c2), FC01 baseLoad's own projection of a recorded FieldImage over n slots:
+// w ABSENT or null gives all null; otherwise position i takes wSets[i] when wSets is an array with
+// a non-null entry there, else w (a number as a Load, a string as its configuration).
+function projectBase(fields, n) {
+  const dec = (x) => (map(x) && x.present === true ? x.value : null);
+  const w = dec(fields.w), wSets = dec(fields.wSets);
+  const load = (v) => (v === null || v === undefined ? null : typeof v === 'number' ? { value: v, unit: 'lb' } : { kind: 'configuration', configuration_key: String(v) });
+  return Array.from({ length: Math.max(1, n) }, (_, i) => (w === null ? null : load(Array.isArray(wSets) && wSets[i] != null ? wSets[i] : w)));
+}
 // Spec :153 "only if no later Start captured the accepted effect" (review B9): some
 // authenticated Start after the accept (provenBefore) captured exactly its target vector.
 // Scoped to the EXACT effect (review B13; R8 :151 proven causality, :153, :154 original
 // cut): a Start can have captured this effect only while it was pending, i.e. after its
 // accept AND not after the compensation being judged (`undoOps`). A Start proven to follow
 // that compensation captured some other, later effect of the same vector, never this one.
+// Spec R9.9 :154 with K LAYOUT (3) (DECISIONS:801 (1)): for an earn, "captured" is the SELECTED
+// ENTRY test (a scalar debut card at a changed set count is a descendant); any other effect keeps
+// exact equality with its recorded target vector.
 function capturedAfter(g, ops, byId, undoOps) {
   const lift = g.body.lift_lineage_id, want = (g.body.target_load && Array.isArray(g.body.target_load.vector) ? g.body.target_load.vector : []).map((x) => (map(x) ? x.value : null));
-  return ops.some((op) => op.class === 'session' && op.kind === 'session-start' && same(startCapture(op, lift), want) && provenBefore(g.ops, op, byId) &&
+  const hit = g.body.kind === 'earn' && map(g.body.candidate) ? (cap) => selectedEntry(cap, g.body.candidate) : (cap) => same(cap, want);
+  return ops.some((op) => op.class === 'session' && op.kind === 'session-start' && hit(startCapture(op, lift)) && provenBefore(g.ops, op, byId) &&
     !(Array.isArray(undoOps) && undoOps.length && provenBefore(undoOps, op, byId)));
 }
 // Spec :60 "semantic equality compares the validated full data, not merely the client's
@@ -203,9 +226,9 @@ function movedBase(ex, body) {
 }
 // Spec R9.2 :158: the named refusals that hold a lift (earns refused, the adoption exit open).
 const HOLD_CODES = new Set(['NATIVE_LOAD_RECORD_INVALID', 'NATIVE_LOAD_EFFECT_CONFLICT', 'NATIVE_LOAD_SOURCE_OVERLAP', 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED']);
-// Spec R9.6 :152/:158: a MISSED DEBUT (DEBUT_BASIS_UNPROVEN, reason missed_target) also holds its lift.
-const isMissed = (i) => !!i && i.code === 'NATIVE_LOAD_DEBUT_BASIS_UNPROVEN' && i.reason === 'missed_target';
-const isHold = (i) => !!i && (HOLD_CODES.has(i.code) || isMissed(i));
+// Spec R9.9 :158 (DECISIONS:796 (c)): a missed debut is NOT a hold (it consumes its entry and holds
+// nothing, :152); holds are exactly these four codes.
+const isHold = (i) => !!i && HOLD_CODES.has(i.code);
 const activeHolds = (issues, lift) => (issues || []).filter((i) => i && i.lift === lift && isHold(i) && !i.superseded_by);
 // TRAINABLE WHILE HELD (spec R9.2 :158): a held lift's new prescription is unavailable, so its
 // w and wSets project null (genSession's baseline ask) and its native queue entries are not
@@ -397,34 +420,47 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
     // a set removed or corrected after issuance is the later edit (:157), not a forgery.
     const item = body.evidence.find((x) => x.close.op_id === latest.close);
     const actual = item.sets.filter((s) => s.origin !== 'added').map((s) => (s.state === 'performed' && map(s.current) && map(s.current.load) ? s.current.load.value : null));
+    const ar = map(body.basis.load_basis) && Array.isArray(body.basis.load_basis.authority_refs) ? body.basis.load_basis.authority_refs : [];
     if (body.kind === 'adopt-baseline') {
-      // Spec R9.6/R9.7 :155 ADOPT-BASELINE ANCHOR: the base is the record's own projection (all
-      // null, DERIVABLE c2); a NUMERIC capture of the consumed Start is admitted only when
-      // load_basis.authority_refs names the lift's hold records, checked against the ops, never
-      // trusted (R9.7, Fable l8 D-L8F-4):
-      // - a MISSED DEBUT Close: it is the consumed Close, the consumed Start captured this lift's
-      //   selected native entry (an accepted, uncancelled, unlanded earn of this lift whose
-      //   target vector is that capture; read from the fold's accepted records, not from the
-      //   replay-time queue, so a later legacy entry that holds the yes back never revokes a
-      //   verified miss: property seed 20268799), and the S4-bound actual loads differ from
-      //   that entry's target;
-      // - any other ref: a record of this lift that the fold itself classifies as holding at
-      //   this cut (an active hold issue of the lift naming it).
+      // Spec R9.9 :155 ADOPT-BASELINE ANCHOR (the other-hold anchor): the base is the record's own
+      // projection (all null, DERIVABLE c2); a NUMERIC capture of the consumed Start is admitted
+      // only when load_basis.authority_refs names the lift's hold records, checked against the
+      // ops, never trusted (R9.7, Fable l8 D-L8F-4): each ref must be a proposal-response of this
+      // lift that an active hold issue of the lift names at this point in the fold. R9.9 removes
+      // the missed-Close arm (a missed debut is no longer a hold, :152): a Close is never an
+      // admitted ref of an adopt-baseline; the Close claim moved to the MISSED-DEBUT ANCHOR below.
       if (baseVec.some((v) => v !== null)) return 'base_load';
       if (cap.some((v) => typeof v === 'number')) {
-        const ar = map(body.basis.load_basis) && Array.isArray(body.basis.load_basis.authority_refs) ? body.basis.load_basis.authority_refs : [];
-        const vec = (b) => (map(b) && map(b.target_load) && Array.isArray(b.target_load.vector) ? b.target_load.vector.map((x) => (map(x) ? x.value : null)) : null);
-        const entries = (spent || []).filter((x) => x && !x.cancelled_by && !x.close_ref).map((x) => (groups && groups.get(x.spend_id) ? groups.get(x.spend_id).body : null))
-          .filter((b) => b && b.kind === 'earn' && b.lift_lineage_id === lift && same(vec(b), cap));
-        const target = entries.length ? vec(entries[0]) : null;
         const holding = (id) => (issues || []).some((i) => i && i.lift === lift && isHold(i) && !i.superseded_by && (i.refs || []).some((x) => map(x) && x.op_id === id));
         const ok = (r) => { if (r === null || !authentic(r)) return false; const o = byId.get(r.op_id);
-          if (o.class === 'session' && o.kind === 'session-close')
-            return r.op_id === latest.close && !!target && same(cap, target) && !same(actual, target);
           return o.class === 'plan' && o.kind === 'proposal-response' && map(o.payload) && map(o.payload.issuance) && map(o.payload.issuance.body) &&
             o.payload.issuance.body.lift_lineage_id === lift && holding(r.op_id); };
         if (!ar.length || !ar.every(ok)) return 'base_load';
       }
+    } else if (body.kind === 'adopt-observed' && ar.length) {
+      // Spec R9.9 :155 MISSED-DEBUT ANCHOR (DECISIONS:796 (c); l11 A1, A2): an adopt-observed claims
+      // it by load_basis.authority_refs exactly [the Ref of the latest consumed Close]; the claim is
+      // verified structurally and never inferred. The selected native entry is read from the fold's
+      // ACCEPTED records at this point, never from the replay-time queue (walk seed 20268799): the
+      // LAST spend in fold order among this lift's uncancelled earns that are unlanded or landed by
+      // the claimed Close itself (A2), whose target passes SELECTED ENTRY against the capture and
+      // whose accept is proven before the consumed Start; and some original slot's S4-bound actual
+      // load differs from that target at that slot. The base is then that earn's recorded
+      // base_load (scalar, fields.w and fields.wSets exactly; the vector as that base projected by
+      // DERIVABLE (c2) over the captured original slot count, DECISIONS:801 (1)), not the capture.
+      if (ar.length !== 1 || !map(ar[0]) || !authentic(ar[0]) || ar[0].op_id !== latest.close) return 'base_load';
+      const startOp = byId.get(latest.start);
+      const picks = (spent || []).filter((x) => x && !x.cancelled_by && (!x.close_ref || (map(x.close_ref) && x.close_ref.op_id === latest.close)))
+        .map((x) => (groups && groups.get(x.spend_id) ? groups.get(x.spend_id) : null))
+        .filter((g) => g && g.body.kind === 'earn' && g.body.lift_lineage_id === lift && map(g.body.candidate) && selectedEntry(cap, g.body.candidate) &&
+          !!startOp && provenBefore(g.ops, startOp, byId));
+      const pick = picks.length ? picks[picks.length - 1] : null;
+      if (!pick) return 'base_load';
+      const target = entryTargetOf(pick.body.candidate, cap.length);
+      if (!actual.some((v, i) => v !== target[i])) return 'base_load';
+      const rb = pick.body.base_load, bf = map(body.base_load.fields) ? body.base_load.fields : {};
+      if (!map(rb) || !map(rb.fields) || !same(body.base_load.scalar, rb.scalar) || !same(bf.w, rb.fields.w) || !same(bf.wSets, rb.fields.wSets)) return 'base_load';
+      if (!same(body.base_load.vector, projectBase(rb.fields, cap.length))) return 'base_load';
     }
     else if (!cap.every((v) => typeof v === 'number') || !same(baseVec, cap)) return 'base_load';
     if (body.kind === 'earn' && !same(actual, cap)) return 'base_load';
@@ -789,9 +825,11 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
     for (const q of state.queue.filter((x) => x && x.exId === lift && !x.done && typeof x.native_load_spend === 'string')) {
       const g = groups.get(q.native_load_spend);
       if (!g) continue;
-      const want = g.body.target_load.vector.map((x) => x.value);
       const got = captureOf(ev.start, ev.entry);
-      if (!same(want, got)) continue; // this Start did not capture the debut: nothing lands
+      // Spec R9.9 :152 SELECTED ENTRY (DECISIONS:801 (1)): the card generated from q (newW on every
+      // captured original slot whatever their number, else exactly newWSets); any other capture is
+      // not this debut's card: nothing lands and nothing is consumed.
+      if (!selectedEntry(got, q)) continue;
       const close = byId.get(ev.entry.completion.op_id);
       if (!close) continue;
       // Spec :157: no landing on a disputed basis; its BASIS_REPAIR_REQUIRED issue stands.
@@ -809,10 +847,11 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
         completion: { start: refOf(ev.start), close: refOf(close), capture: got, entry: ev.entry, source_basis: g.body.basis.source } });
       if (t.status === 'applied') {
         state = t.state;
-        const x = spent.find((y) => y.spend_id === g.body.spend_id); if (x) x.close_ref = refOf(close);
+        // Spec R9.9 :123/:152: the spend index's close_ref is written by a landing only; a MISSED
+        // DEBUT (effect 'missed') consumes the entry and leaves close_ref null.
+        const x = spent.find((y) => y.spend_id === g.body.spend_id); if (x && t.effect && t.effect.kind === 'landed') x.close_ref = refOf(close);
         effects.set(g.body.spend_id, t.effect);
-      } else if (t.refusal) issues.push({ code: t.refusal.code, refs: t.refusal.refs, field: t.refusal.field, lift,
-        ...(t.refusal.field === 'missed_target' ? { reason: 'missed_target' } : {}) });
+      } else if (t.refusal) issues.push({ code: t.refusal.code, refs: t.refusal.refs, field: t.refusal.field, lift });
     }
   }
   // Step 6 (spec R8 :135): the governor projection, ONCE per projection, after the accepted
@@ -850,7 +889,7 @@ function checkNativeLoad(args = {}) {
   // record(s): a record-level refusal first, else the disputed bases (spec :157/:161).
   const holds = activeHolds(fold.issues, lift);
   const holdRefusal = () => {
-    const first = holds.find((x) => BLOCKING.has(x.code) || isMissed(x));
+    const first = holds.find((x) => BLOCKING.has(x.code));
     if (first) return refused({ code: first.code, refs: first.refs, field: first.field || null });
     return refused({ code: 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', refs: holds.flatMap((x) => x.refs).sort(byOp), field: null });
   };
@@ -890,8 +929,9 @@ function checkNativeLoad(args = {}) {
     if (!map(workoutFacts) || !map(workoutFacts.order)) return holdRefusal();
     const { byId } = operationsOf(generation), hit0 = sessionOf(workoutFacts, request.completion_op_id, lift);
     const start = hit0 ? byId.get(hit0.session.start_op_id) : null;
-    // Spec R9.6 :152: the missed completion is itself exit-eligible (its own Close is its hold's record).
-    const after = !!start && holds.flatMap((x) => x.refs || []).every((r) => r.op_id === request.completion_op_id || (() => { const hop = byId.get(r.op_id); return !!hop && provenBefore([hop], start, byId); })());
+    // Spec R9.9 :152/:158: no hold names a Close any more (a missed debut is not a hold), so the
+    // completion must be proven after every holding record.
+    const after = !!start && holds.flatMap((x) => x.refs || []).every((r) => { const hop = byId.get(r.op_id); return !!hop && provenBefore([hop], start, byId); });
     // Spec R9.3 :162 (G3): a completion not proven after every holding record is never
     // offered an adoption. If its Start captured a numeric load (a card closed after the
     // hold included), the projection differs from its capture: PLAN_CHANGED [Close Ref];
@@ -903,8 +943,8 @@ function checkNativeLoad(args = {}) {
     }
     const shown = projectHeld(fold.state, [lift]);
     const pb = basisOf({ state: shown, generation, workoutFacts, source, athleteId, plan, lift, spent: fold.spent });
-    // Spec R9.6 :155 ADOPT-BASELINE ANCHOR: an exit issued under the held projection names the
-    // hold's own records in load_basis.authority_refs (a missed debut: the missed Close).
+    // Spec R9.9 :155 ADOPT-BASELINE ANCHOR: an exit issued under the held projection names the
+    // hold's own records in load_basis.authority_refs (holding proposal-responses; never a Close).
     const holdRefs = new Map();
     for (const x of holds) for (const r of x.refs || []) if (map(r) && text(r.op_id)) holdRefs.set(r.op_id, { op_id: r.op_id, commitment: r.commitment });
     pb.load_basis.authority_refs = [...holdRefs.values()].sort(byOp);
@@ -920,6 +960,14 @@ function checkNativeLoad(args = {}) {
   }
   if (!map(workoutFacts) || !map(workoutFacts.order)) return refused({ code: 'NATIVE_LOAD_COMPLETION_REQUIRED', refs: [], field: 'workoutFacts' });
   const basis = basisOf({ state: fold.state, generation, workoutFacts, source, athleteId, plan, lift: request.lift_lineage_id, spent: fold.spent });
+  // Spec R9.9 :152 MISSED CLOSE / :155 MISSED-DEBUT ANCHOR (l11 A1): when the fold marks a native
+  // entry of this lift consumed MISSED by this very Close, the check claims it: authority_refs =
+  // [that Close's Ref], as an exit carries its hold refs. Filled for a check only; FC01 judges the
+  // Close as the MISSED CLOSE with both the mark and this claim. Every other request keeps [].
+  const missedQ = fold.state.queue.find((q) => q && q.exId === request.lift_lineage_id && q.done === true && q.state === 'MISSED' &&
+    typeof q.native_load_spend === 'string' && q.native_load_missed_by === request.completion_op_id);
+  const claimCov = missedQ ? basis.coverage.find((c) => map(c) && c.op_id === request.completion_op_id) : null;
+  if (claimCov && (request.intent === undefined || request.intent === 'check')) basis.load_basis.authority_refs = [{ op_id: claimCov.op_id, commitment: claimCov.commitment }];
   const hit = sessionOf(workoutFacts, request.completion_op_id, request.lift_lineage_id);
   const day = hit ? hit.session.effective.local_date : dayOf({ evidence: [] }, workoutFacts);
   const evaluation = engine.at(day).evaluateNativeLoad(fold.state, { lift_lineage_id: request.lift_lineage_id,
@@ -947,6 +995,10 @@ function checkNativeLoad(args = {}) {
     if (start && ex && cov) {
       const cap = originals.every((s) => s.prescribed_load === undefined) ? startPlanCapture(start, request.lift_lineage_id) : [];
       const planNow = Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => (ex.w == null ? null : Array.isArray(ex.wSets) && ex.wSets[i] != null ? ex.wSets[i] : ex.w));
+      // Spec R9.9 :152 MISSED CLOSE (DECISIONS:801 (1)): a Close the fold marks as this lift's missed
+      // debut is compared with the missed entry's target (newWSets, else newW on every captured
+      // slot, whatever their number) instead of the plan; FC01 already refused its earn branch.
+      const want = missedQ ? entryTargetOf(missedQ, cap.length) : planNow;
       const window = startWindowCapture(start, request.lift_lineage_id), hi = ex.hi === undefined ? null : ex.hi;
       // Spec R9.1 :127: the window binds only the earn branch (FC01 steps 4-10). Adoption
       // (step 3: w null, or a performed load unlike the plan) and compensation never are.
@@ -961,7 +1013,7 @@ function checkNativeLoad(args = {}) {
       const step3Earn = ex.w != null && originals.length > 0 && originals.every((s, i) => s.state === 'performed' && loadAt(s) === planNow[i]);
       const earnBranch = evaluation.status === 'offer' ? evaluation.offers.some((o) => map(o.body) && o.body.kind === 'earn')
         : EARN_READER_CODES.has(code) || ((code === 'NATIVE_LOAD_SOURCE_OVERLAP' || code === 'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED') && step3Earn);
-      if ((cap.length && !same(cap, planNow)) || (earnBranch && windowUnproven(window, hi)))
+      if ((cap.length && !same(cap, want)) || (earnBranch && windowUnproven(window, hi)))
         return refused({ code: 'NATIVE_LOAD_PLAN_CHANGED', refs: [{ op_id: cov.op_id, commitment: cov.commitment }], field: null });
     }
   }
@@ -989,7 +1041,7 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:1d87743d41827618de425e971563ea11e1e2b770305ed75f88a410a8942c443d';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:5b2321b446213ced086cd25f352f3e6bef9d74b94c9a50778ebe450723b8b9e5';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf,
   heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]), isHold };

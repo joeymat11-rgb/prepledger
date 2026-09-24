@@ -939,37 +939,50 @@ test('R16-B28 RESTORE ON REPLAY [Y] (Astra L8 B28; spec R9.4 :156): D1 lifted at
   assert.equal(view.lift.id, 'demo-press'); assert.match(view.prescription.line, /^40 lb/, 'the card carries the consented 40');
   two.entry.gymHost.close(); again.close();
 });
-test('N29 MISSED-DEBUT [Y] (spec R9.6 :152, D1 N29): yes Q45; D3 captures the 45 debut card and demo-press is lifted at 40 -> no landing, demo-press held, the D4 capture is the baseline ask (never 45 again); the D3 check offers adopt-baseline [40, 40]; Undo of Q45 refuses COMPENSATION_DESCENDANTS; the yes -> the next card is 40', async () => {
-  const fault = faultDatabase(), era = await reopenAt(fault, D1);
-  hostGate(era);
-  const entry = await yesTo(era, 'demo-press');
-  entry.gymHost.close(); era.close();
-  const again = await reopenAt(fault, D3), three = await dayEntry(again, D3);
-  assert.match((await three.entry.gym.read()).prescription.line, /^45 lb/, 'control: the debut card');
-  assert.equal((await train(three.entry, 12, '1', { loadFor: { 'demo-press': 40 } })).finished.ok, true);
-  await three.entry.nativeLoad.settled();
-  const host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), p = await host.project();
-  assert.ok(p.issues.some(i => i.code === 'NATIVE_LOAD_DEBUT_BASIS_UNPROVEN' && i.reason === 'missed_target' && i.lift === 'demo-press' && !i.superseded_by), JSON.stringify(p.issues));
-  assert.equal(pressOf(p).w, null, 'held: the baseline ask');
-  assert.deepEqual(nativeQueue(p.state, 'demo-press'), [], 'the 45 target is hidden');
-  const yes = (await responsesOf(again))[0].payload.issuance.body;
-  const d3 = p.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id;
-  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: d3, intent: { compensate: yes.spend_id } });
-  assert.deepEqual([undo.status, undo.refusal && undo.refusal.code], ['refused', 'NATIVE_LOAD_COMPENSATION_DESCENDANTS']);
-  host.close();
-  const four = await dayEntry(again, D4), slots = await slotsOf(four.entry, D4);
-  assert.ok(slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), 'D4: the baseline ask, never 45');
-  four.entry.gymHost.close();
-  await three.entry.nativeLoad.check();
-  const offer = three.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
-  assert.ok(offer, 'the missed completion is exit-eligible ' + JSON.stringify(three.entry.nativeLoad.view().refusals));
-  assert.deepEqual([offer.kind, offer.loads], ['adopt-baseline', [40, 40]]);
-  assert.equal((await three.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
-  three.entry.gymHost.close(); again.close();
-  const later = await reopenAt(fault, D4), five = await dayEntry(later, D4), view = await five.entry.gym.read();
-  assert.equal(view.phase, 'ready', view.code || '');
-  assert.equal(view.lift.id, 'demo-press'); assert.match(view.prescription.line, /^40 lb/, 'the adopted 40');
-  five.entry.gymHost.close(); later.close();
+// Round 18 (spec R9.9 679567a :152, :155, J (a)/(b); DECISIONS:796 (c), H11 option 1): the R9.6-R9.8
+// expectations of this row (hold, baseline-ask D4 capture, adopt-baseline exit, SUPERSEDED) are retired.
+test('N29 MISSED-DEBUT R9.9 [Y] (spec R9.9 :152, :155, J (a)/(b), D1 N29; DECISIONS:796 (c)): yes Q45; D3 captures the 45 debut card and demo-press is lifted at 35, below the working 40 -> Q45 consumed MISSED, no hold, w 40; the D4 capture is the numeric 40 card (never 45); the D3 check offers adopt-observed [35, 35] whose record claims the D3 Close; Undo of Q45 refuses COMPENSATION_DESCENDANTS; the yes puts 35 on the next card. Variant lifted AT 40: the D3 check refuses PLAN_CHANGED and the next card stays 40', async () => {
+  for (const [load, variant] of [[35, 'below'], [40, 'at']]) {
+    const fault = faultDatabase(), era = await reopenAt(fault, D1);
+    hostGate(era);
+    const entry = await yesTo(era, 'demo-press');
+    entry.gymHost.close(); era.close();
+    const again = await reopenAt(fault, D3), three = await dayEntry(again, D3);
+    assert.match((await three.entry.gym.read()).prescription.line, /^45 lb/, 'control: the debut card');
+    assert.equal((await train(three.entry, 12, '1', { loadFor: { 'demo-press': load } })).finished.ok, true);
+    await three.entry.nativeLoad.settled();
+    const host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), p = await host.project();
+    const yes = (await responsesOf(again))[0].payload.issuance.body;
+    assert.deepEqual(nativeQueue(p.state, 'demo-press').map(x => [x.done, x.state]), [[true, 'MISSED']], variant + ' ' + JSON.stringify(p.issues));
+    assert.ok(!p.issues.some(i => i.lift === 'demo-press' && (NativeLoadEffects.isHold(i) || i.code === 'NATIVE_LOAD_DEBUT_BASIS_UNPROVEN')), variant + ' ' + JSON.stringify(p.issues));
+    assert.equal(pressOf(p).w, 40, variant + ': nothing written');
+    const d3 = p.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id;
+    const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: d3, intent: { compensate: yes.spend_id } });
+    assert.deepEqual([undo.status, undo.refusal && undo.refusal.code], ['refused', 'NATIVE_LOAD_COMPENSATION_DESCENDANTS'], variant);
+    host.close();
+    const four = await dayEntry(again, D4), slots = await slotsOf(four.entry, D4);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => /^40 lb/.test(s.load.display)), variant + ': D4 is the numeric 40 card, never 45');
+    four.entry.gymHost.close();
+    await three.entry.nativeLoad.check();
+    const view = three.entry.nativeLoad.view();
+    if (variant === 'at') {
+      assert.deepEqual(view.offers.filter(o => o.lift === 'demo-press'), [], 'nothing offered at the working weight');
+      assert.deepEqual(view.refusals.filter(r => r.lift === 'demo-press').map(r => r.code), ['NATIVE_LOAD_PLAN_CHANGED']);
+      three.entry.gymHost.close(); again.close();
+      continue;
+    }
+    const offer = view.offers.find(o => o.lift === 'demo-press');
+    assert.ok(offer, 'the missed Close is offered the lifted load ' + JSON.stringify(view.refusals));
+    assert.deepEqual([offer.kind, offer.loads], ['adopt-observed', [35, 35]]);
+    assert.equal((await three.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+    const body = (await responsesOf(again)).map(r => r.payload.issuance.body).find(b => b.kind === 'adopt-observed');
+    assert.deepEqual(body.basis.load_basis.authority_refs.map(r => r.op_id), [d3], 'the record claims the missed D3 Close');
+    three.entry.gymHost.close(); again.close();
+    const later = await reopenAt(fault, D4), five = await dayEntry(later, D4), v = await five.entry.gym.read();
+    assert.equal(v.phase, 'ready', v.code || '');
+    assert.equal(v.lift.id, 'demo-press'); assert.match(v.prescription.line, /^35 lb/, 'the adopted 35 is the next card');
+    five.entry.gymHost.close(); later.close();
+  }
 });
 test('N30 HELD-UNEQUAL [Y] (spec R9.6 :163, Astra L8 B30): D1 at 45 adopted, D2 trained on the 45 card, a D1 set removed -> held; D3 on the baseline ask lifted at [45, 40] -> the check refuses VECTOR_ADOPTION_UNDEFINED, not BASIS_REPAIR_REQUIRED, and offers nothing for demo-press', async () => {
   const fault = faultDatabase(), era = await reopenAt(fault, D1);
