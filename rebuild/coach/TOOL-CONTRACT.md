@@ -81,6 +81,88 @@ mints its own era rather than reading this one, which is a lane-c-today merge aw
   "state_unchanged": true }
 ```
 
+### Exception and unknown-tool refusals
+
+Check-in validation, wave-one dispatch and onboarding dispatch use fixed refusal
+sentences. Exception messages and unknown tool names travel in `unavailable.source`
+as developer provenance, never in a reason, copy or arbitrary code. As in the
+memory tools, `tool` remains routing metadata; it is not athlete-facing copy.
+The refusal helpers in these three modules, and both unknown-tool envelopes,
+pass through `assertNoLeak`, including their source members.
+
+| code | exact reason |
+|---|---|
+| `CHECKIN_INPUT_INVALID` | I could not record that check-in answer. Nothing was recorded. |
+| `COACH_MACHINE_SETTINGS_INVALID` (save throws) | I could not keep that, and I have kept nothing. |
+| `WAVE1_TOOL_NOT_IN_LIST`, `ONBOARDING_TOOL_NOT_IN_LIST`, `MEMORY_TOOL_NOT_IN_LIST` | I cannot use that tool here, so I did nothing. |
+| `WAVE1_TOOL_THREW`, `ONBOARDING_TOOL_THREW` | Something went wrong inside that tool on this device. I could not complete the request. |
+
+The two unknown-tool envelopes retain their top-level `code`, `reason`, `allowed`
+and empty `values`; both reason members contain the same fixed sentence.
+The exception refusals retain tagged code and reason values. Diagnostic text
+licenses no numbers. `test/text-tags.test.cjs` pins these paths with hostile text.
+
+`provenance(value)` formats diagnostics inside its own try and returns the fixed
+`(unprintable)` fallback if reading .message or conversion throws. Every tool
+catch passes the whole caught value to this helper. All three dispatchers refuse
+non-string names before property-key coercion or delegation; their tool member
+is the fixed "(not a tool name)" and source carries provenance(name). Submit
+source names setup-commands.mjs as well as carrying the diagnostic message.
+
+`WAVE1_TOOL_THREW`, `ONBOARDING_TOOL_THREW` and `COACH_MEMORY_TOOL_THREW`
+omit `state_unchanged`: a catch
+around an arbitrary served tool cannot establish it. In particular, log_set
+reads the gym again after logSet succeeds, and submit awaits the host's save;
+either can throw after a write, as can a memory tool. Absence means unknown,
+never a claim that state was unchanged or that a write happened. All three
+renderers suppress tails by code for exactly these three catch-all codes. Every
+other refusal follows that renderer's own-ending pattern, including "Nothing is
+recorded yet." The three catch-alls use "Something went wrong inside that tool
+on this device. I could not complete the request."
+
+Check-in apply failures restore the live draft's choices, issues, sleep
+confirmation and fields before returning CHECKIN_INPUT_INVALID. The sealed
+check-in model save() has no declared refusal codes: its six fixed copies are
+ALREADY_RECORDED, NOTHING_ANSWERED, NO_STORE, HOURS_OUT_OF_RANGE, DAYS_INVALID and
+SAVE_REFUSED. Only an absent code paired with one of those exact model constants
+passes through as before, with CHECKIN_NOT_RECORDED. The object run is
+local-world.mjs's wrapper, which also returns CHECKIN_SOURCE_UNAVAILABLE and
+SLEEP_NIGHT_CHANGED. These frozen pairs live in checkin-refusals.cjs, a leaf
+module with no dependencies, required directly by tools.cjs and re-exported by
+local-world.mjs under the same names. Only exact code AND copy
+equality with either pair passes that pair through unchanged. Any other code or
+copy gets
+CHECKIN_NOT_RECORDED and "I could not record that check-in answer. Nothing was
+recorded." Both saved.code and saved.copy travel in source via provenance.
+A rejected model import sends the six model copies to the same generic refusal,
+with its error in source via provenance. The two wrapper pairs remain available
+and pass through with their own code and sentence.
+
+Wave-one log_set checks load and reps with the accepted edit-values.cjs factual
+domain before offering confirmation: a finite positive load and a nonnegative
+safe integer rep count (negative zero refused). Numeric strings are converted
+before validation; other objects and nonnumeric text are refused. Its fixed
+confirmation refusal reason is "Nothing is recorded yet. Say yes to confirm the
+weight and reps." The full sentence naming both numbers travels as
+confirmation.text with display, value, source, kind, licensed: false and no
+turn_id, following the memory data-text pattern. It licenses no number until a
+confirmed successful log returns stored load and reps as tagged values.
+
+When onboarding `submit` catches a preparation error, its code is the message
+only if the message is a string and an own key of the existing
+`setup-model.mjs REFUSAL_SENTENCES` table: `CLEAN_INIT_SETUP_REQUIRED`,
+`CLEAN_INIT_SPLIT_REQUIRED`, `CLEAN_INIT_EXERCISES_REQUIRED`,
+`CLEAN_INIT_EXERCISE_REQUIRED`, or `CLEAN_INIT_PRIORITY_MUSCLES_REQUIRED`.
+Every other message selects the fixed `SETUP_INPUT_INVALID`. A prefix match or
+an inherited object key is insufficient. The reason remains `model.COPY.saveRefused`;
+the diagnostic message travels in `source`.
+
+The new check-in and dispatch sentences are proposed copy awaiting the owner's
+ruling, listed in `rebuild/lanes/c/COACH-TEXT-TAGS-AUTHOR-REPORT.md`.
+Accepted-layer code/copy forwarding and intentional confirmed-fact read-backs
+retain their existing contracts; this rule concerns exception and unknown-tool
+diagnostics, not engine prose or the athlete's explicitly labelled facts.
+
 ### The tagged value
 
 ```jsonc
@@ -643,3 +725,5 @@ existing rule (a refusal or a reason travels unedited, because inventing a
 friendlier sentence is how a guess starts) and `rebuild/engine` is outside this
 lane. The transcript's residual is counted and pinned so it cannot drift upward
 unnoticed; clearing it is a `rebuild/engine` change.
+
+Until C-UI-6 lands, nothing renders confirmation.text. Any surface that renders a COACH_CONFIRMATION_REQUIRED refusal from log_set MUST print confirmation.text.display verbatim and in full beside the refusal's own sentence, and MUST NOT accept a yes for that set until it has. A yes is a yes to these numbers; a surface that has not shown them has not been told them.

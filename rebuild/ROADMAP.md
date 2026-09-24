@@ -1,3 +1,5 @@
+**2026-09-22 PM transfer: read lanes/HANDOFF-PM-2026-09-22-CLAUDE-OPUS-5-5.md and DECISIONS:776. Earlier PM authority banners below are historical.**
+
 # EARNED — REBUILD ROADMAP v2.0 (2026-09-06)
 
 **Current PM authority412: Joe explicitly returns sole PM to the original Claude PM. Astra is review standby when usage is available; its PM heartbeat is deleted. Read rebuild/lanes/astra/CLAUDE-PM-HANDOFF.md. Earlier PM/model labels below are historical where they conflict; no delivery or release bar changes.**

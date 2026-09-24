@@ -301,3 +301,6 @@ The same four checks the brief names, run with the model in the loop:
 
 Plus, from the brief and not automatable: **Dad's five-minute hand test on the
 phone, with no explanation, after Joe's own week of use.**
+
+For a refusal envelope, absence of state_unchanged means unknown, never a claim
+that state was unchanged or that a write happened.

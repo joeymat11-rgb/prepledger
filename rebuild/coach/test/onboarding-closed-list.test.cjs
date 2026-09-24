@@ -62,14 +62,16 @@ test("the tiers are the brief's tiers: review reads, the refusal refuses, the re
   assert.equal(Object.values(O.TIERS).filter((t) => t === O.TIER.PROPOSAL).length, 0);
 });
 
-test("an unknown name is refused by CODE, and the refusal NAMES the tool that was tried", async () => {
+test("an unknown name is refused by CODE, with its name only in routing and source", async () => {
   const t = await tools();
   const r = await t.dispatch("set_rep_target", { hi: 12 }, "turn-x");
   assert.equal(r.ok, false);
   assert.equal(r.code, O.C6_CODES.TOOL_NOT_IN_LIST);
   assert.equal(r.code, "ONBOARDING_TOOL_NOT_IN_LIST");
   assert.equal(r.tool, "set_rep_target");
-  assert.match(r.reason, /^set_rep_target is not one of the seven onboarding tools$/);
+  assert.equal(r.reason, "I cannot use that tool here, so I did nothing.");
+  assert.equal(r.unavailable.reason, r.reason);
+  assert.equal(r.unavailable.source, "onboarding-tools.cjs TIERS: set_rep_target");
 });
 
 test("the refusal lists the seven, so a transcript is diagnosable without a debugger", async () => {
@@ -78,7 +80,8 @@ test("the refusal lists the seven, so a transcript is diagnosable without a debu
   assert.deepEqual(r.allowed, SEVEN);
   assert.equal(r.state_unchanged, true);
   assert.equal(r.unavailable.code, "ONBOARDING_TOOL_NOT_IN_LIST");
-  assert.match(r.unavailable.reason, /set_sets/);
+  assert.equal(r.unavailable.reason, "I cannot use that tool here, so I did nothing.");
+  assert.equal(r.unavailable.source, "onboarding-tools.cjs TIERS: set_sets");
 });
 
 test("there is NO default handler: every unknown name refuses, none falls through", async () => {

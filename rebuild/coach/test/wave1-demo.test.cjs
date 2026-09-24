@@ -293,9 +293,12 @@ test("W8 step 4 refuses without the confirm, and the confirm NAMES the weight an
     assert.equal(r.ok, false);
     assert.equal(r.unavailable.code, T.CODES.CONFIRMATION_REQUIRED);
     /* D6: the sentence carries BOTH figures, so a yes is a yes to these numbers */
-    assert.match(r.unavailable.reason, /110/);
-    assert.match(r.unavailable.reason, /8/);
-    assert.match(r.unavailable.reason, /nothing is recorded yet/i);
+  assert.match(r.confirmation.text.display, /110/);
+  assert.match(r.confirmation.text.display, /8/);
+  assert.match(r.confirmation.text.display, /nothing is recorded yet/i);
+  assert.equal(r.confirmation.text.licensed, false);
+  assert.equal(r.confirmation.text.turn_id, undefined);
+  assert.equal(r.unavailable.reason, "Nothing is recorded yet. Say yes to confirm the weight and reps.");
     const after = Object.keys((await d.world.bindings.repository.load()).generation.collections.ops || {}).length;
     assert.equal(after, before, "a log without a yes wrote an operation");
   } finally { d.close(); }

@@ -1,0 +1,28 @@
+{
+  "schema": "earned/s9-release-object-copy/v1",
+  "head": "841c71ec19ecfa7da8a2694830c3fe36e9ae7974",
+  "files": [
+    {
+      "path": "rebuild/lanes/c/ui-port/release-object.test.mjs",
+      "sha256": "a5fd5d431ebc4eaa93895ae8d80b8b29b4a2e23a04753864644741ac28d6c3ab"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b-package.cjs",
+      "sha256": "5321181a14bd5716c1d8692d40d5086cd10179609dcccced6d7a6da04704fd22"
+    },
+    {
+      "path": "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs",
+      "sha256": "9e6b9a8fa68f48a6a01bf8326bee88ff392ab25bafa5d0ae1367255c0b1afd2f"
+    },
+    {
+      "path": ".github/workflows/rebuild.yml",
+      "sha256": "66f2ac9ceb19322a69b0b8a5ea725511fb208d546ac7662d4f0f751d9b3d9d0e"
+    }
+  ],
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/lanes/c/ui-port/release-object.test.mjs"
+  ],
+  "expectedAbsent": "rebuild/m4/spec/acceptance-s9-ui-pins.json"
+}

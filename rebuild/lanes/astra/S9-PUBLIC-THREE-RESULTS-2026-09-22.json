@@ -1,0 +1,68 @@
+[
+  {
+    "group": "d-plan-edit",
+    "root": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9int",
+    "pid": 58836,
+    "started": "2026-09-22T21:06:51.1169906Z",
+    "finished": "2026-09-22T21:06:52.5785962Z",
+    "exit": 0,
+    "stdout": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-d-plan-edit-cbe5ed2.stdout.tap",
+    "stdoutSha": "c10a1beb11b77e9fdabfb0e9bed1b978e522938490a070c0fac439343d2b120b",
+    "stderr": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-d-plan-edit-cbe5ed2.stderr.log",
+    "stderrSha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "counters": [
+      "# tests 90",
+      "# suites 0",
+      "# pass 90",
+      "# fail 0",
+      "# cancelled 0",
+      "# skipped 0",
+      "# todo 0",
+      "# duration_ms 1353.4777"
+    ]
+  },
+  {
+    "group": "w6-host-seams",
+    "root": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-w6-host-seams-cbe5ed2",
+    "pid": 36700,
+    "started": "2026-09-22T21:06:52.6058585Z",
+    "finished": "2026-09-22T21:06:52.8814936Z",
+    "exit": 0,
+    "stdout": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-w6-host-seams-cbe5ed2.stdout.tap",
+    "stdoutSha": "5bd19e49d92e3e7e4f22a81fcc104cd590347d175d0a70e29222280a0b322b23",
+    "stderr": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-w6-host-seams-cbe5ed2.stderr.log",
+    "stderrSha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "counters": [
+      "# tests 9",
+      "# suites 0",
+      "# pass 9",
+      "# fail 0",
+      "# cancelled 0",
+      "# skipped 0",
+      "# todo 0",
+      "# duration_ms 201.2137"
+    ]
+  },
+  {
+    "group": "a0-journeys",
+    "root": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-a0-journeys-cbe5ed2",
+    "pid": 37092,
+    "started": "2026-09-22T21:06:52.8857366Z",
+    "finished": "2026-09-22T21:06:53.3317646Z",
+    "exit": 0,
+    "stdout": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-a0-journeys-cbe5ed2.stdout.tap",
+    "stdoutSha": "43692b8c64f109df53fff97aab4138ce592b22b649464e83e4427945c5c6efb6",
+    "stderr": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-a0-journeys-cbe5ed2.stderr.log",
+    "stderrSha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "counters": [
+      "# tests 23",
+      "# suites 0",
+      "# pass 23",
+      "# fail 0",
+      "# cancelled 0",
+      "# skipped 0",
+      "# todo 0",
+      "# duration_ms 371.7284"
+    ]
+  }
+]

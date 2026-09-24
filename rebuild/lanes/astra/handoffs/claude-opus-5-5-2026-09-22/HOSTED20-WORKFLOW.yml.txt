@@ -1,0 +1,48 @@
+name: S9 protected 20 proof proposal
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Fetch proposal files only
+        uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            .github/workflows/s9-protected-20-proof.yml
+            rebuild/lanes/b/tooling/s9-hosted-proof-runner.cjs
+            rebuild/lanes/b/tooling/s9-hosted-proof-manifest.json
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Construct reviewed source island
+        shell: bash
+        env:
+          SOURCE_HEAD: fe9f14b5a764efe0cc66fa0380a27b1e32d5672c
+        run: |
+          set -euo pipefail
+          # Proposed implementation contract, not yet executable:
+          # 1. Copy the three proposal controls outside this checkout, then delete checkout bytes.
+          # 2. Init an empty repo; fetch each reviewed commit with --filter=blob:none --no-tags --depth=1.
+          # 3. Confirm server honored filtering and every non-tree/non-commit object is in the reviewed blob-OID allowlist.
+          # 4. Hydrate only reviewed ref:path pairs; verify their exact object IDs and working-tree SHA-256 values.
+          # 5. Materialize only reviewed current paths, plus current src/app.jsx if authorized.
+          # 6. Run npm ci --ignore-scripts --no-audit --no-fund in a separate dependency prep root; copy node_modules in.
+          # 7. Remove all remotes, alternates, replace refs, promisor config/files and bootstrap checkout.
+          # 8. Set GIT_NO_LAZY_FETCH=1; prove every forbidden/ref:path probe fails and every allowed probe succeeds.
+          # 9. Invoke the runner below. Any mismatch or unavailable object stops before child execution.
+          exit 78
+      - name: Run exact twenty groups serially
+        if: ${{ success() }}
+        shell: bash
+        run: node rebuild/lanes/b/tooling/s9-hosted-proof-runner.cjs rebuild/lanes/b/tooling/s9-hosted-proof-manifest.json
+      # No upload-artifact step. Raw stdout/stderr and the JSON summary die with the runner.
