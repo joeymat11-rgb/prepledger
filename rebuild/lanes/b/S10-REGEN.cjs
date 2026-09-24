@@ -54,6 +54,22 @@ const SCOPE = ['.github/workflows/rebuild.yml', '.github/workflows/shared-prefli
   'rebuild/m4/import/', 'rebuild/m4/spec/', 'rebuild/m4/workout/'];
 const PROTECTED = new Set(['seed', 'migrate', 'merge', 'index', 'oracle-shim'].map((n) => 'rebuild/engine/' + n + '.cjs'));
 const FORBIDDEN = [/(^|\/)src\//, /^rebuild\/conform\/private(\/|$)/, /(^|\/)ledger\//, /soak/i];
+/* B5 RESIDUAL (Astra S10-INTEGRATION-REVIEW-L3). The forbidden set and the protected five are
+   matched under FILESYSTEM EQUIVALENCE, not byte equality: every segment is compared lower-cased
+   with trailing dots and spaces stripped (how Windows resolves a name), so LEDGER/, Ledger/,
+   ledger./, SRC/, SEED.cjs or seed.cjs. cannot slip past a lower-case pattern. Two spellings are
+   refused outright because they name something other than what they spell: an 8.3 short name
+   (a segment containing ~ followed by a digit) and an alternate data stream (a colon in a
+   segment). A segment that ends in a dot or a space is also refused outright: no S10 path is
+   spelled that way, and the canonical match above already covers what it would alias.
+   AUTH EXCLUSION: a segment named auth.json or .credentials, or matching auth|credential|token|
+   secret (case-insensitive), is refused under every allowed root unless the full path is in
+   AUTH_ALLOWLIST - the paths S10.json (and the S9 product and execution pins) already declare
+   that match. Measured at ac79eab: none does, so the list is empty. */
+const AUTH_SEGMENT = /auth|credential|token|secret/i;
+const AUTH_ALLOWLIST = new Set([]);
+const canonSeg = (s) => s.toLowerCase().replace(/[. ]+$/, '');
+const CANON_PROTECTED = new Set([...PROTECTED].map((f) => f.split('/').map(canonSeg).join('/')));
 const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
 const git = (a) => cp.execFileSync('git', a, { cwd: REPO, maxBuffer: 1e9, stdio: ['ignore', 'pipe', 'ignore'] });
 const arg = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -67,8 +83,16 @@ const inScope = (f) => SCOPE.some((r) => (r.endsWith('/') ? f.startsWith(r) : f 
 function shape(f) {
   if (typeof f !== 'string' || !f || f.startsWith('/') || /^[A-Za-z]:/.test(f) || f.includes('\\') || /[\x00-\x1f]/.test(f)
     || f.split('/').some((s) => s === '..' || s === '.' || s === '')) return 'not a plain repository-relative path';
-  if (FORBIDDEN.some((re) => re.test(f))) return 'in the forbidden set';
+  const segs = f.split('/');
+  if (segs.some((s) => s.includes(':'))) return 'an alternate-data-stream spelling (colon in a segment)';
+  if (segs.some((s) => /~[0-9]/.test(s))) return 'an 8.3 short-name spelling';
+  if (segs.some((s) => /[. ]$/.test(s))) return 'a segment ending in a dot or a space';
+  const canon = segs.map(canonSeg).join('/');
+  if (FORBIDDEN.some((re) => re.test(f) || re.test(canon))) return 'in the forbidden set';
+  if (CANON_PROTECTED.has(canon) && !PROTECTED.has(f)) return 'an alternate spelling of a protected engine file';
   if (!inScope(f)) return 'outside the S10 product scope';
+  if (!AUTH_ALLOWLIST.has(f) && segs.some((s) => ['auth.json', '.credentials'].includes(canonSeg(s)) || AUTH_SEGMENT.test(s)))
+    return 'an auth-shaped name under an allowed root (auth.json, .credentials, auth|credential|token|secret)';
   return null;
 }
 const entryCache = new Map();
