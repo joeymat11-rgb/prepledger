@@ -29,8 +29,10 @@
    (3) EVERY path - from the specs, the artifact, the execution pins and the diff - is validated
        BEFORE ANY READ OF ANY OF THEM: inside SCOPE; no absolute path, `..`, backslash or control
        character; not in the forbidden set (src/, rebuild/conform/private, any ledger/ directory, any
-       *soak* name); a regular file mode in Git (never a symlink 120000 or submodule 160000) at the
-       parent and at HEAD where present; and on disk neither the file nor any directory above it
+       *soak* name); admitted by the positive name rule (no dot-name, credential or key file name, or
+       key container extension, and a file type S10 or its parent declares: B5 L4 below); a regular
+       file mode in Git (never a symlink 120000 or submodule 160000) at the parent and at HEAD where
+       present; and on disk neither the file nor any directory above it
        inside the repository is a symlink or junction. One failure refuses the whole run by name.
    (4) The protected five (rebuild/engine/seed, migrate, merge, index, oracle-shim) are NEVER read:
        their post is their pre only if Git holds the same object id at the parent and at HEAD and
@@ -68,6 +70,46 @@ const FORBIDDEN = [/(^|\/)src\//, /^rebuild\/conform\/private(\/|$)/, /(^|\/)led
    that match. Measured at ac79eab: none does, so the list is empty. */
 const AUTH_SEGMENT = /auth|credential|token|secret/i;
 const AUTH_ALLOWLIST = new Set([]);
+/* B5 RESIDUAL, L4 (Astra S10-INTEGRATION-REVIEW-L4): POSITIVE ADMISSION FOR A CONTENT READ. A word
+   list is not the no-auth contract (.netrc, _netrc and .ssh/id_ed25519 match none of the four words
+   above), so after every refusal above, kept in its order, a path under an allowed root is admitted
+   only if ALL of these hold (admission() below; segments compared lower-cased):
+   (a) no segment is a dot-name (.netrc, .ssh, .aws, .git*, .npmrc, .pypirc, ...): credential and tool
+       configuration live in dot-files and dot-directories;
+   (b) no segment, nor a segment without its final extension, is a standard credential or key file
+       name (CREDENTIAL_NAMES);
+   (c) no dotted part of any segment is a key or secret container extension (KEY_EXT), so signing.pem,
+       signing.pem.json and certs.p12/ are all refused;
+   (d) the file's final extension is in ADMITTED_EXT, the file types that S10.json and the parent
+       S9.json product sets actually contain, measured at 62788b1 (S9.json at 6dc2596 and at HEAD):
+       S10.product 296 paths .cjs 163 .mjs 113 .json 13 .md 3 .yml 2 .html 2; S9.product 255 paths
+       .cjs 134 .mjs 105 .json 9 .yml 2 .html 2 .md 2 .css 1. A name with no extension is refused.
+   EXACT REVIEWED FILES (PM ruling on S10-INTEGRATION-REPORT.md Round 9): (a) does not apply to a
+   path EQUAL to an exact-file SCOPE entry (SCOPE without a trailing slash), and to nothing else: that
+   admits .github/workflows/rebuild.yml and .github/workflows/shared-preflight.yml, which S10
+   declares, by identity; any other path with a .github segment (or any dot-name) is refused, and
+   (b)-(d) still apply to the exact files. All 309 names S10-REGEN validates at the real repository
+   (declared, parent, execution, fixed, artifact, split and changed) pass (a)-(d). */
+const CREDENTIAL_NAMES = new Set(['_netrc', 'netrc', '.netrc', 'credentials', 'known_hosts', 'authorized_keys', 'authorized_keys2',
+  ...['id_rsa', 'id_dsa', 'id_ecdsa', 'id_ed25519', 'id_ecdsa_sk', 'id_ed25519_sk'].flatMap((k) => [k, k + '.pub']),
+  '.git-credentials', '.gitconfig', '.htpasswd', '.pypirc', '.npmrc', '.pgpass', '.dockercfg']);
+const KEY_EXT = new Set(['pem', 'key', 'p12', 'pfx', 'kdbx', 'ppk', 'asc', 'gpg', 'jks', 'keystore']);
+const ADMITTED_EXT = new Set(['.cjs', '.css', '.html', '.json', '.md', '.mjs', '.yml']);
+const EXACT_REVIEWED = new Set(SCOPE.filter((r) => !r.endsWith('/')));
+function admission(segs) {
+  const exact = EXACT_REVIEWED.has(segs.join('/'));
+  for (const s of segs) {
+    const c = s.toLowerCase(), stem = c.lastIndexOf('.') > 0 ? c.slice(0, c.lastIndexOf('.')) : c;
+    if (c.startsWith('.') && !exact) return 'a dot-name segment (' + s + ')';
+    if (CREDENTIAL_NAMES.has(c) || CREDENTIAL_NAMES.has(stem)) return 'a credential or key file name (' + s + ')';
+    const x = c.split('.').slice(1).find((p) => KEY_EXT.has(p));
+    if (x) return 'a key or secret container extension (.' + x + ' in ' + s + ')';
+  }
+  const last = segs[segs.length - 1].toLowerCase(), i = last.lastIndexOf('.');
+  const ext = i > 0 ? last.slice(i) : '';
+  if (!ADMITTED_EXT.has(ext)) return 'extension ' + (ext || '(none)') + ' is not one S10 or its S9 parent declares (' + [...ADMITTED_EXT].join(' ') + ')';
+  return null;
+}
 const canonSeg = (s) => s.toLowerCase().replace(/[. ]+$/, '');
 const CANON_PROTECTED = new Set([...PROTECTED].map((f) => f.split('/').map(canonSeg).join('/')));
 const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
@@ -93,6 +135,8 @@ function shape(f) {
   if (!inScope(f)) return 'outside the S10 product scope';
   if (!AUTH_ALLOWLIST.has(f) && segs.some((s) => ['auth.json', '.credentials'].includes(canonSeg(s)) || AUTH_SEGMENT.test(s)))
     return 'an auth-shaped name under an allowed root (auth.json, .credentials, auth|credential|token|secret)';
+  const refused = admission(segs);
+  if (refused) return 'not admitted for a content read: ' + refused;
   return null;
 }
 const entryCache = new Map();

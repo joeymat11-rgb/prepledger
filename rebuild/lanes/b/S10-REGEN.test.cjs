@@ -216,3 +216,86 @@ for (const [source, plant] of Object.entries(SOURCES)) {
     });
   }
 }
+
+/* B5 RESIDUAL, L4 (Astra S10-INTEGRATION-REVIEW-L4): standard credential and key file names under the
+   allowed roots. Every name is invented and the only content anywhere is MARKER, an invented JSON marker
+   on the fake ports: no real credential or key file exists here or is opened. The three names the L4
+   probe admitted (.netrc, _netrc, .ssh/id_ed25519) and two more shapes (.npmrc, a .pem under a keys
+   directory) are fed through EVERY input source of the L4 matrix, plus the parent candidate execution
+   pins, and each must be refused BY NAME before any content read of it. Then every clause of the
+   admission rule is covered as a changed path. */
+const MARKER = '{"synthetic":"invented marker, not a credential"}\n';
+const ART = 'rebuild/m4/spec/acceptance-s9-ui-pins.json', REV = 'rebuild/m4/spec/review-s9-ui-pins.json';
+const SEALED_READS = new Set([...FIXED, ART, REV]);
+const everywhere = (w, name) => { for (const r of [P, HEAD]) w.at[r][name] = MARKER; w.disk[name] = MARKER; };
+const editSpec = (w, fn) => { const s = JSON.parse(w.disk[SPEC]); fn(s); w.disk[SPEC] = JSON.stringify(s); w.at[HEAD][SPEC] = w.disk[SPEC]; };
+const editS9 = (w, fn) => { for (const r of [P, HEAD]) { const s = JSON.parse(w.at[r][S9SPEC]); fn(s); w.at[r][S9SPEC] = JSON.stringify(s); } };
+const editArt = (w, fn) => { const a = JSON.parse(w.at[P][ART]); fn(a); w.at[P][ART] = JSON.stringify(a); };
+const L4_SOURCES = [   // [source, world with the name planted there only, reads allowed before the refusal or null]
+  ['changed paths', (name) => { const w = world(); everywhere(w, name); w.changed.push(name); return w; }, FIXED],
+  ['S10.product', (name) => { const w = world(); everywhere(w, name); editSpec(w, (s) => { s.product[name] = { pre: null, post: sha(MARKER), role: 'new' }; }); return w; }, FIXED],
+  ['the parent candidate product', (name) => { const w = world(); everywhere(w, name); editS9(w, (s) => { s.product[name] = { pre: null, post: sha(MARKER), role: 'new' }; }); return w; }, FIXED],
+  ['the parent candidate execution pins', (name) => { const w = world(); everywhere(w, name); editS9(w, (s) => { s.children = [{ argv: [name] }]; }); return w; }, FIXED],
+  ['the sealed parent product', (name) => { const w = sealed(world(), 'ACCEPTED'); everywhere(w, name); editArt(w, (a) => { a.product[name] = sha(MARKER); }); return w; }, SEALED_READS],
+  ['the sealed parent execution pins', (name) => { const w = sealed(world(), 'ACCEPTED'); everywhere(w, name); editArt(w, (a) => { a.executionPins[name] = sha(MARKER); }); return w; }, SEALED_READS],
+  ['the parent artifact path', (name) => { const w = world(); everywhere(w, name); editSpec(w, (s) => { s.parent.options[0].artifact = name; }); return w; }, FIXED],
+  ['the parent review path', (name) => { const w = world(); everywhere(w, name); editSpec(w, (s) => { s.parent.options[0].review = name; }); return w; }, FIXED],
+  ['the D-SPLIT-PARENT split sources', (name) => { const w = world(); everywhere(w, name);   // validated after the product reads: only the name itself is checked
+    const g = JSON.parse(w.disk[REGIONS]); g.witness.sourceBlobs.s9.synthetic = { path: name, oid: oid(MARKER) };
+    w.disk[REGIONS] = JSON.stringify(g); w.at[HEAD][REGIONS] = w.disk[REGIONS]; return w; }, null],
+];
+const L4_NAMES = ['rebuild/m4/spec/.netrc', 'rebuild/m4/spec/_netrc', 'rebuild/m4/spec/.ssh/id_ed25519',
+  'rebuild/m4/workout/.npmrc', 'rebuild/m4/workout/keys/deploy.pem'];
+function refusedBeforeRead(r, name, why, before) {
+  assert.equal(r.reads.includes(name), false, 'the helper READ ' + name + ' (content read reached) before refusing it');
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.exitCode, 2, 'not refused: ' + r.out);
+  assert(r.out.includes('REGEN-PATH-REFUSED') && r.out.includes(name), 'not refused BY NAME: ' + r.out);
+  assert.match(r.out, /not admitted for a content read/);
+  assert.match(r.out, why);
+  if (before) for (const f of r.reads) assert(before.has(f), 'a product read happened before the refusal: ' + f);
+}
+for (const name of L4_NAMES) {
+  for (const [source, build, before] of L4_SOURCES) {
+    test('S10-REGEN B5-L4 REFUSES ' + name + ' supplied through ' + source + ', BY NAME, before any content read of it', () => {
+      refusedBeforeRead(run(build(name)), name, /dot-name|credential or key file name|key or secret container extension/, before);
+    });
+  }
+}
+const DOT = /a dot-name segment/, CRED = /a credential or key file name/, KEYX = /a key or secret container extension/, EXT = /is not one S10 or its S9 parent declares/;
+const L4_CLAUSES = [
+  ['rebuild/m4/spec/.aws/config', DOT], ['rebuild/m4/spec/.gnupg/pubring.kbx', DOT], ['rebuild/m4/workout/.gitconfig', DOT],
+  ['rebuild/m4/spec/.pypirc', DOT], ['rebuild/m4/spec/.htpasswd', DOT], ['rebuild/m4/spec/.env', DOT],
+  ['rebuild/m4/spec/.docker/config.json', DOT], ['rebuild/m3/w7-preview/.config/app.json', DOT], ['rebuild/m4/spec/.GIT/config', DOT],
+  ['rebuild/m4/spec/netrc', CRED], ['rebuild/m4/spec/_NETRC', CRED], ['rebuild/m4/spec/known_hosts', CRED],
+  ['rebuild/m4/spec/id_rsa', CRED], ['rebuild/m4/spec/id_dsa', CRED], ['rebuild/m4/spec/id_ecdsa', CRED],
+  ['rebuild/m4/spec/ID_ED25519', CRED], ['rebuild/m4/spec/id_rsa.pub', CRED], ['rebuild/m4/spec/id_ed25519.pub', CRED],
+  ['rebuild/m4/spec/id_ed25519_sk', CRED], ['rebuild/m4/spec/id_rsa/notes.json', CRED], ['rebuild/m4/spec/known_hosts.json', CRED],
+  ['rebuild/m4/spec/signing.pem', KEYX], ['rebuild/m4/workout/deploy.key', KEYX], ['rebuild/m4/spec/cert.p12', KEYX],
+  ['rebuild/m4/spec/cert.pfx', KEYX], ['rebuild/m4/spec/vault.kdbx', KEYX], ['rebuild/m4/spec/putty.ppk', KEYX],
+  ['rebuild/m4/spec/release.asc', KEYX], ['rebuild/m4/spec/backup.gpg', KEYX], ['rebuild/m4/spec/android.jks', KEYX],
+  ['rebuild/m4/spec/release.keystore', KEYX], ['rebuild/m4/spec/SIGNING.PEM', KEYX], ['rebuild/m4/spec/signing.pem.json', KEYX],
+  ['rebuild/m4/spec/certs.p12/x.json', KEYX],
+  ['rebuild/m4/spec/README', EXT], ['rebuild/m4/spec/dump.txt', EXT], ['rebuild/m4/spec/tool.py', EXT],
+  ['rebuild/m4/spec/store.sqlite', EXT], ['rebuild/m4/spec/config.yaml', EXT], ['rebuild/m4/spec/photo.png', EXT],
+  ['rebuild/m4/spec/archive.zip', EXT],
+];
+for (const [name, why] of L4_CLAUSES) {
+  test('S10-REGEN B5-L4 admission rule REFUSES the changed name ' + name + ' BY NAME, before any content read of it', () => {
+    refusedBeforeRead(run(L4_SOURCES[0][1](name)), name, why, FIXED);
+  });
+}
+/* EXACT REVIEWED FILES (PM ruling on Round 9): a dot-name is admitted only as an exact-file SCOPE entry. */
+test('S10-REGEN B5-L4 CONTROL: the exact reviewed .github/workflows/rebuild.yml is admitted and measured', () => {
+  const YML = '.github/workflows/rebuild.yml';
+  const w = world(); w.at[P][YML] = 'on: push\n'; w.at[HEAD][YML] = 'on: [push]\n'; w.disk[YML] = 'on: [push]\n'; w.changed.push(YML);
+  const r = run(w);
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.exitCode, 0, r.out);
+  assert.match(r.out, /\.github\/workflows\/rebuild\.yml: undeclared {2}=> {2}new/);
+});
+for (const name of ['rebuild/m4/spec/.github/workflows/rebuild.yml', 'rebuild/m4/workout/.github/x.json']) {
+  test('S10-REGEN B5-L4 REFUSES ' + name + ' (a .github segment that is not an exact reviewed file) BY NAME, before any content read of it', () => {
+    refusedBeforeRead(run(L4_SOURCES[0][1](name)), name, DOT, FIXED);
+  });
+}
