@@ -32,8 +32,10 @@
        *soak* name); admitted by the positive name rule (no dot-name, credential or key file name, or
        key container extension, and a file type S10 or its parent declares: B5 L4 below); a regular
        file mode in Git (never a symlink 120000 or submodule 160000) at the parent and at HEAD where
-       present; and on disk neither the file nor any directory above it
-       inside the repository is a symlink or junction. One failure refuses the whole run by name.
+       present; on disk neither the file nor any directory above it
+       inside the repository is a symlink or junction; and, last, it is an EXACT member of the
+       reviewed inventory (REVIEWED, B5 L5 below) unless it is a changed report the run never reads
+       or declares. One failure refuses the whole run by name.
    (4) The protected five (rebuild/engine/seed, migrate, merge, index, oracle-shim) are NEVER read:
        their post is their pre only if Git holds the same object id at the parent and at HEAD and
        the working tree is clean for them; otherwise the run refuses.
@@ -96,6 +98,32 @@ const CREDENTIAL_NAMES = new Set(['_netrc', 'netrc', '.netrc', 'credentials', 'k
 const KEY_EXT = new Set(['pem', 'key', 'p12', 'pfx', 'kdbx', 'ppk', 'asc', 'gpg', 'jks', 'keystore']);
 const ADMITTED_EXT = new Set(['.cjs', '.css', '.html', '.json', '.md', '.mjs', '.yml']);
 const EXACT_REVIEWED = new Set(SCOPE.filter((r) => !r.endsWith('/')));
+/* B5 RESIDUAL, L5 (Astra S10-INTEGRATION-REVIEW-L5): POSITIVE REVIEWED PROVENANCE. A name cannot show
+   that a file is public (rebuild/m4/spec/service-account.json, kubeconfig.yml or keys.json passes every
+   rule above), so the name and extension rules stay as defence in depth and the admission for a Git or
+   disk content read is PROVENANCE: after every refusal above and every Git-mode and on-disk link check in
+   validate(), a path is admitted only if it is an EXACT member of REVIEWED, compared as the exact string
+   (case-exact; shape() has already refused every absolute, backslash, '.', '..', empty, ADS, 8.3 and
+   trailing dot/space spelling, so the string is the normalized repository-relative name). REVIEWED is the
+   union of the inventories this run binds, and nothing else:
+     - the four fixed inputs and the exact-file SCOPE entries (DECISIONS:801);
+     - the S9 parent artifact and review, bound to the runner's slug s9-ui-pins (b-package.cjs
+       ARTIFACT/REVIEW; S9-UI-PINS-BRIEF.md:669-670): S10.json must name exactly these two paths;
+     - the product keys of S10.json (the fixed input under review);
+     - the product keys of the parent's S9.json at P and its execution-pin paths (RUNNER, S9.json, the
+       brief, every child argv target: what proposed() pins).
+   Every other source must be a member: the changed paths the run would declare and read, the sealed
+   artifact's product and executionPins keys, and the D-SPLIT-PARENT sources. A changed path outside
+   REVIEWED is refused by name before any read of it ("not admitted for a content read: not an exact
+   member of a reviewed inventory"); to measure it, declare it in S10.json first, a reviewed change.
+   Changed Markdown outside rebuild/engine/ (and S10.json itself) is never read or declared, so it stays
+   under the name rules only. blobAt() and diskAt() also refuse any non-member, as a last line.
+   LIMIT: a path that S10.json or the parent S9.json itself declares is a member BY THAT DECLARATION;
+   provenance cannot refuse it, the review of that declaration is its gate, and the name rules above are
+   the only other check. */
+const PARENT_ARTIFACT = 'rebuild/m4/spec/acceptance-s9-ui-pins.json', PARENT_REVIEW = 'rebuild/m4/spec/review-s9-ui-pins.json';
+const REVIEWED = new Set([SPEC, S9SPEC, RUNNER, REGIONS, ...EXACT_REVIEWED, PARENT_ARTIFACT, PARENT_REVIEW]);
+const NOT_REVIEWED = 'not admitted for a content read: not an exact member of a reviewed inventory (S10.json product, the parent S9.json product and execution pins, the fixed inputs, the S9 parent artifact and review, the exact-file SCOPE entries); declare it in S10.json first';
 function admission(segs) {
   const exact = EXACT_REVIEWED.has(segs.join('/'));
   for (const s of segs) {
@@ -162,7 +190,7 @@ function diskLinks(f) {                  // the file and every directory above i
   return null;
 }
 const validated = new Map();
-function validate(f, revs) {
+function validate(f, revs, reads = true) {  // reads: false only for a changed report the run never reads or declares
   const why = shape(f);
   if (why) return why;
   for (const rev of revs) {
@@ -173,25 +201,28 @@ function validate(f, revs) {
   }
   const link = diskLinks(f);
   if (link) return 'a symlink or junction on disk at ' + link;
+  if (reads && !REVIEWED.has(f)) return NOT_REVIEWED;         // B5 L5: provenance, after every refusal above
   return null;
 }
-function validateAll(paths, revs, label) {
+function validateAll(paths, revs, label, reads = () => true) {
   const bad = [];
   const shaped = paths.filter((f) => !shape(f));
   for (const rev of revs) prefetch(rev, [...new Set(shaped)]);
-  for (const f of paths) { const why = validate(f, revs); if (why) bad.push(f + ' (' + why + ')'); }
+  for (const f of paths) { const why = validate(f, revs, reads(f)); if (why) bad.push(f + ' (' + why + ')'); }
   if (bad.length) fail('REGEN-PATH-REFUSED ' + label + ': ' + bad.slice(0, 10).join('; ') + (bad.length > 10 ? ' ... ' + bad.length : ''));
 }
 // Reads happen ONLY through these two, and only for a path validate() accepted at that revision.
 function blobAt(rev, f) {
   if (PROTECTED.has(f)) throw new Error('S10-REGEN never reads a protected engine file: ' + f);
   if (!validated.has(rev + ':' + f)) throw new Error('S10-REGEN read before validation: ' + rev + ':' + f);
+  if (!REVIEWED.has(f)) throw new Error('S10-REGEN read outside the reviewed inventory: ' + f);
   const e = validated.get(rev + ':' + f);
   return e ? cp.execFileSync('git', ['cat-file', 'blob', e.oid], { cwd: REPO, maxBuffer: 1e9 }) : null;
 }
 function diskAt(f) {
   if (PROTECTED.has(f)) throw new Error('S10-REGEN never reads a protected engine file: ' + f);
   if (!validated.has('HEAD:' + f)) throw new Error('S10-REGEN disk read before validation: ' + f);
+  if (!REVIEWED.has(f)) throw new Error('S10-REGEN disk read outside the reviewed inventory: ' + f);
   try { return fs.readFileSync(path.join(REPO, ...f.split('/'))); } catch { return null; }
 }
 const shaAt = (rev, f) => { const b = blobAt(rev, f); return b === null ? null : sha(b); };
@@ -205,8 +236,14 @@ validateAll([SPEC, S9SPEC, RUNNER, REGIONS], [P, 'HEAD'], 'fixed input');
 const S10 = JSON.parse(diskAt(SPEC).toString('utf8'));
 const s9raw = blobAt(P, S9SPEC); if (!s9raw) fail('no ' + S9SPEC + ' at the parent');
 const S9 = JSON.parse(s9raw.toString('utf8'));
+// B5 L5: the reviewed inventory, bound once from the two specs just read (names only; no other read yet).
+const s9targets = [...new Set([RUNNER, S9SPEC, ...(S9.brief && S9.brief.file ? [S9.brief.file] : []),
+  ...(S9.children || []).flatMap((c) => (c.argv || []).filter((a) => !a.startsWith('--')))])];
+for (const f of [...Object.keys(S10.product || {}), ...Object.keys(S9.product || {}), ...s9targets]) REVIEWED.add(f);
 const option = S10.parent.options.find((o) => o.id === 'S9') || fail('S10.json names no S9 parent option');
 validateAll([option.artifact, option.review], [P], 'parent artifact');
+if (option.artifact !== PARENT_ARTIFACT || option.review !== PARENT_REVIEW)
+  fail('REGEN-PATH-REFUSED parent artifact: ' + [option.artifact, option.review].join(', ') + ' (not admitted for a content read: not the reviewed S9 parent artifact or review, which are exactly ' + PARENT_ARTIFACT + ' and ' + PARENT_REVIEW + ')');
 const artRaw = blobAt(P, option.artifact), revRaw = blobAt(P, option.review);
 const pinOf = (e, f) => { if (typeof e === 'string') return e; if (e && typeof e === 'object' && 'pre' in e && 'post' in e) return e.post === null ? e.pre : e.post; fail('parent pin shape ' + f); };
 
@@ -224,19 +261,18 @@ if (artRaw) {
   if (WRITE) fail('no sealed S9 artifact ' + option.artifact + ' at ' + P.slice(0, 7) + '; --write needs the seal, a dry run does not');
   mode = 'CANDIDATE (no artifact at the parent): pre from S9.json posts, execution pins recomputed as proposed() would';
   pmap = Object.fromEntries(Object.entries(S9.product).filter(([, v]) => v.role !== 'released').map(([f, v]) => [f, v.post]));
-  const targets = [RUNNER, S9SPEC, ...(S9.brief && S9.brief.file ? [S9.brief.file] : [])];
-  for (const c of S9.children) for (const a of c.argv) if (!a.startsWith('--')) targets.push(a);
-  validateAll([...new Set(targets)], [P], 'parent execution pin');
+  validateAll(s9targets, [P], 'parent execution pin');
   epins = {};
-  for (const t of new Set(targets)) { const e = validated.get(P + ':' + t); if (e) epins[t] = PROTECTED.has(t) ? null : shaAt(P, t); }
+  for (const t of s9targets) { const e = validated.get(P + ':' + t); if (e) epins[t] = PROTECTED.has(t) ? null : shaAt(P, t); }
   parentReleased = new Set(Object.entries(S9.product).filter(([, v]) => v.role === 'released').map(([f]) => f));
 }
 
 // ---- (2) discovery, scoped; then EVERY path validated before any product read ---------------------
 const changed = git(['diff', '--name-only', P, 'HEAD', '--', ...SCOPE]).toString().split('\n').filter(Boolean);
-validateAll([...Object.keys(S10.product), ...Object.keys(pmap), ...Object.keys(epins), ...changed], [P, 'HEAD'], 'declared or changed');
-const candidates = [...Object.keys(S10.product), ...Object.keys(pmap),
-  ...changed.filter((f) => f !== SPEC && (!f.endsWith('.md') || f.startsWith('rebuild/engine/')))];
+const changedRead = changed.filter((f) => f !== SPEC && (!f.endsWith('.md') || f.startsWith('rebuild/engine/')));
+const readSet = new Set([...Object.keys(S10.product), ...Object.keys(pmap), ...Object.keys(epins), ...changedRead]);
+validateAll([...readSet, ...changed.filter((f) => !readSet.has(f))], [P, 'HEAD'], 'declared or changed', (f) => readSet.has(f));
+const candidates = [...Object.keys(S10.product), ...Object.keys(pmap), ...changedRead];
 const droppedReleased = [...new Set(candidates.filter((f) => parentReleased.has(f)))].sort();
 const declared = new Set(candidates.filter((f) => !parentReleased.has(f)));
 
@@ -277,7 +313,8 @@ const split = Object.values(blobs).map(({ path: f, oid }) => { const e = validat
 const roles = {}; for (const p of Object.values(product)) roles[p.role] = (roles[p.role] || 0) + 1;
 console.log('S10-REGEN ' + (WRITE ? 'WRITE' : 'DRY RUN') + ' at parent ' + P + ' / HEAD ' + HEADSHA);
 console.log('  mode: ' + mode);
-console.log('  scope: ' + SCOPE.length + ' reviewed roots; ' + validated.size + ' path/revision pair(s) validated before any product read; ' + changed.length + ' changed path(s) in scope');
+console.log('  scope: ' + SCOPE.length + ' reviewed roots; ' + validated.size + ' path/revision pair(s) validated before any product read; ' + changed.length + ' changed path(s) in scope, ' + (changed.length - changedRead.length) + ' of them never read (reports, S10.json)');
+console.log('  reviewed inventory: ' + REVIEWED.size + ' exact paths (S10.json product, parent S9.json product and execution pins, fixed inputs, S9 parent artifact and review, exact-file SCOPE entries); every read path is a member');
 console.log('  product: ' + Object.keys(product).length + ' paths ' + JSON.stringify(roles) + '; ' + moves.length + ' entr(ies) would change');
 for (const m of moves.slice(0, 40)) console.log('    ' + m);
 if (moves.length > 40) console.log('    ... ' + (moves.length - 40) + ' more');

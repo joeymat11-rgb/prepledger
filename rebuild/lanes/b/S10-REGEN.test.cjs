@@ -5,7 +5,9 @@
    attempts is recorded. The rows require that an out-of-scope, forbidden, linked or non-regular
    changed name is REFUSED BY NAME BEFORE ANY READ OF IT, and that before the refusal nothing but the
    fixed inputs was read. S10_REGEN_UNDER_TEST may name another copy of the helper (used for the
-   red-first run against the pre-B5 helper). */
+   red-first run against the pre-B5 helper), at ANY directory depth (D-S10I-16): REPO below is resolved
+   ONCE, from the helper under test, by the same expression the helper uses for its own REPO, so the
+   fake ports and the helper always agree on which repository-relative name an absolute path is. */
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
@@ -14,7 +16,7 @@ const Module = require('node:module');
 const fsReal = require('node:fs');
 
 const HELPER = process.env.S10_REGEN_UNDER_TEST || path.join(__dirname, 'S10-REGEN.cjs');
-const REPO = path.resolve(__dirname, '..', '..', '..');
+const REPO = path.resolve(path.dirname(HELPER), '..', '..', '..');   // the helper's own REPO (its __dirname is dirname(HELPER))
 const rel = (abs) => path.relative(REPO, abs).split(path.sep).join('/');
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const oid = (s) => crypto.createHash('sha1').update(String(s)).digest('hex');
@@ -32,9 +34,13 @@ function world(extra) {
   put([P, HEAD], VIEW, 'view\n'); disk[VIEW] = 'view\n';
   const regions = JSON.stringify({ witness: { sourceBlobs: { s9: { 'today-app.cjs': { path: VIEW, oid: oid('view\n') } } } } });
   put([HEAD], REGIONS, regions); disk[REGIONS] = regions;
-  put([P, HEAD], S9SPEC, JSON.stringify({ product: { [A]: { pre: null, post: sha('a0\n'), role: 'new' } }, children: [], brief: { file: null } }));
+  // The split source VIEW is a parent product pin that S10 carries, as the three real sourceBlobs.s9 paths are
+  // (B5-L5: every path the helper looks up must be held by a reviewed inventory).
+  put([P, HEAD], S9SPEC, JSON.stringify({ product: { [A]: { pre: null, post: sha('a0\n'), role: 'new' },
+    [VIEW]: { pre: null, post: sha('view\n'), role: 'new' } }, children: [], brief: { file: null } }));
   disk[SPEC] = JSON.stringify({ parent: { options: [{ id: 'S9', artifact: 'rebuild/m4/spec/acceptance-s9-ui-pins.json',
-    review: 'rebuild/m4/spec/review-s9-ui-pins.json' }] }, product: { [A]: { pre: sha('a0\n'), post: sha('a1\n'), role: 'edited' } },
+    review: 'rebuild/m4/spec/review-s9-ui-pins.json' }] }, product: { [A]: { pre: sha('a0\n'), post: sha('a1\n'), role: 'edited' },
+    [VIEW]: { pre: sha('view\n'), post: sha('view\n'), role: 'carried' } },
     notes: [], tooling: {} });
   put([HEAD], SPEC, disk[SPEC]);
   const w = { at, disk, changed: [A], modes: {}, links: new Set(), reads: [], ...extra };
@@ -299,3 +305,47 @@ for (const name of ['rebuild/m4/spec/.github/workflows/rebuild.yml', 'rebuild/m4
     refusedBeforeRead(run(L4_SOURCES[0][1](name)), name, DOT, FIXED);
   });
 }
+
+/* B5 RESIDUAL, L5 (Astra S10-INTEGRATION-REVIEW-L5; Fable REVIEW-S10-INTEGRATION-l4 D-S10I-15): POSITIVE REVIEWED
+   PROVENANCE. These names pass every name and extension rule (ordinary-looking credential containers), so no
+   name rule refuses them; what refuses them is that NO reviewed inventory holds them. Through every source that
+   is not itself a reviewed inventory (changed paths, the sealed parent product and execution pins, the parent
+   artifact and review paths, the D-SPLIT-PARENT split sources) each must be refused BY NAME, before any content
+   read of it. Every name is invented; the only content anywhere is MARKER. A name that S10.json or the parent
+   S9.json itself declares (the S10.product, parent candidate product and candidate execution-pin sources) is a
+   member BY THAT DECLARATION, so provenance cannot refuse it there and no row claims it does (the helper's LIMIT). */
+const L5_NAMES = ['rebuild/m4/spec/service-account.json', 'rebuild/m4/spec/kubeconfig.yml', 'rebuild/m4/spec/id_rsa.backup.json',
+  'rebuild/m4/spec/keys.json', 'rebuild/m4/spec/passwords.json', 'rebuild/m4/spec/private.json', 'rebuild/m4/spec/env.json',
+  'rebuild/m4/spec/apikey.json', 'rebuild/m4/spec/wallet.json', 'rebuild/m4/spec/keystore/x.json'];
+const DECLARING = new Set(['S10.product', 'the parent candidate product', 'the parent candidate execution pins']);
+const NOT_REVIEWED = /not an exact member of a reviewed inventory/;
+for (const name of L5_NAMES) {
+  for (const [source, build, before] of L4_SOURCES.filter(([s]) => !DECLARING.has(s))) {
+    test('S10-REGEN B5-L5 REFUSES ' + name + ' supplied through ' + source + ' (in no reviewed inventory), BY NAME, before any content read of it', () => {
+      refusedBeforeRead(run(build(name)), name, NOT_REVIEWED, before);
+    });
+  }
+}
+test('S10-REGEN B5-L5: an UNDECLARED changed path with an ordinary name is refused BY NAME before any content read (declare it in S10.json first)', () => {
+  const name = 'rebuild/m4/workout/b.cjs';
+  refusedBeforeRead(run(L4_SOURCES[0][1](name)), name, NOT_REVIEWED, FIXED);
+});
+test('S10-REGEN B5-L5: S10.json naming a declared product file as the parent artifact is refused BY NAME, before any read of it', () => {
+  const w = world(); editSpec(w, (s) => { s.parent.options[0].artifact = A; });
+  const r = run(w);
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.reads.includes(A), false, 'the helper READ ' + A + ' (content read reached) before refusing it');
+  for (const f of r.reads) assert(FIXED.has(f), 'a product read happened before the refusal: ' + f);
+  assert.equal(r.exitCode, 2, 'not refused: ' + r.out);
+  assert(r.out.includes('REGEN-PATH-REFUSED') && r.out.includes(A), 'not refused BY NAME: ' + r.out);
+  assert.match(r.out, /not admitted for a content read: not the reviewed S9 parent artifact or review/);
+});
+test('S10-REGEN B5-L5 CONTROL: a changed Markdown report outside rebuild/engine/, in no inventory, is neither read, declared nor refused', () => {
+  const name = 'rebuild/m4/spec/NOTES.md';
+  const w = world(); w.at[HEAD][name] = 'notes\n'; w.disk[name] = 'notes\n'; w.changed.push(name);
+  const r = run(w);
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.exitCode, 0, r.out);
+  assert.equal(r.reads.includes(name), false, 'the helper READ ' + name);
+  assert.equal(r.out.includes(name), false, 'the report was declared or named: ' + r.out);
+});
