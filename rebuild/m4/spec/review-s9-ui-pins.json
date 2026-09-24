@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "60be3c6fb53975f60d4f54922d12ea9f17fbfb33",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-09-24 · cowork · POSTFIX-ACCEPTANCE M2-S9-UI-PINS 9c95afa5b840fedbe914652b2f0bd83d1b0800c2 rebuild/m4/spec/acceptance-s9-ui-pins.json f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c ACCEPTED",
+    "lineSha256": "66ff27e7040282eede53023dfe0e1015b2664f28fbf7adfcb84dc662591dad6b"
+  }
+}
