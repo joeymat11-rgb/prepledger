@@ -77,3 +77,63 @@ only the hosted packet 07ea6f8. SUP-3 loads the protected migrate.cjs.
 ## 6. Remaining order: review this round -> commit (spec, rebuild.yml, report) -> b-lom split, review and grant, then its
 needle -> exporter (section 5) -> artifact review and commit -> release-object exit 0 -> merge-forward -> hosted both-OS
 standing step (section 3) -> Fable seal read -> owner-gated --full and POSTFIX receipt (tag "cowork", :3752).
+
+## Round 5 (b-lom 2(b), DECISIONS:798/:799) (builder claude-opus-5-5, 2026-09-24) - UNCOMMITTED, for the PM
+Worktree %TEMP%/earned-s9int, rebuild/b-s9-integration HEAD 6dc2596 = origin, clean before the edit, not switched. Chain tip
+65cf85a (DECISIONS 799 lines, :777-:799 read from the PM tree). Owner :798 takes BLOM-OPTIONS 2(b); PM :799 reads brief 3.3 as
+the 24 S8 children other than b-lom and corrects :798's reason. Nothing run except staticcheck, under the runtime lock.
+### 5.1 What changed (S9.json, plus this section)
+- children 33 -> 32: the b-lom object (HEAD :1669-1678, needle null) is deleted; the other 32 are byte-identical, same order.
+- notes[1] tail "; b-lom's needle stays null (HELD_SPLIT_REQUIRED), so this spec refuses CHILD-NEEDLE-EMPTY b-lom and cannot
+  seal until a reviewed and granted split supplies an observed needle." is now "; b-lom is not a child of this package (D-BLOM, below)."
+- notes[4] appended (S9.json:1779): the D-BLOM note (5.4), in S8's form (caps lead sentence; S8 notes[6] "NAMED SO THE OMISSION
+  IS A DECISION"), ASCII only, 1627 chars.
+- Parse-compared to HEAD: every other top-level key is unchanged (needles, claims, pins, gates, coverage, tooling, release,
+  authorizations, parent). numstat +3 -12; 2-space canonical form and LF kept; U+2013/U+2014 16/17 = HEAD (none added).
+  No count in S9.json counts children (its only numbers are version and five ledger-line numbers).
+- sha256 a1f9fa38... (89998 B) -> c05a8e34639d8545eba36d7902f442637c7037e1a1a58e077ded0e6186038c8f (91266 B, 1781 lines).
+### 5.2 Rule citations (b-package.cjs 5321181a = tooling.runnerSha256 = disk; read, never loaded)
+- The child schema and CHILD-NEEDLE-EMPTY (:1947-1953, :1951) iterate s.children only. children() spawns only s.children
+  (:2790-2797), so CHILD-REQUIRED-EXIT-ZERO (:2808) and the line-start needle (:2824) bind declared children only.
+- legacy-order.test.mjs (S9.json:188) and legacy-order-mapping.test.cjs (:903) stay role carried, pre = post = S8's pins
+  f091a560 / f7a3e4a4 = disk. Carried needs only pre === post (:1929); only pinned-unchanged needs a declared child (:1963-1966).
+- acceptedVerdicts (:1119-1126, the parent's children as schedule) is called only by successorProof (:2973), which returns at
+  :2881 because coverage.successors is null (S9.json:1327). pins() (:2294-2297) re-asserts parent byte pins, not children.
+  ownChildren (:799-800) counts children that run a role-new file; b-lom runs none. CHILD_ROOTS (:425-431) permits
+  rebuild/lanes/d/b-lom/ and requires nothing.
+- Brief 3.3 (:458-459, "All 25 children ... re-declared") under :799: S8's 25 map to 24 here (18 by name, 6 mirrors re-pointed
+  to s9-*); b-lom is the only one not re-declared; 8 children are S9's own.
+- The cells that read S9.json (six s9-* mirrors, release-object, reference-closure) match children|b-lom|legacy-order 0 times,
+  so no other needle moves with the drop.
+### 5.3 D-BLOM facts, re-measured
+- today-bindings.mjs: S9 carried 23c11797 = S8's sealed post (S8 edited 8694a5d6 -> 23c11797) = blob at 0cd07be = HEAD.
+- today-model.cjs (legacy-order.test.mjs:38): bddeeacf at 0cd07be (S9.json sourceBase, S8 artifact commit) -> 645c1bec at HEAD
+  (3435fa9, 9742490, 5111716). Neither S8's artifact nor S9.json pins it.
+- Walk-visible code files changed 0cd07be..6dc2596 (the walk's own filter, legacy-order.test.mjs:176-192; *soak* paths left
+  out of the query by rule): EIGHT, today-model.cjs one of them: m3/setup/port/passphrase.cjs (added), m3/setup/port/unseal.cjs,
+  m3/w6/local/import-bundle.mjs, m3/w7-preview/import/import-screen.mjs, m3/w7-preview/today/design.cjs,
+  m3/w7-preview/today/today-app.cjs, m3/w7-preview/today/today-model.cjs, m4/workout/setup-tags.cjs (added).
+  :799 says "today-model.cjs ... plus eight". The walk skips test/ (:178). A filter that keeps test/ dirs adds
+  m4/workout/test/s9-engine-files-differential.cjs, which gives 1 + 8. The note states the walk's count.
+- CI runs both b-lom files at rebuild.yml:331. BLOM-OPTIONS' :319 was fe9f14b, before the +14 -2 flip.
+### 5.4 The D-BLOM note (S9.json notes[4]), verbatim
+> D-BLOM, THE ONE PARENT CHILD THIS PACKAGE DOES NOT RE-DECLARE, NAMED SO THE OMISSION IS A DECISION. The parent's child b-lom (its two argv files rebuild/lanes/d/b-lom/legacy-order.test.mjs and rebuild/m4/workout/test/legacy-order-mapping.test.cjs, sealed at "# pass 30" in rebuild/m4/spec/acceptance-s8-real-shape.json) is not declared here: the owner chose BLOM-OPTIONS 2(b) at DECISIONS:798 and the PM read brief 3.3 as 24 children at DECISIONS:799, because its LOM-S6 walk (legacy-order.test.mjs:176-189) reads every code file under rebuild/m3 and rebuild/m4, the protected soak app included, which stays protected until 2026-10-05. Both cell files stay role carried at the parent's bytes, and CI keeps running the test at rebuild.yml:331. S8's "# pass 30" is the last sealed evidence and does NOT prove this tree: today-model.cjs (imported at legacy-order.test.mjs:38) moved after S8's seal commit 0cd07be (this spec's sourceBase), and eight m3/m4 code files the walk reads changed since (0cd07be..6dc2596, soak-named paths not measured), today-model.cjs among them: rebuild/m3/setup/port/passphrase.cjs (added), rebuild/m3/setup/port/unseal.cjs, rebuild/m3/w6/local/import-bundle.mjs, rebuild/m3/w7-preview/import/import-screen.mjs, rebuild/m3/w7-preview/today/design.cjs, rebuild/m3/w7-preview/today/today-app.cjs, rebuild/m3/w7-preview/today/today-model.cjs and rebuild/m4/workout/setup-tags.cjs (added). It is re-measured after 2026-10-05 by the hosted-blom NO-path packet once that packet is re-pointed (its runner and re-pin require exactly one b-lom child in the spec they read, and this spec has none) and reviewed.
+### 5.5 Static re-run (staticcheck.cjs unchanged, lock taken and released; loads legacy-gates, target, trace-v2, strict-json only)
+- Before the edit (a1f9fa38): 27 PASS, 1 REFUSED CHILD-NEEDLE-EMPTY b-lom (as in round 4).
+- After the edit: 28 PASS, 0 REFUSED. The children row reads "32 children" and the sha row c05a8e34. No new refusal.
+- Same checks at CHAIN = tip 65cf85a (staticcheck-attip.cjs, constant swapped in memory): 28 PASS, 0 REFUSED; :788/:789 hold.
+### 5.6 Where a1f9fa38 (the old S9.json sha256) is pinned or cited. Not changed; for the PM
+- This tree: this file :4 (the round 4 header, superseded by 5.1). Nothing else here pins it: no test, workflow or tool.
+- origin/rebuild/b-s10-integration 62788b1: S10.json:209 pins S9.json pre a1f9fa38 (superseded-by-child). S10-REGEN.cjs:17 and
+  :263 flag notes that cite a1f9fa38. S10-INTEGRATION-REPORT.md:63, REVIEW-S10-INTEGRATION-l3.md:76 and its copy of this file
+  (:4) also cite it. S10.json:1819 still declares b-lom; :799 drops it when S10 re-binds to sealed S9.
+- origin/rebuild/t2-client-core 65cf85a: DECISIONS.md:790 and HANDOFF-PM-2026-09-24-CLAUDE-OPUS-5-5.md:37 (history). No pin
+  on p-s9-exporter-v3 9a29c3a or p-s9-hosted20-proof 7fe1c5d (the exporter reads the spec at HEAD).
+- Not searched: earned-h20 hosted-blom/ (only BLOM-OPTIONS.md may be opened). By BLOM-OPTIONS, its runner and BLOM-REPIN need
+  exactly one b-lom child in the S9 spec, so the re-point D-BLOM owes (:799) must feed it a spec that declares b-lom or change that check, under review.
+### 5.7 Remaining seal order under 2(b)
+Review this round -> commit (S9.json, this report; rebuild.yml is already in 6dc2596) -> clean step (section 5; its status must
+print nothing) -> exporter v3 (section 5; chain arg = the tip at run time, now 65cf85a; it no longer waits on a b-lom needle,
+because no declared child has a null needle) -> artifact review and commit -> release-object exit 0 -> merge-forward -> hosted
+both-OS standing step (section 3; (iii)'s b-lom clause no longer applies) -> Fable seal read -> PM local --full under :796 (d) ->
+POSTFIX receipt (tag "cowork", :3752). D-BLOM stays open past the seal until the re-pointed, reviewed hosted-blom run after 2026-10-05.
