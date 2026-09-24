@@ -1,5 +1,5 @@
 'use strict';
-// NATIVE-LOAD FC03 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.9 679567a, sha256 ef0f5dd8..., on R9.4 a575692; first built on R7 6ddf7af):
+// NATIVE-LOAD FC03 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.10 d3a3ffa, sha256 6bd14f81..., on R9.9 679567a and R9.4 a575692; first built on R7 6ddf7af):
 // the ONE shared source fold and the native-load response family. Pure and
 // synchronous: it reads an immutable base programme, the authenticated operations
 // of one generation and the registered typed workout facts, and reconstructs load,
@@ -129,21 +129,30 @@ function startCapture(start, lift) {
 // Spec R9.9 :152 SELECTED ENTRY (DECISIONS:801 (1)): is `cap` (one Start's captured loads, per
 // original position) the card generated from native entry e ({newW, newWSets}, a queue entry or an
 // earn candidate)? Non-empty and newW on every cell, whatever their number, when e has no
-// newWSets; exactly newWSets otherwise (a vector card at another layout is never captured).
+// newWSets; exactly newWSets otherwise. Spec R9.10 L (1) FIT IN SELECTED ENTRY (DECISIONS:803 (e)): a vector
+// entry's card at another layout is its FITTED card, fitVector(newWSets, captured count).
 function selectedEntry(cap, e) {
   if (!Array.isArray(cap) || !cap.length || !map(e)) return false;
-  return Array.isArray(e.newWSets) ? same(cap, e.newWSets) : cap.every((v) => v === e.newW);
+  return Array.isArray(e.newWSets) ? same(cap, fitVector(e.newWSets, cap.length)) : cap.every((v) => v === e.newW);
 }
-// The load entry e prescribes on each of `count` captured original slots (newWSets, else newW).
-const entryTargetOf = (e, count) => (Array.isArray(e.newWSets) ? e.newWSets.slice() : Array.from({ length: count }, () => e.newW));
+// The load entry e prescribes on each of `count` captured original slots (newWSets fitted, else newW).
+const entryTargetOf = (e, count) => (Array.isArray(e.newWSets) ? fitVector(e.newWSets, count) : Array.from({ length: count }, () => e.newW));
+// Spec R9.10 L FIT (DECISIONS:803 (e)), the capture rule of W/engine-capture.cjs, copied at this module boundary
+// (engine-capture.cjs exports none): every entry of the stored vector a finite number >= 0 and not -0, then fewer
+// slots take the first n, extra slots repeat the last listed weight; anything else null.
+function fitVector(v, n) {
+  if (!Array.isArray(v) || v.length < 1 || !Array.from(v).every((x) => typeof x === 'number' && Number.isFinite(x) && x >= 0 && !Object.is(x, -0))) return null;
+  return n <= v.length ? v.slice(0, n) : [...v, ...Array.from({ length: n - v.length }, () => v[v.length - 1])];
+}
 // Spec R9 :156 DERIVABLE (c2), FC01 baseLoad's own projection of a recorded FieldImage over n slots:
 // w ABSENT or null gives all null; otherwise position i takes wSets[i] when wSets is an array with
-// a non-null entry there, else w (a number as a Load, a string as its configuration).
+// a non-null entry there, else w (a number as a Load, a string as its configuration). Spec R9.10 L READER
+// (DECISIONS:804 (f)), as E/progression.cjs:80-82: a position beyond a non-empty wSets reads its last entry.
 function projectBase(fields, n) {
   const dec = (x) => (map(x) && x.present === true ? x.value : null);
   const w = dec(fields.w), wSets = dec(fields.wSets);
   const load = (v) => (v === null || v === undefined ? null : typeof v === 'number' ? { value: v, unit: 'lb' } : { kind: 'configuration', configuration_key: String(v) });
-  return Array.from({ length: Math.max(1, n) }, (_, i) => (w === null ? null : load(Array.isArray(wSets) && wSets[i] != null ? wSets[i] : w)));
+  return Array.from({ length: Math.max(1, n) }, (_, i) => { const k = Array.isArray(wSets) && wSets.length > 0 ? Math.min(i, wSets.length - 1) : -1; return w === null ? null : load(k >= 0 && wSets[k] != null ? wSets[k] : w); });
 }
 // Spec :153 "only if no later Start captured the accepted effect" (review B9): some
 // authenticated Start after the accept (provenBefore) captured exactly its target vector.
@@ -721,11 +730,21 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
       // (R8 :156 "Keep accepted history and facts"): its spend is kept and held unapplied, so
       // no landing uses it and its recorded cancellation still cancels it (:121, :153; round-8
       // seed 20261004); the issue keeps the transition's own name (:150, :176).
+      // Spec R9.10 L LATER HOLD UNDO (D-R9.9-LATER-HOLD-UNDO, DECISIONS:804; :155): a claimed adopt-observed (non-empty
+      // authority_refs, the MISSED-DEBUT ANCHOR's claim, verified above) refused TARGET_QUEUED because the lift's
+      // pending native entries belong to earns this fold's repair map disputes (the later correction) is also held
+      // back: its spend is kept, never applied, so its recorded Undo cancels it. Any other TARGET_QUEUED keeps today's rule.
+      const laterHold = (code) => {
+        if (code !== 'NATIVE_LOAD_TARGET_QUEUED' || body.kind !== 'adopt-observed' || !map(body.basis.load_basis) ||
+            !Array.isArray(body.basis.load_basis.authority_refs) || !body.basis.load_basis.authority_refs.length) return false;
+        const pending = V.queue.filter((q) => q && q.exId === lift && !q.done && typeof q.native_load_spend === 'string');
+        return pending.length > 0 && pending.every((q) => repair.has(q.native_load_spend) && !!groups.get(q.native_load_spend) && groups.get(q.native_load_spend).body.kind === 'earn');
+      };
       const refusedAccept = (refusal) => {
         const issue = { code: refusal.code, refs, field: refusal.field, lift };
         if (BLOCKING.has(issue.code)) { dispute(issue); return; }
         issues.push(issue);
-        if (body.kind !== 'compensate' && HELD_BACK.has(issue.code) && !spent.some((x) => x.spend_id === body.spend_id)) {
+        if (body.kind !== 'compensate' && (HELD_BACK.has(issue.code) || laterHold(issue.code)) && !spent.some((x) => x.spend_id === body.spend_id)) {
           issue.spend_id = body.spend_id; held.set(body.spend_id, issue);
           spent.push(entryOf(body, refs));
         }
@@ -993,8 +1012,13 @@ function checkNativeLoad(args = {}) {
     // never an empty list (review D-B6-2).
     const cov = basis.coverage.find((c) => map(c) && c.op_id === request.completion_op_id);
     if (start && ex && cov) {
+      // Spec R9.10 L (3) FIT GUARD (:146): the same guard as FC01 step 2 (b), first, before the comparison below and
+      // step3Earn, with the same code, refs and field (typed v2 and host v1 slots agree, N20).
+      if (Array.isArray(ex.wSets) && ex.wSets.length !== originals.length) return refused({ code: 'NATIVE_LOAD_SET_COUNT_BASIS_UNPROVEN', refs: [{ op_id: cov.op_id, commitment: cov.commitment }], field: null });
       const cap = originals.every((s) => s.prescribed_load === undefined) ? startPlanCapture(start, request.lift_lineage_id) : [];
-      const planNow = Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => (ex.w == null ? null : Array.isArray(ex.wSets) && ex.wSets[i] != null ? ex.wSets[i] : ex.w));
+      // Spec R9.10 L READER (DECISIONS:804 (f)): planVector's rule, as E/progression.cjs:80-82 (a position beyond a
+      // non-empty wSets reads its last entry).
+      const planNow = Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => { const k = Array.isArray(ex.wSets) && ex.wSets.length > 0 ? Math.min(i, ex.wSets.length - 1) : -1; return ex.w == null ? null : k >= 0 && ex.wSets[k] != null ? ex.wSets[k] : ex.w; });
       // Spec R9.9 :152 MISSED CLOSE (DECISIONS:801 (1)): a Close the fold marks as this lift's missed
       // debut is compared with the missed entry's target (newWSets, else newW on every captured
       // slot, whatever their number) instead of the plan; FC01 already refused its earn branch.
@@ -1041,7 +1065,7 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:5b2321b446213ced086cd25f352f3e6bef9d74b94c9a50778ebe450723b8b9e5';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:b9763f168d002f57aae7119663058e63f1546ed486f154985f2c91fbbb9ee19e';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf,
   heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]), isHold };

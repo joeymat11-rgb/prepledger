@@ -66,10 +66,16 @@ test('a one-set held lift retains its actual opener effort guard across the gene
  const slot=adapter.prepare(input).capture.slots[0];assert.deepEqual(JSON.parse(slot.effort.source_json),{target:2,unit:'rep'});
 });
 test('incomplete per-set plan vectors cannot silently flatten to the scalar card load',async()=>{
- const {adapter,input}=await fixture();input.state.exercises[0].wSets=[40];
- assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});
+ const {adapter,input}=await fixture();
  input.state.exercises[0].wSets=[40,NaN];assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});
  input.state.exercises[0].wSets=new Array(2);assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});
+});
+// Spec R9.10 L EXISTING ROWS THAT CHANGE (DECISIONS:803 (e), ruled by :804): wSets [40] on the fixture's 2-slot card is
+// exactly what a set-count increase from 1 to 2 leaves, so it captures fitted [40,40]; carried from the row above.
+test('incomplete per-set plan vectors cannot silently flatten to the scalar card load R9.10',async()=>{
+ const {adapter,input}=await fixture();input.state.exercises[0].wSets=[40];
+ const slots=adapter.prepare(input).capture.slots.filter(s=>s.lift_lineage_id==='demo-press');
+ assert.deepEqual(slots.map(s=>[s.load.display,JSON.parse(s.load.source_json)]),[['40 lb',{value:40,unit:'lb'}],['40 lb',{value:40,unit:'lb'}]]);
 });
 test('an actual selected debut keeps its supplied vector and does not reuse old or ambiguous loads',async()=>{
  const {engine,adapter,input}=await fixture();input.state.exercises[0].wSets=[40,35];

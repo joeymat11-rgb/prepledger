@@ -1,5 +1,5 @@
 'use strict';
-// NATIVE-LOAD FC01 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.9 679567a, sha256 ef0f5dd8..., on R9.4 a575692; first built on R7 6ddf7af).
+// NATIVE-LOAD FC01 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.10 d3a3ffa, sha256 6bd14f81..., on R9.9 679567a and R9.4 a575692; first built on R7 6ddf7af).
 // earned/native-load/v1: the native evaluator and transition. Pure: no disk, no
 // clock read, no id minting, no mutation of any input. Every earning rule is the
 // engine's own, reached through the private table E (earnWalk, _deriveSightingFull,
@@ -105,8 +105,9 @@ function liftRows(s, lift, all) {
   return out;
 }
 const originalSlots = (entry) => entry.slots.filter((slot) => slot.origin !== 'added');
-// The authorised per-position load vector, exactly as progression.cjs:82-84 projects it.
-const planVector = (ex) => Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => (Array.isArray(ex.wSets) && ex.wSets[i] != null ? ex.wSets[i] : ex.w));
+// The authorised per-position load vector, exactly as progression.cjs:80-82 projects it. Spec R9.10 L READER
+// (DECISIONS:804 (f)): a position beyond a non-empty stored vector reads its last listed weight.
+const planVector = (ex) => Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => { const k = Array.isArray(ex.wSets) && ex.wSets.length > 0 ? Math.min(i, ex.wSets.length - 1) : -1; return k >= 0 && ex.wSets[k] != null ? ex.wSets[k] : ex.w; });
 const captured = (slot) => {
   const p = slot.prescribed_load;
   if (!p || p.state !== 'specified') return null;
@@ -170,10 +171,18 @@ function adoptReason(ex, row, target, baseline, missed) {
 }
 // Spec R9.9 :152 SELECTED ENTRY (DECISIONS:801 (1)): per original slot, the load the card generated
 // from native entry q prescribes: newWSets at its accepted layout, else newW on every captured
-// original slot whatever their number. A vector target at another layout has no such card (null).
+// original slot whatever their number. Spec R9.10 L (1) FIT IN SELECTED ENTRY: a vector target's card at
+// another layout is the fitted card (null only when fit fails on a malformed newWSets).
 function entryTarget(q, count) {
-  if (Array.isArray(q.newWSets)) return q.newWSets.length === count ? q.newWSets.slice() : null;
+  if (Array.isArray(q.newWSets)) return fit(q.newWSets, count);
   return Array.from({ length: count }, () => q.newW);
+}
+// Spec R9.10 L FIT (DECISIONS:803 (e)), the capture rule of W/engine-capture.cjs, copied at this module boundary
+// (engine-capture.cjs exports none): every entry of the stored vector a finite number >= 0 and not -0, then fewer
+// slots take the first n, extra slots repeat the last listed weight; anything else null.
+function fit(v, n) {
+  if (!Array.isArray(v) || v.length < 1 || !Array.from(v).every((x) => typeof x === 'number' && Number.isFinite(x) && x >= 0 && !Object.is(x, -0))) return null;
+  return n <= v.length ? v.slice(0, n) : [...v, ...Array.from({ length: n - v.length }, () => v[v.length - 1])];
 }
 
 // ---------- evaluation (spec B "Evaluation algorithm", steps 1-10) ----------
@@ -229,8 +238,13 @@ function evaluate(state, request) {
   const missedClose = !!missedQ && Array.isArray(b.load_basis.authority_refs) && b.load_basis.authority_refs.length === 1 && same(refsOf(b.load_basis.authority_refs), [closeRef]);
   const missedTarget = missedClose ? entryTarget(missedQ, originals.length) : null;
   const forkLater = forks.some((f) => f && String(f.from) > cur.date);
-  if (originals.length !== Math.max(1, ex.sets || 1) || (typed && !same(originals.map(captured), missedClose ? missedTarget : planNow)) || forkLater)
-    refuse('PLAN_CHANGED', [closeRef, ...(missedClose ? [] : refsOf(b.load_basis.authority_refs)), ...(forkLater ? forkRefs : [])]);
+  // Spec R9.10 L (3) FIT GUARD (:146), step 2 split in order: (a) the count and fork clauses, (b) a stored vector
+  // whose length is not the captured original slot count (a fitted layout) never earns or adopts, (c) the typed
+  // capture comparison with the plan or, on a MISSED CLOSE, with the missed entry's target. (a) and (c) keep :233's refs.
+  const planRefs = () => [closeRef, ...(missedClose ? [] : refsOf(b.load_basis.authority_refs)), ...(forkLater ? forkRefs : [])];
+  if (originals.length !== Math.max(1, ex.sets || 1) || forkLater) refuse('PLAN_CHANGED', planRefs());
+  if (Array.isArray(ex.wSets) && ex.wSets.length !== originals.length) refuse('SET_COUNT_BASIS_UNPROVEN', [closeRef], null);
+  if (typed && !same(originals.map(captured), missedClose ? missedTarget : planNow)) refuse('PLAN_CHANGED', planRefs());
   if (originals.some((slot) => slot.state === 'unresolved')) refuse('PREFIX_UNRESOLVED', [closeRef]);
   E.performedNumericEntry(cur.entry); // configuration magnitude keeps its own reader refusal
   const line = E.performedLine(cur.entry);
@@ -381,7 +395,11 @@ function compensation(state, req, ex, rows, R) {
   else {
     const prior = auth.prior || {}, w = prior.w && prior.w.present ? prior.w.value : null;
     const wSets = prior.wSets && prior.wSets.present ? prior.wSets.value : null;
-    target = { scalar: loadOf(w), vector: (w == null ? Array.from({ length: Math.max(1, ex.sets || 1) }, () => null) : planVector({ ...ex, w, wSets })).map(loadOf) };
+    // Spec R9.10 L RESTORE COUNT (D-R18-SETS-RESTORE, DECISIONS:804): the prior image is projected over n0, the
+    // original slot count of the one completion the adoption consumed (its recorded base_load's count), never
+    // the current set count, so the RESTORE equals the adoption's recorded base_load after a set-count edit.
+    const n0 = originalSlots(rows[lastConsumed].entry).length;
+    target = { scalar: loadOf(w), vector: (w == null ? Array.from({ length: n0 }, () => null) : planVector({ ...ex, w, wSets, sets: n0 })).map(loadOf) };
   }
   const body = { profile: DECISION, kind: 'compensate', lift_lineage_id: lift, basis: json(req.basis), evidence: [], base_load: baseLoad(ex),
     target_load: target, candidate: null, reason_key: 'compensation', spend_id: JSON.stringify(['native-load-compensation', lift, spendId]), consumes: [], compensates: spendId };
@@ -605,9 +623,10 @@ function landing(s, ex, d, context, responseRefs) {
   const selected = !!capture && capture.length > 0 && capture.length === originals.length && !!tgt &&
     originals.every((slot, i) => capture[i] === tgt[i] && (slot.prescribed_load === undefined || captured(slot) === tgt[i]));
   if (!selected) refuse('DEBUT_BASIS_UNPROVEN', [closeRef], 'completion');
-  // It lands iff every original slot is performed at its target load (a rep miss still lands; a
-  // vector target only at its accepted layout, which SELECTED ENTRY already requires).
-  const exact = originals.every((slot, i) => slot.state === 'performed' && map(slot.fact.current.load) &&
+  // It lands iff every original slot is performed at its target load (a rep miss still lands). Spec R9.10 L (2)
+  // LANDING LAYOUT (DECISIONS:801 (1)): a vector target lands only at its accepted layout; its fitted card at
+  // another layout is consumed MISSED whatever was lifted.
+  const exact = (!Array.isArray(q.newWSets) || originals.length === q.newWSets.length) && originals.every((slot, i) => slot.state === 'performed' && map(slot.fact.current.load) &&
     slot.fact.current.load.unit === 'lb' && slot.fact.current.load.value === tgt[i]);
   // Spec R9.9 :152 MISSED DEBUT (H11 option 1, DECISIONS:796 (c)): whatever was lifted (another
   // load, a skipped or unresolved slot, an edit off the target, every slot skipped) the debut is

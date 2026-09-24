@@ -20,6 +20,7 @@ import { createWorkoutEntry } from '../today-entry.mjs';
 import * as TodayEntry from '../today-entry.mjs';
 import TodayModel from '../today-model.cjs';
 import design from '../design.cjs';
+import { prescriptionLine } from '../gym-model.mjs';
 
 const require = createRequire(import.meta.url);
 const F = require('../../fixtures.cjs');
@@ -1115,4 +1116,18 @@ test('R17b-B33 PRE-FC16 STARTS AFTER RESTART [Y] (Astra L9 B33; spec R9.7/R9.8 :
   assert.deepEqual([checked.status, checked.refusal && checked.refusal.code, checked.offers.length], ['refused', 'NATIVE_LOAD_PLAN_CHANGED', 0]);
   assert.equal((await responsesOf(again)).length, 0);
   h.close(); again.close();
+});
+// Round 19 (spec R9.10 L FIT-PANEL; DECISIONS:803 (e)): the phone shows exactly the capture's load cells
+// (gym-model.mjs prescriptionLine), so a fitted card shows the repeated last weight on every added set.
+test('FIT-PANEL R9.10 [Y] (spec R9.10 L FIT-PANEL, T/gym-model.mjs:68-76; DECISIONS:803 (e)): demo-press with w 100 and wSets [100, 95] at sets 3 (a set-count increase over a two-entry vector) -> the day prepares and the gym prescription lines of demo-press begin 100 lb, 95 lb and 95 lb (the repeated last weight); at sets 1 the one line begins 100 lb', async () => {
+  for (const [sets, want] of [[3, ['100 lb', '95 lb', '95 lb']], [1, ['100 lb']]]) {
+    const fault = faultDatabase(), era = await reopenAt(fault, D1);
+    const one = await dayEntryWith(era, D1, withPress(D1, { w: 100, wSets: [100, 95], sets }));
+    const slots = (await slotsOf(one.entry, D1)).filter(s => s.lift_lineage_id === 'demo-press');
+    assert.deepEqual(slots.map(s => prescriptionLine(s).split(' ').slice(0, 2).join(' ')), want, 'sets ' + sets);
+    const view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', view.code || '');
+    assert.equal(view.lift.id, 'demo-press'); assert.match(view.prescription.line, /^100 lb/);
+    one.entry.gymHost.close(); era.close();
+  }
 });

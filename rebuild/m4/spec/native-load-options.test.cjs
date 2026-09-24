@@ -2467,7 +2467,7 @@ test('N29-FLIP-YES (spec R9.9 :155 A2 "landed by the claimed Close itself", D1 N
   assert.ok(f.issues.some(i=>i.lift===LIFT&&EFFECTS.m.isHold(i)&&(i.refs||[]).some(r=>r.op_id==='fx-resp-3')),rev+' held by the later-edit rules '+JSON.stringify(f.issues));
  }
 });
-test('N29-LATER-HOLD (spec R9.9 J OTHER-HOLD ANCHOR, LATER HOLD; D-R9.9-LATER-HOLD): yes to 95 applied (w 95), then C1 corrected -> Q105\'s accept is BASIS_REPAIR_REQUIRED, so C3 does not consume it: Q pending again and hidden, the lift shows the baseline ask; the 95 record meets TARGET_QUEUED (refused, not applied, not in the spend index); exit (a) on Q refuses COMPENSATION_DESCENDANTS; exit (b): C4 on the baseline ask proven after the hold offers [adopt-baseline 95], whose yes supersedes Q (done, SUPERSEDED, spend kept); nothing raises; R1 and R2',()=>{
+test('N29-LATER-HOLD R9.10 (spec R9.9 J OTHER-HOLD ANCHOR, LATER HOLD; D-R9.9-LATER-HOLD; R9.10 J LATER HOLD and L LATER HOLD UNDO, DECISIONS:804): yes to 95 applied (w 95), then C1 corrected -> Q105\'s accept is BASIS_REPAIR_REQUIRED, so C3 does not consume it: Q pending again and hidden, the lift shows the baseline ask; the 95 record meets TARGET_QUEUED (refused and not applied; R9.10: held back with its spend kept in the spend index); exit (a) on Q refuses COMPENSATION_DESCENDANTS; exit (b): C4 on the baseline ask proven after the hold offers [adopt-baseline 95], whose yes supersedes Q (done, SUPERSEDED, spend kept); nothing raises; R1 and R2',()=>{
  effectsGate();
  const m=missedDebut(95),exit=checkOf(foldArgs(m.three,[m.resp]),LIFT,m.c3).offers[0],d=decisionOf(exit),yes=acceptOp(exit,{op_id:'fx-resp-3',after:3});
  const cs=[C(1,{reps:TOP,effort:e(2,1,1),corrected:{3:7}}),m.cs[1]],three=[...cs,m.c3],c4=C(4,{date:'2026-10-15',reps:TOP,loads:95,prescribed:null,effort:e(2,1,1)});
@@ -2476,7 +2476,7 @@ test('N29-LATER-HOLD (spec R9.9 J OTHER-HOLD ANCHOR, LATER HOLD; D-R9.9-LATER-HO
   assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_BASIS_REPAIR_REQUIRED'&&i.spend_id===m.spend),rev+' '+JSON.stringify(f.issues));
   assert.deepEqual(liveQ(f,m.spend),[[false,'DEBUT']],rev+' not consumed on a disputed spend');
   assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_TARGET_QUEUED'&&(i.refs||[]).some(r=>r.op_id==='fx-resp-3')),rev+' the 95 record meets TARGET_QUEUED');
-  assert.ok(!f.spent.some(x=>x.spend_id===d.spend_id),rev+' not in the spend index');
+  assert.ok(f.spent.some(x=>x.spend_id===d.spend_id&&!x.cancelled_by),rev+' R9.10 LATER HOLD UNDO: held back, its spend kept (was: not in the spend index)');
   assert.deepEqual([exOf(f.state).w,cardLoads(EFFECTS.m.heldProjection(f).state)],[100,[null,null,null]],rev+' the baseline ask');
   expectRefusal(checkOf(a,LIFT,m.c3,{compensate:m.spend}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-1')]);
   const ev=checkOf(foldArgs([...three,c4],[m.resp,yes],rev),LIFT,c4);assert.equal(ev.status,'offer',rev+' '+JSON.stringify(ev.refusal));
@@ -2563,20 +2563,9 @@ test('N29-VECTOR (spec R9.9 J UNEQUAL VECTORS, :144): the N11 lift (w 100, wSets
   expectRefusal(checkOf(a,LIFT,c3),want,[ref(c3.close)]);
  }
 });
-test('N29-VECTOR-LAYOUT (spec R9.9 J (l), K VECTOR CAPTURE; DECISIONS:802 option (A), debt D-VECTOR-SETS; characterization row, pins existing behavior): the N11 lift with DEBUT [105,100] accepted and its set count edited 2 -> 3: the day\'s capture refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED with the entry pending, and equally with no entry at all; the entry stays pending (TARGET_QUEUED) and unconsumed, its Undo stays offered; with the count back to 2 the debut card [105,100] is captured; R1 and R2',()=>{
- effectsGate();
- const {cs,offers}=n11Checked(),b=acceptOp(offers[1],{after:2,op_id:'fx-resp-b'}),spend=decisionOf(offers[1]).spend_id,three=()=>F0({...N11EX,sets:3});
- for(const rev of ['fx-revision-1','fx-revision-2']){
-  const a=foldArgs(cs,[b],rev,three()),f=EFFECTS.m.foldNativeLoad(a);
-  assert.deepEqual(liveQ(f,spend),[[false,'DEBUT']],rev);
-  assert.throws(()=>cardLoads(EFFECTS.m.heldProjection(f).state),e=>e&&e.code==='ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED',rev+' the pending vector entry at 3 slots');
-  assert.throws(()=>cardLoads(withFacts(three(),cs)),e=>e&&e.code==='ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED',rev+' no entry: the same refusal (existing behavior)');
-  expectRefusal(checkOf(a,LIFT,cs[1]),'TARGET_QUEUED',[ref('fx-resp-b')]);
-  assert.equal(checkOf(a,LIFT,cs[1],{compensate:spend}).status,'offer',rev+' its Undo stays offered');
-  const two=EFFECTS.m.foldNativeLoad(foldArgs(cs,[b],rev,F0(N11EX)));
-  assert.deepEqual(cardLoads(EFFECTS.m.heldProjection(two).state),[105,100],rev+' the debut card at its own layout');
- }
-});
+// N29-VECTOR-LAYOUT (the R9.9 characterization of the refused day, DECISIONS:802 (A)) is updated for R9.10 to
+// N29-VECTOR-LAYOUT-R9.10 in the round-19 block at the end of this file (spec R9.10 D1 N29 VECTOR LAYOUT "replaces the
+// R9.9 refused-day expectation", L; DECISIONS:803 (e)); its red on the R9.10 product is retained in the round-19 report.
 const SETS=n=>F0({sets:n});
 test('N29-LAYOUT-LAND (spec R9.9 :152 LAYOUT, J (j); DECISIONS:801 (1)): fx-press sets edited 3 -> 2 after the yes; C3\'s card is 105 on 2 sets (Q105\'s card, SELECTED ENTRY); C3 at 105 on both [8,7] lands: Q ESTABLISH, w 105, wAt C3, last [8,7], wSets absent, effect landed, the spend index close_ref C3, DEBUT_LANDED; the next card 105 on 2 sets; R1 and R2, typed v2 and host v1',()=>{
  effectsGate();
@@ -3255,14 +3244,9 @@ function propertySequence8(seed){
    fail('I14 a '+(y.claimed?'claimed':'A1 unclaimed')+' adoption is RECORD_INVALID at '+stage,{y,issues:f.issues});
   for(const p of m.proven){
    const x=f.spent.find(y=>y.spend_id===p.target);
-   // Round 18 (spec R9.9 J LATER HOLD, D-R9.9-LATER-HOLD): a claimed adoption whose missed earn a
-   // later correction disputes meets TARGET_QUEUED at its point in the fold: "refused, not applied,
-   // and not in the spend index ... so its Undo names no live spend". A cancellation of it recorded
-   // before that correction then names no fold spend (DERIVABLE compensates: RECORD_INVALID). That
-   // consequence is J's, derived, and named for the PM as D-R9.9-LATER-HOLD-UNDO (walk seeds
-   // 20264386, 20266433); the adoption itself never applies, so no weight survives. Exempt exactly it.
-   const ty=m.ledger.find(y=>y.spend===p.target);
-   if(!x&&ty&&f.issues.some(i=>i.code==='NATIVE_LOAD_TARGET_QUEUED'&&(i.refs||[]).some(r=>r&&r.op_id===ty.op))){m.trace.push('later-hold-undo');continue;}
+   // Round 19 (spec R9.10 L LATER HOLD UNDO, D-R9.9-LATER-HOLD-UNDO, DECISIONS:804): round 18's 'later-hold-undo'
+   // exemption (walk seeds 20264386, 20266433) is removed: a claimed adoption refused TARGET_QUEUED behind the earn a later
+   // correction disputes is held back with its spend kept, so a cancellation of it recorded before that correction cancels it.
    // Round 12 (spec R9.1 :158 NO TRAP): a yes behind a hold is kept as accepted history and
    // its undo applies, so round 11's exemption (seeds 20262492, 20264171) is removed.
    if(!x||!x.cancelled_by)fail('I2 proven cancellation lost at '+stage,{target:p.target,issues:f.issues.map(i=>[i.code,i.field,i.lift,(i.refs||[]).map(r=>r.op_id),i.reason||null,!!i.superseded_by]),spent:f.spent.map(s=>[s.spend_id,s.cancelled_by,s.response_refs.map(r=>r.op_id)]),extras:m.extras.map(e=>[e.op_id,e.after,e.device||null,e.payload.issuance.body.kind,e.payload.issuance.body.kind==='compensate'?e.payload.issuance.body.compensates:null])});
@@ -3487,14 +3471,15 @@ function propertySequence8(seed){
    if(action==='fork'){if(B.forks.length>=2)continue;touch(L);B.forks.push({from:pick([dayAt(m.comps.length),dayAt(Math.max(0,m.comps.length-1)),dayAt(m.comps.length+1)]),kind:'reset',why:'SYNTHETIC'});m.trace.push(['fork',L,B.forks.at(-1).from]);}
    else if(action==='vector'){if(B.w===null||setsOf(L)!==3)continue;B.wSets=B.wSets?null:[B.w,B.w,B.w-5];m.trace.push(['vector',L,B.wSets]);}
    else if(action==='sets'){
-    // Round 18 set-count class (spec R9.9 :152 LAYOUT, DECISIONS:801 (1)): an authenticated
+    // Round 18 set-count class (spec R9.9 :152 LAYOUT, DECISIONS:801 (1)), widened in round 19 (below): an authenticated
     // set-count edit (it writes sets alone) between the yes and the Start of a SCALAR debut: the
     // debut card is newW on the new count and its Close consumes the entry (I14). A vector plan
-    // keeps its count (a per-set-weight lift at another count refuses its whole day: D-VECTOR-SETS).
-    // The count is edited once and never back: an edit between an adoption and its Undo meets
-    // D-R18-SETS-RESTORE (a RESTORE issued at the new count is refused target_load; pre-existing,
-    // outside R9.9, named for the PM; walk seed 20266884 in round 18's first 17000-walk run).
-    if(setsOf(L)===3&&!B.wSets&&!held(f,L)&&EFFECTS.m.heldProjection(f).state.queue.some(q=>q&&q.exId===L&&!q.done&&typeof q.native_load_spend==='string'&&!Array.isArray(q.newWSets)))B.sets=pick([2,4]);
+    // keeps its count (its fitted cards, spec R9.10 L FIT, are pinned by the FIT rows and N29-VECTOR-LAYOUT-R9.10).
+    // Round 19 (spec R9.10 L RESTORE COUNT, D-R18-SETS-RESTORE, DECISIONS:804): the class is widened again to straddle an
+    // adoption and its Undo: an unheld scalar lift's count is set to 2, 3 or 4 (up, down, back, or unchanged) at any
+    // step: before a yes, between a yes and its Undo, and back. A RESTORE is issued over the slots its adoption
+    // consumed, so its yes restores the prior image whatever the count now is (I1, I2; walk seed 20266884).
+    if(!B.wSets&&!held(f,L))B.sets=pick([2,3,4]);
     else continue;
     m.trace.push(['sets',L,setsOf(L)]);
    }
@@ -3685,4 +3670,465 @@ test('R8-PROPERTY MODEL WITH ORACLE (Claude l6 D-B6-1; invariants I1 oracle, I2-
  }
  if(process.env.NATIVE_LOAD_PROPERTY8_REPORT)require('node:fs').writeFileSync(process.env.NATIVE_LOAD_PROPERTY8_REPORT,JSON.stringify({runs,seed0,found,coverage},null,1));
  assert.deepEqual(found,[],'counterexamples');
+});
+
+// ======================================================================
+// ROUND 19: spec R9.10 (origin/rebuild/c-native-load-spec d3a3ffa, rebuild/coach/NATIVE-LOAD-SPEC.md sha256
+// 6bd14f81..., section L; DECISIONS:803 (e) FIT, :804 (f) READER, :804 D-R18-SETS-RESTORE and
+// D-R9.9-LATER-HOLD-UNDO). FIT: W/engine-capture.cjs:79-80 fit a per-set-weight lift's stored vector (the
+// selected debut entry's newWSets, else the plan's wSets) to the card's slot count after validating the WHOLE
+// stored vector: fewer sets capture the first n, extra sets repeat the last listed weight; nothing stored
+// changes. SELECTED ENTRY (FC01 entryTarget, FC03 selectedEntry/entryTargetOf) reads a vector entry through the
+// same fit; a vector debut lands only at its accepted layout; the FIT GUARD refuses
+// SET_COUNT_BASIS_UNPROVEN [Close Ref], field null, when the projected lift's stored vector length differs from
+// the captured original slots. READER: an added position reads the last listed weight (E/progression.cjs:80-82
+// and its mirrors FC01 planVector, FC03 projectBase and planNow). RESTORE COUNT and LATER HOLD UNDO as L states.
+// ======================================================================
+const fitOracle=(v,n)=>Array.from({length:n},(_,i)=>v[Math.min(i,v.length-1)]);
+// Spec R9.10 L READER, and the dfc4445 E/progression.cjs:81 rule it replaces (test-side oracles).
+const readerOracle=ex=>Array.from({length:Math.max(1,ex.sets||1)},(_,i)=>{const k=Array.isArray(ex.wSets)&&ex.wSets.length>0?Math.min(i,ex.wSets.length-1):-1;return k>=0&&ex.wSets[k]!=null?ex.wSets[k]:ex.w;});
+const oldReaderOracle=ex=>Array.from({length:Math.max(1,ex.sets||1)},(_,i)=>(Array.isArray(ex.wSets)&&ex.wSets[i]!=null?ex.wSets[i]:ex.w));
+const N11S=n=>F0({...N11EX,sets:n});
+const CAP_BASIS=Object.freeze({plan_basis:'fx-plan',input_basis:'fx-input',source_revision:1});
+function adapterFor(engine,profile=CAPTURE_FACTORY.PROFILE){
+ return CAPTURE_FACTORY.createEngineWorkoutCapture({engine,prescriptionCapture:PRESCRIPTION.createPrescriptionCapture({parseStrictJson:JSON.parse}),
+  producerIdentity:{app_build:'fx-app',engine_build:'fx-engine',rule_profile:profile,source_schema:'fx-schema'}});
+}
+// The public capture boundary for one day: the capture and layout, the adapter and its exact input.
+function prepareDay(state,{day=CARD_DAY,engine=engineAt(day),profile}={}){
+ const adapter=adapterFor(engine,profile),input={state,day,sleep:{},basis:structuredClone(CAP_BASIS)},before=JSON.stringify(input),out=adapter.prepare(input);
+ assert.equal(JSON.stringify(input),before,'the capture never writes its input (engine-capture.cjs:52, :97)');
+ return {adapter,input,...out};
+}
+const liftCells=(capture,lift=LIFT)=>capture.slots.filter(x=>x.lift_lineage_id===lift);
+const cellLoads=(capture,lift=LIFT)=>liftCells(capture,lift).map(x=>x.load.state==='specified'?JSON.parse(x.load.source_json).value:null);
+// The composed engine of this file and both accepted runtimes (N20).
+function runtimes(day){
+ const W=require(path.join(ROOT,'rebuild/m4/workout/engine-runtime.cjs')),H=require(path.join(ROOT,'rebuild/m3/w6/host/engine-runtime-host.cjs'));
+ return [['E',engineAt(day)],['W',W.createEngineRuntime({clock:clockFor(day),nativeTrendContext:assumedContext})],['H',H.createEngineRuntime({clock:clockFor(day),nativeTrendContext:assumedContext})]];
+}
+// The N11 lift with DEBUT [105,100] (offers[1]) accepted at sets 2 as fx-resp-b, folded over a base at `sets`.
+function vectorDebut(sets,{rev='fx-revision-1',comps=[],extra=[],prep}={}){
+ const {cs,offers}=n11Checked(),b=acceptOp(offers[1],{after:2,op_id:'fx-resp-b'}),spend=decisionOf(offers[1]).spend_id;
+ const a=foldArgs([...cs,...comps],[b,...extra],rev,N11S(sets));if(prep)prep(a);
+ const f=EFFECTS.m.foldNativeLoad(a);
+ return {cs,b,spend,a,f,shown:EFFECTS.m.heldProjection(f).state,offer:offers[1]};
+}
+const atLoadOf=(E,wSets,P,sets=3)=>{const x=C(1,{reps:P.map(()=>9),loads:P,prescribed:P,effort:P.map(()=>X(2))}),s=withFacts(F0({sets,wSets}),[x]);return E._loadTenure(exOf(s),s,null,null).tenure.length===1;};
+test('FIT-ORDINARY-UP R9.10 (spec R9.10 L FIT, CLAUSES THAT CHANGE :80; DECISIONS:803 (e)): the N11 lift (w 100, wSets [100,95]) at sets 3, no entry -> the day captures; its load cells are 100 lb, 95 lb, 95 lb (the last listed weight repeated), three reps cells (targetsFor padded), the whole capture equals that of the stored vector [100,95,95] (so the day\'s other lifts are unchanged), the input is unchanged and w, wSets and sets are not written',()=>{
+ const s=N11S(3),before=JSON.stringify(s),out=prepareDay(s),cells=liftCells(out.capture);
+ assert.deepEqual(cells.map(x=>[x.load.display,JSON.parse(x.load.source_json)]),[['100 lb',lb(100)],['95 lb',lb(95)],['95 lb',lb(95)]]);
+ const card=engineAt(CARD_DAY).genSession(s,CARD_DAY,{}).ex.find(c=>c.id===LIFT);
+ assert.deepEqual([card.tgt.length,cells.map(x=>JSON.parse(x.reps.source_json).value)],[3,card.tgt]);
+ assert.deepEqual(out.capture,prepareDay(F0({...N11EX,sets:3,wSets:[100,95,95]})).capture,'the fitted card is the card of the full vector');
+ assert.equal(JSON.stringify(s),before);assert.deepEqual([exOf(s).w,exOf(s).wSets,exOf(s).sets],[100,[100,95],3]);
+});
+test('FIT-ORDINARY-DOWN R9.10 (spec R9.10 L FIT, :80): the N11 lift at sets 1, no entry -> the day captures 100 lb on its one slot (what is performed), the whole capture equals that of the stored vector [100]; nothing written',()=>{
+ const s=N11S(1),before=JSON.stringify(s),out=prepareDay(s);
+ assert.deepEqual(liftCells(out.capture).map(x=>[x.load.display,JSON.parse(x.load.source_json)]),[['100 lb',lb(100)]]);
+ assert.deepEqual(out.capture,prepareDay(F0({...N11EX,sets:1,wSets:[100]})).capture);
+ assert.equal(JSON.stringify(s),before);
+});
+test('FIT-DEBUT-UP and FIT-DEBUT-DOWN R9.10 (spec R9.10 L FIT, :79; J (l)): DEBUT [105,100] pending on the N11 lift; sets 2 -> 3: the debut card captures 105 lb, 100 lb, 100 lb; sets 2 -> 1: 105 lb; isDebutNow true, card w 105; the entry keeps newW 105 and newWSets [105,100] and the lift w 100 and wSets [100,95]; R1 and R2',()=>{
+ effectsGate();
+ for(const rev of ['fx-revision-1','fx-revision-2'])for(const [sets,want] of [[3,[105,100,100]],[1,[105]]]){
+  const v=vectorDebut(sets,{rev}),out=prepareDay(v.shown),card=engineAt(CARD_DAY).genSession(v.shown,CARD_DAY,{}).ex.find(c=>c.id===LIFT),label=rev+' sets '+sets;
+  assert.deepEqual([card.isDebutNow,card.w,card.tgt.length],[true,105,sets],label);
+  assert.deepEqual(liftCells(out.capture).map(x=>x.load.display),want.map(x=>x+' lb'),label);
+  assert.deepEqual(cellLoads(out.capture),want,label);
+  const q=v.f.state.queue.find(x=>x.native_load_spend===v.spend),ex=exOf(v.f.state);
+  assert.deepEqual([q.done,q.newW,q.newWSets,ex.w,ex.wSets,ex.sets],[false,105,[105,100],100,[100,95],sets],label);
+ }
+});
+// The dfc4445 capture bytes of every card that captured before R9.10 (digest measured on the dfc4445 product).
+const FIT_IDENTITY_PIN='cfbab354334f2d16ad121bb42f3d468d434bf97a396907611a2ed15a7eaf52d5';
+test('FIT-IDENTITY R9.10 (green-kept, red by mutant; spec R9.10 L FIT "When n === v.length the result is JSON-identical to today\'s copy(v)"): every capture that captured at dfc4445 (scalar, equal-length vector, the debut vector at its layout, a configured card, the baseline ask, a held projection) is byte-identical to its dfc4445 capture (pinned digest of captures and layouts), and resolveLayout and readLayout return the same layout',()=>{
+ effectsGate();
+ const {cs,base,offers}=n11Checked();
+ const held=EFFECTS.m.heldProjection(EFFECTS.m.foldNativeLoad(foldArgs(cs,[acceptOp(offers[0],{after:2,op_id:'fx-resp-a'}),acceptOp(offers[1],{after:2,op_id:'fx-resp-b'})],'fx-revision-1',base))).state;
+ const cases=[['scalar',F0()],['vector',N11S(2)],['debut vector',vectorDebut(2).shown],['configured',F0({w:'BW'}),CAPTURE_FACTORY.CONFIGURATION_PROFILE],['baseline ask',F0({w:null})],['held',held]];
+ const all=[];
+ for(const [name,state,profile] of cases){
+  const out=prepareDay(state,{profile});
+  assert.deepEqual(out.adapter.resolveLayout({start:{prescription_capture:out.capture},originalInput:out.input}),out.layout,name);
+  assert.deepEqual(out.adapter.readLayout(out.capture),out.layout,name);
+  all.push([name,out.capture,out.layout]);
+ }
+ assert.deepEqual(all.map(([n,c])=>[n,cellLoads(c)]),[['scalar',[100,100,100]],['vector',[100,95]],['debut vector',[105,100]],['configured',[undefined,undefined,undefined]],['baseline ask',[null,null,null]],['held',[null,null]]]);
+ assert.equal(sha(all),FIT_IDENTITY_PIN,'byte-identical to the dfc4445 captures and layouts');
+});
+test('FIT-MALFORMED R9.10 (green-kept, red by mutant; spec R9.10 L FIT "EVERY entry of the whole stored v ... BEFORE fitting, so truncation never hides a malformed entry"): on a 2-slot card wSets [], [100,95,NaN] and [100,95,-0] (a malformed entry beyond the card count); a sparse vector on 3 slots; a present-null wSets; a legacy debut entry with newWSets null; a scalar debut on a vector lift (its newW is not the stored w, :80); a configured card with a vector (:72-77): each refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED',()=>{
+ const refuses=(label,state,profile)=>assert.throws(()=>prepareDay(state,{profile}),e=>e&&e.code==='ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED',label);
+ for(const wSets of [[],[100,95,NaN],[100,95,-0]])refuses(String(wSets),F0({sets:2,wSets}));
+ refuses('sparse',F0({sets:3,wSets:new Array(2)}));
+ refuses('present-null',F0({wSets:null}));
+ const legacy=F0();legacy.queue.push({id:'fx-legacy-debut',kind:'debut',exId:LIFT,newW:105,newWSets:null,state:'DEBUT',done:false,t:'SYNTHETIC legacy debut'});refuses('newWSets null',legacy);
+ const scalar=N11S(2);scalar.queue.push({id:'fx-scalar-debut',kind:'debut',exId:LIFT,newW:105,state:'DEBUT',done:false,t:'SYNTHETIC scalar debut'});refuses('scalar debut on a vector lift',scalar);
+ refuses('configured vector',F0({w:'BW',wSets:[40,35]}),CAPTURE_FACTORY.CONFIGURATION_PROFILE);
+});
+test('FIT-REPLAY and FIT-WINDOW R9.10 (spec R9.10 L; engine-capture.cjs:103-110 unchanged; FC16 :91): resolveLayout of a fitted Start (the N11 lift at sets 3) reproduces its layout and readLayout reads it; a stored vector changed after that Start refuses ENGINE_CAPTURE_ORIGINAL_DISAGREEMENT; each fitted reps cell carries window_hi 10',()=>{
+ const out=prepareDay(N11S(3)),start={prescription_capture:out.capture};
+ assert.deepEqual(out.adapter.resolveLayout({start,originalInput:out.input}),out.layout);
+ assert.deepEqual(out.adapter.readLayout(out.capture),out.layout);
+ const later=structuredClone(out.input);exOf(later.state).wSets=[100,90];
+ assert.throws(()=>out.adapter.resolveLayout({start,originalInput:later}),e=>e&&e.code==='ENGINE_CAPTURE_ORIGINAL_DISAGREEMENT');
+ assert.deepEqual(liftCells(out.capture).map(x=>JSON.parse(x.reps.source_json).window_hi),[10,10,10]);
+});
+test('FIT-STORED R9.10 (spec R9.10 L STORED VALUES): after a fitted debut Start and Close (MISSED) and its refused check, then a fitted ordinary Start, Close and refused check, the lift\'s w, wSets, sets, wAt and last and the entry\'s newW and newWSets are byte-identical to before (the miss writes only done, state and native_load_missed_by); R1 and R2',()=>{
+ effectsGate();
+ const c3=C(3,{date:'2026-10-12',reps:[8,7,6],loads:[105,100,100],prescribed:[105,100,100],effort:e(2,1,1)});
+ const c4=C(4,{date:'2026-10-15',reps:[10,9,8],loads:[100,95,95],prescribed:[100,95,95],effort:e(2,1,1)});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const v0=vectorDebut(3,{rev}),q0=structuredClone(v0.f.state.queue.find(x=>x.native_load_spend===v0.spend)),ex0=structuredClone(exOf(v0.f.state));
+  for(const comps of [[c3],[c3,c4]]){
+   const v=vectorDebut(3,{rev,comps}),q=v.f.state.queue.find(x=>x.native_load_spend===v.spend),ex=exOf(v.f.state),label=rev+' '+comps.length;
+   assert.deepEqual([q.done,q.state,q.native_load_missed_by],[true,'MISSED',c3.close],label);
+   assert.deepEqual({...q,done:q0.done,state:q0.state,native_load_missed_by:undefined},{...q0,native_load_missed_by:undefined},label+' only done, state and native_load_missed_by change');
+   for(const k of ['w','wSets','sets','wAt','last'])assert.deepEqual([k,ex[k]],[k,ex0[k]],label);
+   expectRefusal(checkOf(v.a,LIFT,comps.at(-1)),'SET_COUNT_BASIS_UNPROVEN',[ref(comps.at(-1).close)]);
+  }
+ }
+});
+test('FIT-PARITY R9.10 (spec R9.10 L FIT-PARITY; N20): on every fitted card (the ordinary N11 lift at sets 3 and 1, the vector debut at sets 3 and 1) the captured loads equal fit(stored vector, n), identically through this file\'s engine and both accepted runtimes; SELECTED ENTRY (FC03 selectedEntry, FC01 entryTarget) reads the fitted debut card as the entry\'s card: its Close at the fitted loads consumes the entry (MISSED, another layout) with no issue, typed v2 and host v1',()=>{
+ effectsGate();
+ for(const [name,state,stored,n] of [['ordinary 3',N11S(3),[100,95],3],['ordinary 1',N11S(1),[100,95],1],['debut 3',vectorDebut(3).shown,[105,100],3],['debut 1',vectorDebut(1).shown,[105,100],1]])
+  for(const [rt,engine] of runtimes(CARD_DAY))assert.deepEqual(cellLoads(prepareDay(state,{engine}).capture),fitOracle(stored,n),name+' '+rt);
+ for(const n of [3,1]){
+  const cardW=fitOracle([105,100],n),c3=C(3,{date:'2026-10-12',reps:[8,7,6].slice(0,n),loads:cardW,prescribed:cardW,effort:e(2,1,1).slice(0,n)});
+  for(const v1 of [false,true]){
+   const c=v1?v1Of(c3):c3,v=vectorDebut(n,{comps:[c],prep:a=>{if(v1)captureOn(a.generation,c,cardW);}});
+   assert.deepEqual([liveQ(v.f,v.spend),v.f.issues.map(i=>i.code)],[[[true,'MISSED']],[]],n+(v1?' v1 ':' v2 ')+JSON.stringify(v.f.issues));
+  }
+ }
+});
+test('FIT-GUARD R9.10 (spec R9.10 L FC01/FC03 (3), :146): the N11 lift at sets 3, C1-C3 captured fitted [100,95,95] and performed there at tops [10,9,8]: each check, made while its completion is the latest, refuses SET_COUNT_BASIS_UNPROVEN [its Close Ref], field null, offers [], and writes no op; the same at sets 1 on [100]; typed v2 and host v1 slots, R1 and R2; with the count back to 2, two tops at [100,95] give the unchanged N11 offers (PROPOSED 110 [110,105], DEBUT 105 [105,100])',()=>{
+ effectsGate();
+ for(const [sets,loads,reps,eff] of [[3,[100,95,95],TOP,e(2,1,1)],[1,[100],[10],e(2)]])for(const v1 of [false,true])for(const rev of ['fx-revision-1','fx-revision-2']){
+  const cs=[1,2,3].map(n=>C(n,{reps,loads,prescribed:loads,effort:eff}));
+  for(let k=1;k<=3;k++){
+   const comps=cs.slice(0,k).map(c=>(v1?v1Of(c):c)),a=foldArgs(comps,[],rev,N11S(sets));
+   if(v1)for(const c of comps)captureOn(a.generation,c,loads);
+   const before=JSON.stringify(a.generation),ev=checkOf(a,LIFT,comps[k-1]),label='sets '+sets+(v1?' v1 ':' v2 ')+rev+' C'+k;
+   assert.deepEqual([ev.status,ev.offers,ev.refusal],['refused',[],{code:'NATIVE_LOAD_SET_COUNT_BASIS_UNPROVEN',refs:[ref(comps[k-1].close)],field:null}],label);
+   assert.equal(JSON.stringify(a.generation),before,label+' no response op');
+  }
+ }
+ // The guard precedes the typed comparison (L (3) (b) before (c)): a typed completion whose Start captured another
+ // card at the current count ([100,100,100], before the vector was stored) refuses SET_COUNT_BASIS_UNPROVEN, not PLAN_CHANGED.
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const c1=C(1,{reps:TOP,loads:100,prescribed:100,effort:e(2,1,1)});
+  expectRefusal(checkOf(foldArgs([c1],[],rev,N11S(3)),LIFT,c1),'SET_COUNT_BASIS_UNPROVEN',[ref(c1.close)]);
+ }
+ const {offers}=n11Checked();
+ assert.deepEqual(offers.map(o=>[decisionOf(o).candidate.state,decisionOf(o).target_load.vector.map(x=>x.value)]),[['PROPOSED',[110,105]],['DEBUT',[105,100]]],'the count back to 2: the unchanged N11 outcome');
+});
+test('FIT-UNDO R9.10 (spec R9.10 L UNDO; :154 capturedAfter through SELECTED ENTRY): DEBUT [105,100] pending on the N11 lift at sets 3: its Undo is offered before any Start; a Start that captured the fitted debut card [105,100,100], open and then closed, makes the Undo refuse COMPENSATION_DESCENDANTS [its yes Ref]; R1 and R2',()=>{
+ effectsGate();
+ const c3=C(3,{date:'2026-10-12',reps:[8,7,6],loads:[105,100,100],prescribed:[105,100,100],effort:e(2,1,1)});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const v=vectorDebut(3,{rev});
+  assert.equal(checkOf(v.a,LIFT,v.cs[1],{compensate:v.spend}).status,'offer',rev+' before the Start');
+  const open=vectorDebut(3,{rev,prep:a=>{const ops=a.generation.collections.ops,last=Object.values(ops).reduce((x,y)=>Math.max(x,y.device_seq),0);
+   ops[c3.start]={op_id:c3.start,athlete_id:ATH,device_id:DEVICE,device_seq:last+1,class:'session',kind:'session-start',payload:{},canonical_content_commitment:commit(c3.start)};captureOn(a.generation,c3,[105,100,100]);}});
+  expectRefusal(checkOf(open.a,LIFT,v.cs[1],{compensate:v.spend}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-b')]);
+  const closed=vectorDebut(3,{rev,comps:[c3]});
+  expectRefusal(checkOf(closed.a,LIFT,c3,{compensate:v.spend}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-b')]);
+ }
+});
+test('FIT-DEVICE R9.10 (spec R9.10 L TWO DEVICES; J SECOND DEVICE (ii)): DEBUT [105,100] accepted, sets edited 2 -> 3; device A had not received the edit and its Start captured the unfitted card [105,100]; device B captured the fitted card [105,100,100]. The Close first in the workout order consumes the entry: A first at [105,100] lands (w 105, wSets [105,100]) and the check on B refuses SET_COUNT_BASIS_UNPROVEN [B Close Ref]; B first at [105,100,100] is MISSED (w 100, wSets [100,95]) and the check on A refuses PLAN_CHANGED [A Close Ref] (count clause); the same under both delivery orders and R1/R2',()=>{
+ effectsGate();
+ const A=n=>C(n,{date:dayAt(n+8),reps:[8,7],loads:[105,100],prescribed:[105,100],effort:e(2,1)}),B=n=>C(n,{date:dayAt(n+8),reps:[8,7,6],loads:[105,100,100],prescribed:[105,100,100],effort:e(2,1,1)});
+ for(const [first,second,want] of [[A(3),B(4),'A'],[B(3),A(4),'B']]){
+  const seen=new Set();
+  for(const rev of ['fx-revision-1','fx-revision-2'])for(const late of [false,true]){
+   const v=vectorDebut(3,{rev,comps:[first,second],prep:a=>{if(!late)return;const ops=a.generation.collections.ops;let k=0;
+    for(const id of second.ops){ops[id].device_id='fx-device-B';ops[id].device_seq=2000+(++k);}ops[second.start].causal_parents=['fx-resp-b'];}});
+   const q=v.f.state.queue.find(x=>x.native_load_spend===v.spend),ex=exOf(v.f.state),label=want+' first '+rev+(late?' delivered late':'');
+   if(want==='A'){
+    assert.deepEqual([q.done,q.state,ex.w,ex.wSets],[true,'ESTABLISH',105,[105,100]],label+' '+JSON.stringify(v.f.issues));
+    expectRefusal(checkOf(v.a,LIFT,second),'SET_COUNT_BASIS_UNPROVEN',[ref(second.close)]);
+   }else{
+    assert.deepEqual([q.done,q.state,q.native_load_missed_by,ex.w,ex.wSets],[true,'MISSED',first.close,100,[100,95]],label+' '+JSON.stringify(v.f.issues));
+    expectRefusal(checkOf(v.a,LIFT,second),'PLAN_CHANGED',[ref(second.close)]);
+   }
+   seen.add(JSON.stringify([q,ex.w,ex.wSets,v.f.issues.filter(i=>i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').map(i=>i.code)]));
+  }
+  assert.equal(seen.size,1,want+' first: identical under both delivery orders and R1/R2');
+ }
+});
+test('FIT-HELD R9.10 (green-kept; spec R9.10 L FIT-HELD, :159 held projection): the N11 lift held by EFFECT_CONFLICT (both N11 offers accepted) at sets 3 projects w and wSets null, so its card is the baseline ask on 3 slots (no fit); exit (b): C3 on the baseline ask at [100,100,100] is offered [adopt-baseline 100 on 3 slots], at [100,95,95] VECTOR_ADOPTION_UNDEFINED [C3 Close Ref]; R1 and R2',()=>{
+ effectsGate();
+ const {cs,offers}=n11Checked(),a=acceptOp(offers[0],{after:2,op_id:'fx-resp-a'}),b=acceptOp(offers[1],{after:2,op_id:'fx-resp-b'});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[a,b],rev,N11S(3))),shown=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([exOf(shown).w,exOf(shown).wSets],[null,null],rev);
+  assert.deepEqual(cellLoads(prepareDay(shown).capture),[null,null,null],rev+' the baseline ask');
+  const c3e=C(3,{reps:TOP,loads:[100,100,100],prescribed:[null,null,null],effort:e(2,1,1)});
+  assert.deepEqual(checkOf(foldArgs([...cs,c3e],[a,b],rev,N11S(3)),LIFT,c3e).offers.map(o=>[decisionOf(o).kind,decisionOf(o).target_load.vector.map(x=>x.value)]),[['adopt-baseline',[100,100,100]]],rev);
+  const c3=C(3,{reps:TOP,loads:[100,95,95],prescribed:[null,null,null],effort:e(2,1,1)});
+  expectRefusal(checkOf(foldArgs([...cs,c3],[a,b],rev,N11S(3)),LIFT,c3),'VECTOR_ADOPTION_UNDEFINED',[ref(c3.close)]);
+ }
+});
+test('N29-VECTOR-LAYOUT-R9.10 (spec R9.10 J (l), D1 N29 VECTOR LAYOUT (:320), L; DECISIONS:803 (e), :801 (1); updates the R9.9 refused-day characterization N29-VECTOR-LAYOUT, D-VECTOR-SETS paid): the N11 lift with DEBUT [105,100] accepted and its set count edited 2 -> 3: before the Start the entry is pending (TARGET_QUEUED) and its Undo offered; the Start captures the debut card fitted, [105,100,100], with 3 specified reps cells, and with no entry the ordinary day captures [100,95,95]; C3 at [105,100,100] (or [100,95,95], or [95,90,90]) consumes Q as MISSED (another layout) with w 100, wSets [100,95] and sets 3 unchanged and no hold; the check on C3 refuses SET_COUNT_BASIS_UNPROVEN [C3 Close Ref] with no offer; the Undo of Q refuses COMPENSATION_DESCENDANTS; the next card is the ordinary card fitted, [100,95,95], never the debut; variant 2 -> 1: debut card [105], missed, next card [100]; variant 2 -> 3 -> 2 before any Start: debut card [105,100], and C3 at [105,100] lands (w 105, wSets [105,100]); R1 and R2, typed v2 and host v1',()=>{
+ effectsGate();
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const v=vectorDebut(3,{rev});
+  assert.deepEqual(liveQ(v.f,v.spend),[[false,'DEBUT']],rev);
+  expectRefusal(checkOf(v.a,LIFT,v.cs[1]),'TARGET_QUEUED',[ref('fx-resp-b')]);
+  assert.equal(checkOf(v.a,LIFT,v.cs[1],{compensate:v.spend}).status,'offer',rev+' its Undo stays offered');
+  const card=prepareDay(v.shown).capture;
+  assert.deepEqual([cellLoads(card),liftCells(card).map(x=>x.reps.state)],[[105,100,100],['specified','specified','specified']],rev+' the debut card, fitted');
+  assert.deepEqual(cellLoads(prepareDay(withFacts(N11S(3),v.cs)).capture),[100,95,95],rev+' no entry: the ordinary day, fitted');
+  for(const [sets,cardW,loadsList,next] of [[3,[105,100,100],[[105,100,100],[100,95,95],[95,90,90]],[100,95,95]],[1,[105],[[105],[100]],[100]]])for(const loads of loadsList)for(const v1 of [false,true]){
+   const k=cardW.length,c3=C(3,{date:'2026-10-12',reps:[8,7,6].slice(0,k),loads,prescribed:cardW,effort:e(2,1,1).slice(0,k)}),c=v1?v1Of(c3):c3;
+   const x=vectorDebut(sets,{rev,comps:[c],prep:a=>{if(v1)captureOn(a.generation,c,cardW);}}),label='sets '+sets+' at '+loads+(v1?' v1 ':' v2 ')+rev;
+   assert.deepEqual([liveQ(x.f,x.spend),exOf(x.f.state).w,exOf(x.f.state).wSets,exOf(x.f.state).sets,EFFECTS.m.heldProjection(x.f).lifts.has(LIFT)],[[[true,'MISSED']],100,[100,95],sets,false],label+' '+JSON.stringify(x.f.issues));
+   expectRefusal(checkOf(x.a,LIFT,c),'SET_COUNT_BASIS_UNPROVEN',[ref(c.close)]);
+   expectRefusal(checkOf(x.a,LIFT,c,{compensate:x.spend}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-b')]);
+   assert.deepEqual(cellLoads(prepareDay(x.shown).capture),next,label+' the next card, never the debut');
+  }
+  const back=vectorDebut(2,{rev});
+  assert.deepEqual(cellLoads(prepareDay(back.shown).capture),[105,100],rev+' 2 -> 3 -> 2: the debut card at its layout');
+  const c3=C(3,{date:'2026-10-12',reps:[8,7],loads:[105,100],prescribed:[105,100],effort:e(2,1)}),l=vectorDebut(2,{rev,comps:[c3]});
+  assert.deepEqual([liveQ(l.f,l.spend),exOf(l.f.state).w,exOf(l.f.state).wSets],[[[true,'ESTABLISH']],105,[105,100]],rev+' '+JSON.stringify(l.f.issues));
+ }
+});
+test('READER-UP R9.10 (spec R9.10 L READER, DECISIONS:804 (f); E/progression.cjs:80-82): the N11 lift at sets 3; C1 at sets 2 [100,95] reps [7,6], then C2 captured fitted [100,95,95] and performed there, reps [10,9,8]: the day prepares; C2 is in E._loadTenure\'s tenure and is progressAnchor\'s line ([10,9,8]); the next card\'s reps targets are those of the same history under the stored vector [100,95,95] (as after any other workout); the check on C2 still refuses SET_COUNT_BASIS_UNPROVEN [C2 Close Ref], field null (nothing is offered, spent or written)',()=>{
+ effectsGate();
+ const c1=C(1,{reps:[7,6],loads:[100,95],prescribed:[100,95],effort:e(2,1)}),c2=C(2,{reps:TOP,loads:[100,95,95],prescribed:[100,95,95],effort:e(2,1,1)});
+ const s=withFacts(N11S(3),[c1,c2]),full=withFacts(F0({...N11EX,sets:3,wSets:[100,95,95]}),[c1,c2]),E=engineAt(CARD_DAY);
+ assert.deepEqual(cellLoads(prepareDay(s).capture),[100,95,95],'the day prepares');
+ assert.ok(E._loadTenure(exOf(s),s,null,null).tenure.some(t=>t[3]&&t[3].start_op_id===c2.start),'C2 extends the load tenure');
+ assert.deepEqual(E.progressAnchor(exOf(s),s),TOP,'C2 is the reps anchor');
+ const card=E.genSession(s,CARD_DAY,{}).ex.find(k=>k.id===LIFT),cardFull=E.genSession(full,CARD_DAY,{}).ex.find(k=>k.id===LIFT);
+ assert.deepEqual(card.tgt,cardFull.tgt,'the next card\'s reps targets follow C2');
+ const a=foldArgs([c1,c2],[],'fx-revision-1',N11S(3)),before=JSON.stringify(a.generation);
+ expectRefusal(checkOf(a,LIFT,c2),'SET_COUNT_BASIS_UNPROVEN',[ref(c2.close)]);assert.equal(JSON.stringify(a.generation),before);
+});
+test('READER-DOWN R9.10 (green-kept; spec R9.10 L READER "(iii) every row is judged as before when the stored vector is at least as long as the set count"): the N11 lift at sets 1: a row performed at [100] is the tenure and the anchor; a row performed at [100,95] has a performed position the card does not hold and is not at the current load, as before',()=>{
+ const E=engineAt(CARD_DAY),c1=C(1,{reps:[10],loads:[100],prescribed:[100],effort:e(2)}),s=withFacts(N11S(1),[c1]);
+ assert.deepEqual([E._loadTenure(exOf(s),s,null,null).tenure.length,E.progressAnchor(exOf(s),s)],[1,[10]]);
+ assert.deepEqual([atLoadOf(E,[100,95],[100],1),atLoadOf(E,[100,95],[100,95],1)],[true,false]);
+});
+test('READER-IDENTITY R9.10 (green-kept wherever no position lies beyond the stored vector, red on dfc4445 at the two that do, red by mutant; spec R9.10 L READER "today\'s rule at every position below the stored vector\'s length ... an empty array, present-null or ABSENT wSets read ex.w everywhere"): over wSets ABSENT, null, [], shorter, equal and longer than the set count, with null entries inside and at the end, a native row is at the current load exactly when its performed positions equal the READER vector; that vector is dfc4445\'s except at a position beyond a non-empty stored vector whose last entry is not w; a legacy-only input keeps the legacy rule (String(w)) whatever wSets holds',()=>{
+ const E=engineAt(CARD_DAY);
+ const matrix=[[undefined,3],[null,3],[[],3],[[100,95],3],[[100,95],2],[[100,95,90],3],[[100,95,90,85],3],[[100,null,90],3],[[100,95,null],3],[[95,null],3],[[100,100],3],[[95],1],[[95],3],[[100],3]];
+ let beyond=0;
+ for(const [wSets,sets] of matrix){
+  const ex={w:100,sets,...(wSets===undefined?{}:{wSets})},R=readerOracle(ex),O=oldReaderOracle(ex),label=JSON.stringify([wSets,sets]);
+  if(JSON.stringify(R)!==JSON.stringify(O)){beyond++;assert.ok(Array.isArray(wSets)&&wSets.length>0&&wSets.length<sets&&wSets[wSets.length-1]!=null&&wSets[wSets.length-1]!==100,'a difference only beyond the stored vector '+label);}
+  for(const P of [R,O,R.map(()=>100),R.map((v,i)=>(i?v:v-5))])assert.equal(atLoadOf(E,wSets,P,sets),JSON.stringify(P)===JSON.stringify(R),label+' performed '+JSON.stringify(P));
+ }
+ assert.equal(beyond,2,'[100,95] and [95] at sets 3 read beyond their stored vectors');
+ for(const [w,want] of [[100,1],[95,0]])for(const view of [false,true]){
+  // Legacy-only input, and a legacy row read in the native view (_rowAtCurrentLoad's legacy branch).
+  const s=view?withFacts(F0({sets:3,wSets:[100,95]}),[]):F0({sets:3,wSets:[100,95]});s.sessionLog={[dayAt(0)]:{entries:[{id:LIFT,w,reps:[9,9,9]}]}};
+  assert.equal(E._loadTenure(exOf(s),s,null,null).tenure.length,want,'legacy row at '+w+(view?' in the native view':''));
+ }
+});
+test('READER-NULL-LAST R9.10 (green on dfc4445 by construction, red by mutant; spec R9.10 L READER "a null last entry falls back to ex.w exactly as a null entry does today"): wSets [100,null] at sets 3 reads 100, w, w; wSets [95,null] at sets 3 (w 100) reads 95, 100, 100: a native row performed at [95,100,100] is at the current load and one at [95,95,95] is not',()=>{
+ const E=engineAt(CARD_DAY);
+ assert.deepEqual([atLoadOf(E,[100,null],[100,100,100]),atLoadOf(E,[95,null],[95,100,100]),atLoadOf(E,[95,null],[95,95,95])],[true,true,false]);
+});
+test('READER-HISTORY R9.10 (spec R9.10 L READER (ii)): with the stored vector [100,95,95] a native row performed at [100,95,95] is at the current load and one at [100,95,100] is not; with the stored vector [100,95] at sets 3 the same holds (dfc4445 gave the reverse)',()=>{
+ const E=engineAt(CARD_DAY);
+ assert.deepEqual([atLoadOf(E,[100,95,95],[100,95,95]),atLoadOf(E,[100,95,95],[100,95,100]),atLoadOf(E,[100,95],[100,95,95]),atLoadOf(E,[100,95],[100,95,100])],[true,false,true,false]);
+});
+// FC01 DERIVABLE (c2) through the public transition (spec R9 :156): a compensate record naming no fold spend
+// passes (c2) exactly when its base vector is FC01 planVector's projection of its recorded image over
+// load_basis.sets, and is then refused at the next clause ('compensates'); otherwise 'base_load'.
+function c2Field(R,{w=100,wSets,sets},base){
+ const abs={present:false,value:null},W={present:true,value:w},S=wSets===undefined?abs:{present:true,value:wSets};
+ const fields={w:W,wSets:S,wAt:abs,last:abs,lastMeta:abs,own:abs,std:abs,topAt:abs,topRun:abs};
+ const d={profile:'earned/native-load-decision/v1',kind:'compensate',lift_lineage_id:LIFT,basis:{load_basis:{authority_refs:[],sets,w:W,wSets:S,inc:abs,steps:abs}},evidence:[],
+  base_load:{scalar:lb(w),vector:base.map(lb),fields},target_load:{scalar:lb(w),vector:base.map(lb)},candidate:null,reason_key:'compensation',
+  spend_id:JSON.stringify(['native-load-compensation',LIFT,'fx-none']),consumes:[],compensates:'fx-none'};
+ const t=R.applyNativeLoadDecision(F0(),d,{event:'accept',basis:d.basis,spent:[],authority:{response_refs:[ref('fx-resp-p')]},completion:null});
+ return t.status==='refused'&&t.refusal?t.refusal.field:t.status;
+}
+test('READER-PARITY R9.10 (spec R9.10 L READER, READER-PARITY; N20): over the matrix, E (a native row at the current load, E/progression.cjs through _rowAtCurrentLoad) and FC01 planVector (DERIVABLE (c2), through this file\'s engine and both accepted runtimes) read the same vector, which equals the fitted loads wherever the stored vector has no null entry; FC03 projectBase (the MISSED-DEBUT ANCHOR base check, :155) accepts a claimed adoption of the fitted N11 debut Close re-based on the earn\'s recorded image with base [100,95,95] (it then meets the vector plan: VECTOR_ADOPTION_UNDEFINED, held back) and refuses base_load on [100,95,100]; R1 and R2',()=>{
+ effectsGate();
+ const E=engineAt(CARD_DAY),matrix=[[undefined,3],[null,3],[[],3],[[100,95],3],[[100,95],2],[[100,95,90],3],[[100,95,90,85],3],[[100,null,90],3],[[95,null],3],[[95],3],[[95],1]];
+ for(const [wSets,sets] of matrix){
+  const R=readerOracle({w:100,sets,...(wSets===undefined?{}:{wSets})}),label=JSON.stringify([wSets,sets]);
+  assert.equal(atLoadOf(E,wSets,R,sets),true,label+' E');
+  if(Array.isArray(wSets)&&wSets.length&&wSets.every(v=>v!=null))assert.deepEqual(R,fitOracle(wSets,sets),label+' the fitted loads');
+  const other=R.map((v,i)=>(i===R.length-1?v+2.5:v));
+  for(const [rt,engine] of runtimes(CARD_DAY))assert.deepEqual([c2Field(engine,{wSets,sets},R),c2Field(engine,{wSets,sets},other)],['compensates','base_load'],label+' FC01 '+rt);
+ }
+ const c3=C(3,{date:'2026-10-12',reps:[8,7,6],loads:95,prescribed:[105,100,100],effort:e(2,1,1)});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const v=vectorDebut(3,{rev,comps:[c3]});
+  assert.deepEqual(liveQ(v.f,v.spend),[[true,'MISSED']],rev+' control: the fitted debut Close missed');
+  // The claimed adoption, issued by FC01 on a scalar view of the lift, then re-based on the earn's recorded image.
+  const view=structuredClone(v.f.state);delete exOf(view).wSets;
+  const comps=[...v.cs,c3],basis=basisFor(view,comps,{frontier:v.f.spent.map(x=>({spend_id:x.spend_id,response_refs:x.response_refs,close_ref:x.close_ref}))});
+  basis.load_basis.authority_refs=[ref(c3.close)];
+  const ev=engineAt(c3.date).evaluateNativeLoad(view,{lift_lineage_id:LIFT,completion_op_id:c3.close,intent:'check',basis});
+  assert.equal(ev.status,'offer',rev+' '+JSON.stringify(ev.refusal));
+  for(const [vec,want] of [[[100,95,95],'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED'],[[100,95,100],'NATIVE_LOAD_RECORD_INVALID']]){
+   const o=structuredClone(ev.offers[0]),d=decisionOf(o);
+   assert.deepEqual([d.kind,d.basis.load_basis.authority_refs],['adopt-observed',[ref(c3.close)]],rev);
+   d.base_load.vector=vec.map(lb);d.base_load.fields.wSets={present:true,value:[100,95]};d.basis.load_basis.wSets={present:true,value:[100,95]};
+   const g=vectorDebut(3,{rev,comps:[c3],extra:[acceptOp(o,{op_id:'fx-resp-o',after:3})]}).f;
+   const mine=g.issues.filter(i=>(i.refs||[]).some(r=>r.op_id==='fx-resp-o')&&i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').map(i=>[i.code,i.field]);
+   assert.deepEqual(mine,[[want,want==='NATIVE_LOAD_RECORD_INVALID'?'base_load':null]],rev+' '+vec+' '+JSON.stringify(g.issues));
+   assert.equal(exOf(g.state).w,100,rev+' nothing raised');
+  }
+ }
+});
+test('READER-UNDO-TEXT R9.10 (spec R9.10 L READER, Records): the Undo of the pending vector Q (DEBUT [105,100]) after sets 2 -> 3, before its Start, is a RETIRE whose target and base are [100,95,95] and whose sentence names \'100 lb, 95 lb, 95 lb\'; its yes replays under R1 and R2 (Q COMPENSATED, no RECORD_INVALID, w 100 and wSets [100,95] unchanged)',()=>{
+ effectsGate();
+ const v=vectorDebut(3),u=checkOf(v.a,LIFT,v.cs[1],{compensate:v.spend});assert.equal(u.status,'offer',JSON.stringify(u.refusal));
+ const d=decisionOf(u.offers[0]);
+ assert.deepEqual([d.kind,d.target_load.vector,d.base_load.vector],['compensate',Loads(100,95,95),Loads(100,95,95)]);
+ assert.ok(u.offers[0].reason.includes('goes back to 100 lb, 95 lb, 95 lb.'),u.offers[0].reason);
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=vectorDebut(3,{rev,extra:[acceptOp(u.offers[0],{op_id:'fx-resp-u',after:2})]}).f;
+  assert.deepEqual([liveQ(f,v.spend),recordInvalid(f),exOf(f.state).w,exOf(f.state).wSets],[[[true,'COMPENSATED']],[],100,[100,95]],rev+' '+JSON.stringify(f.issues));
+ }
+});
+// J D-L8F-1: Q105 missed on C3 at 95 (3 sets) and the yes to its [adopt-observed 95] (fx-resp-3), typed v2 or host v1.
+function lowerYes(v1){
+ const m=missedDebut(95),e0=n29Args(m.cs,m.c3,[m.resp],{v1}),exit=checkOf(e0.a,LIFT,e0.c).offers[0];
+ return {m,d:decisionOf(exit),yes:acceptOp(exit,{op_id:'fx-resp-3',after:3}),args:(extra,o={})=>n29Args(m.cs,m.c3,[m.resp,...extra],{v1,card:[105,105,105],...o})};
+}
+test('RESTORE-COUNT R9.10 (spec R9.10 L RESTORE COUNT, D-R18-SETS-RESTORE, DECISIONS:804; J D-L8F-1): Q105 missed on C3 at 95 (3 sets) and the yes to [adopt-observed 95] applied (w 95), then a sets-only plan edit 3 -> 2 (and 3 -> 4): the adoption stays applied; its Undo is offered with target 100 on the 3 slots the adoption consumed and base 95 on the current count; its yes restores w 100 and the whole prior image, keeps the edited count, authority compensated, no issue, and the next card is 100 on the edited count; R1 and R2, typed v2 and host v1',()=>{
+ effectsGate();
+ for(const v1 of [false,true]){
+  const L=lowerYes(v1);
+  for(const k of [2,4])for(const rev of ['fx-revision-1','fx-revision-2']){
+   const label=(v1?'v1 ':'v2 ')+'sets '+k+' '+rev,{a,c}=L.args([L.yes],{rev,base:SETS(k)}),f0=EFFECTS.m.foldNativeLoad(a);
+   assert.deepEqual([exOf(f0.state).w,exOf(f0.state).sets],[95,k],label+' the adoption stays applied across the count edit '+JSON.stringify(f0.issues));
+   const u=checkOf(a,LIFT,c,{compensate:L.d.spend_id});assert.equal(u.status,'offer',label+' '+JSON.stringify(u.refusal));
+   const ud=decisionOf(u.offers[0]);
+   assert.deepEqual([ud.target_load.scalar,ud.target_load.vector,ud.base_load.scalar,ud.base_load.vector],[lb(100),Loads(100,100,100),lb(95),Array(k).fill(lb(95))],label);
+   const g=EFFECTS.m.foldNativeLoad(L.args([L.yes,acceptOp(u.offers[0],{op_id:'fx-resp-4',after:3})],{rev,base:SETS(k)}).a),gx=exOf(g.state),before=exOf(SETS(k));
+   for(const x of ['w','wSets','wAt','last','lastMeta','own','std','topAt','topRun','sets'])assert.deepEqual([x,gx[x]],[x,before[x]],label+' prior image '+x);
+   assert.deepEqual([gx.native_load_authority.kind,g.issues.filter(i=>i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED')],['compensated',[]],label+' '+JSON.stringify(g.issues));
+   assert.deepEqual(cardLoads(EFFECTS.m.heldProjection(g).state),Array(k).fill(100),label+' the next card');
+  }
+ }
+});
+test('RESTORE-COUNT-BASELINE R9.10 (spec R9.10 L RESTORE COUNT): the yes to [adopt-baseline 60] on C1 (w null, 3 sets) applied, then sets 3 -> 2: the Undo is offered with target null on the 3 slots the adoption consumed and base 60 on 2; its yes restores the prior image as recorded (w null), sets 2, authority compensated, no issue; R1 and R2',()=>{
+ effectsGate();
+ const c1=C(1,{reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),base=k=>F0({w:null,...(k?{sets:k}:{})});
+ const ad=checkOf(foldArgs([c1],[],'fx-revision-1',base()),LIFT,c1).offers[0];assert.equal(decisionOf(ad).kind,'adopt-baseline');
+ const y=acceptOp(ad,{after:1});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const a=foldArgs([c1],[y],rev,base(2));assert.equal(exOf(EFFECTS.m.foldNativeLoad(a).state).w,60,rev);
+  const u=checkOf(a,LIFT,c1,{compensate:decisionOf(ad).spend_id});assert.equal(u.status,'offer',rev+' '+JSON.stringify(u.refusal));
+  const ud=decisionOf(u.offers[0]);
+  assert.deepEqual([ud.target_load.scalar,ud.target_load.vector,ud.base_load.vector],[null,[null,null,null],Loads(60,60)],rev);
+  const g=EFFECTS.m.foldNativeLoad(foldArgs([c1],[y,acceptOp(u.offers[0],{op_id:'fx-resp-2',after:1})],rev,base(2))),gx=exOf(g.state);
+  assert.deepEqual([gx.w,gx.sets,gx.native_load_authority.kind,g.issues.filter(i=>i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED')],[null,2,'compensated',[]],rev+' '+JSON.stringify(g.issues));
+ }
+});
+test('RESTORE-FORGED R9.10 (green-kept, red by mutant; spec R9.10 L RESTORE COUNT "the RESTORE check is not weakened"): the RESTORE-COUNT Undo re-shaped as round 18 issued it (target 100 projected at the edited count, 2 slots) and re-digested is refused RECORD_INVALID target_load [its Ref]; the adopted 95 stays applied; R1 and R2',()=>{
+ effectsGate();
+ const L=lowerYes(false),{a,c}=L.args([L.yes],{base:SETS(2)}),u=checkOf(a,LIFT,c,{compensate:L.d.spend_id});assert.equal(u.status,'offer',JSON.stringify(u.refusal));
+ const forged=structuredClone(u.offers[0]);decisionOf(forged).target_load.vector=Loads(100,100);
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const g=EFFECTS.m.foldNativeLoad(L.args([L.yes,acceptOp(forged,{op_id:'fx-resp-4',after:3})],{rev,base:SETS(2)}).a);
+  assert.deepEqual([g.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID').map(i=>[i.field,i.refs]),exOf(g.state).w],[[['target_load',[ref('fx-resp-4')]]],95],rev+' '+JSON.stringify(g.issues));
+ }
+});
+// Every compensation body issued with no set-count edit (measured on the dfc4445 product).
+const RESTORE_NO_EDIT_PIN='00ab2971f1a908ba65b99de737c7cbe219c2eb7d44c4833a481cb705415ca5f3';
+test('RESTORE-NO-EDIT R9.10 (green-kept; spec R9.10 L RESTORE COUNT "with no set-count edit every compensation body is byte-identical to dfc4445"): the Undo offers of an applied adoption (J D-L8F-1), of an applied adopt-baseline, of a queued earn (N02c) and of a pending vector debut at its own count are byte-identical to their dfc4445 bodies and sentences (pinned digest)',()=>{
+ effectsGate();
+ const out=[];
+ const L=lowerYes(false),{a,c}=L.args([L.yes]);out.push(checkOf(a,LIFT,c,{compensate:L.d.spend_id}).offers[0]);
+ const c1=C(1,{reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),ad=checkOf(foldArgs([c1],[],'fx-revision-1',F0({w:null})),LIFT,c1).offers[0];
+ out.push(checkOf(foldArgs([c1],[acceptOp(ad,{after:1})],'fx-revision-1',F0({w:null})),LIFT,c1,{compensate:decisionOf(ad).spend_id}).offers[0]);
+ const s=landingScenario('fx-revision-1');out.push(checkOf(foldArgs(s.cs,[s.resp]),LIFT,s.cs[1],{compensate:decisionOf(s.offer).spend_id}).offers[0]);
+ const v=vectorDebut(2);out.push(checkOf(v.a,LIFT,v.cs[1],{compensate:v.spend}).offers[0]);
+ assert.ok(out.every(o=>o&&decisionOf(o).kind==='compensate'),JSON.stringify(out.map(o=>!!o)));
+ assert.equal(sha(out.map(o=>[decisionOf(o),o.reason])),RESTORE_NO_EDIT_PIN,'byte-identical to the dfc4445 compensation bodies');
+});
+// J LATER HOLD: the yes to [adopt-observed 95] claiming the missed debut Close C3 (fx-resp-3; applied, w 95), its
+// Undo offered then (fx-resp-4, RESTORE-shaped), and C1 corrected afterwards (Q105's accept BASIS_REPAIR_REQUIRED).
+function laterHold(v1=false){
+ const m=missedDebut(95),c3=v1?v1Of(m.c3):m.c3,cap=a=>{if(v1)captureOn(a.generation,c3,[105,105,105]);return a;};
+ const at=(cs,extra,rev='fx-revision-1',more=[])=>cap(foldArgs([...cs,c3,...more],[m.resp,...extra],rev));
+ const exit=checkOf(at(m.cs,[]),LIFT,c3).offers[0],d=decisionOf(exit),yes=acceptOp(exit,{op_id:'fx-resp-3',after:3});
+ const u=checkOf(at(m.cs,[yes]),LIFT,c3,{compensate:d.spend_id});assert.equal(u.status,'offer','control: the Undo is offered before the correction '+JSON.stringify(u.refusal));
+ const undo=acceptOp(u.offers[0],{op_id:'fx-resp-4',after:3}),fixed=[C(1,{reps:TOP,effort:e(2,1,1),corrected:{3:7}}),m.cs[1]];
+ return {m,c3,d,yes,undo,ud:decisionOf(u.offers[0]),fixed,at};
+}
+// STOP-R19-1 (named for the PM in the round-19 report): L's row text says that with the recorded Undo the fold "issues
+// exactly BASIS_REPAIR_REQUIRED [Q105 response Ref] and TARGET_QUEUED [95 response Ref]". L's mechanism holds the 95 yes
+// back through held.set (FC03:527 entryOf and the held book), and the fold resolves a held-back issue when its spend is
+// cancelled (as for every HELD_BACK record since round 8, R17-ANCHOR-LEGACY-LATER), so measured: TARGET_QUEUED [fx-resp-3]
+// stands without the Undo and is resolved by it. This row pins the measured lists; the PM confirms which the spec means.
+test('N29-LATER-HOLD-UNDO R9.10 (spec R9.10 L LATER HOLD UNDO, D-R9.9-LATER-HOLD-UNDO, DECISIONS:804; J LATER HOLD; STOP-R19-1 on the issue list): with no Undo the fold issues exactly BASIS_REPAIR_REQUIRED [the Q105 yes Ref] and TARGET_QUEUED [the 95 yes Ref] with the 95 spend kept; with the recorded Undo there is no RECORD_INVALID, the Undo cancels the kept spend and resolves its held-back TARGET_QUEUED issue, BASIS_REPAIR_REQUIRED is the only hold, w 100, Q105 pending and hidden (the baseline ask); exit (b) on C4 on the baseline ask offers [adopt-baseline 95] as J; R1 and R2',()=>{
+ effectsGate();
+ const h=laterHold(),c4=C(4,{date:'2026-10-15',reps:TOP,loads:95,prescribed:null,effort:e(2,1,1)});
+ const listed=f=>f.issues.filter(i=>i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').map(i=>[i.code,(i.refs||[]).map(r=>r.op_id)]);
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f0=EFFECTS.m.foldNativeLoad(h.at(h.fixed,[h.yes],rev));
+  assert.deepEqual([listed(f0),!!f0.spent.find(y=>y.spend_id===h.d.spend_id&&!y.cancelled_by)],[[['NATIVE_LOAD_BASIS_REPAIR_REQUIRED',['fx-resp-1']],['NATIVE_LOAD_TARGET_QUEUED',['fx-resp-3']]],true],rev+' without the Undo');
+  assert.deepEqual(EFFECTS.m.heldProjection(f0).issues.map(i=>i.code),['NATIVE_LOAD_BASIS_REPAIR_REQUIRED'],rev+' TARGET_QUEUED keeps its code and is not a hold (HOLD_CODES unchanged)');
+  const f=EFFECTS.m.foldNativeLoad(h.at(h.fixed,[h.yes,h.undo],rev)),label=rev+' '+JSON.stringify(f.issues.map(i=>[i.code,i.field,(i.refs||[]).map(r=>r.op_id)]));
+  assert.deepEqual(listed(f),[['NATIVE_LOAD_BASIS_REPAIR_REQUIRED',['fx-resp-1']]],label);
+  assert.deepEqual(recordInvalid(f),[],label);
+  assert.deepEqual(EFFECTS.m.heldProjection(f).issues.map(i=>[i.code,i.refs]),[['NATIVE_LOAD_BASIS_REPAIR_REQUIRED',[ref('fx-resp-1')]]],label);
+  const x=f.spent.find(y=>y.spend_id===h.d.spend_id);
+  assert.ok(x&&x.cancelled_by===h.ud.spend_id,label+' the 95 spend is kept and cancelled by its Undo');
+  assert.deepEqual([exOf(f.state).w,liveQ(f,h.m.spend),cardLoads(EFFECTS.m.heldProjection(f).state)],[100,[[false,'DEBUT']],[null,null,null]],label);
+  const ev=checkOf(h.at(h.fixed,[h.yes,h.undo],rev,[c4]),LIFT,c4);assert.equal(ev.status,'offer',rev+' '+JSON.stringify(ev.refusal));
+  assert.deepEqual(ev.offers.map(o=>[decisionOf(o).kind,decisionOf(o).target_load.scalar.value]),[['adopt-baseline',95]],rev);
+ }
+});
+test('N29-LATER-HOLD-EXIT-A R9.10 (spec R9.10 L LATER HOLD UNDO, exit (a)): with no Undo recorded, the check offers the Undo of the held-back 95 yes (a RETIRE: it never applied in this projection, so it writes no weight) and its yes cancels the spend with w 100 and no RECORD_INVALID; once a Start captured 95 after that yes (C4 on the 95 card), the Undo refuses COMPENSATION_DESCENDANTS [its Ref]; R1 and R2',()=>{
+ effectsGate();
+ const h=laterHold(),c4=C(4,{date:'2026-10-15',reps:TOP,loads:95,prescribed:95,effort:e(2,1,1)});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const a=h.at(h.fixed,[h.yes],rev),u=checkOf(a,LIFT,h.c3,{compensate:h.d.spend_id});assert.equal(u.status,'offer',rev+' '+JSON.stringify(u.refusal));
+  const ud=decisionOf(u.offers[0]);assert.deepEqual([ud.target_load,ud.base_load.vector],[{scalar:lb(100),vector:Loads(100,100,100)},Loads(100,100,100)],rev+' RETIRE-shaped');
+  const g=EFFECTS.m.foldNativeLoad(h.at(h.fixed,[h.yes,acceptOp(u.offers[0],{op_id:'fx-resp-5',after:3})],rev));
+  assert.deepEqual([exOf(g.state).w,recordInvalid(g),!!(g.spent.find(y=>y.spend_id===h.d.spend_id)||{}).cancelled_by],[100,[],true],rev+' '+JSON.stringify(g.issues));
+  expectRefusal(checkOf(h.at(h.fixed,[h.yes],rev,[c4]),LIFT,c4,{compensate:h.d.spend_id}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-3')]);
+ }
+});
+// STOP-R19-2 (named for the PM in the round-19 report): L LATER HOLD UNDO names the C3 refusal SOURCE_OVERLAP [C3 Close
+// Ref] (host v1) and PLAN_CHANGED "as at dfc4445" (typed v2). Measured: FC01 on the held projection refuses C3 so (v1:
+// SOURCE_OVERLAP, C3 now spent), but the unchanged exit (b) of FC03 checkNativeLoad answers any refusal it does not pass
+// through with the hold's own refusal, so both slot kinds refuse BASIS_REPAIR_REQUIRED [the Q105 yes Ref]; dfc4445 also
+// refused typed v2 so, and offered host v1 [adopt-baseline 95]. This row pins what R9.10 fixes (no offer on C3, the
+// kept spend) and leaves the refusal's name to the PM; no FC03 exit (b) byte is in L's scope.
+test('N29-LATER-HOLD-C3 R9.10 (spec R9.10 L LATER HOLD UNDO, J LATER HOLD exit (b); STOP-R19-2 on the refusal name): C3 is spent by the kept 95 yes, so exit (b) never adopts it: on host v1 and typed v2 slots the check on C3 refuses and offers nothing (dfc4445 offered host v1 [adopt-baseline 95]); C4 on the baseline ask is offered [adopt-baseline 95] as J; R1 and R2',()=>{
+ effectsGate();
+ const c4=C(4,{date:'2026-10-15',reps:TOP,loads:95,prescribed:null,effort:e(2,1,1)});
+ for(const v1 of [false,true]){
+  const h=laterHold(v1);
+  for(const rev of ['fx-revision-1','fx-revision-2']){
+   const label=(v1?'v1 ':'v2 ')+rev,c3v=checkOf(h.at(h.fixed,[h.yes],rev),LIFT,h.c3);
+   assert.deepEqual([c3v.status,c3v.offers],['refused',[]],label+' '+JSON.stringify(c3v.refusal));
+   const ev=checkOf(h.at(h.fixed,[h.yes],rev,[c4]),LIFT,c4);assert.equal(ev.status,'offer',label+' '+JSON.stringify(ev.refusal));
+   assert.deepEqual(ev.offers.map(o=>[decisionOf(o).kind,decisionOf(o).target_load.scalar.value]),[['adopt-baseline',95]],label);
+  }
+ }
+});
+test('N29-LATER-HOLD-REVERT R9.10 (green-kept; spec R9.10 L LATER HOLD UNDO): the correction reverted, Q105 is consumed MISSED again and the 95 yes applies as written (w 95, authority adopted); with its Undo recorded, w 100 and the prior image (authority compensated); no issue; R1 and R2',()=>{
+ effectsGate();
+ const h=laterHold();
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(h.at(h.m.cs,[h.yes],rev)),g=EFFECTS.m.foldNativeLoad(h.at(h.m.cs,[h.yes,h.undo],rev));
+  const quiet=x=>x.issues.filter(i=>i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED');
+  assert.deepEqual([exOf(f.state).w,exOf(f.state).native_load_authority.kind,liveQ(f,h.m.spend),quiet(f)],[95,'adopted',[[true,'MISSED']],[]],rev);
+  assert.deepEqual([exOf(g.state).w,exOf(g.state).native_load_authority.kind,liveQ(g,h.m.spend),quiet(g)],[100,'compensated',[[true,'MISSED']],[]],rev);
+ }
+});
+test('LATER-HOLD-SCOPE R9.10 (green-kept, red by mutant; spec R9.10 L LATER HOLD UNDO "any other TARGET_QUEUED refusal keeps today\'s rule"): Q105 accepted at the C1, C2 cut on this device; device B, which had not received that yes, trained C3 at 95 on the 100 card and recorded the unclaimed [adopt-observed 95] its own check offered (authority_refs []); in the merged log that record meets TARGET_QUEUED (Q105 pending, C3 is not its card): the issue names its Ref, the record is not in the spend index, w stays 100 and Q105 stays pending; R1 and R2',()=>{
+ effectsGate();
+ const {cs,resp}=landingScenario('fx-revision-1'),c3=C(3,{date:'2026-10-12',reps:TOP,loads:95,prescribed:100,effort:e(2,1,1)});
+ const o=checkOf(foldArgs([...cs,c3],[]),LIFT,c3).offers[0],d=decisionOf(o);
+ assert.deepEqual([d.kind,d.basis.load_basis.authority_refs],['adopt-observed',[]],'control: device B\'s own unclaimed offer');
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([...cs,c3],[resp,{...acceptOp(o,{op_id:'fx-resp-B',after:3}),device:'fx-device-B'}],rev));
+  const mine=f.issues.filter(i=>(i.refs||[]).some(r=>r.op_id==='fx-resp-B')&&i.code!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED').map(i=>i.code);
+  assert.deepEqual([mine,f.spent.some(x=>x.spend_id===d.spend_id),exOf(f.state).w,liveQ(f,decisionOf(landingScenario('fx-revision-1').offer).spend_id)],
+   [['NATIVE_LOAD_TARGET_QUEUED'],false,100,[[false,'DEBUT']]],rev+' '+JSON.stringify(f.issues));
+ }
 });

@@ -85,7 +85,14 @@ test('invalid source configurations and numeric vectors refuse without changing 
   ex.w=value;const before=structuredClone(input);assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_UNPROVEN'});assert.deepEqual(input,before);
  }
  ex.w=40;
- for(const vector of [[40],[40,-0],[40,'BW'],[40,NaN],new Array(2)]){ex.wSets=vector;assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});}
+ for(const vector of [[40,-0],[40,'BW'],[40,NaN],new Array(2)]){ex.wSets=vector;assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});}
+});
+// Spec R9.10 L EXISTING ROWS THAT CHANGE (DECISIONS:803 (e), ruled by :804): [40] with ex.w 40 on the fixture's 2-slot card
+// is what a set-count increase from 1 to 2 leaves, so it captures fitted [40,40]; carried from the loop above.
+test('invalid source configurations and numeric vectors refuse without changing input R9.10',async()=>{
+ const {adapter,input}=await fixture(),ex=input.state.exercises[0];ex.w=40;ex.wSets=[40];
+ const slots=adapter.prepare(input).capture.slots.filter(s=>s.lift_lineage_id===ex.id);
+ assert.deepEqual(slots.map(s=>[s.load.display,JSON.parse(s.load.source_json)]),[['40 lb',{value:40,unit:'lb'}],['40 lb',{value:40,unit:'lb'}]]);
 });
 test('registered new load interpretation rejects changed display, unknown state and malformed source',async()=>{
  const {adapter,input}=await fixture();input.state.exercises[0].w='BW';const {capture}=adapter.prepare(input);
