@@ -247,7 +247,7 @@ export async function openTodayOverLocalEra({
     profile: Capture.SOURCE_PROFILE, sourceCodec: Source });
   const workoutCommands = Commands.createWorkoutCommands({ prescriptionCapture });
   const eraClock = clock || (live ? liveEraClock(live) : clock);
-  /* NATIVE-LOAD FC08 (NATIVE-LOAD-SPEC R7; DECISIONS:784-785). The trusted native-load
+  /* NATIVE-LOAD FC08 (NATIVE-LOAD-SPEC R9.6 b739c2f8 on R9.4 a575692, first built on R7; DECISIONS:784-785). The trusted native-load
      capability is installed HERE, at construction, and nowhere else: its ticket registry
      is private to this installation, so a caller can hand the durable client nothing but
      an opaque ticket this module issued for an issuance it holds. */
@@ -506,7 +506,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
           mapping ? { ...options, importAnchor: mapping.anchor } : options) });
     };
 
-    /* NATIVE-LOAD FC08 (NATIVE-LOAD-SPEC R7, "Guarded durable command"): the existing
+    /* NATIVE-LOAD FC08 (NATIVE-LOAD-SPEC R9.6, first built on R7, "Guarded durable command"): the existing
        null registrar, DECORATED. register() runs the one source fold first, from the
        immutable supplied state, the authenticated generation and the registered facts,
        and hands the reconstructed programme to the REAL registrar; workoutInput stays
@@ -516,11 +516,15 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     const nativeEngine = Object.freeze({ revision: NativeLoadEffects.PRODUCER_REVISION,
       at: d => HostRuntime.createEngineRuntime({ clock: engineClockFor(d, live),
         nativeTrendContext: nativeTrendContext || trendBinding.resolve }) });
+    const nativeNullSource = Source.basis({ W: 0, log_digest: Source.createPrefixHasher().digest(), selection_id: null });
     const nativeLoadRegistrar = config => {
       const real = SourceProjection.createNullSelectionRegistrar(config);
       return Object.freeze({ ...real, register(args = {}) {
+        /* Spec R9.6 :164 (fresh l1 D-FRESH-2): the registrar folds with the SAME admitted source
+           basis as project() and check() (nullSource below), so S7 binds here too and both new
+           captures and Today read one projection of one log. */
         const fold = NativeLoadEffects.foldNativeLoad({ base: args.state, generation: args.generation,
-          workoutFacts: args.workoutFacts, engine: nativeEngine, athleteId });
+          workoutFacts: args.workoutFacts, engine: nativeEngine, athleteId, source: nativeNullSource });
         if (fold.status !== "ready") {
           const issue = fold.issues.find(x => NativeLoadEffects.BLOCKING_CODES.includes(x.code)) || { code: "NATIVE_LOAD_RECORD_INVALID" };
           const error = new Error(issue.code); error.code = issue.code; throw error;

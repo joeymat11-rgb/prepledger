@@ -51,16 +51,19 @@ async function dayEntry(era, day, extra = {}) {
 // with effort `effort` (a label of the approved choice set), then a normal Finish.
 // Round 4 options: start:false continues a Start already made; load fills a set whose card has no load (baseline).
 // Round 5 option: loadFor {lift: load} logs that lift at a load other than the card's (an observed load).
-async function train(entry, reps = 12, effort = '1', { start = true, load: entered = null, loadFor = {} } = {}) {
-  const gym = entry.gym;
+// Round 16 option: loadSeqFor {lift: [l1, l2, ...]} logs that lift's sets at those loads in order (unequal loads).
+async function train(entry, reps = 12, effort = '1', { start = true, load: entered = null, loadFor = {}, loadSeqFor = {} } = {}) {
+  const gym = entry.gym, seen = {};
   const reserve = gym.effortChoices().find(c => c.label === effort).reserve;
   if (start) { const started = await gym.start(); assert.equal(started.ok, true, 'start ' + started.code); }
   for (let guard = 0; guard < 20; guard++) {
     const view = await gym.read();
     if (view.phase === 'saved') { if (view.complete) break; gym.forget(); continue; }
     if (view.phase !== 'active') break;
+    const lift = view.set.lift, k = seen[lift] = (seen[lift] || 0) + 1;
+    const load = Object.hasOwn(loadSeqFor, lift) ? loadSeqFor[lift][k - 1] : Object.hasOwn(loadFor, lift) ? loadFor[lift] : view.entry.load === null && entered !== null ? entered : view.entry.load;
     const logged = await gym.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
-      load: String(Object.hasOwn(loadFor, view.set.lift) ? loadFor[view.set.lift] : view.entry.load === null && entered !== null ? entered : view.entry.load), reps: String(reps), effort: reserve });
+      load: String(load), reps: String(reps), effort: reserve });
     assert.equal(logged.ok, true, 'set ' + logged.code);
     gym.forget();
   }
@@ -907,4 +910,141 @@ test('N27 (f) D-R9-LEGACY-ENTRY [Y] (spec R9.4 :159, D1 :316 (f)): yes Q45, then
   assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), 'demo-row normal');
   assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), 'demo-press: the baseline ask, never the legacy 50');
   three.entry.gymHost.close(); again.close();
+});
+// Round 16 (spec R9.6 b739c2f8; Astra L8 B28-B30; fresh Fable l1 D-FRESH-1, D-FRESH-2).
+test('R16-B28 RESTORE ON REPLAY [Y] (Astra L8 B28; spec R9.4 :156): D1 lifted at 45 on the 40 card, adopt 45, then Undo shown [40, 40] and accepted; a reopen whose admitted basis moved to 42.5 with no ordering op keeps the consented 40 (both responses kept, no open issue), never 42.5', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const one = await dayEntry(era, D1);
+  assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true);
+  await one.entry.nativeLoad.settled(); await one.entry.nativeLoad.check();
+  const adopt = one.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.equal(adopt && adopt.kind, 'adopt-observed');
+  assert.equal((await one.entry.nativeLoad.accept(adopt.proposalId)).acknowledged, true);
+  const host = await era.createNativeLoadHost({ day: D1, engineState: basisFor(D1) });
+  const body = (await responsesOf(era))[0].payload.issuance.body;
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'offer', JSON.stringify(undo.refusal));
+  assert.deepEqual(undo.offers[0].loads, [40, 40]);
+  assert.equal((await host.respond({ handle: undo.offers[0].handle, proposal_id: undo.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+  host.close(); one.entry.gymHost.close(); era.close();
+  const moved = day => withPress(day, { w: 42.5 });
+  const again = await reopenAt(fault, D2), h = await again.createNativeLoadHost({ day: D2, engineState: moved(D2) }), p = await h.project();
+  assert.equal((await responsesOf(again)).length, 2, 'both responses kept');
+  assert.equal(pressOf(p).w, 40, 'the RESTORE applies: the consented 40, not the admitted 42.5');
+  assert.ok(!p.issues.some(i => i.lift === 'demo-press' && !i.superseded_by && ['NATIVE_LOAD_EFFECT_CONFLICT', 'NATIVE_LOAD_RECORD_INVALID'].includes(i.code)), JSON.stringify(p.issues));
+  h.close();
+  const two = await dayEntryWith(again, D2, moved(D2)), view = await two.entry.gym.read();
+  assert.equal(view.phase, 'ready', view.code || '');
+  assert.equal(view.lift.id, 'demo-press'); assert.match(view.prescription.line, /^40 lb/, 'the card carries the consented 40');
+  two.entry.gymHost.close(); again.close();
+});
+test('N29 MISSED-DEBUT [Y] (spec R9.6 :152, D1 N29): yes Q45; D3 captures the 45 debut card and demo-press is lifted at 40 -> no landing, demo-press held, the D4 capture is the baseline ask (never 45 again); the D3 check offers adopt-baseline [40, 40]; Undo of Q45 refuses COMPENSATION_DESCENDANTS; the yes -> the next card is 40', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  entry.gymHost.close(); era.close();
+  const again = await reopenAt(fault, D3), three = await dayEntry(again, D3);
+  assert.match((await three.entry.gym.read()).prescription.line, /^45 lb/, 'control: the debut card');
+  assert.equal((await train(three.entry, 12, '1', { loadFor: { 'demo-press': 40 } })).finished.ok, true);
+  await three.entry.nativeLoad.settled();
+  const host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), p = await host.project();
+  assert.ok(p.issues.some(i => i.code === 'NATIVE_LOAD_DEBUT_BASIS_UNPROVEN' && i.reason === 'missed_target' && i.lift === 'demo-press' && !i.superseded_by), JSON.stringify(p.issues));
+  assert.equal(pressOf(p).w, null, 'held: the baseline ask');
+  assert.deepEqual(nativeQueue(p.state, 'demo-press'), [], 'the 45 target is hidden');
+  const yes = (await responsesOf(again))[0].payload.issuance.body;
+  const d3 = p.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id;
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: d3, intent: { compensate: yes.spend_id } });
+  assert.deepEqual([undo.status, undo.refusal && undo.refusal.code], ['refused', 'NATIVE_LOAD_COMPENSATION_DESCENDANTS']);
+  host.close();
+  const four = await dayEntry(again, D4), slots = await slotsOf(four.entry, D4);
+  assert.ok(slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), 'D4: the baseline ask, never 45');
+  four.entry.gymHost.close();
+  await three.entry.nativeLoad.check();
+  const offer = three.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.ok(offer, 'the missed completion is exit-eligible ' + JSON.stringify(three.entry.nativeLoad.view().refusals));
+  assert.deepEqual([offer.kind, offer.loads], ['adopt-baseline', [40, 40]]);
+  assert.equal((await three.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  three.entry.gymHost.close(); again.close();
+  const later = await reopenAt(fault, D4), five = await dayEntry(later, D4), view = await five.entry.gym.read();
+  assert.equal(view.phase, 'ready', view.code || '');
+  assert.equal(view.lift.id, 'demo-press'); assert.match(view.prescription.line, /^40 lb/, 'the adopted 40');
+  five.entry.gymHost.close(); later.close();
+});
+test('N30 HELD-UNEQUAL [Y] (spec R9.6 :163, Astra L8 B30): D1 at 45 adopted, D2 trained on the 45 card, a D1 set removed -> held; D3 on the baseline ask lifted at [45, 40] -> the check refuses VECTOR_ADOPTION_UNDEFINED, not BASIS_REPAIR_REQUIRED, and offers nothing for demo-press', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const one = await dayEntry(era, D1);
+  assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true);
+  await one.entry.nativeLoad.settled(); await one.entry.nativeLoad.check();
+  const adopt = one.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.equal((await one.entry.nativeLoad.accept(adopt.proposalId)).acknowledged, true);
+  one.entry.gymHost.close();
+  const two = await dayEntry(era, D2);
+  assert.equal((await train(two.entry)).finished.ok, true);
+  await two.entry.nativeLoad.settled();
+  await removeSetOf(two.entry.gymHost.host.client, D1, 'demo-press');
+  two.entry.gymHost.close(); era.close();
+  const again = await reopenAt(fault, D3), three = await dayEntry(again, D3);
+  assert.equal((await train(three.entry, 12, '1', { loadSeqFor: { 'demo-press': [45, 40] } })).finished.ok, true);
+  await three.entry.nativeLoad.settled(); await three.entry.nativeLoad.check();
+  const view = three.entry.nativeLoad.view();
+  assert.deepEqual(view.offers.filter(o => o.lift === 'demo-press'), [], 'no scalar invented');
+  assert.deepEqual(view.refusals.filter(r => r.lift === 'demo-press').map(r => r.code), ['NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED']);
+  three.entry.gymHost.close(); again.close();
+});
+test('D-FRESH-2 REGISTRAR SOURCE [Y] (spec R9.6 :164, :155 S7; fresh l1 D-FRESH-2): the guarded host cannot carry a recorded yes with a forged basis.source (a record rewritten straight through the durable repository is refused LOCAL_HISTORY_IDENTITY_UNPROVEN), and the capture registrar folds with the SAME admitted source as project() and check(), so both read one projection (FC12 R16-D-FRESH-2 shows the fold difference)', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  const repo = entry.gymHost.repository, snap = await repo.load(), gen = structuredClone(snap.generation), ops = gen.collections.ops;
+  const yes = Object.values(ops).find(o => o.kind === 'proposal-response');
+  const body = structuredClone(yes.payload.issuance.body);
+  body.basis.source = { W: 7, log_digest: 'fx-forged-source', selection_id: null };
+  const issuance = { ...structuredClone(yes.payload.issuance), body, revision: 'earned/native-load/v1+sha256:fx-absent-revision' };
+  ops[yes.op_id] = { ...yes, payload: { ...yes.payload, proposal_id: NativeLoadEffects.proposalDigest(issuance.producer, body, issuance.reason), issuance } };
+  await repo.commit({ revision: snap.revision, token: snap.token }, gen);
+  entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), p = await host.project();
+  assert.deepEqual([p.ok, p.code], [false, 'LOCAL_HISTORY_IDENTITY_UNPROVEN'], 'the guarded host refuses the rewritten record');
+  host.close(); era.close();
+  // The registrar (capture path) and project()/check() fold with one admitted source basis.
+  const fs = require('node:fs'), src = fs.readFileSync(require.resolve('../../../w6/local/today-bindings.mjs'), 'utf8');
+  const reg = src.slice(src.indexOf('const nativeLoadRegistrar'), src.indexOf('/* THE CAUSAL FRONTIER, DERIVED'));
+  assert.match(reg, /foldNativeLoad\(\{[^}]*source: nativeNullSource[^}]*\}\)/, 'the registrar fold passes the admitted source');
+  const same = /const nativeNullSource = Source\.basis\(\{ W: 0, log_digest: Source\.createPrefixHasher\(\)\.digest\(\), selection_id: null \}\);/.test(src)
+    && /const nullSource = Source\.basis\(\{ W: 0, log_digest: Source\.createPrefixHasher\(\)\.digest\(\), selection_id: null \}\);/.test(src);
+  assert.ok(same, 'the registrar and project()/check() build the same null-lane source basis');
+});
+test('R16-B29 SPEND-SUFFIX [Y] (Astra L8 B29, M14; spec :154 spend once): D1, D2 tops, yes Q45, then Undo of Q45 before any further training; D3 tops at 40 -> the check is PROVISIONAL [D3 Close Ref] (the spent D1/D2 sightings are never counted again); D4 tops -> the earn offer 45 returns on the two unspent sightings', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D2, engineState: basisFor(D2) });
+  const body = (await responsesOf(era))[0].payload.issuance.body;
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'offer', JSON.stringify(undo.refusal));
+  assert.equal((await host.respond({ handle: undo.offers[0].handle, proposal_id: undo.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+  host.close(); era.close();
+  const again = await reopenAt(fault, D3), three = await dayEntry(again, D3);
+  assert.match((await three.entry.gym.read()).prescription.line, /^40 lb/, 'the undone 45 never reaches the card');
+  assert.equal((await train(three.entry)).finished.ok, true);
+  await three.entry.nativeLoad.settled();
+  three.entry.gymHost.close();
+  const h3 = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), p3 = await h3.project();
+  const d3 = p3.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id;
+  const c3 = await h3.check({ lift_lineage_id: 'demo-press', completion_op_id: d3 });
+  assert.deepEqual([c3.status, c3.refusal && c3.refusal.code, c3.refusal && c3.refusal.refs.map(r => r.op_id)], ['refused', 'NATIVE_LOAD_PROVISIONAL', [d3]], 'one unspent sighting: provisional, never an earn on spent work');
+  h3.close(); again.close();
+  const later = await reopenAt(fault, D4), four = await dayEntry(later, D4);
+  assert.equal((await train(four.entry)).finished.ok, true);
+  await four.entry.nativeLoad.settled();
+  four.entry.gymHost.close();
+  const h4 = await later.createNativeLoadHost({ day: D4, engineState: basisFor(D4) }), p4 = await h4.project();
+  const d4 = p4.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id;
+  const c4 = await h4.check({ lift_lineage_id: 'demo-press', completion_op_id: d4 });
+  assert.equal(c4.status, 'offer', JSON.stringify(c4.refusal));
+  assert.deepEqual(c4.offers.filter(o => o.kind === 'earn').map(o => o.loads), [[45, 45]], 'the earn returns on D3 and D4');
+  h4.close(); later.close();
 });

@@ -1167,7 +1167,11 @@ for(const baseline of [false,true])test('R6-B15'+(baseline?'b':'a')+' UNDO SURVI
   assert.equal(exOf(f.state).w,h.now+5,'the later base stands; nothing is written');
  }
 });
-test('R6-B15c UNDONE APPLIED ADOPTION SURVIVES A LATER BASE (Astra L4 B15; spec R8 :156 "the prior image is no longer provably current"): adopt-observed 105 applied at base 100, undone to 100, then a base 102.5 -> still COMPENSATED, no conflict, w 102.5 (retire-only)',()=>{
+// Round 16 (Astra L8 B28): this row required w 102.5 under the superseded R8 :156 reading
+// (retire-only because the replay-time state carries no trace). R9.4 :156 classifies AND
+// applies by the RECORD'S OWN SHAPE: the undo was issued on the applied 105 with target 100
+// (a RESTORE), so replay restores 100 over any later base; the RESTORE is never lost.
+test('R6-B15c UNDONE APPLIED ADOPTION SURVIVES A LATER BASE (Astra L4 B15, L8 B28; spec R9.4 :156 "classified by the RECORD\'S OWN SHAPE, never by replay-time state ... RESTORE ... replay restores it"): adopt-observed 105 applied at base 100, undone to 100 (RESTORE), then a base 102.5 -> still COMPENSATED, no conflict, w 100 (the RESTORE applies)',()=>{
  effectsGate();
  const h=heldAdoption({baseline:false}),base=F0();
  assert.equal(exOf(EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp],'fx-revision-1',base)).state).w,105,'applied at its own base');
@@ -1177,7 +1181,7 @@ test('R6-B15c UNDONE APPLIED ADOPTION SURVIVES A LATER BASE (Astra L4 B15; spec 
  for(const rev of ['fx-revision-1','fx-revision-2']){
   const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,comp],rev,F0({w:102.5})));
   assert.deepEqual(noConflict(f),[],rev);assert.equal(f.spent.find(x=>x.spend_id===h.spend).cancelled_by,decisionOf(u.offers[0]).spend_id);
-  assert.equal(exOf(f.state).w,102.5);
+  assert.equal(exOf(f.state).w,100,'the RESTORE applies by its own shape, never lost to the later base ('+rev+')');
  }
 });
 test('R6-B16 CAPTURED HELD ADOPTION (Astra L4 B16; spec R8 :153 "only if no later Start captured the accepted effect"): a Start that captured the adopted 105 refuses the undo with COMPENSATION_DESCENDANTS at check, and the fold refuses a recorded one by the SAME predicate',()=>{
@@ -2029,6 +2033,213 @@ test('R15-LEGACY-ON-HELD (spec R9.4 :159 "unfinished", :162 "keeps LEGACY_PENDIN
   expectRefusal(ev,'LEGACY_PENDING',[ref(c3.close)]);assert.deepEqual(ev.offers,[],'no adoption past a pending legacy entry ('+rev+')');
  }
 });
+// ======================================================================
+// ROUND 16 rows (spec R9.6 b739c2f8; Astra L8 B28-B30; fresh Fable l1 D-FRESH-1..3, N1, N2).
+// ======================================================================
+test('R16-B28 RESTORE BY RECORD SHAPE (Astra L8 B28; spec R9.4 :156): base 100, C1 at 105 adopted, Undo issued on the applied 105 (RESTORE: base 105, target 100), both replayed over an admitted base 102.5 with no ordering op -> w 100 (the RESTORE), authority compensated, both responses and the tombstone kept, no open conflict; R1 and R2 (R2 adds only PRODUCER_REVISION_ABSENT_APPLIED)',()=>{
+ effectsGate();
+ const h=heldAdoption({baseline:false});
+ const u=checkOf(foldArgs([h.c1],[h.resp]),LIFT,h.c1,{compensate:h.spend});assert.equal(u.status,'offer');
+ const ud=decisionOf(u.offers[0]);assert.deepEqual([ud.base_load.scalar.value,ud.target_load.scalar.value],[105,100],'control: a RESTORE-shaped undo');
+ const comp=acceptOp(u.offers[0],{op_id:'fx-resp-2',after:1});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,comp],rev,F0({w:102.5})));
+  assert.equal(exOf(f.state).w,100,'the consented 100 is restored, never the admitted 102.5 ('+rev+')');
+  assert.equal(exOf(f.state).native_load_authority.kind,'compensated');
+  assert.equal(f.spent.find(x=>x.spend_id===h.spend).cancelled_by,ud.spend_id,'tombstone');
+  assert.deepEqual(f.spent.map(x=>x.response_refs.map(r=>r.op_id)).flat().sort(),['fx-resp-1','fx-resp-2'],'both responses kept');
+  assert.deepEqual(f.issues.filter(i=>!['NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'].includes(i.code)&&!i.superseded_by&&['NATIVE_LOAD_EFFECT_CONFLICT','NATIVE_LOAD_RECORD_INVALID'].includes(i.code)),[],rev);
+ }
+ // The baseline variant: adopt-baseline 60 (w null) undone on the applied 60 (RESTORE to null), replayed over base 45.
+ const b=heldAdoption({baseline:true}),bu=checkOf(foldArgs([b.c1],[b.resp],'fx-revision-1',F0({w:null})),LIFT,b.c1,{compensate:b.spend});
+ assert.equal(bu.status,'offer');const bcomp=acceptOp(bu.offers[0],{op_id:'fx-resp-2',after:1});
+ for(const rev of ['fx-revision-1','fx-revision-2'])assert.equal(exOf(EFFECTS.m.foldNativeLoad(foldArgs([b.c1],[b.resp,bcomp],rev,F0({w:45}))).state).w,null,'restored to the null prior image ('+rev+')');
+});
+test('R16-CANON-SHAPES ONE CANCELLATION, TWO SHAPES, ANY ORDER (spec R9.4 :156 shape classification with review B19 order-free canonical records; round-16 LIVE mutant R7-canon-order): the same Undo recorded twice, once as a RESTORE (issued on the applied 105: base 105, target 100) and once as a RETIRE (issued on the held adoption under base 102.5: target = base), folds identically whichever record the log carries first, R1 and R2',()=>{
+ effectsGate();
+ const h=heldAdoption({baseline:false});
+ const u1=checkOf(foldArgs([h.c1],[h.resp]),LIFT,h.c1,{compensate:h.spend}),u2=checkOf(foldArgs([h.c1],[h.resp],'fx-revision-1',F0({w:102.5})),LIFT,h.c1,{compensate:h.spend});
+ assert.deepEqual([u1.status,u2.status],['offer','offer']);
+ const d1=decisionOf(u1.offers[0]),d2=decisionOf(u2.offers[0]);
+ assert.deepEqual([d1.base_load.scalar.value,d1.target_load.scalar.value,d2.base_load.scalar.value,d2.target_load.scalar.value],[105,100,102.5,102.5],'control: a RESTORE and a RETIRE');
+ assert.equal(d1.spend_id,d2.spend_id,'control: one cancellation');
+ const A=acceptOp(u1.offers[0],{op_id:'fx-resp-9',after:1}),B=acceptOp(u2.offers[0],{op_id:'fx-resp-2',after:1});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const out=[[A,B],[B,A]].map(xs=>{const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,...xs],rev,F0({w:102.5}))),ex=exOf(f.state);
+   return {w:ex.w,auth:ex.native_load_authority&&ex.native_load_authority.kind,cancelled:f.spent.find(x=>x.spend_id===h.spend).cancelled_by,
+    refs:f.spent.map(x=>x.response_refs.map(r=>r.op_id)).flat().sort(),issues:f.issues.map(i=>i.code+':'+(i.superseded_by?'s':'')).sort()};});
+  assert.deepEqual(out[0],out[1],'order-free ('+rev+')');
+  assert.ok([100,102.5].includes(out[0].w),'one of the recorded shapes applies');assert.equal(out[0].cancelled,d1.spend_id);
+  assert.deepEqual(out[0].refs,['fx-resp-1','fx-resp-2','fx-resp-9'],'every record kept');
+ }
+});
+// Round 16b (coordinator: close R7-comp-reprice, R7-comp-any, R7-canon-cut). A compensation
+// body is a pure function of its request (lift, compensates, the echoed basis with its own
+// effect_frontier) and of the lift's exercise and the queue, which the cut digests cover, so a
+// GENUINE record re-evaluates at a reproducible cut to exactly its own body. A body that does
+// not is not an issuance of that cut (spec :155 "validates each historical issuance at its
+// ORIGINAL cut"), whatever compensates it names.
+function heldUndoForgery(){
+ const h=heldAdoption({baseline:false});
+ const u1=checkOf(foldArgs([h.c1],[h.resp]),LIFT,h.c1,{compensate:h.spend}),u2=checkOf(foldArgs([h.c1],[h.resp],'fx-revision-1',F0({w:102.5})),LIFT,h.c1,{compensate:h.spend});
+ assert.deepEqual([u1.status,u2.status],['offer','offer']);
+ const retire=u2.offers[0],forged=structuredClone(retire);forged.body.target_load=structuredClone(decisionOf(u1.offers[0]).target_load);
+ assert.deepEqual([decisionOf(retire).target_load.scalar.value,forged.body.target_load.scalar.value,forged.body.base_load.scalar.value],[102.5,100,102.5],'control: a genuine RETIRE and its RESTORE-shaped forgery');
+ return {h,u1,retire,forged};
+}
+test('R16b-COMP-REPRICE FORGED UNDO BODY AT ITS OWN CUT (spec R9 :155 re-validation at the ORIGINAL cut, threat model :35; round-16 LIVE mutant R7-comp-reprice): the genuine RETIRE issued on the held adoption under base 102.5, re-shaped into a RESTORE to 100 and re-digested, recorded under the PRESENT revision at a reproducible cut -> RECORD_INVALID issuance [its Ref], w stays 102.5; control: the genuine RETIRE applies with no RECORD_INVALID; under R2 (revision absent) the body applies as written after S1-S8 and DERIVABLE (spec :155), which bound it to the adoption\'s prior image 100',()=>{
+ effectsGate();
+ const {h,retire,forged}=heldUndoForgery();
+ const g=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,acceptOp(retire,{op_id:'fx-resp-2',after:1})],'fx-revision-1',F0({w:102.5})));
+ assert.ok(!g.issues.some(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'),'control '+JSON.stringify(g.issues));assert.equal(exOf(g.state).w,102.5);
+ const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,acceptOp(forged,{op_id:'fx-resp-2',after:1})],'fx-revision-1',F0({w:102.5})));
+ assert.deepEqual(f.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID').map(i=>[i.field,i.refs.map(r=>r.op_id)]),[['issuance',['fx-resp-2']]],JSON.stringify(f.issues));
+ assert.equal(exOf(f.state).w,102.5,'the forged RESTORE writes nothing');
+ const r2=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,acceptOp(forged,{op_id:'fx-resp-2',after:1})],'fx-revision-2',F0({w:102.5})));
+ assert.equal(exOf(r2.state).w,100,'R2: applied as written, bounded by DERIVABLE to the prior image');
+});
+test('R16b-COMP-EVERY EVERY RECORD OF A CANCELLATION IS AN ISSUANCE (spec R9 :155 "validates each historical issuance"; round-16 LIVE mutant R7-comp-any): the genuine RETIRE (fx-resp-2, the representative) and its RESTORE-shaped forgery (fx-resp-3) of the same cancellation, both at the reproducible cut under the present revision -> RECORD_INVALID issuance naming both records, nothing written; control: the genuine record alone applies',()=>{
+ effectsGate();
+ const {h,retire,forged}=heldUndoForgery();
+ const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,acceptOp(retire,{op_id:'fx-resp-2',after:1}),acceptOp(forged,{op_id:'fx-resp-3',after:1})],'fx-revision-1',F0({w:102.5})));
+ assert.deepEqual(f.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID').map(i=>[i.field,i.refs.map(r=>r.op_id)]),[['issuance',['fx-resp-2','fx-resp-3']]],JSON.stringify(f.issues));
+ assert.equal(exOf(f.state).w,102.5);
+});
+test('R16b-CANON-CUT A FORGED EARLY-CUT COPY OF AN UNDO (spec R9 :155 threat model, :156 compensates names a fold effect; review B19 earliest cut; round-16 LIVE mutant R7-canon-cut): C1 at 105 adopted (fx-resp-1); its genuine RESTORE undo (fx-resp-2, cut [C1]); a re-digested copy claiming the empty cut (fx-resp-9). The cancellation sits at the earliest cut any record claims, before the adoption it names, so it is refused RECORD_INVALID compensates naming every record and is never applied silently; the adoption stands (w 105); R1 and R2. Control: the genuine undo alone -> w 100',()=>{
+ effectsGate();
+ const h=heldAdoption({baseline:false});
+ const u=checkOf(foldArgs([h.c1],[h.resp]),LIFT,h.c1,{compensate:h.spend});assert.equal(u.status,'offer');
+ const early=structuredClone(u.offers[0]);early.body.basis.order.start_ids=[];
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  assert.equal(exOf(EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,acceptOp(u.offers[0],{op_id:'fx-resp-2',after:1})],rev)).state).w,100,'control ('+rev+')');
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,acceptOp(u.offers[0],{op_id:'fx-resp-2',after:1}),acceptOp(early,{op_id:'fx-resp-9',after:1})],rev));
+  const bad=f.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID');
+  assert.deepEqual(bad.map(i=>i.refs.map(r=>r.op_id)),[['fx-resp-2','fx-resp-9']],rev+' '+JSON.stringify(f.issues));
+  assert.equal(exOf(f.state).w,105,'the adoption stands; the undo is not applied silently ('+rev+')');
+  assert.equal(f.spent.find(x=>x.spend_id===h.spend).cancelled_by,null);
+ }
+});
+test('R16-ADOPT-LATEST-ACTUAL (spec R9 :155 S8 "for adoption target_load equals those actual loads exactly" of the LATEST consumed completion; round-16 LIVE mutant R11-S8-adopt): C1 at 110 and C2 at 105 on the 100 card; C2\'s genuine adopt-observed 105 re-issued to consume [C1, C2] with evidence ordered [C2, C1] and target 110 -> RECORD_INVALID target_load, w stays 100, R1 (cut zeroed) and R2',()=>{
+ effectsGate();
+ const c1=C(1,{reps:TOP,loads:110,effort:e(2,1,1)}),c2=C(2,{reps:TOP,loads:105,effort:e(2,1,1)}),cs=[c1,c2];
+ const o2=checkOf(foldArgs(cs,[]),LIFT,c2).offers.find(o=>decisionOf(o).kind==='adopt-observed'),o1=checkOf(foldArgs([c1],[]),LIFT,c1).offers.find(o=>decisionOf(o).kind==='adopt-observed');
+ assert.ok(o1&&o2,'control: adopt-observed on each completion');
+ assert.deepEqual([decisionOf(o1).target_load.scalar.value,decisionOf(o2).target_load.scalar.value,decisionOf(o2).consumes.length],[110,105,1]);
+ const f0=structuredClone(o2),b=f0.body;
+ b.consumes=[...decisionOf(o1).consumes,...b.consumes].sort();const d0=JSON.parse(b.spend_id);d0[4]=b.consumes;b.spend_id=JSON.stringify(d0);
+ b.evidence=[...b.evidence,...structuredClone(decisionOf(o1).evidence)];
+ b.target_load.scalar.value=110;for(const v of b.target_load.vector)v.value=110;b.basis.plan.programme_sha256='sha256:'+'0'.repeat(64);
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[acceptOp(f0,{after:2})],rev));
+  assert.deepEqual(f.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID').map(i=>i.field),['target_load'],rev+' '+JSON.stringify(f.issues));
+  assert.equal(exOf(f.state).w,100,'never the earlier completion\'s 110 ('+rev+')');
+ }
+});
+test('R16-B29 SPEND-SUFFIX (Astra L8 B29, M14; spec :154 spend once): C1, C2 tops [10,9,8] at 100 e(2,1,1), ORD 105 accepted and undone before any further training; C3 the same top at 100 -> PROVISIONAL [C3 Close Ref] (the spent C1, C2 sightings are never reused); C4 top -> ORD consuming exactly [C3, C4]',()=>{
+ effectsGate();
+ const {cs,resp,offer}=landingScenario('fx-revision-1'),spend=decisionOf(offer).spend_id;
+ const u=checkOf(foldArgs(cs,[resp]),LIFT,cs[1],{compensate:spend});assert.equal(u.status,'offer');
+ const comp=acceptOp(u.offers[0],{op_id:'fx-resp-2',after:2});
+ const c3=C(3,{reps:TOP,effort:e(2,1,1)}),c4=C(4,{reps:TOP,effort:e(2,1,1)});
+ expectRefusal(checkOf(foldArgs([...cs,c3],[resp,comp]),LIFT,c3),'PROVISIONAL',[ref(c3.close)]);
+ const ev=checkOf(foldArgs([...cs,c3,c4],[resp,comp]),LIFT,c4);assert.equal(ev.status,'offer',JSON.stringify(ev.refusal));
+ const d=decisionOf(ev.offers.find(o=>decisionOf(o).kind==='earn'));
+ assert.deepEqual(d.consumes,[JSON.stringify([c3.start,LIFT,c3.close]),JSON.stringify([c4.start,LIFT,c4.close])].sort(),'only the unspent sightings');
+});
+test('N30 HELD-UNEQUAL (spec R9.6 :163, fresh l1 N1, Astra L8 B30): the N11 ladder lift [100,95] held by EFFECT_CONFLICT; C3 on the baseline ask, Start after both records, performed [100,95] -> VECTOR_ADOPTION_UNDEFINED [C3 Close Ref], not EFFECT_CONFLICT; control C3 at [100,100] -> [adopt-baseline 100]',()=>{
+ effectsGate();
+ const {cs,base,offers}=n11Checked();
+ const a=acceptOp(offers[0],{after:2,op_id:'fx-resp-a'}),b=acceptOp(offers[1],{after:2,op_id:'fx-resp-b'});
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[a,b],rev,base));
+  assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_EFFECT_CONFLICT'&&i.lift===LIFT),'held ('+rev+')');
+  const c3=C(3,{reps:[10,9],loads:[100,95],prescribed:[null,null],effort:e(2,1)});
+  expectRefusal(checkOf(foldArgs([...cs,c3],[a,b],rev,base),LIFT,c3),'VECTOR_ADOPTION_UNDEFINED',[ref(c3.close)]);
+  const c3e=C(3,{reps:[10,9],loads:[100,100],prescribed:[null,null],effort:e(2,1)});
+  assert.deepEqual(checkOf(foldArgs([...cs,c3e],[a,b],rev,base),LIFT,c3e).offers.map(o=>[decisionOf(o).kind,decisionOf(o).target_load.scalar.value]),[['adopt-baseline',100]],rev);
+ }
+});
+test('N31 UNKNOWN-LINEAGE (spec R9.6 :155 S1, fresh l1 N2): N02c\'s genuine offer re-issued with lift_lineage_id \'fx-ghost\', absent from the base, absent revision -> RECORD_INVALID, field lift_lineage_id, nothing applied',()=>{
+ effectsGate();
+ const {cs,offer}=landingScenario('fx-revision-1');
+ const ghost=structuredClone(offer);ghost.body.lift_lineage_id='fx-ghost';
+ const f=EFFECTS.m.foldNativeLoad(foldArgs(cs,[acceptOp(ghost,{after:2})],'fx-revision-2'));
+ assert.deepEqual(f.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID').map(i=>i.field),['lift_lineage_id'],JSON.stringify(f.issues));
+ assert.deepEqual(f.state.queue,[],'nothing applied');assert.equal(exOf(f.state).w,100);
+});
+test('R16-D-FRESH-2 REGISTRAR FOLDS WITH SOURCE (spec R9.6 :164, :155 S7; fresh l1 D-FRESH-2): N02c\'s genuine offer re-issued with a forged basis.source under an absent revision. A fold that omits `source` (the pre-fix registrar shape) cannot check S7 and applies it; the fold with the admitted source (project(), check() and now the registrar) refuses RECORD_INVALID basis.source and applies nothing',()=>{
+ effectsGate();
+ const {cs,offer}=landingScenario('fx-revision-1');
+ const forged=structuredClone(offer);forged.body.basis.source={W:7,log_digest:'fx-forged-source',selection_id:null};
+ const a=foldArgs(cs,[acceptOp(forged,{after:2})],'fx-revision-2'),bare={...a};delete bare.source;
+ const without=EFFECTS.m.foldNativeLoad(bare),withSrc=EFFECTS.m.foldNativeLoad(a);
+ assert.equal(without.issues.some(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'&&i.field==='basis.source'),false,'without source the S7 source check has nothing to compare');
+ assert.deepEqual(withSrc.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID').map(i=>i.field),['basis.source'],JSON.stringify(withSrc.issues));
+ assert.deepEqual(withSrc.state.queue,[],'nothing applied');assert.equal(exOf(withSrc.state).w,100);
+ assert.notDeepEqual(without.state.queue,withSrc.state.queue,'the two folds disagree: the registrar must fold with source');
+});
+// N29 MISSED DEBUT (spec R9.6 :152, :158, :210, H11 option 2).
+function missedDebut(loads,reps=[8,7,6]){
+ const {cs,resp,offer}=landingScenario('fx-revision-1'),spend=decisionOf(offer).spend_id;
+ const c3=C(3,{date:'2026-10-12',reps,loads,prescribed:105,effort:e(2,1,1)});
+ return {cs,resp,spend,c3,three:[...cs,c3]};
+}
+test('N29 MISSED-DEBUT (spec R9.6 :152, D1 N29): Q105 accepted; C3 captures 105 and performs [8,7,6] at 95 (and, variant, 100 on every set) -> no landing, w 100 applied, fx-press held (DEBUT_BASIS_UNPROVEN, reason missed_target); the projection is the baseline ask with Q hidden; the check on C3 offers [adopt-baseline 95] whose basis names [C3 Close Ref] in load_basis.authority_refs; Undo of Q refuses COMPENSATION_DESCENDANTS; yes -> w 95, Q done/SUPERSEDED, spend kept, hold superseded; 105 with [8,7,6] still lands (rep miss); R1 and R2',()=>{
+ effectsGate();
+ for(const load of [95,100]){
+  const m=missedDebut(load);
+  for(const rev of ['fx-revision-1','fx-revision-2']){
+   const args=foldArgs(m.three,[m.resp],rev),f=EFFECTS.m.foldNativeLoad(args);
+   assert.equal(exOf(f.state).w,100,'no landing, w stays applied ('+load+' '+rev+')');
+   assert.deepEqual(liveQ(f,m.spend),[[false,'DEBUT']],'Q pending, not landed');
+   const hold=f.issues.find(i=>i.code==='NATIVE_LOAD_DEBUT_BASIS_UNPROVEN'&&i.lift===LIFT);
+   assert.ok(hold&&hold.reason==='missed_target',JSON.stringify(f.issues));assert.deepEqual(hold.refs,[ref(m.c3.close)]);
+   const shown=EFFECTS.m.heldProjection(f).state;
+   assert.deepEqual([exOf(shown).w,shown.queue.filter(q=>q.native_load_spend).length],[null,0],'the baseline ask; 105 never prescribed again');
+   const ev=checkOf(args,LIFT,m.c3);assert.equal(ev.status,'offer',JSON.stringify(ev.refusal));
+   assert.deepEqual(ev.offers.map(o=>[decisionOf(o).kind,decisionOf(o).target_load.scalar.value]),[['adopt-baseline',load]],rev);
+   assert.deepEqual(decisionOf(ev.offers[0]).basis.load_basis.authority_refs,[ref(m.c3.close)],'the exit names the missed Close');
+   expectRefusal(checkOf(args,LIFT,m.c3,{compensate:m.spend}),'COMPENSATION_DESCENDANTS',[ref('fx-resp-1')]);
+   const h=EFFECTS.m.foldNativeLoad(foldArgs(m.three,[m.resp,acceptOp(ev.offers[0],{op_id:'fx-resp-3',after:3})],rev));
+   assert.equal(exOf(h.state).w,load);assert.deepEqual(liveQ(h,m.spend),[[true,'SUPERSEDED']]);
+   assert.ok(h.spent.some(x=>x.spend_id===m.spend&&!x.cancelled_by),'spend kept');
+   assert.ok(h.issues.filter(i=>i.code==='NATIVE_LOAD_DEBUT_BASIS_UNPROVEN'&&i.reason==='missed_target').every(i=>i.superseded_by),'hold superseded');
+  }
+ }
+ const landed=missedDebut(105);
+ const g=EFFECTS.m.foldNativeLoad(foldArgs(landed.three,[landed.resp]));
+ assert.equal(exOf(g.state).w,105,'a rep miss at the exact target still lands (:151)');
+ assert.ok(!g.issues.some(i=>i.reason==='missed_target'));
+});
+test('N29 MISSED-DEBUT HOLD NAME (spec R9.6 :152, :158 "Its refusal names the holding record(s)"; round-16 mutant R16-missed-first): on the missed-held lift a request that reaches the hold refusal (an Undo naming no live spend) is refused by the hold itself, DEBUT_BASIS_UNPROVEN [C3 Close Ref] field missed_target, never BASIS_REPAIR_REQUIRED; R1 and R2',()=>{
+ effectsGate();
+ const m=missedDebut(95);
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const ev=checkOf(foldArgs(m.three,[m.resp],rev),LIFT,m.c3,{compensate:JSON.stringify(['native-load-compensation',LIFT,'fx-no-spend'])});
+  expectRefusal(ev,'DEBUT_BASIS_UNPROVEN',[ref(m.c3.close)]);assert.equal(ev.refusal.field,'missed_target',rev);
+ }
+});
+test('N29 MISSED-DEBUT REPLAY AND FORGERY (spec R9.6 :155 ADOPT-BASELINE ANCHOR, D1 N29 REPLAY): the accepted 95 exit (authority_refs [C3 Close Ref]) replayed under R2 and after a rename (cut not reproducible) applies as written: w 95, Q SUPERSEDED, spend kept, hold superseded, PRODUCER_REVISION_ABSENT_APPLIED under R2, identical cold replay; forged: authority_refs [] -> RECORD_INVALID base_load; authority_refs naming another Close -> base_load; target 105 -> target_load',()=>{
+ effectsGate();
+ const m=missedDebut(95);
+ const ev=checkOf(foldArgs(m.three,[m.resp]),LIFT,m.c3),exit=ev.offers[0];
+ const yes=acceptOp(exit,{op_id:'fx-resp-3',after:3});
+ for(const [label,rev,base] of [['R2','fx-revision-2',F0()],['rename','fx-revision-1',F0({n:'Fx Press Renamed'})],['rename R2','fx-revision-2',F0({n:'Fx Press Renamed'})]]){
+  const f=EFFECTS.m.foldNativeLoad(foldArgs(m.three,[m.resp,yes],rev,base));
+  assert.equal(exOf(f.state).w,95,label);assert.deepEqual(liveQ(f,m.spend),[[true,'SUPERSEDED']],label);
+  assert.ok(f.spent.some(x=>x.spend_id===m.spend&&!x.cancelled_by),label);
+  assert.ok(!f.issues.some(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'),label+' '+JSON.stringify(f.issues));
+  if(rev==='fx-revision-2')assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'),label);
+  const cold=EFFECTS.m.foldNativeLoad(foldArgs(m.three,[m.resp,yes],rev,base));
+  assert.equal(JSON.stringify([cold.state,cold.issues,cold.spent]),JSON.stringify([f.state,f.issues,f.spent]),label+' cold replay identical');
+ }
+ const forge=(patch)=>{const o=structuredClone(exit);patch(decisionOf(o));return EFFECTS.m.foldNativeLoad(foldArgs(m.three,[m.resp,acceptOp(o,{op_id:'fx-resp-3',after:3})],'fx-revision-2'));};
+ const fieldOf=f=>f.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID').map(i=>i.field);
+ assert.deepEqual(fieldOf(forge(d=>{d.basis.load_basis.authority_refs=[];})),['base_load'],'no hold claim');
+ assert.deepEqual(fieldOf(forge(d=>{d.basis.load_basis.authority_refs=[ref(m.cs[1].close)];})),['base_load'],'a Close that is not the consumed one');
+ assert.deepEqual(fieldOf(forge(d=>{d.target_load={scalar:lb(105),vector:Loads(105,105,105)};})),['target_load'],'S8: actual 95');
+ for(const f of [forge(d=>{d.basis.load_basis.authority_refs=[];}),forge(d=>{d.target_load={scalar:lb(105),vector:Loads(105,105,105)};})])assert.equal(exOf(f.state).w,100,'nothing applied');
+});
 test('R13-EXIT-160 (spec R9.2 :160 unprovable order, :158 exit (b)): yes Q105, then the base moves to 102.5 with no ordering op -> EFFECT_CONFLICT load_basis; C3 trained on the baseline ask at 102.5 offers [adopt-baseline 102.5]; its yes -> w 102.5, Q105 retired with its spend kept, the conflict superseded; R1 and R2',()=>{
  effectsGate();
  const {cs,resp,offer}=landingScenario('fx-revision-1'),spend=decisionOf(offer).spend_id,moved=()=>F0({w:102.5});
@@ -2320,7 +2531,9 @@ function propertySequence8(seed){
  const fold=o=>EFFECTS.m.foldNativeLoad(gen(o));
  const heldCodes=['NATIVE_LOAD_EFFECT_CONFLICT','NATIVE_LOAD_BASIS_REPAIR_REQUIRED','NATIVE_LOAD_RECORD_INVALID'];
  // Round 13 (spec R9.2 :158): a hold superseded by a later adoption is history.
- const held=(f,L)=>f.issues.some(i=>(i.lift===L||i.lift===null)&&heldCodes.includes(i.code)&&!i.superseded_by);
+ // Round 16 (spec R9.6 :152): a MISSED DEBUT (DEBUT_BASIS_UNPROVEN, reason missed_target) holds the lift.
+ const isMissedHold=i=>i.code==='NATIVE_LOAD_DEBUT_BASIS_UNPROVEN'&&i.reason==='missed_target';
+ const held=(f,L)=>f.issues.some(i=>(i.lift===L||i.lift===null)&&(heldCodes.includes(i.code)||isMissedHold(i))&&!i.superseded_by);
  const fail=(what,extra)=>{const e=new Error('PROPERTY8 '+what+' seed='+seed+' trace='+JSON.stringify(m.trace)+(extra?' '+JSON.stringify(extra):''));e.code='PROPERTY_COUNTEREXAMPLE';throw e;};
  const exIn=(s,L)=>s.exercises.find(x=>x.id===L);
  // The lift's EFFECTIVE plan (an edit that sets a field to the value it had is no edit).
@@ -2346,7 +2559,7 @@ function propertySequence8(seed){
   // fold state; a held lift carrying a legacy entry is the baseline ask on its card.
   {const hp=EFFECTS.m.heldProjection(f).state;
    for(const L of lifts){
-    const heldL=f.issues.some(i=>i.lift===L&&EFFECTS.m.HOLD_CODES.includes(i.code)&&!i.superseded_by);
+    const heldL=f.issues.some(i=>i.lift===L&&EFFECTS.m.isHold(i)&&!i.superseded_by);
     if(m.legacy[L]&&!f.state.queue.some(q=>q.exId===L&&!q.done&&typeof q.native_load_spend!=='string'))fail('I12 a legacy entry left the fold state at '+stage,{lift:L});
     if(!heldL)continue;
     if(hp.queue.some(q=>q&&q.exId===L&&!q.done&&['debut','unlock'].includes(q.kind)))fail('I12 an unfinished debut/unlock entry of a held lift is visible at '+stage,{lift:L,queue:hp.queue});
@@ -2383,7 +2596,11 @@ function propertySequence8(seed){
     // Round 14 (seed 1006807): a root cancellation OF AN EXIT restored the baseline ask (null),
     // so the prior image of a yes rooted in it is null, not the plan's weight.
     const rootUndoesExit=root&&root.kind==='compensate'&&(()=>{try{const d=JSON.parse(root.spend);const x=m.ledger.find(z=>z.lift===L&&z.spend===d[2]);return !!(x&&x.exit);}catch{return false;}})();
-    const want=t.exit||rootUndoesExit?null:root&&root.kind!=='compensate'&&live(f,root)?root.targetW:B.w;
+    // Round 16 (spec R9.4 :156, Astra L8 B28): a RESTORE is classified AND applied by the
+    // record's own shape: its recorded target (the adoption's recorded base_load) is the
+    // weight, whatever the base is on this replay (moved or not, the adoption applied or held).
+    const want=y.restore?y.restoreW:t.exit||rootUndoesExit?null:root&&root.kind!=='compensate'&&live(f,root)?root.targetW:B.w;
+    if(y.restore)m.trace.push(B.w!==y.restoreW?'restore-moved-base':'restore-same-base');
     if(ex.w!==want)fail('I1 an agreed weight survives its cancellation at '+stage,{...ctx,want});
     if(ex.w===t.targetW&&t.targetW!==want)fail('I1 the cancelled weight is current at '+stage,ctx);
    }else fail('I1 unknown authority kind '+auth.kind+' at '+stage,ctx);
@@ -2405,7 +2622,8 @@ function propertySequence8(seed){
  const acceptUndo=(L,target,f,ev)=>{
   const ex0=exIn(f.state,L),a0=ex0&&ex0.native_load_authority,disputedApplied=!!a0&&a0.kind==='adopted'&&a0.spend_id===target&&held(f,L)&&!!a0.prior&&!!a0.prior.w;
   const d=decisionOf(ev.offers[0]),op_id='fx-p-'+(++m.k);m.extras.push(acceptOp(ev.offers[0],{op_id,after:m.comps.length}));m.proven.push({target,undo:d.spend_id});
-  m.ledger.push({lift:L,spend:d.spend_id,kind:'compensate',target:null,targetW:null,op:op_id});m.trace.push('undo-yes');
+  const sameShape=JSON.stringify(d.target_load.scalar)===JSON.stringify(d.base_load.scalar)&&JSON.stringify(d.target_load.vector)===JSON.stringify(d.base_load.vector);
+  m.ledger.push({lift:L,spend:d.spend_id,kind:'compensate',target:null,targetW:null,op:op_id,restore:!sameShape,restoreW:d.target_load.scalar?d.target_load.scalar.value:null});m.trace.push(sameShape?'undo-yes':'undo-yes-restore');
   if(!disputedApplied)return;
   m.trace.push('undo-disputed-applied');
   const want=a0.prior.w.present?a0.prior.w.value:undefined,ts=d.target_load.scalar?d.target_load.scalar.value:null;
@@ -2425,9 +2643,13 @@ function propertySequence8(seed){
   if(action==='train'){
    // Round 13 (spec R9.2 :158 TRAINABLE WHILE HELD): a held lift is trained on its baseline ask.
    const on=rowOn?pick([[LIFT],[ROW],[LIFT,ROW],[LIFT,ROW]]):[LIFT],heldNow=new Set(on.filter(x=>held(f,x)));
-   const n=m.comps.length+1,v1=chance(0.3),cap={},entries=[];
+   const n=m.comps.length+1,v1=chance(0.3),cap={},entries=[],missCand=[];
    for(const X of on){
-    const one=pick([60,65]),card=cardOf(f,X),lifted=card[0]===null?(heldNow.has(X)?card.map(()=>one):card.map(()=>pick([60,65]))):chance(0.15)?card.map(v=>v+5):card.slice();
+    // Round 16 (spec R9.6 :152 MISSED DEBUT): a native debut card is also trained 5 lb light on
+    // every set (and, as before, 5 lb heavy): both are missed debuts, never a landing.
+    const one=pick([60,65]),card=cardOf(f,X),debutQ=!heldNow.has(X)&&EFFECTS.m.heldProjection(f).state.queue.some(q=>q&&q.exId===X&&!q.done&&typeof q.native_load_spend==='string');
+    const lifted=card[0]===null?(heldNow.has(X)?card.map(()=>one):card.map(()=>pick([60,65]))):debutQ&&chance(0.3)?card.map(v=>v-5):chance(0.15)?card.map(v=>v+5):card.slice();
+    if(debutQ)missCand.push(X);
     // Round 11: over-performance above the window top (spec R9 :127 legacy clause).
     entries.push({lift:X,reps:pick([TOP,TOP,TOP,[10,9,7],[9,8,8],[12,12,11],[13,12,12]]),loads:lifted,prescribed:card,effort:chance(0.8)?e(2,1,1):e(0,1,1),v1});
     cap[X]=card;
@@ -2450,6 +2672,35 @@ function propertySequence8(seed){
    const startParents=heldNow.size?m.extras.map(x=>x.op_id):[];
    m.comps.push({spec,built:sess2(n,spec),cap:mode==='none'?null:cap,hiAt,mode,seen,capExtras:m.extras.map(x=>x.op_id),...(startParents.length?{startParents}:{})});
    m.trace.push([n,on.map(x=>x===LIFT?'P':'R').join(''),entries[0].prescribed[0],entries[0].loads[0],v1?'v1':'v2',mode]);
+   // Round 16 I14 (spec R9.6 :152, :158 NO TRAP, :155 ADOPT-BASELINE ANCHOR): a Start that
+   // captured the native debut, performed complete and unedited at a different load on every
+   // set, never lands; the lift is held (missed_target); the check on that completion offers
+   // adopt-baseline of the actual loads when they are equal (VECTOR_ADOPTION_UNDEFINED when not),
+   // whose basis names the missed Close in load_basis.authority_refs; its yes clears the hold.
+   for(const X of missCand){
+    const en=entries.find(x=>x.lift===X),q0=EFFECTS.m.heldProjection(f).state.queue.find(q=>q&&q.exId===X&&!q.done&&typeof q.native_load_spend==='string');
+    if(!en||!q0||JSON.stringify(seen[X])!==JSON.stringify(en.prescribed)||!en.loads.every((v,i)=>v!==en.prescribed[i]))continue;
+    const c=m.comps.at(-1),g=fold();if(g.status!=='ready')continue;
+    const gq=g.state.queue.find(q=>q.native_load_spend===q0.native_load_spend);
+    if(!gq||gq.done)fail('I14 a missed debut landed or left the queue',{lift:X,q:gq,loads:en.loads,card:en.prescribed});
+    const hold=g.issues.find(i=>i.lift===X&&isMissedHold(i)&&(i.refs||[]).some(r=>r&&r.op_id===c.built.close));
+    if(!hold)fail('I14 a missed debut does not hold the lift missed_target',{lift:X,issues:g.issues,loads:en.loads,card:en.prescribed});
+    m.trace.push('missed-debut');
+    if(m.legacy[X]||m.base[X].forks.some(fk=>String(fk.from)>dayAt(n-1))||g.issues.some(i=>i.lift===null&&heldCodes.includes(i.code)))continue;
+    const ev=checkOf(gen(),X,c.built),uniform=en.loads.every(v=>v===en.loads[0]);
+    if(!uniform){if(!(ev.status==='refused'&&ev.refusal.code==='NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED'))fail('I14 unequal missed loads are not VECTOR_ADOPTION_UNDEFINED',{lift:X,ev:ev.status,refusal:ev.refusal});m.trace.push('missed-unequal');continue;}
+    const o=ev.status==='offer'?ev.offers.find(x=>decisionOf(x).kind==='adopt-baseline'):null;
+    if(!o)fail('I14 a missed debut reaches no exit',{lift:X,refusal:ev.refusal,offers:(ev.offers||[]).map(x=>decisionOf(x).kind)});
+    const d=decisionOf(o);
+    if(JSON.stringify(d.target_load.vector.map(v=>v&&v.value))!==JSON.stringify(en.loads))fail('I14 the missed exit is not the actual loads',{lift:X,target:d.target_load,loads:en.loads});
+    if(!(d.basis.load_basis.authority_refs||[]).some(r=>r&&r.op_id===c.built.close))fail('I14 the missed exit does not name the missed Close in authority_refs',{lift:X,refs:d.basis.load_basis.authority_refs});
+    m.trace.push('missed-exit-offered');
+    if(chance(0.7)){const op_id='fx-p-'+(++m.k),parents=m.extras.map(x=>x.op_id);m.extras.push({...acceptOp(o,{op_id,after:m.comps.length}),parents});
+     m.ledger.push({lift:X,spend:d.spend_id,kind:d.kind,target:d.target_load.vector.map(v=>v?v.value:null),targetW:d.target_load.scalar.value,op:op_id,exit:true});m.trace.push('missed-exit-yes');
+     const g1=fold();if(held(g1,X))fail('I14 an accepted missed exit leaves the lift held',{lift:X,issues:g1.issues});
+     const q1=g1.state.queue.find(q=>q.native_load_spend===q0.native_load_spend);
+     if(!q1||!q1.done||q1.state!=='SUPERSEDED')fail('I14 the accepted missed exit does not supersede the queued target',{lift:X,q:q1});}
+   }
    // Round 13 I10 (spec R9.2 :158, N27): a held lift trained again always reaches an exit: its
    // new completion (after every holding record) is offered an adoption of what was lifted.
    // Not a trap by the spec's own terms: an unattributable hold (lift null), and a lift whose
@@ -2481,6 +2732,26 @@ function propertySequence8(seed){
    if(ev.status==='offer'&&ev.offers.some(o=>decisionOf(o).kind==='earn')&&(c.mode!=='fc16'||!c.hiAt||c.hiAt[L]!==hiNow))
     fail('I8 an earn offer on a completion whose window is unproven',{lift:L,mode:c.mode,hiAt:c.hiAt,hiNow});
    if(ev.status==='refused'&&c.mode!=='fc16')m.trace.push('legacy-check:'+c.mode+':'+ev.refusal.code);
+   // Round 16 I13 (spec :154 SPEND ONCE; Astra L8 B29): a sighting a recorded yes consumed,
+   // live or undone, is never consumed again, and a one-root earn is either the EARLY
+   // proposal or carries a noise margin over the prior line (below).
+   if(ev.status==='offer'){
+    const spentRoots=new Set(f.spent.filter(x=>liftOfSpend(x.spend_id)===L).flatMap(x=>{try{const d=JSON.parse(x.spend_id);return d[0]==='native-load'?d[4]:[];}catch{return [];}}));
+    for(const o of ev.offers){const d=decisionOf(o);if(d.kind!=='earn')continue;
+     const roots=d.consumes.map(r=>typeof r==='string'?r:JSON.stringify(r));
+     if(roots.some(r=>spentRoots.has(r)))fail('I13 an earn offer consumes a spent sighting',{lift:L,consumes:roots,spent:[...spentRoots]});
+     // A one-root earn that is not the EARLY proposal (earn.cjs:64) can only be the noise
+     // margin (earn.cjs:75-76, "banks on one sighting"): the consumed line must be strictly
+     // more reps than the immediately prior line of the lift. A lone unspent top level with
+     // a spent top (the M14 spend-suffix defect) has no margin and must stay PROVISIONAL.
+     if(roots.length<2&&!/one sighting/i.test(JSON.stringify(d.candidate))){
+      const repsOf=en=>en.reps.map((r,k)=>en.corrected&&en.corrected[k+1]!==undefined?en.corrected[k+1]:r).reduce((a,b)=>a+b,0);
+      const rows=m.comps.map(c=>({c,en:c.spec.entries.find(en=>en.lift===L)})).filter(x=>x.en);
+      const i=rows.findIndex(x=>JSON.stringify([x.c.built.start,L,x.c.built.close])===roots[0]);
+      if(i<1||!(repsOf(rows[i].en)>repsOf(rows[i-1].en)))fail('I13 a one-root earn offer without a noise margin',{lift:L,consumes:roots,candidate:d.candidate,reason:o.reason,lines:rows.map(x=>[x.c.spec.n,x.en.loads,x.en.reps]),spent:[...spentRoots]});
+      m.trace.push('i13-one-root');}
+     m.trace.push(spentRoots.size?'i13-after-spend':'i13');}
+   }
    if(ev.status==='offer'){
     const offer=pick(ev.offers),d=decisionOf(offer),held0=EFFECTS.m.issuanceFor(offer,{revision:'fx-revision-1',source:JSON.stringify(SOURCE),moment:'2026-10-02T12:00:00.000Z'});
     // Round 13 (spec R9.2 :156 c2, :158): an offer on a held lift is an exit, issued on the
@@ -2489,7 +2760,11 @@ function propertySequence8(seed){
     const heldAt=held(f,L);
     m.lastOffer[L]={held:held0,base:heldAt?effShown(L):effOf(L),shown:effShown(L),n:m.comps.length,heldAt};
     if(chance(0.7)){
-     const op_id='fx-p-'+(++m.k);m.extras.push(acceptOp(offer,{op_id,after:m.comps.length}));
+     // Round 16: an exit response (held lift) names the plan ops its device folded, as a
+     // held-lift Start does (Round 13 startParents; seed 1001107: a duplicate synced from a
+     // second device was otherwise unordered against the exit of a MISSED DEBUT, whose only
+     // anchor Start precedes it).
+     const op_id='fx-p-'+(++m.k),parents=heldAt?m.extras.map(x=>x.op_id):null;m.extras.push({...acceptOp(offer,{op_id,after:m.comps.length}),...(parents?{parents}:{})});
      m.ledger.push({lift:L,spend:d.spend_id,kind:d.kind,target:d.target_load.vector.map(v=>v?v.value:null),targetW:d.target_load.scalar?d.target_load.scalar.value:null,op:op_id,...(heldAt?{exit:true}:{})});
      m.trace.push('yes:'+d.kind+':'+(d.target_load.scalar&&d.target_load.scalar.value));
     }
@@ -2513,7 +2788,12 @@ function propertySequence8(seed){
    const exitRooted=(()=>{const ex=exIn(fold().state,L),a=ex&&ex.native_load_authority;if(!a)return false;
     const byS=sp=>m.ledger.find(y=>y.lift===L&&y.spend===sp);let sp=a.kind==='compensated'?a.compensates:a.spend_id;
     for(let k=0;k<8&&sp;k++){const y=byS(sp);if(y&&y.exit)return true;try{const d=JSON.parse(sp);sp=typeof d[2]==='string'?d[2]:null;}catch{sp=null;}}return false;})();
-   if(lo&&lo.base!==(lo.heldAt?effShown(L):effOf(L))&&!(exitRooted&&lo.shown===effShown(L))&&lo.n===m.comps.length){
+   // Round 16 (spec R9.4 :156, Astra L8 B28; seed 5016917): a RESTORE compensation writes its
+   // own recorded target whatever the base on replay, so a later w-only edit under it changes
+   // nothing the lift's offers read (the I1 oracle wants that same restored weight).
+   const restoreRooted=(()=>{const ex=exIn(fold().state,L),a=ex&&ex.native_load_authority;if(!a||a.kind!=='compensated')return false;
+    const y=m.ledger.find(z=>z.lift===L&&z.spend===a.spend_id&&z.kind==='compensate');return !!(y&&y.restore);})();
+   if(lo&&lo.base!==(lo.heldAt?effShown(L):effOf(L))&&!((exitRooted||restoreRooted)&&lo.shown===effShown(L))&&lo.n===m.comps.length){
     const c=lastWith(L),ev=checkOf(gen(),L,c.built);
     if(ev.status==='offer'&&ev.offers.some(o=>EFFECTS.m.sameIssued(o,lo.held)))fail('I5 stale offer still fresh after a plan edit',{lift:L});
    }

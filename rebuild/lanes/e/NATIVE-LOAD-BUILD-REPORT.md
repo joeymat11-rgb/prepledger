@@ -222,29 +222,142 @@ Red on 4b83f4c product bytes with this round's tests: FC12 R8-P2/P3/P4 x2, R9-B2
   - FA03 test 76e56ec3...1510 (889 -> 911).
   All LF, no added non-ASCII.
 
-## REVIEW INDEX: the R9.4 build as it stands after round 15 (for a fresh independent review of rounds 10-15)
+## Round 16 (UNCOMMITTED on ab445c6, which holds rounds 10-15; spec R9.6 b739c2f8 on R9.4 a575692; Astra L8 REJECT B28-B30; fresh l1 ACCEPT WITH NAMED DEBTS)
+- Spec delta R9.4 -> R9.6 built: MISSED DEBUT (:152), ADOPT-BASELINE ANCHOR in S8 (:155), S1 lineage field (:155), SCOPE refusal (:163), rows N29-N31. H11 built as option 2 (the default).
+- Red first. FC12 r16\red-fc12.txt (9516BFC1): 6 failures on the round-15 code:
+  - R6-B15c, which now expects the RESTORE (w 100);
+  - R16-B28; N30; N31; N29; N29 REPLAY AND FORGERY.
+  - R16-B29 passed on head: the spend-suffix trim was already correct. Its red is mutant M14, which now dies in FC12, in the walk (I13) and on the host.
+  - The FA03 host rows were written after the fixes, so their red is the -host mutants listed below. Each of them fails its row.
+- B28 RESTORE lost on replay (FC01 compensate):
+  - A compensation is classified by its OWN shape. RESTORE means its target differs from its own base.
+  - A RESTORE of an adoption that is unapplied on this replay (held, e.g. a later admitted base with no ordering op) writes the adoption's recorded base_load.fields (w, wSets). Both responses and the tombstone are kept.
+  - A RETIRE of an unapplied effect writes nothing.
+  - Unchanged: an applied adoption is still reverted from its authority's prior image, whatever the record's shape. This is how R7-B18 (an undo survives a return to the original base) stays green. Interpretation, flagged.
+  - R6-B15c had pinned the superseded R8 result (w 102.5). It is corrected, with a comment citing R9.4 :156.
+  - Astra's pure input is FC12 R16-B28, in observed and baseline variants, R1 and R2. Astra's host input is FA03 R16-B28 RESTORE ON REPLAY (40 restored over an admitted 42.5; the card reads 40).
+- B29 spend-suffix:
+  - Rows: FC12 R16-B29 (C3 PROVISIONAL, then C4 ORD consuming exactly [C3, C4]) and FA03 R16-B29 (the same on the real host).
+  - Walk invariant I13. No earn offer consumes a sighting that a recorded yes spent, whether live or undone. An earn with a single root is either the EARLY proposal ("OFF ONE SIGHTING") or carries a noise margin over the lift's prior line.
+  - The pilot showed that "one root means one-sighting copy" is false, because the noise-margin DEBUT reuses the ordinary copy (seeds 1000308, 1001060). The rule was corrected to the margin form.
+  - M14 is now killed three ways: by the FC12 row, by the FA03 row, and by the walk (I13, 1000 walks).
+- B30 / N30 SCOPE: on a held lift, exit (b) returns FC01's VECTOR_ADOPTION_UNDEFINED or SCALAR_SLICE_ONLY [Close Ref] instead of the hold's code. The lift stays held. FC12 N30 and FA03 N30.
+- N31: an absent lineage refuses with field lift_lineage_id, not payload.
+- MISSED DEBUT (:152):
+  - FC01 landing adds a new predicate. The capture equals the target, every original slot is performed and unedited, and the actual loads differ. It is refused as DEBUT_BASIS_UNPROVEN, field missed_target.
+  - FC03 folds that refusal as a lift hold (reason missed_target; isHold is exported).
+  - The missed Close is itself exit-eligible: its own Close counts as "after".
+  - FC01 step 2 skips the typed PLAN_CHANGED only when load_basis.authority_refs names that completion's own Close.
+  - A rep miss at the exact target still lands.
+  - Rows:
+    - FC12 N29 (95 and 100, R1/R2, Undo -> COMPENSATION_DESCENDANTS, exit supersedes Q, spend kept);
+    - N29 REPLAY AND FORGERY (R2, rename, cold replay; forged authority_refs [], another Close, target 105);
+    - N29 HOLD NAME (added after mutant R16-missed-first survived);
+    - FA03 N29.
+- ADOPT-BASELINE ANCHOR (:155):
+  - FC03 fills pb.load_basis.authority_refs with the hold's records on every exit. Note: it is FC03 that fills them, where the spec says FC01; FC01 reads them in step 2.
+  - S8 admits a numeric capture for adopt-baseline only when every ref is authentic and is either the consumed (latest) Close or a proposal-response of this lift. Otherwise the field is base_load.
+- D-FRESH-2: the registrar fold now passes `source: nativeNullSource`, the same basis as project() and check().
+  - The host cannot carry a forged-source record: rewriting it in the repository makes project() refuse LOCAL_HISTORY_IDENTITY_UNPROVEN.
+  - So FA03 D-FRESH-2 asserts that refusal, plus a static pin that the registrar's fold passes the admitted source.
+  - FC12 R16-D-FRESH-2 shows the fold difference: without `source` a forged-source record applies; with it the result is RECORD_INVALID basis.source.
+  - Mutant R16-registrar-source is killed by the FA03 row.
+- D-FRESH-3: the headers of FC01, FC03, FC08 and FA02 cite R9.6. PRODUCER_REVISION is re-bound to the new FC01 bytes (1e6ea50c).
+- Walk extensions (R8-PROPERTY):
+  - Missed debuts: a native debut card is trained 5 lb light 30% of the time, and 5 lb heavy as before. New invariant I14: no landing; a missed_target hold naming the Close; the check offers adopt-baseline of the actual loads with authority_refs naming the Close (VECTOR_ADOPTION_UNDEFINED when the loads are unequal); a yes clears the hold and SUPERSEDES Q.
+  - The I1 oracle for a RESTORE-shaped compensation wants its recorded target, whatever the base on replay.
+  - held() counts missed holds.
+- Model conventions added, each commented in the file:
+  - an exit response names the plan ops its device folded (seed 1001107: a second-device duplicate was otherwise unordered against the exit of a missed debut);
+  - a w-only edit under a RESTORE changes nothing its offers read (I5; seed 5016917).
+- Walk runs:
+  - Attempt 1 found seed 5016917 (I5) and was stopped before the mutants; its files are kept as *-attempt1.
+  - Attempt 2: 3 x 17,000 on FC12 bytes ef1fe78d, 0 counterexamples. Its files are kept as *-attempt2.
+  - Three rows were then added outside the walk. Attempt 3 re-ran 3 x 17,000 on the final bytes 815a5d76: 51,000 walks, 0 counterexamples (r16\p16-17k-*.json 42866456, 94D79A9C, E1CB1FBF). The reports are byte-identical to attempt 2's, so the walk's behaviour is unchanged.
+  - Coverage in attempt 2: 737 missed debuts, 728 missed exits offered, 500 accepted; 1,404 RESTORE undos; 2,723 RESTORE checks over a moved base; 207 earn checks after a spend; 76 one-root earns; 4,184 exits offered.
+- Mutants (r16\mutants-summary.txt D6EA41DF):
+  - 175 in total: the round-15 set with R13-active-superseded re-anchored to isHold, plus 28 new (M14 x3 and R16 x25).
+  - 167 were killed on first run. All 28 new ones died except R16-missed-first, which the N29 HOLD NAME row now kills.
+  - Written equivalence arguments were requested, so two old LIVE mutants were re-examined, and neither was equivalent:
+    - R7-canon-order: with shape-classified undos, two records of one cancellation (a RESTORE and a RETIRE) fold differently by log order. It is killed by R16-CANON-SHAPES.
+    - R11-S8-adopt: a forged adoption consuming [C1, C2], with evidence ordered so that FC01's "last item" is C1, would apply C1's heavier 110. It is killed by R16-ADOPT-LATEST-ACTUAL. The product was never affected, because S8 refuses it; the mutant would not.
+  - Reruns: r16\mutants-rerun-*.txt.
+  - Final: 170 killed by behaviour. 5 are LIVE: R7-canon-cut, R7-comp-any, R7-comp-reprice, R7-comp-reprice-host and R11-window-legacy-host (arguments in the REVIEW INDEX).
+  - R12-decode-absent is still killed only by the byte pin.
+- Green on the final bytes:
+  - FC12 132/132 (r16\g6-fc12.txt 32A67975);
+  - FA03 41/41 (r16\g4-fa03.txt 9C01926B).
+- Full local set (80 files) vs ab445c6: 1135 tests, 67 failing in both, 0 new, 0 base-only (r16\full-compare.txt 8C94BD33, identical to round 15). The base worktree was removed.
+- Round-16 sha256:
+  - native-load.cjs 043dd253...1868 (623; PRODUCER_REVISION 1e6ea50c);
+  - native-load-effects.cjs 6c990e6e...f63f (964);
+  - today-bindings.mjs e6347c17...9dcd5 (1100);
+  - today-entry.mjs d13975b2...7480 (773);
+  - engine-capture.cjs 94685ca4...3c15 (unchanged);
+  - FC12 test 815a5d76...25da (2907);
+  - FA03 test 93444c68...2039 (1051).
+  All LF, no added non-ASCII.
+
+## Round 16b (UNCOMMITTED, same worktree): R7-comp-reprice, R7-comp-any and R7-canon-cut closed
+- Premise P, restated: at a reproducible cut, the cut digests cover every input of an undo body. It holds, and here is the proof, read from FC01 compensation() :336-369 and evaluate() :168-187:
+  - The body's basis is json(req.basis), and at replay req.basis is the record's own basis. So effect_frontier is an ECHO, not an input to recompute. lift, compensates and spend_id come from the request too.
+  - base_load and target_load are read from the lift's exercise (FIELDS, sets, native_load_authority) and from the queue.
+  - Replay evaluates withFacts(V, cut) before the governor. sameCut digests the exercises after the governor and the queue as they are. The governor writes only holdFlag (:400-402), which is not in FIELDS. So digest equality implies every read field is equal.
+  - The rows (the lift's completions at the cut) decide only offer versus refusal, never the body.
+  - Hence a GENUINE record at a reproducible cut re-evaluates to exactly its own body.
+- P was true, but the product was defective. The loose comparison (same compensates) also let a FORGED body pass re-validation: a genuine RETIRE, re-shaped into a RESTORE to the prior 100 and re-digested, applied under the present revision. And `records.some` let one genuine record vouch for a forged copy of the same cancellation.
+- Red first, FC12 r16\red16b-fc12.txt: R16b-COMP-REPRICE and R16b-COMP-EVERY fail on the round-16 code. Both forgeries applied silently.
+- Fix, FC03 fold re-validation of compensations: EVERY record must re-evaluate to EXACTLY its own body (`records.every`, `same(o.body, b)`). Genuine records are unaffected, by P. Green: FC12 135/135, FA03 41/41.
+- Under R2 (revision absent), a forged undo body still applies as written after S1-S8 and DERIVABLE. That is the spec's absent-revision rule (:155), and DERIVABLE bounds such a body to RETIRE or to the adoption's prior image. R16b-COMP-REPRICE pins this R2 outcome so a reviewer can see it.
+- R7-canon-cut: R16b-CANON-CUT, green on head; its red is the mutant.
+  - Input: a re-digested copy of a genuine undo that claims the empty cut.
+  - Product: the cancellation sits at the earliest claimed cut (review B19), before the adoption it names, so it is refused RECORD_INVALID naming both records. The adoption stands. R1 and R2.
+  - Mutant: it uses the representative's cut, applies the genuine undo and never examines the forged copy.
+  - Why genuine records cannot tell the two placements apart, which is why only a forgery kills it:
+    - FC01 refuses an undo when any later completion of the lift is in its cut (:350), so no same-lift completion or descendant accept can lie between two genuine records' cuts.
+    - A Start that could land the target lies at or after every record's cut.
+    - Other lifts' events are independent.
+  - Disclosed consequence: a forged early-cut copy spoils that cancellation, and its later undo records join the spoiled group. The lift is held RECORD_INVALID, and exit (b), adopt-baseline after training, still resolves it (NO TRAP).
+- Mutants: 177, meaning the round-16 set, with R7-comp-reprice re-anchored to the new strict line (its mutation is now "strict to loose"), plus R16b-comp-some and R16b-comp-some-host ("every to some").
+- Results on the final bytes:
+  - Walk: 3 x 17,000 = 51,000 walks, 0 counterexamples. The report bytes are identical to round 16 (42866456, 94D79A9C, E1CB1FBF). So no genuine walk record behaves differently under the strict every-record re-validation, which is empirical support for P.
+  - Mutants: r16\mutants-summary.txt 9F5D26BF, 177 in total, 174 killed by behaviour. R7-canon-cut, R7-comp-any, R7-comp-reprice and R16b-comp-some are killed in FC12. R16-registrar-source and the others are unchanged. The round-16 summary is kept as mutants-summary-r16.txt.
+  - The 3 LIVE mutants are all host-only reachability, and the FC12 variant of each is killed:
+    - R11-window-legacy-host: as before.
+    - R7-comp-reprice-host and R16b-comp-some-host: the guarded host never carries a record whose body is not a genuine issuance. A rewritten record is refused LOCAL_HISTORY_IDENTITY_UNPROVEN (FA03 D-FRESH-2), and the host records only a body equal to a fresh offer (sameIssued). By P, a genuine record re-evaluates to exactly its own body, so on the host the strict and loose comparisons, and "every" and "some", cannot differ.
+  - R12-decode-absent is still killed only by the byte pin.
+  - Red: r16\red16b-fc12.txt 00F0E080. Green: FC12 135/135 (g7-fc12.txt C1A2F6AB), FA03 41/41 (g5-fa03.txt E7335AEB).
+  - Full local set (80 files): 0 new failures vs ab445c6 (r16\full-compare-16b.txt 8C94BD33).
+- Round-16b sha256 (only FC03 and FC12 changed since round 16):
+  - native-load-effects.cjs e985908a48e9030ab266cc8e3d90ddcc28e27838c62f6fd40ba6e0d3fc6ffbf5 (971);
+  - FC12 test 18687ed232a37a1690dd82ed387d325469ca049b0bcc921cb6b257079146034f (2953);
+  - the others as in round 16. All LF, no added non-ASCII.
+
+## REVIEW INDEX: the R9.6 build as it stands after round 16 (for an independent review of rounds 10-16)
 - Base and scope:
-  - Rounds 10-15 are uncommitted on 0e4fc74, which holds rounds 1-9; the owner grant is DECISIONS:784-785.
-  - Spec: rebuild/coach/NATIVE-LOAD-SPEC.md R9.4 at origin/rebuild/c-native-load-spec a575692 (sha256 accc0f5d).
+  - Rounds 10-15 are committed at ab445c6 (by the PM); round 16 is uncommitted on it. The owner grant is DECISIONS:784-785.
+  - Spec: rebuild/coach/NATIVE-LOAD-SPEC.md R9.6 (sha256 b739c2f8), on R9.4 a575692. H11 is built as option 2, the default.
   - Engine bytes touched: only the NATIVE-LOAD FC set.
   - No new user copy. The round-4 PROPOSED copy constant awaits Joe.
-- Files and roles. For each, which spec lines it implements; the sha256s are in the round-15 bullet above.
+- Files and roles. For each, which spec lines it implements; the sha256s are in the round-16 bullet above.
   - FC01 rebuild/engine/native-load.cjs (the evaluator and transition):
-    - :156 DERIVABLE, including c1 wrappers, c2 issuance projection, c3 by kind, supported wSets, and RESTORE/RETIRE by record shape;
+    - :156 DERIVABLE, including c1 wrappers, c2 issuance projection, c3 by kind, supported wSets, and RESTORE/RETIRE by record shape, both classified AND applied by shape (B28);
+    - :152 landing, including MISSED DEBUT (field missed_target) and the step-2 exception for a missed exit;
+    - :154 spend-suffix trim (B29);
     - issuance refusal of an unsupported wSets;
     - PRODUCER_REVISION bound to the engine bytes (R2-REVISION).
   - FC03 rebuild/m4/workout/native-load-effects.cjs (fold and check):
     - :127 window binding, earn branch only, after step 3;
-    - :155 S1-S8;
+    - :155 S1-S8, with the S1 lineage field and the ADOPT-BASELINE ANCHOR; exits fill load_basis.authority_refs;
     - :157 admission gate;
-    - :158-163 NO TRAP: holds, held projection (with the R9.4 legacy hide), exit (a) on the applied state, exit (b) proven after every holding record, :162 named refusals, LEGACY_PENDING kept;
+    - :158-163 NO TRAP: holds, held projection (with the R9.4 legacy hide), exit (a) on the applied state, exit (b) proven after every holding record, :162 named refusals, LEGACY_PENDING kept, :163 SCOPE refusals, missed_target holds;
     - log-ordered RECORD_INVALID holds;
     - :160 unprovable-order conflicts.
-  - FC08 rebuild/m3/w6/local/today-bindings.mjs: the host; its registrar and project() read FC03's heldProjection; the day is never refused.
+  - FC08 rebuild/m3/w6/local/today-bindings.mjs: the host; its registrar and project() read FC03's heldProjection and fold with the same admitted source (:164, D-FRESH-2); the day is never refused.
   - FA02 rebuild/m3/w7-preview/today/today-entry.mjs: the panel; it lists Undo only where FC01 allows it, otherwise the offer; a superseded hold is never a notice.
   - FC16 rebuild/m4/workout/engine-capture.cjs :91: window_hi on reps cells (unchanged since round 11).
-  - FC12 rebuild/m4/spec/native-load-options.test.cjs: 122 rows plus the R8-PROPERTY walk (invariants I1-I12, I10b).
-  - FA03 rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs: 36 real-host rows.
+  - FC12 rebuild/m4/spec/native-load-options.test.cjs: 135 rows plus the R8-PROPERTY walk (invariants I1-I14, I10b).
+  - FA03 rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs: 41 real-host rows.
 - Interpretations a reviewer should check against the spec:
   1. Exit (b) is adopt-baseline only. An earlier adopt-observed on a held weight stays its dependent (R7-P1, spec :161).
   2. "After" is proven by causality or by one device's own sequence (:161). A fold-side exit also accepts a holding record proven before the adopted completion's Start, when that Start precedes the response (R13-EXIT-ORDER).
@@ -252,23 +365,30 @@ Red on 4b83f4c product bytes with this round's tests: FC12 R8-P2/P3/P4 x2, R9-B2
   4. RECORD_INVALID holds apply from the invalid record's place in the log. A record proven before every copy of it is not held back.
   5. :162 applies to completions not proven after the holds. A completion after the holds that captured a numeric card, which the host cannot produce, keeps the hold refusal.
   6. Legacy entries: hidden only in the registered projection. The check and the fold still see them, so LEGACY_PENDING is named.
+  7. B28: a RESTORE of an UNAPPLIED adoption writes the adoption's recorded base_load.fields; a RESTORE or RETIRE of an APPLIED adoption still reverts it from its authority's prior image (R7-B18 stays green). So a RESTORE's weight persists over any later admitted base that has no ordering op, and it raises no issue.
+  8. MISSED DEBUT: FC03, not FC01, fills load_basis.authority_refs when it issues an exit (the spec names FC01). FC01 reads them only for the step-2 exception.
+  9. D-FRESH-2: the guarded host cannot hold a forged-source record, so the host row asserts that refusal plus a static pin; the fold difference itself is shown in FC12.
 - Model conventions in the walk, each commented in the file:
   - a baseline-ask Start names the plan ops it folded as causal parents;
   - a second-device copy names the ops it synced;
   - the two-device layout's device-B sequence follows its causal chain;
   - exit ledger entries follow interpretation 3;
-  - I10 skips only an unattributable hold and a completion dated before a declared fork.
-- Known LIVE mutants and why:
-  - R7-canon-order, R7-canon-cut, R7-comp-any, R7-comp-reprice(-host): alternative-body canonicalisation; no distinguishing input found (accepted since round 12).
-  - R11-S8-adopt: equivalent to DERIVABLE's adoption clause.
-  - R11-window-legacy-host: the host writes FC16 only.
-  - R12-decode-absent: pin-only; equivalent under R9.2+ (ABSENT and null decode alike after c1).
+  - I10 skips only an unattributable hold and a completion dated before a declared fork;
+  - an exit response names the plan ops its device folded (round 16);
+  - a w-only edit under a RESTORE stales nothing (I5, round 16);
+  - I13 accepts a one-root earn only as the EARLY proposal or with a positive rep margin over the prior line (a necessary condition of earn.cjs:75-76's noise clear, not the full rule).
+- LIVE mutants after round 16b: 3 of 177, all host-only reachability (see round 16b). Superseded round-16 list, kept for the record: (5 of 175), with the argument a reviewer can check, or where there is none. R7-canon-order and R11-S8-adopt, listed as equivalent before, were NOT equivalent; both are killed now (see round 16).
+  - R11-window-legacy-host (host variant only; the FC12 and PROPERTY variants are killed). Argument: this is reachability, not equivalence. engine-capture.cjs:91 writes window_hi whenever the plan's hi is a positive safe integer, and every FA03 installation Start is captured through it with hi set, so no host input reaches the legacy-cell branch.
+  - R7-comp-reprice and -host (the re-evaluated undo must equal the record's body exactly, instead of naming the same compensates). Argument, conditional on premise P: this path runs only when the cut is reproducible, meaning the same producer revision and identical programme digest, structural-queue digest and fact coverage. FC01 is a pure function of those inputs plus the request, which the record carries. So the re-evaluated offer equals the recorded body, and both comparisons agree. P is that every input to an undo body is covered by those digests. I have not proven P for basis.effect_frontier.
+  - R7-comp-any (reproducibility judged on the first undo record only). Under the same premise P: when the first record is reproducible it re-evaluates to an offer naming its compensates, and the fold proceeds exactly as on the apply-as-written path. Only the representative body is transitioned in either case, and the capture guard reads every record in both. Not proven beyond P.
+  - R7-canon-cut (an undo group placed at its representative's cut instead of the earliest record's). No equivalence argument. A difference needs an accept or Close event between the two cuts that interacts with the cancelled effect, for example a descendant yes recorded concurrently on a second device. No such row has been built. Treat it as an uncovered gap, not as equivalent.
+  - R12-decode-absent: killed only by the byte pin. It is equivalent under R9.2+, because c1 compares the wrappers, so ABSENT and present-null never reach decode unequal.
 - Residuals and named debts (spec :392): D-R9-RECOVERY-SCOPE, D-R9-ADMISSION (the actual import path, FC09/FC10 unbuilt), D-R9-CAPTURE, D-R9-EDIT/RECOVERY, D-R9-DELIVERY.
   - Host-unreachable cases are shown in FC12 only: the early-cut record (T2 refuses it), a second device, and a numeric card closed after a hold.
   - A lift the athlete never trains again stays held; this is harmless (:163).
 - How to reproduce, from C:\Users\joeym\AppData\Local\Temp\nlr-build; every script takes %TEMP%\earned-runtime.lock:
   - run.ps1 -Tests <file>: FC12, FA03 and the full list (local-candidates.txt);
   - r8\run-prop8.ps1 -Runs 17000 -Seed <s> -All: the walk;
-  - r15\mutants.ps1: the mutants;
+  - r16\mutants.ps1: the mutants (r16\anchors.cjs checks that every anchor is unique);
   - hygiene.cjs: LF and ASCII.
   The protected five are never loaded (guard.cjs).

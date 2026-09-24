@@ -1,5 +1,5 @@
 'use strict';
-// NATIVE-LOAD FC01 (rebuild/coach/NATIVE-LOAD-SPEC.md R7, 6ddf7af, sha256 98c0cf7a...).
+// NATIVE-LOAD FC01 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.6, sha256 b739c2f8..., on R9.4 a575692; first built on R7 6ddf7af).
 // earned/native-load/v1: the native evaluator and transition. Pure: no disk, no
 // clock read, no id minting, no mutation of any input. Every earning rule is the
 // engine's own, reached through the private table E (earnWalk, _deriveSightingFull,
@@ -207,7 +207,11 @@ function evaluate(state, request) {
   const originals = originalSlots(cur.entry);
   const planNow = ex.w == null ? originals.map(() => null) : planVector(ex);
   const typed = cur.entry.profile === 'earned/performed-lift/v2';
-  if (originals.length !== Math.max(1, ex.sets || 1) || (typed && !same(originals.map(captured), planNow)) || forks.some((f) => f && String(f.from) > cur.date))
+  // Spec R9.6 :152/:158: a MISSED DEBUT's own completion is exit-eligible; its numeric debut
+  // capture does not refuse PLAN_CHANGED. It is named by load_basis.authority_refs (the
+  // missed Close, :155 ADOPT-BASELINE ANCHOR), which FC03 fills only for such an exit.
+  const missedExit = refsOf(b.load_basis.authority_refs).some((r) => r.op_id === cur.close);
+  if (originals.length !== Math.max(1, ex.sets || 1) || (typed && !missedExit && !same(originals.map(captured), planNow)) || forks.some((f) => f && String(f.from) > cur.date))
     refuse('PLAN_CHANGED', [closeRef, ...refsOf(b.load_basis.authority_refs), ...(forks.some((f) => f && String(f.from) > cur.date) ? forkRefs : [])]);
   if (originals.some((slot) => slot.state === 'unresolved')) refuse('PREFIX_UNRESOLVED', [closeRef]);
   E.performedNumericEntry(cur.entry); // configuration magnitude keeps its own reader refusal
@@ -496,7 +500,7 @@ function transition(state, decision, context) {
   const clash = spent.filter((x) => map(x) && Array.isArray(x.consumes) && x.consumes.some((c) => d.consumes.includes(c)));
   if (clash.length) refuse('EFFECT_CONFLICT', [...responseRefs, ...clash.flatMap((x) => refsOf(x.response_refs))].sort(byOp));
   const lift = ex.id;
-  if (d.kind === 'compensate') return compensate(s, ex, d, responseRefs);
+  if (d.kind === 'compensate') return compensate(s, ex, d, responseRefs, spent);
   if (s.queue.some((q) => q && q.exId === lift && !q.done && typeof q.native_load_spend === 'string')) refuse('TARGET_QUEUED', responseRefs);
   if (s.queue.some((q) => q && q.exId === lift && !q.done && typeof q.native_load_spend !== 'string' && STRUCTURAL.includes(q.kind))) refuse('LEGACY_PENDING', responseRefs, 'queue');
   if (d.kind === 'earn') {
@@ -520,13 +524,27 @@ function transition(state, decision, context) {
   ex.native_load_authority = { kind: 'adopted', spend_id: d.spend_id, response_refs: responseRefs, prior };
   return { status: 'applied', state: s, effect: effectOf('adopted', d, responseRefs), refusal: null };
 }
-function compensate(s, ex, d, responseRefs) {
+function compensate(s, ex, d, responseRefs, spent = []) {
   const q = s.queue.find((x) => x && x.native_load_spend === d.compensates && !x.done);
+  // Spec R9.4 :156 (Astra L8 B28): classified AND applied by the RECORD'S OWN SHAPE, never by
+  // replay-time state. A RETIRE (target = its own base_load) writes no new value; a RESTORE
+  // (target unlike its own base) restores the adopted effect's prior image, which its
+  // recorded base_load holds, even when the adoption itself is held on this replay.
+  const restore = !(same(d.target_load.scalar, d.base_load.scalar) && same(d.target_load.vector, d.base_load.vector));
   if (q) {
     q.done = true; q.state = 'COMPENSATED'; q.native_load_compensated_by = d.spend_id;
   } else if (!heldTrace(s, ex, d.compensates)) {
-    // Retire-only (spec R8 :156, review B12): the held effect was never applied, so no
-    // field is written; the fold keeps its spend tombstone and clears its conflict.
+    if (restore) {
+      // The adoption is held unapplied on this replay (e.g. a later base with no ordering
+      // op): its recorded base_load.fields ARE the prior image the athlete chose to restore.
+      const x = spent.find((y) => map(y) && y.spend_id === d.compensates);
+      const f = x && map(x.base_load) && map(x.base_load.fields) ? x.base_load.fields : null;
+      if (!f || !map(f.w) || !map(f.wSets)) refuse('RECORD_INVALID', responseRefs, 'compensates');
+      for (const k of ['w', 'wSets']) { if (f[k].present) ex[k] = json(f[k].value); else delete ex[k]; }
+      ex.native_load_authority = { kind: 'compensated', spend_id: d.spend_id, compensates: d.compensates, response_refs: responseRefs };
+    }
+    // A RETIRE of a never-applied effect writes nothing (spec :156, :165); the fold keeps
+    // its spend tombstone and clears its conflict.
   } else {
     const auth = map(ex.native_load_authority) ? ex.native_load_authority : null;
     if (!auth || auth.kind !== 'adopted' || auth.spend_id !== d.compensates || !map(auth.prior)) refuse('COMPENSATION_DESCENDANTS', responseRefs);
@@ -561,6 +579,15 @@ function landing(s, ex, d, context, responseRefs) {
   const exact = !!capture && capture.length === want.length && originals.length === want.length && originals.every((slot, i) => slot.state === 'performed' &&
     capture[i] === want[i] && (slot.prescribed_load === undefined || captured(slot) === want[i]) &&
     slot.fact.current.load.unit === 'lb' && slot.fact.current.load.value === want[i]);
+  // Spec R9.6 :152 MISSED DEBUT (D-FRESH-1, H11 option 2): the Start captured exactly this
+  // target, every original slot is performed and unedited, and the actual loads differ. It
+  // does not land and is named field 'missed_target', which FC03 folds as a lift hold.
+  // A wrong capture or an edited debut keeps DEBUT_BASIS_UNPROVEN 'completion' (no hold).
+  const missed = !exact && !!capture && capture.length === want.length && originals.length === want.length && originals.every((slot, i) => slot.state === 'performed' &&
+    capture[i] === want[i] && (slot.prescribed_load === undefined || captured(slot) === want[i]) &&
+    !(Array.isArray(slot.fact.edit_op_ids) && slot.fact.edit_op_ids.length) &&
+    map(slot.fact.current.load) && slot.fact.current.load.unit === 'lb' && Number.isFinite(slot.fact.current.load.value));
+  if (missed) refuse('DEBUT_BASIS_UNPROVEN', [closeRef], 'missed_target');
   if (!exact) refuse('DEBUT_BASIS_UNPROVEN', [closeRef], 'completion');
   const session = s.workoutFacts && Array.isArray(s.workoutFacts.sessions) ? s.workoutFacts.sessions.find((x) => x.start_op_id === c.start.op_id) : null;
   if (!session) refuse('SOURCE_FRONTIER_UNPROVEN', [closeRef], 'completion');
