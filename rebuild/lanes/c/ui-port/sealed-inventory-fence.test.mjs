@@ -1799,6 +1799,13 @@ test("S10 P-S9-3 (33) - the D-EPP-2 capture step exists and carries the not-canc
 test("S10 P-S9-3 (34) - the Today split writer fence step exists and carries the not-cancelled condition", () => {
   assertNotCancelled(YML_LINES(), "rebuild/lanes/c/today-split/writer-fence.test.mjs");
 });
+/* D-S10I-12 (REVIEW-S10-INTEGRATION-l3): S10-REGEN.test.cjs, the path-boundary cell of the
+   operator helper that regenerates packages/S10.json at the S9 seal, gets its CI home with the
+   same condition shape, and this row reads it. It loads nothing protected: the helper runs on
+   fake node:child_process and node:fs ports. */
+test("S10 P-S9-3 (35) - the S10-REGEN path-boundary step exists and carries the not-cancelled condition", () => {
+  assertNotCancelled(YML_LINES(), "rebuild/lanes/b/S10-REGEN.test.cjs");
+});
 
 /* P-S9-5, THE TWO RE-HOMED INVARIANTS. ci-second-gate.test.cjs:29 asserted three things
    at once: that .github/workflows/rebuild.yml equals a 2026 baseline object with exactly

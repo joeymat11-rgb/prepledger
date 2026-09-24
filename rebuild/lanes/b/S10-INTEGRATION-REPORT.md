@@ -1,11 +1,10 @@
-# S10 integration report, rounds 2 to 6 (builder claude-opus-5-5, 2026-09-23)
+# S10 integration report, rounds 2 to 7 (builder claude-opus-5-5, 2026-09-23/24)
 Worktree %TEMP%\earned-s10int, branch rebuild/b-s10-integration; round 1 pushed by the PM at 7f8b228; round 2 is local commits only, nothing pushed.
 Parent: S9 CANDIDATE 6dc2596 (NOT sealed; every S10-WORKING-BRIEF.md c58b892 s.2.1 value is still a STOP). Rulings: DECISIONS:792 at 25c9276.
 Local runs: Windows, Node v24.19.0 (CI uses 22), runtime lock, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, preload guard that throws before any require/import/read of the protected five; guard log empty in every run.
 
 ## Round 1 (unchanged, 7f8b228)
 92b7487 SPLIT b35a48e3 | 9943679 GSS 66d32530 | aae3b27 EPP 0d38b8e + D-EPP-2 5a953d5 (all 0 conflicts) | 5ad69a7/656b793 fence LOOK_EDITS row red (0/1, names the 3 keys) then green 1/1 | 8e0f507 CHILD_SPECS += S10 | 7bb11d7 D-CR-2 re-pins | e57bc80 Today line + E steps | 1cc556c S10.json draft | 7f8b228 report.
-Evidence kept: engine diff = exactly today.cjs:97, writers.cjs:227, engine-capture.cjs:69; engine-capture-proposed 8/13 with the 6dc2596 capture file, 13/13 at head; gym 65/65; annex identity 7/7, g6-g8+log-timing+remount 15/15; full fence 403/404 (residue row, item 6).
 
 ## Round 2 commits
 | sha | item | content and evidence |
@@ -71,6 +70,10 @@ D-S10I-8, the EPP-R9 guard's scope and what CI owes. SCOPE: EPP-R9 guards exactl
 ## Round 6 (Astra L2 of 9bd4414: REJECT, B5; commits local)
 c675711 red: S10-REGEN.test.cjs compiles the helper with fake node:child_process/node:fs (every git answer and file invented, every read recorded): control + 7 refusals (out-of-scope, conform/private, soak inside a root, traversal, disk symlink, junction above, Git 120000), each BY NAME with no read of it and no product read first; the 5d42dac helper 0/8 ('READ rebuild/secret/other.json before refusing it'). a8eff43 (B5): discovery is `git diff -- <reviewed roots>`; every spec/artifact/pin/declared/changed path is validated before any read (scope, shape, forbidden set, ls-tree `--` mode 100644/100755 at parent and HEAD, no link up the path); blobs read by object id only; protected five never read (object ids and status). D-REGEN-INPUT: --write needs an ACCEPTED parent review; parent-released paths leave the whole declared union (b1339ca rows: old 0/2, new 2/2). cad0b03 adds the test cell to the scope. Cell 10/10. f9477f3: S10.json (79933a86...) re-pins S10-REGEN.cjs fe184527 and declares the cell new: 296 paths (231 carried, 20 edited, 2 released, 42 new, 1 superseded-by-child). Dry run --parent 6dc2596: 35 roots, 614 path/revision pairs validated, 73 changed in scope, 0 entries would change, D-SPLIT-PARENT 3/3 EQUAL, exit 0. Open: the cell has no rebuild.yml step (tooling, not product); say if it should.
 
+## Round 7 (Fable l3 ACCEPT WITH NAMED DEBTS at 6696062; left UNCOMMITTED for the PM)
+D-S10I-11: S10-REGEN.test.cjs gains two rows on the same fake ports: --write with no --receipt-line refused by name with ZERO reads; --write refused while a carried note cites the S9 candidate (sealed, ACCEPTED fake parent). Against the 1786b4b helper 0/2 (both attempt to write S10.json); against HEAD's helper the cell is 12/12. D-S10I-12: the cell gets a rebuild.yml step by exact path with `if: ${{ !cancelled() }}` (the P-S9-3 shape S9 gave its lane cells) and row (35) of sealed-inventory-fence.test.mjs reads it: red 6/7 before the step, 12/12 selected rows after. No declared child mirrors it: rebuild/lanes/b/ is not a CHILD_ROOT, and widening CHILD_ROOTS for operator tooling would move the runner and re-pin the eight ancestor packages; the workflow step is its home. S10.json re-pins from the working-tree bytes: S10-REGEN.test.cjs dd665b42, rebuild.yml 45b286b7, sealed-inventory-fence e49c3b0c -> 6abf4d4d. REGEN dry run --parent 6dc2596 on the uncommitted worktree reports those three as disk-vs-HEAD (expected); on a scratch detached worktree with this diff committed (removed after) it reports 0 entries would change, exit 0.
+D-S10I-13, DISCLOSURE: every S10-REGEN run before a8eff43 (the 1786b4b and d1e76b1 helpers: my round 3-5 dry runs at 6dc2596, and Fable's l2 dry run) HASHED the bytes of the protected five (seed, migrate, merge, index, oracle-shim under rebuild/engine/) through `git show` and a disk read, because S9.json pins them as carried product. They were never loaded or executed and only their sha256 was printed; no content entered any output. From a8eff43 on the helper reads only their Git object ids and `git status -- <path>`, never their bytes (Fable l3's probe: no read of seed.cjs in any case).
+
 ## STOPs remaining (D-S10I-1, complete list)
 1. Every s.2.1 placeholder: S9_PARENT_COMMIT/sourceBase, the S9 spec/receipt/verdict and both-OS CI ids, the S9 artifact and review sha256 and receipt line, S10_PACKAGE_ID, the S10 brief path/sha, THEME, BRIEF-BY-SHA and the two PROPOSED token lines above, all child needles.
 2. D-SPLIT-PARENT (3.1): re-measure the three sourceBlobs.s9 at S9_PARENT_COMMIT. They are EQUAL at 6dc2596 only; S10-REGEN.cjs prints the check and refuses --write on a mismatch.
@@ -84,5 +87,3 @@ c675711 red: S10-REGEN.test.cjs compiles the helper with fake node:child_process
 10. D-S10I-4 (CI); Astra's re-review of B1-B4 at this head; the separate Claude final (D-ACCEPTANCE).
 ## CI-only (not run locally)
 Today step (except gym and the five annexes), measure suites, proposed-pick, engine-provider (incl. S3-PROVIDER-ENGINE-PINS) and the rest of the m4-import step, `b-package --ci --package S10`, the other tooling suites (they spawn the runner), sealed-inventory-fence's real and fixture rows, the s10-sup cells' real rows, the split instruments.
-## Open question
-- Should rebuild/lanes/c/today-split/ join PUBLIC_TAIL_ROOTS? Not argued here, so withheld.

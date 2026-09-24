@@ -147,3 +147,23 @@ test('S10-REGEN D-REGEN-INPUT: a parent-released path leaves the WHOLE declared 
   assert.equal(/build\.mjs: .*=>  new/.test(r.out), false, 'the released path became new');
 });
 
+
+/* D-S10I-11 (REVIEW-S10-INTEGRATION-l3): the two --write refusals of D-S10I-10, as rows. */
+test('S10-REGEN D-S10I-11: --write without --receipt-line is refused BY NAME, before any read', () => {
+  const r = run(sealed(world(), 'ACCEPTED'), ['--parent', 'fake', '--write']);
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.exitCode, 2, r.out);
+  assert.match(r.out, /--write needs --receipt-line N/);
+  assert.deepEqual(r.reads, [], 'the helper read before refusing a --write with no receipt line');
+});
+test('S10-REGEN D-S10I-11: --write refuses while a carried note still cites the S9 candidate, and writes nothing', () => {
+  const w = sealed(world(), 'ACCEPTED');
+  const spec = JSON.parse(w.disk[SPEC]);
+  spec.notes = ['PROPOSED DRAFT composed over the S9 candidate 6dc2596, not a spec of record.'];
+  w.disk[SPEC] = JSON.stringify(spec); w.at[HEAD][SPEC] = w.disk[SPEC];
+  const r = run(w, ['--parent', 'fake', '--write', '--receipt-line', '1']);
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.exitCode, 2, r.out);
+  assert.match(r.out, /STALE NOTE .*\[0\] PROPOSED DRAFT/);
+  assert.match(r.out, /carried note\(s\) still cite the S9 candidate/);
+});

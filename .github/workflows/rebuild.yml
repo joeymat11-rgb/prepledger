@@ -370,6 +370,16 @@ jobs:
       - name: C - the Today split writer fence over the released view files
         if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/c/today-split/writer-fence.test.mjs
+      # S10 GIVES rebuild/lanes/b/S10-REGEN.test.cjs ITS CI HOME (D-S10I-12): the refusal rows of
+      # the helper that re-measures packages/S10.json at the S9 seal (out-of-scope, forbidden,
+      # linked and non-regular paths refused before any read; the --write input contract). It
+      # compiles the helper on fake git and filesystem ports and reads nothing of the repository.
+      # Same condition shape; row (35) of the sealed-inventory fence cell reads this line. No
+      # declared child mirrors it: rebuild/lanes/b/ is not a CHILD_ROOT, and widening the list for
+      # operator tooling would move the runner and re-pin the eight ancestor packages again.
+      - name: B - S10-REGEN's path boundary and write contract, on synthetic ports
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/lanes/b/S10-REGEN.test.cjs
       # M2-S7-PORT-ADMISSION ADDS ITS OWN THREE LANE CELLS HERE, under the same
       # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason: they arrived
       # with P3-PORT-FIX and P3-PORT-FIX-2 (DECISIONS:509, :510) and no workflow names
