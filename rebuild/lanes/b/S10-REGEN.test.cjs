@@ -167,3 +167,52 @@ test('S10-REGEN D-S10I-11: --write refuses while a carried note still cites the 
   assert.match(r.out, /STALE NOTE .*\[0\] PROPOSED DRAFT/);
   assert.match(r.out, /carried note\(s\) still cite the S9 candidate/);
 });
+
+/* B5 RESIDUAL (Astra S10-INTEGRATION-REVIEW-L3): the thirteen spellings its matrix ADMITTED, each a
+   newly tracked changed input with a regular Git entry and a file on the fake disk, each required to be
+   refused BY NAME before any read of it; then the same forbidden and auth shapes through every other
+   input source. All on the synthetic ports above. */
+const ADMITTED = [
+  ['upper-case LEDGER directory', 'rebuild/m4/spec/LEDGER/synthetic.json', /forbidden set/],
+  ['mixed-case Ledger directory', 'rebuild/m4/spec/Ledger/synthetic.json', /forbidden set/],
+  ['upper-case SRC directory', 'rebuild/m4/workout/SRC/app.js', /forbidden set/],
+  ['ledger directory with a trailing dot', 'rebuild/m4/spec/ledger./synthetic.json', /ending in a dot or a space/],
+  ['ledger directory with a trailing space', 'rebuild/m4/spec/ledger /synthetic.json', /ending in a dot or a space/],
+  ['upper-case protected basename', 'rebuild/engine/SEED.cjs', /alternate spelling of a protected engine file/],
+  ['mixed-case protected basename', 'rebuild/engine/Merge.cjs', /alternate spelling of a protected engine file/],
+  ['protected basename with a trailing dot', 'rebuild/engine/seed.cjs.', /ending in a dot or a space/],
+  ['protected basename with a trailing space', 'rebuild/engine/index.cjs ', /ending in a dot or a space/],
+  ['protected 8.3 short name', 'rebuild/engine/ORACLE~1.CJS', /8\.3 short-name/],
+  ['auth.json under an allowed root', 'rebuild/m4/spec/auth.json', /auth-shaped/],
+  ['.credentials under an allowed root', 'rebuild/m4/spec/.credentials', /auth-shaped/],
+  ['an alternate data stream', 'rebuild/m4/workout/a.cjs:secret', /alternate-data-stream/],
+];
+for (const [label, name, why] of ADMITTED) {
+  test('S10-REGEN B5 REFUSES ' + label + ' BY NAME, BEFORE ANY READ OF IT', () => {
+    const w = world(); w.changed.push(name); w.at[HEAD][name] = 'synthetic\n'; w.disk[name] = 'synthetic\n';
+    const r = run(w);
+    assert.equal(r.error, null, String(r.error && r.error.stack));
+    assert.equal(r.reads.includes(name), false, 'the helper READ ' + name + ' before refusing it');
+    for (const f of r.reads) assert(FIXED.has(f), 'a product read happened before the refusal: ' + f);
+    assert.equal(r.exitCode, 2, 'not refused: ' + r.out);
+    assert(r.out.includes('REGEN-PATH-REFUSED') && r.out.includes(name), 'not refused BY NAME: ' + r.out);
+    assert.match(r.out, why);
+  });
+}
+const SOURCES = {
+  'S10.product': (w, name) => { const s = JSON.parse(w.disk[SPEC]); s.product[name] = { pre: null, post: sha('synthetic\n'), role: 'new' }; w.disk[SPEC] = JSON.stringify(s); w.at[HEAD][SPEC] = w.disk[SPEC]; },
+  'the parent product map': (w, name) => { const s = JSON.parse(w.at[P][S9SPEC]); s.product[name] = { pre: null, post: sha('synthetic\n'), role: 'new' }; w.at[P][S9SPEC] = JSON.stringify(s); w.at[P][name] = 'synthetic\n'; },
+  'the parent artifact path': (w, name) => { const s = JSON.parse(w.disk[SPEC]); s.parent.options[0].artifact = name; w.disk[SPEC] = JSON.stringify(s); w.at[HEAD][SPEC] = w.disk[SPEC]; w.at[P][name] = '{}'; },
+};
+for (const [source, plant] of Object.entries(SOURCES)) {
+  for (const name of ['rebuild/m4/spec/LEDGER/synthetic.json', 'rebuild/m4/spec/auth.json']) {
+    test('S10-REGEN B5 REFUSES ' + name + ' supplied through ' + source + ', before any read of it', () => {
+      const w = world(); w.at[HEAD][name] = 'synthetic\n'; w.disk[name] = 'synthetic\n'; plant(w, name);
+      const r = run(w);
+      assert.equal(r.error, null, String(r.error && r.error.stack));
+      assert.equal(r.reads.includes(name), false, 'the helper READ ' + name + ' before refusing it');
+      assert.equal(r.exitCode, 2, 'not refused: ' + r.out);
+      assert(r.out.includes('REGEN-PATH-REFUSED') && r.out.includes(name), 'not refused BY NAME: ' + r.out);
+    });
+  }
+}
