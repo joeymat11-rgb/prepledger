@@ -228,3 +228,131 @@ Runs: fence red, fence green, staticcheck; each under %TEMP%\earned-runtime.lock
 sealed-inventory-fence child is now expected to print "# pass 54" -> Fable seal read -> PM local --full under :796 (d) ->
 POSTFIX receipt. Scratch (outside the worktree): %TEMP%\opus55-s9r6 (hash.cjs, run-fence.cjs, grep-pins.cjs,
 verify-s9json.cjs, red.log, green.log, pins.log, pins8.log, fence-RED-state.test.mjs.txt).
+
+## Round 7 (UNLISTED-SOURCE-CHANGE in fidelity()) (builder claude-opus-5-5, 2026-09-24) - UNCOMMITTED, for the PM
+Worktree earned-s9int at HEAD 8306c3f. b-package.cjs (5321181a) read as text, never loaded or executed.
+### 7.1 The unlisted set after the runner's own allowances
+- Rule: fidelity() b-package.cjs:2596-2604. changed = git diff --name-only sourceBase HEAD -- rebuild/engine rebuild/conform
+  rebuild/m4/spec rebuild/lanes/b/tooling. Exempt: s.product keys; ARTIFACT/REVIEW, derived at :2056-2057 from packageId, so only
+  acceptance-s9-ui-pins.json / review-s9-ui-pins.json (never the parent's); TOOLING_FILES :371-392 (31 entries: the runner, six
+  docs, eleven lane-B suites, packages/<IDS and RETIRED_IDS>.json); ownReceipt = receipts/S9.json only (:2602, r8 change 2: any
+  OTHER package's receipt is deliberately not exempt); child argv targets (childArgv :708); carrierSuccessor.file.
+- Of the PM's seven, four are TOOLING_FILES (packages/S9.json, test/execution-targets, test/gate-supersession,
+  test/seal-tip-and-byte-identity). THREE remain, identical at 6dc2596 and at HEAD (names-only replica, spec read from each rev):
+  rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs, rebuild/lanes/b/tooling/receipts/S8.json,
+  rebuild/m4/spec/review-s8-real-shape.json.
+### 7.2 How S8 handled the class, and every earlier package
+- Measured from each spec at HEAD: parent review and parent receipt are both ancestors of sourceBase for H3 (receipt n/a), S3,
+  S4, S5, S6, S7 and S8, and none of those packages declares any receipts/ or m4/spec/review-* file in product. S8: sourceBase
+  8ebc860 (the DECISIONS:523 dispatch commit) already contains S7's review 6e09a54 and receipt c698a18, so neither was ever in
+  S8's diff. S8 therefore has NO product-declaration precedent for a parent's review or receipt.
+- S9 is the first package whose sourceBase predates its parent's seal evidence: 0cd07be is "S8-REAL-SHAPE: proposed artifact";
+  the review d79ebd2 and the receipt ef49245 (DECISIONS:528) came after it. P-S9-1 (DECISIONS:627) fixes 0cd07be, "re-measured
+  at integration, never rebased" (brief :62-67, :864-877). So the S8 precedent (a sourceBase after the parent's seal) is not
+  available to this builder: moving sourceBase is the PM's.
+- S8 precedent for a file its package itself changed and that neither parent map pins: role "new", pre = the sourceBase blob,
+  post = its bytes (S8.product rebuild/m4/workout/engine-history.cjs, rebuild/m3/w7-preview/today/local-source-basis.mjs).
+  product() :2480-2483 admits only "new" or "pinned-unchanged" for such a file ("edited" refuses UNLISTED-PRODUCT-DRIFT).
+  ci-second-gate.test.cjs is that case: S9's own edit d4a3c92 under P-S9-5 (DECISIONS:627), in neither S8 map (brief 9.8).
+### 7.3 The change (S9.json only, plus this section)
+- Added product["rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs"] = {pre 237dcb89279dfdbbb5c4011172c9149f8b23b7b170448b41ffa03e509ee03b2c
+  (git show 0cd07be, 10191 B), post f3c470c60748e637c82130a121d18bee989b537e45a619e74ee1f63998a276a5 (HEAD = disk, 11840 B;
+  equals S9-INTEGRATION-HAND-REPORT.md:541), role new}, placed after release-from-seal.test.cjs. +5 lines, nothing else moved;
+  256 product pins (was 255). No child, no note, no sourceBase change. It is not executed by any child and need not be (the Y1
+  own-child rule counts children, it does not require every "new" file to run).
+- S9.json c5df18f1ec8a1e2d069fef4f46e396c81690167616cdd2373521d02cdffa4975 (91266 B) ->
+  00e4db81c3aae9e05fa8d412c3e1073892dd23c29622fb372aa3581e4a5cf151.
+### 7.4 Red first, then static (lock taken and released)
+- Names-only replica %TEMP%\opus55-s9r7\unl.cjs (git names + JSON.parse; TOOLING_FILES/IDS/RETIRED_IDS read as text from the
+  runner): committed spec at 6dc2596 and at HEAD -> UNLISTED 3 (the three above); working-tree spec -> UNLISTED 2
+  (receipts/S8.json, review-s8-real-shape.json).
+- staticcheck.cjs (opus55-s9prep, unchanged): 28 PASS, 0 REFUSED; "256 pins", "32 children", spec sha256 row 00e4db81c3aa...
+- Scratch extension %TEMP%\opus55-s9r7\staticcheck-r7.cjs (not in the repo) adds five rows: TOOLING_FILES 31 entries PASS;
+  fidelity replica sourceBase..HEAD REFUSED and sourceBase..worktree REFUSED, both "UNLISTED-SOURCE-CHANGE
+  rebuild/lanes/b/tooling/receipts/S8.json rebuild/m4/spec/review-s8-real-shape.json"; product() role branch (every entry in
+  neither S8 map is new or pinned-unchanged) PASS; ci-second-gate pre = sourceBase blob, post = disk = HEAD, pre != post PASS.
+  Loaded only itself, legacy-gates.cjs, target.cjs, trace-v2.cjs, strict-json.cjs. The unlisted set is NOT empty: see 7.6.
+### 7.5 Measured for the PM, not applied: a sourceBase that mirrors S8
+- e8712f48b32e33738cdf81dd8d6cd72d0a72523d (the S8 seal merge, DECISIONS:529) descends from 0cd07be, d79ebd2 and ef49245 and is
+  an ancestor of HEAD. S8 parent pins (product + executionPins, 227): 222 public paths hashed with node crypto at 0cd07be,
+  ef49245 and e8712f48, 222 equal and 0 different at each; the protected five were NOT hashed (PM seat only, :796 (d)).
+- git diff 0cd07be e8712f48 -- rebuild .github: DECISIONS.md, coach/engine-revision.cjs, lanes/b/VERDICT-S8.md, receipts/S8.json,
+  review-s8-real-shape.json; none is an S9 product key, so no declared pre moves (ci-second-gate's pre is the same blob there).
+- Replica with sourceBase e8712f48 and this working tree: UNLISTED 0 (15 changed).
+- No executable cell names 0cd07be (git grep, explicit pathspecs, private/soak/ledger/src/protected five excluded): only
+  S9.json (2), S8's receipt and review, VERDICT-S8.md, DECISIONS.md and lane reports, including Astra's source-checker reviews
+  and permission record, which fix sourceBase 0cd07be for the bounded protected-five check (DECISIONS:757/:766).
+### 7.6 STOP: what the PM must rule (this builder takes none of these)
+- (A) Mirror S8 by moving sourceBase: "P-S9-1 AMENDED: the S9 sourceBase is e8712f48b32e33738cdf81dd8d6cd72d0a72523d (the :529
+  S8 seal merge), where review-s8-real-shape.json and receipts/S8.json already stand, as S8's own sourceBase 8ebc860 stood after
+  S7's review and receipt; 222 of 222 public S8 parent pins re-measured equal there, the five protected re-measured by the PM
+  seat only; every pre re-measured · RULED". Cost: the S9.json sourceBase value and Astra's fixed-sourceBase checker record.
+- (B) Keep P-S9-1 and declare the two files in S9.product, role new, pre null, post
+  3b1b8b91dd5a6ff049dffd721ec723b9fe550b0b71ba78e37574cfc96210d409 (receipts/S8.json, 28436 B) and
+  f7b9b51e38755f3364b398189b50be927e058b8606945f1a9fb51e1cd66cc632 (review-s8-real-shape.json, 480 B). The runner admits it,
+  but "new" says this package wrote them and it did not; no package has done this. Needs a PM line saying so.
+- (C) A reviewed runner round exempting the chosen parent's own receipt and review in fidelity(). The runner is pinned; not
+  recommended this late.
+### 7.7 Where c5df18f1 (the old S9.json sha256) is cited. Not changed; for the PM
+- This file :188 (6.5) and :206 (6.6); rebuild/lanes/fable/reviews/REVIEW-S9-EXPORTER-CONTAINMENT-FINAL-l1.md:15;
+  rebuild/lanes/fable/reviews/REVIEW-S9-FENCE-KEYS-l1.md:25 and :93; commit message 63bf01d; %TEMP%\pm-s9r6-msg.txt:4.
+  Not in the ledger DECISIONS.md, in no test, workflow or other package spec. Other worktrees and remote refs not searched.
+
+## Round 7 (b) (sourceBase moved under DECISIONS:804) (builder claude-opus-5-5, 2026-09-24) - UNCOMMITTED, for the PM
+Ruling applied: DECISIONS:804 option (A), P-S9-1 (:627) AMENDED, S9 sourceBase = e8712f48b32e33738cdf81dd8d6cd72d0a72523d (the :529
+S8 seal merge). Worktree earned-s9int at HEAD 8306c3f; round 7 (7.1-7.7 above) is kept, 7.6 is answered by this section.
+### 7b.1 The move (S9.json only)
+- S9.json:16 "sourceBase" 0cd07be7cf967dfbfea8c84947ba8477f58cfb5f -> e8712f48b32e33738cdf81dd8d6cd72d0a72523d. e8712f48 is a commit
+  ("M2-S8-REAL-SHAPE: VERDICT-S8.md terminal (byte-identity)"), descends from 0cd07be, d79ebd2 (review) and ef49245 (receipt), and is
+  an ancestor of HEAD, of 6dc2596 and of refs/remotes/origin/rebuild/t2-client-core (runner ancestor() SOURCEBASE-NOT-BEHIND-HEAD holds).
+- Whole-tree git diff --name-only 0cd07be e8712f48 = exactly five files: rebuild/DECISIONS.md, rebuild/coach/engine-revision.cjs,
+  rebuild/lanes/b/VERDICT-S8.md, rebuild/lanes/b/tooling/receipts/S8.json, rebuild/m4/spec/review-s8-real-shape.json; none is an S9
+  product key. Tree ids of rebuild/engine, rebuild/m3, rebuild/m4/workout and .github are equal at both commits.
+### 7b.2 Every pre re-measured at e8712f48 (runner semantics: product() :2455-2483, held() :2241-2246, pins() :2291-2401)
+- 256 S9 product entries: 251 public by node sha over git blobs (parent-pinned: pre = S8 pin = blob at e8712f48; others: pre = blob
+  at e8712f48, or null and absent there); the protected five (all role carried) NOT read or hashed: git ls-tree reports the same blob
+  id at 0cd07be and e8712f48 for each, so their pre is unchanged. Blob ids of all 256 are equal at both commits.
+- 227 S8 parent pins (product + executionPins): 222 public equal by sha at e8712f48, 5 protected same blob id; 0 broken.
+- 207 S7 grandparent pins declared in S9.product: identical held() outcome at both commits.
+- Execution pins: the one superseded-by-child entry keeps pre = its S8 executionPins pin (sourceBase-independent), equal.
+- PRE VALUES THAT MOVED: NONE (0 of 256).
+- ci-second-gate.test.cjs KEEPS its product entry: its only later commit d4a3c92 (P-S9-5) is not an ancestor of e8712f48 and the
+  file changed e8712f48..HEAD; pre 237dcb89279dfdbbb5c4011172c9149f8b23b7b170448b41ffa03e509ee03b2c = the e8712f48 blob (= the 0cd07be
+  blob), post f3c470c60748e637c82130a121d18bee989b537e45a619e74ee1f63998a276a5 = HEAD = disk, role new. Unchanged from round 7.
+### 7b.3 Citations of 0cd07be checked; what the move required
+- S9.json: only :16 (sourceBase, moved) and the D-BLOM note :1784. D-BLOM called 0cd07be "S8's seal commit ... (this spec's
+  sourceBase)"; 0cd07be is "S8-REAL-SHAPE: proposed artifact", the commit DECISIONS:528 accepted, and the seal merge is e8712f48 (:529).
+  Rewritten to: "moved after S8's proposed-artifact commit 0cd07be (the commit DECISIONS:528 accepted; this spec's sourceBase until
+  P-S9-1 was amended at DECISIONS:804 to the S8 seal merge e8712f48, which holds the same rebuild/m3 and rebuild/m4/workout trees as
+  0cd07be) ... (0cd07be..6dc2596, equally e8712f48..6dc2596, ...)". The eight named files are the same set over e8712f48..6dc2596
+  (names-only diff, soak-named paths excluded). No other note, needle or child changes.
+- The two coverage "why" strings (:1363, :1389) say "this package's own sourceBase" generically; the children read SPEC.sourceBase
+  (s9-supersede-*.test.cjs), and rebuild/engine is the same tree at both commits, so their text and bytes stay.
+- Brief (sha-bound at :789, NOT edited): :62-67 offers 0cd07be as a MEASURED CANDIDATE "for the PM to name ... never rebased"; :864-877
+  requires a sourceBase at which EVERY S8 parent pin holds. e8712f48 meets :864-877 (227 of 227, 7b.2); the "never rebased" rule is
+  superseded for this package by the PM's amendment at DECISIONS:804. Brief text needs no change.
+- History left as is: VERDICT-S8.md, receipts/S8.json, review-s8-real-shape.json, lane reports, Astra records, Fable reviews.
+### 7b.4 Red first, then static (lock %TEMP%\earned-runtime.lock taken, released; exit 0 both)
+- Red kept: names-only replica unl.cjs on this working spec with sourceBase forced to 0cd07be -> UNLISTED 2 (receipts/S8.json,
+  review-s8-real-shape.json); committed spec at HEAD -> UNLISTED 3 (+ ci-second-gate). Green: working spec (e8712f48) -> 15 changed,
+  UNLISTED 0.
+- staticcheck.cjs (opus55-s9prep, unchanged): 28 PASS, 0 REFUSED; 256 pins, 32 children, spec sha256 row bb169a67847d....
+- %TEMP%\opus55-s9r7b\staticcheck-r7b.cjs (round 7 replica plus six R7b rows, scratch): 39 PASS, 0 REFUSED; both fidelity replica
+  rows now PASS "15 changed, 0 unlisted". Loaded only itself, legacy-gates.cjs, target.cjs, trace-v2.cjs, strict-json.cjs.
+- S9.json 00e4db81c3aae9e05fa8d412c3e1073892dd23c29622fb372aa3581e4a5cf151 -> bb169a67847d10963fcaa0d69c14d5e157ad0a81525e22352ef116d6071ac86c
+  (91741 B, LF; 33 pre-existing U+2013/U+2014 in committed "why" text, none added).
+### 7b.5 What Astra's source-checker record (DECISIONS:757/:766) needs for the bounded re-check
+- Helper: %TEMP%\earned-s9-source-custody-checker-sol-20260921\s9-source-custody-check-a23c079-directory-fix.cjs (sha256 83eb00a9...,
+  L3 accepted, receipt S9-SOURCE-CLOSURE-PASS-2026-09-22.md). It hard-codes L7 CANDIDATE a23c079b... and L8 SOURCE_BASE 0cd07be...,
+  and refuses S9_SOURCE_BASE_MISMATCH (L280) when S9.json's sourceBase differs; the earlier 1528b20 helper does the same (L8, L268).
+  Run unchanged against this S9.json it REFUSES.
+- Change exactly two values: L8 SOURCE_BASE -> e8712f48b32e33738cdf81dd8d6cd72d0a72523d; L7 CANDIDATE -> the PM's commit carrying
+  S9.json bb169a67.... Bounded review of that two-line delta (its own record says a changed candidate/spec/helper needs one), then the
+  PM runs it with --allow-protected-five under :766.
+- Expected: STAGE1 PASS pins=227 protected=5 (protected five: same blob ids as the 0cd07be run); STAGE2 over the final 32 children
+  (81 unique non-flag argv by my count, against 83 targets over 33 groups at a23c079; the helper's own count governs); VERDICT PASS.
+- Records the PM/Astra then supersede (not edit): S9-SOURCE-CHECKER-PERMISSION-2026-09-22.md:13-14 and
+  S9-SOURCE-CLOSURE-PASS-2026-09-22.md:4-5 (Candidate/Integration and SourceBase).
+### 7b.6 Not done here
+- No commit; S10.json not touched (it re-binds to sealed S9 later); no b-package run; protected five never loaded, read or hashed.
+- Slip: the lock file's job-name line was written with PowerShell Set-Content (scratch lock only, deleted after the run).
