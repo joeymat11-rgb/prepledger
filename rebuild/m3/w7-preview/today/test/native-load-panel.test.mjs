@@ -1048,3 +1048,58 @@ test('R16-B29 SPEND-SUFFIX [Y] (Astra L8 B29, M14; spec :154 spend once): D1, D2
   assert.deepEqual(c4.offers.filter(o => o.kind === 'earn').map(o => o.loads), [[45, 45]], 'the earn returns on D3 and D4');
   h4.close(); later.close();
 });
+// Round 17b (Astra L9 B31; PM ruling, spec R9.8 :156 D-L8F-1): the athlete's own Undo of an APPLIED
+// lower adoption restores the weight they had accepted before it, never more.
+test('R17b-B31 LOWER ADOPTION UNDONE ON THE HOST [Y] (Astra L9 host witness; spec R9.8 :156): train 35 on the 40 card and adopt 35; reopen with an unordered base 37.5 (the adoption held) and accept the displayed Undo [37.5, 37.5] (RETIRE-shaped); reopen at the original base 40 -> the adoption applies again and the Undo restores its prior image 40 (never above it), no issue, the card reads 40', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1), one = await dayEntry(era, D1);
+  assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 35 } })).finished.ok, true);
+  await one.entry.nativeLoad.settled(); await one.entry.nativeLoad.check();
+  const adopt = one.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.equal(adopt && adopt.kind, 'adopt-observed');
+  assert.equal((await one.entry.nativeLoad.accept(adopt.proposalId)).acknowledged, true);
+  const body = (await responsesOf(era))[0].payload.issuance.body;
+  one.entry.gymHost.close(); era.close();
+  const middle = await reopenAt(fault, D2), h = await middle.createNativeLoadHost({ day: D2, engineState: withPress(D2, { w: 37.5 }) });
+  const undo = await h.check({ lift_lineage_id: 'demo-press', completion_op_id: body.evidence.at(-1).close.op_id, intent: { compensate: body.spend_id } });
+  assert.equal(undo.status, 'offer', JSON.stringify(undo.refusal)); assert.deepEqual(undo.offers[0].loads, [37.5, 37.5]);
+  assert.equal((await h.respond({ handle: undo.offers[0].handle, proposal_id: undo.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+  h.close(); middle.close();
+  const again = await reopenAt(fault, D3), host = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), p = await host.project();
+  assert.equal((await responsesOf(again)).length, 2, 'both responses kept');
+  const prior = 40;
+  assert.equal(pressOf(p).w, prior, 'the prior image the athlete had accepted before adopting 35');
+  assert.ok(pressOf(p).w <= prior, 'never above the prior accepted image');
+  assert.deepEqual(p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by && ['NATIVE_LOAD_EFFECT_CONFLICT', 'NATIVE_LOAD_RECORD_INVALID'].includes(i.code)), []);
+  host.close();
+  const three = await dayEntry(again, D3), view = await three.entry.gym.read();
+  assert.equal(view.phase, 'ready', view.code || ''); assert.match(view.prescription.line, /^40 lb/);
+  three.entry.gymHost.close(); again.close();
+});
+// Round 17b (Astra L9 B33): completed Starts captured by the PUBLIC capture factory before FC16
+// (only the additive reps-cell window_hi missing), saved and closed, then read by today's host.
+test('R17b-B33 PRE-FC16 STARTS AFTER RESTART [Y] (Astra L9 B33; spec R9.7/R9.8 :127 window binding, legacy capture never earns): two tops captured by the capture factory with window_hi omitted, saved and closed; the reopened current host checks the lift -> refused PLAN_CHANGED, no offer, no response written (mutant R11-window-legacy-host offers [45, 45])', async () => {
+  const Module = require('node:module'), nodeFs = require('node:fs'), nodePath = require('node:path');
+  const capPath = require.resolve('../../../../m4/workout/engine-capture.cjs'), Capture = require(capPath), current = Capture.createEngineWorkoutCapture;
+  const clause = '...(Number.isSafeInteger(original.hi)&&original.hi>0?{window_hi:original.hi}:{})';
+  const src = nodeFs.readFileSync(capPath, 'utf8');
+  assert.equal(src.split(clause).length, 2, 'the FC16 window_hi clause is where this row expects it');
+  const old = new Module(capPath, null); old.filename = capPath; old.paths = Module._nodeModulePaths(nodePath.dirname(capPath));
+  old._compile(src.replace(clause, ''), capPath);
+  const fault = faultDatabase();
+  try {
+    Capture.createEngineWorkoutCapture = old.exports.createEngineWorkoutCapture;
+    const era = await reopenAt(fault, D1), { entry } = await twoTops(era);
+    assert.equal((await train(entry)).finished.ok, true); await entry.nativeLoad.settled();
+    const starts = (await opsOf(era)).filter(o => o.kind === 'session-start');
+    assert.equal(starts.length, 2);
+    assert.ok(starts.every(st => st.prescription_capture && st.prescription_capture.slots.every(x => !(x.reps && x.reps.source_json && x.reps.source_json.includes('window_hi')))), 'pre-FC16 captures');
+    entry.gymHost.close(); entry.nativeLoad.close(); era.close();
+  } finally { Capture.createEngineWorkoutCapture = current; }
+  const again = await reopenAt(fault, D3), h = await again.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), p = await h.project();
+  assert.equal(p.ok, true, p.code);
+  const lift = p.lifts.find(l => l.lift_lineage_id === 'demo-press');
+  const checked = await h.check(lift);
+  assert.deepEqual([checked.status, checked.refusal && checked.refusal.code, checked.offers.length], ['refused', 'NATIVE_LOAD_PLAN_CHANGED', 0]);
+  assert.equal((await responsesOf(again)).length, 0);
+  h.close(); again.close();
+});

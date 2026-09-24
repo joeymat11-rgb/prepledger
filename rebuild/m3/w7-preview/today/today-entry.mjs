@@ -147,7 +147,7 @@ export async function createSetupEntry({ today: day }, options = {}) {
   };
 }
 
-/* NATIVE-LOAD FA02 (NATIVE-LOAD-SPEC R9.6 b739c2f8, first built on R7 section E; owner answer YES, route B;
+/* NATIVE-LOAD FA02 (NATIVE-LOAD-SPEC R9.8 105cc28 (sha256 28c73fa4), first built on R7 section E; owner answer YES, route B;
    DECISIONS:784-785). The shared view/controller, local to this entry (FA01 is not a
    file). Route B: after an ACKNOWLEDGED normal Close the gym model notifies this
    controller (FB01), which checks the completed lifts and shows the offers; the

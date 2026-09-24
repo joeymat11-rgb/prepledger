@@ -333,6 +333,97 @@ Red on 4b83f4c product bytes with this round's tests: FC12 R8-P2/P3/P4 x2, R9-B2
   - FC12 test 18687ed232a37a1690dd82ed387d325469ca049b0bcc921cb6b257079146034f (2953);
   - the others as in round 16. All LF, no added non-ASCII.
 
+## Round 17 (UNCOMMITTED on e04b8e6, which holds rounds 16/16b; spec R9.7 912c36c (file sha256 da1398e1; "811a322d" was wrong, see 17a); Fable l8 ACCEPT WITH NAMED DEBTS)
+- Red first. FC12 r17\red-fc12.txt: R17-ANCHOR-STRUCTURAL and R17-DEAD-YES fail on e04b8e6.
+  - R17-ANCHOR-STRUCTURAL: an exit naming a non-holding record of this lift (the Q yes) applied at w 95.
+  - R17-DEAD-YES: Undo was still offered after the spoiled group.
+  - R17-EDITED-DEBUT and R17-RETIRE-MEETS-APPLIED pin behaviour the build already has. Their red is the mutants M15-unedited and R16-restore-*.
+- D-L8F-4, structural miss verification (FC03 correspondence, spec R9.7 :155). For adopt-baseline with a numeric capture, each authority_ref must be one of:
+  - the consumed Close, where the consumed Start captured this lift's selected native entry and the S4-bound actual loads differ from that entry's target; or
+  - a proposal-response of this lift named by an active hold of the lift at this point in the fold.
+  - Anything else refuses RECORD_INVALID base_load. The fold hands correspondence its issues, spent and groups.
+  - The selected native entry is read from the fold's ACCEPTED records: an uncancelled, unlanded earn of this lift whose target vector is the capture. The first version read the replay-time queue instead. Walk attempt 1 found seed 20268799 against it: a legacy PROPOSED entry admitted later holds the Q yes back (LEGACY_PENDING), so no queue entry remained. The genuine missed exit then became RECORD_INVALID base_load and its Undo was lost (I2).
+  - R17-ANCHOR-LEGACY-LATER pins that input. Its red is that walk counterexample (r17\s8799.json, on the queue-based code); there is no separate mutant.
+  - Rows, all under R2: a Close that is not the consumed one; a wrong record (the C3 Start); a non-holding record (the Q yes); another lift's record; P4a (a non-held lift, own Close, no native entry captured: RECORD_INVALID base_load, no longer EFFECT_CONFLICT load_basis); and actual equal to the target (the yes on device B, so no landing and Q pending).
+  - The genuine missed exit still applies (w 95).
+- D-L8F-3, dead yes. The check refuses exit (a) when an active RECORD_INVALID of the lift names a record whose spend is this very cancellation. The refusal is that hold's own (RECORD_INVALID compensates, both refs). Exit (b) still resolves the group: C2 on the baseline ask gives [adopt-baseline 100]; the yes gives w 100 and the hold is superseded. R1 and R2.
+- D-L8F-5: R17-EDITED-DEBUT, Fable's P5.edited input. The result is DEBUT_BASIS_UNPROVEN field completion, with no missed_target hold. Q105 is still prescribed and the check is TARGET_QUEUED. Kills M15.
+- D-L8F-1 (PM ruling): R17-RETIRE-MEETS-APPLIED pins it. A RETIRE-shaped undo meeting an APPLIED adoption restores every native field of the prior image, and the authority is compensated. The same record with the adoption unapplied writes nothing (w 102.5).
+- Headers of FC01, FC03, FC08 and FA02 cited R9.7 912c36c with a WRONG sha256 811a322d (corrected in 17a). The FC01 header change re-binds PRODUCER_REVISION to 61aa15c7 (r16\rebind.cjs).
+- FA03 runs through the existing runner: NODE_PATH plus deps-loader resolve jsdom from the existing junctions. No npm install; no new junction needed. 41/41 (r17\g1-fa03.txt).
+- Mutants: r17\mutants.ps1 has 186.
+  - Re-anchored: R11-S-skip (x2), because correspondence now takes issues, spent and groups.
+  - Removed: R16-anchor-close, superseded by R17-anchor-close-only.
+  - Added 10: M15-unedited (and -prop), R17-anchor-close-only (and -prop), R17-anchor-differ, R17-anchor-captured, R17-anchor-holding (and -prop), R17-dead-yes (and -prop).
+  - In the pre-run probe (r17\probe.txt) every new $t mutant was killed. R17-anchor-differ was first LIVE; the "actual equals target" variant was added and now kills it.
+- Results on the final bytes:
+  - FC12 140/140 (r17\g6-fc12.txt 2E0FD54B); FA03 41/41 (r17\g2-fa03.txt 1265B1E5). Red: r17\red-fc12.txt 0701F60B and r17\s8799.json 078898CD.
+  - Walk: attempt 2 ran 3 x 17,000 = 51,000 walks on FC12 bytes 7bd7cfea, 0 counterexamples (p17-17k-*.json EA7C5CAE, 6CFE8127, 56265317). Coverage counts are identical to round 16: 737 missed debuts, 500 missed exits accepted, 1,404 RESTORE undos. Attempt 1's files are kept as *-attempt1; it found 20268799.
+  - Mutants: r17\mutants-summary.txt AB1E5044, 186 in total, 183 killed by behaviour, including all 10 new ones. The 3 LIVE are unchanged: R7-comp-reprice-host, R16b-comp-some-host and R11-window-legacy-host, all host-only reachability as argued in round 16b. R12-decode-absent is still pin-only.
+  - Full local set (80 files) vs e04b8e6: 1135 tests. The head has 67 failures, all also failing on base; 0 new. The base additionally fails "the checkout this suite started on is the checkout it leaves" (its detached worktree). r17\full-compare.txt 39A6BCD2. The base worktree was removed.
+  - Note: rounds 15, 16 and 16b called tapdiff.cjs with base first, so their "AFTER only" and "BASE only" labels were swapped. Both counts were 0, so those conclusions stand.
+- Round-17 sha256 (all LF, no added non-ASCII):
+  - native-load.cjs c4821296d802e1b7be659b037666bf1da42eb5aadb13481d376596bb73050474 (header only; PRODUCER_REVISION 61aa15c7);
+  - native-load-effects.cjs 828423e8b7ea1ee62c476f0ccd406fd29b108458a3c2f39521ee95f9a906a6cc;
+  - today-bindings.mjs 5f7cceca43b60eaa6a4f237163f7c1e1d1ec1a9f8e2518babfa6e607ab388b7c (header only);
+  - today-entry.mjs 9f4d77d43a1dc7c9cecef35f0f311f8f20f602e871ad473e1fe66afe1c0c10aa (header only);
+  - FC12 7bd7cfeac162cb7fa969e5224d419ec176197ff298500801cb35bb237fcdb4fb;
+  - FA03 93444c68f402ec6eb683824eb6f8b70a79047175156d071ae9b052670bb42039 (unchanged).
+
+## Round 17a (UNCOMMITTED, same worktree): headers re-cited to R9.8
+- Where 811a322d came from: I extracted R9.7 with a PowerShell redirect (git show ... > r97.md). PowerShell 5 re-encodes redirected output as UTF-16LE with a BOM (the file starts FF FE) and CRLF line ends, so 811a322d is the hash of that re-encoded copy, not of the spec. Extracted byte-exact through cmd, the R9.7 blob hashes to da1398e1, the value the coordinator gave. The round-16 value b739c2f8 came from the file the coordinator named, so it was not affected.
+- R9.8 extracted the same byte-exact way (cmd redirect of git show 105cc28:rebuild/coach/NATIVE-LOAD-SPEC.md): sha256 28c73fa4b96edf427a3d65bc3b76ab4ae3f2ddaf9b426fdbdeb99236414594d9, which matches the published value.
+- FC01, FC03, FC08 and FA02 headers now cite R9.8 105cc28 (sha256 28c73fa4). No behaviour change.
+- PRODUCER_REVISION is re-bound to earned/native-load/v1+sha256:1d87743d41827618de425e971563ea11e1e2b770305ed75f88a410a8942c443d.
+- Green: FC12 140/140, R2-REVISION ok (r17\g17a-fc12.txt); FA03 41/41 (r17\g17a-fa03.txt).
+- R9.8 compared with the build (word diff 912c36c..105cc28 of the spec file only): no mismatch found.
+  - Undo of an APPLIED adoption restores every FIELD of the prior image whatever the shape, and the authority is compensated.
+  - A RETIRE writes nothing only when the adoption never applied; an unlanded earn's entry is retired.
+  - A never-applied RESTORE writes w/wSets from the recorded base_load.fields.
+  - The missed anchor reads ACCEPTED records (an uncancelled, unlanded earn whose target equals the capture).
+  - A hold ref is a proposal-response of this lift that an active hold names at that point in the fold.
+  - DEAD YES: the check refuses with that hold's own code, field and refs; exit (b) remains.
+  - All of these are as built in round 17 (rows R17-*, R6-B15c, R16-B28).
+
+## Round 17b (UNCOMMITTED, on 17a; Astra L9 REJECT at e04b8e6, reviewed against R9.7; PM positions under R9.8)
+- B31: the PM ruling stands (R9.8 :156, D-L8F-1). Undoing an APPLIED adoption restores its prior image whatever the record's shape. Rows:
+  - FC12 R17b-B31, Astra's RETIRE_SILENT_INCREASE fold input:
+    - adopt-observed 95 on the 100 card;
+    - the Undo is issued while the adoption is held under 97.5, so it is RETIRE-shaped (97.5/97.5);
+    - at base 100 the adoption applies (w 95, prior image 100) and the Undo restores exactly 100, never above the prior;
+    - at 97.5, where the adoption never applied, nothing is written. R1 and R2.
+  - FA03 R17b-B31, Astra's host witness:
+    - adopt 35 on the 40 card; accept the RETIRE Undo [37.5, 37.5] at base 37.5; reopen at base 40;
+    - result: w 40 = the prior image, never above it; both responses kept; no conflict or invalid-record issue; the card reads 40 lb.
+  - Astra's cited expectations agree under R9.8; no expectation was stale, none was changed:
+    - R7-B18a expects 100, the prior image;
+    - the walk's I1 oracle (compensated branch) expects the cancelled weight gone and the prior (or the recorded RESTORE target) current;
+    - Astra's single-clause canary `if (restore)` is exactly the R9.7 letter that R9.8 replaces.
+- B32: round 17 already refuses both fabricated inputs. Astra's own P/anchor-probes.cjs was run unchanged, with its harness ROOT pointed at this head (r17b\anchor-probes-head.jsonl):
+  - ANCHOR_REFS: genuine gives w 95. nonholding-same-lift, wrong-kind-set, not-consumed-close and mixed-good-and-bad each give RECORD_INVALID base_load, w 100, shown null.
+  - ANCHOR_CLOSE_NO_MISS gives RECORD_INVALID base_load, no adoption.
+  - EARLY_CUT_EXIT_B matches Astra: before, w 105 with RECORD_INVALID compensates; after the exit, w 95 and the hold is superseded.
+  - RETIRE_SILENT_INCREASE gives w 100, the R9.8 prior image.
+  - FRONTIER_ECHO_COPY is unchanged: w 100, cancelled. That is the admission residual D-L9-1 and is not in scope.
+- B33, fixed as a host row; the product needed no change:
+  - FA03 R17b-B33 compiles the PUBLIC capture factory (engine-capture.cjs) with only the FC16 window_hi clause removed. The row pins that clause's text exactly.
+  - Two tops are captured with it, then saved and closed, and the current host reopens.
+  - Original code: refused PLAN_CHANGED, no offer, 0 responses. It passes on the original bytes and kills R11-window-legacy-host.
+- B34, discriminating rows using Astra's inputs, all green on the head:
+  - R17b-L9-M03: edited mismatch, corrected set 1. Kills M15-unedited, which is the same clause as L9-M03.
+  - R17b-L9-M04: a valid Close plus a set-op ref gives base_load. Kills the every-to-some mutant.
+  - R17b-L9-M05: the lift clause now sits beside round 17's holding check, so Astra's orphan other-lift op is refused even without it. The discriminating input is a re-digested copy of the Q yes that claims fx-row. That makes one spend with two bodies, so fx-press's EFFECT_CONFLICT hold names the fx-row record, and the exit anchored on it is still base_load. Kills L9-M05-anchor-lift.
+  - R17b-L9-M07: only base_load.fields.last altered, re-digested, at a reproducible present-revision cut, gives RECORD_INVALID issuance. The product already compares the whole body (16b). Kills L9-M07-undo-target-only.
+- Green: FC12 145/145 (r17b\g1-fc12.txt), FA03 43/43 (r17b\g1-fa03.txt). Mutant probe r17b\probe.txt: all five killed.
+- Product bytes are unchanged from 17a. Only the two test files and this report changed.
+- Results on the final bytes:
+  - Walk: 3 x 17,000 = 51,000 walks, 0 counterexamples. The reports are byte-identical to round 17 (EA7C5CAE, 6CFE8127, 56265317), as expected with unchanged product bytes.
+  - Mutants: r17b\mutants-summary.txt 69C55573, 189 in total. That is round 17's 186 plus L9-M04-anchor-some, L9-M05-anchor-lift and L9-M07-undo-target-only; L9-M03 is M15-unedited.
+    - 187 are killed by behaviour, including R11-window-legacy-host (now killed by R17b-B33).
+    - 2 are LIVE, both host-only: R7-comp-reprice-host and R16b-comp-some-host. Astra L9 found the round-16b argument sound (D-L9-7).
+    - R12-decode-absent is still pin-only. Astra judges it behaviourally equivalent.
+  - Full local set (80 files) vs e04b8e6: 1135 tests, 67 failing in both, 0 new, 0 base-only (r17b\\full-compare.txt 8C94BD33, arguments in the correct order). The base worktree was removed.
+
 ## REVIEW INDEX: the R9.6 build as it stands after round 16 (for an independent review of rounds 10-16)
 - Base and scope:
   - Rounds 10-15 are committed at ab445c6 (by the PM); round 16 is uncommitted on it. The owner grant is DECISIONS:784-785.

@@ -1,5 +1,5 @@
 'use strict';
-// NATIVE-LOAD FC01 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.6, sha256 b739c2f8..., on R9.4 a575692; first built on R7 6ddf7af).
+// NATIVE-LOAD FC01 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.8 105cc28, sha256 28c73fa4..., on R9.4 a575692; first built on R7 6ddf7af).
 // earned/native-load/v1: the native evaluator and transition. Pure: no disk, no
 // clock read, no id minting, no mutation of any input. Every earning rule is the
 // engine's own, reached through the private table E (earnWalk, _deriveSightingFull,

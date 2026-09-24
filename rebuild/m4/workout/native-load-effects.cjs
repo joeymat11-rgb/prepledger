@@ -1,5 +1,5 @@
 'use strict';
-// NATIVE-LOAD FC03 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.6, sha256 b739c2f8..., on R9.4 a575692; first built on R7 6ddf7af):
+// NATIVE-LOAD FC03 (rebuild/coach/NATIVE-LOAD-SPEC.md R9.8 105cc28, sha256 28c73fa4..., on R9.4 a575692; first built on R7 6ddf7af):
 // the ONE shared source fold and the native-load response family. Pure and
 // synchronous: it reads an immutable base programme, the authenticated operations
 // of one generation and the registered typed workout facts, and reconstructs load,
@@ -310,7 +310,7 @@ function structural(op, byId, athleteId, base) {
 // S1-S8 all hold; the first failure names its field. Returns that field, or null.
 // Technique basis as spendIdOf reads it: the latest reset fork (plan.cjs:31 resetForksOf).
 const resetForks = (forks) => (Array.isArray(forks) ? forks : []).filter((f) => f && (f.kind ? f.kind !== 'context' : !f.split));
-function correspondence(body, { facts, byId, source }) {
+function correspondence(body, { facts, byId, source, issues = [], spent = [], groups = null }) {
   const lift = body.lift_lineage_id;
   const isOp0 = (id, kind) => { const o = byId.get(id); return !!o && o.class === 'session' && o.kind === kind; };
   // Spec R9.1 :155 (B-R9-4): a compensation keeps the existing cancellation identity: S1
@@ -398,16 +398,31 @@ function correspondence(body, { facts, byId, source }) {
     const item = body.evidence.find((x) => x.close.op_id === latest.close);
     const actual = item.sets.filter((s) => s.origin !== 'added').map((s) => (s.state === 'performed' && map(s.current) && map(s.current.load) ? s.current.load.value : null));
     if (body.kind === 'adopt-baseline') {
-      // Spec R9.6 :155 ADOPT-BASELINE ANCHOR: the base is the record's own projection (all null,
-      // DERIVABLE c2); a NUMERIC capture of the consumed Start is admitted only when
-      // load_basis.authority_refs names the lift's hold records as authenticated ops: the
-      // missed Close (which must be the consumed Close) or a plan response of this lift.
+      // Spec R9.6/R9.7 :155 ADOPT-BASELINE ANCHOR: the base is the record's own projection (all
+      // null, DERIVABLE c2); a NUMERIC capture of the consumed Start is admitted only when
+      // load_basis.authority_refs names the lift's hold records, checked against the ops, never
+      // trusted (R9.7, Fable l8 D-L8F-4):
+      // - a MISSED DEBUT Close: it is the consumed Close, the consumed Start captured this lift's
+      //   selected native entry (an accepted, uncancelled, unlanded earn of this lift whose
+      //   target vector is that capture; read from the fold's accepted records, not from the
+      //   replay-time queue, so a later legacy entry that holds the yes back never revokes a
+      //   verified miss: property seed 20268799), and the S4-bound actual loads differ from
+      //   that entry's target;
+      // - any other ref: a record of this lift that the fold itself classifies as holding at
+      //   this cut (an active hold issue of the lift naming it).
       if (baseVec.some((v) => v !== null)) return 'base_load';
       if (cap.some((v) => typeof v === 'number')) {
         const ar = map(body.basis.load_basis) && Array.isArray(body.basis.load_basis.authority_refs) ? body.basis.load_basis.authority_refs : [];
-        const ok = (r) => { if (!authentic(r) || r === null) return false; const o = byId.get(r.op_id);
-          if (o.class === 'session' && o.kind === 'session-close') return r.op_id === latest.close;
-          return o.class === 'plan' && o.kind === 'proposal-response' && map(o.payload) && map(o.payload.issuance) && map(o.payload.issuance.body) && o.payload.issuance.body.lift_lineage_id === lift; };
+        const vec = (b) => (map(b) && map(b.target_load) && Array.isArray(b.target_load.vector) ? b.target_load.vector.map((x) => (map(x) ? x.value : null)) : null);
+        const entries = (spent || []).filter((x) => x && !x.cancelled_by && !x.close_ref).map((x) => (groups && groups.get(x.spend_id) ? groups.get(x.spend_id).body : null))
+          .filter((b) => b && b.kind === 'earn' && b.lift_lineage_id === lift && same(vec(b), cap));
+        const target = entries.length ? vec(entries[0]) : null;
+        const holding = (id) => (issues || []).some((i) => i && i.lift === lift && isHold(i) && !i.superseded_by && (i.refs || []).some((x) => map(x) && x.op_id === id));
+        const ok = (r) => { if (r === null || !authentic(r)) return false; const o = byId.get(r.op_id);
+          if (o.class === 'session' && o.kind === 'session-close')
+            return r.op_id === latest.close && !!target && same(cap, target) && !same(actual, target);
+          return o.class === 'plan' && o.kind === 'proposal-response' && map(o.payload) && map(o.payload.issuance) && map(o.payload.issuance.body) &&
+            o.payload.issuance.body.lift_lineage_id === lift && holding(r.op_id); };
         if (!ar.length || !ar.every(ok)) return 'base_load';
       }
     }
@@ -640,7 +655,7 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
       // STRUCTURAL CORRESPONDENCE (spec R9 :155): a record that is not re-evaluated applies
       // only when S1-S8 hold; the first failure refuses that lift by the failing field.
       if (!reproducible) {
-        const field = correspondence(body, { facts, byId, source });
+        const field = correspondence(body, { facts, byId, source, issues, spent, groups });
         if (field) {
           const owner = field === 'lift_lineage_id' ? (() => { try { const k = JSON.parse(body.consumes[0]); return base.exercises.some((x) => x && x.id === k[1]) ? k[1] : lift; } catch (_) { return lift; } })() : lift;
           dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs, field, lift: owner }); continue;
@@ -843,6 +858,16 @@ function checkNativeLoad(args = {}) {
   // not yet cancelled) is dispatched before the hold refusal; FC01 and the capture guard
   // below judge it (COMPENSATION_DESCENDANTS unchanged).
   const undoable = !!undoOf && fold.spent.some((x) => x.spend_id === undoOf && !x.cancelled_by && decodeLift(undoOf) === lift);
+  // Fable l8 D-L8F-3 (spec :158 NO TRAP, I7): a cancellation group the fold refused (an active
+  // RECORD_INVALID naming a record of this very cancellation) can never apply, so its Undo is
+  // not offered again (a yes that could never take effect); that hold's own refusal is shown and
+  // exit (b) stays the way out.
+  if (undoOf) {
+    const undoSpend = JSON.stringify(['native-load-compensation', lift, undoOf]), { byId: byId0 } = operationsOf(generation);
+    const spoiled = holds.find((x) => x.code === 'NATIVE_LOAD_RECORD_INVALID' && (x.refs || []).some((r) => { const op = map(r) ? byId0.get(r.op_id) : null;
+      return !!op && map(op.payload) && map(op.payload.issuance) && map(op.payload.issuance.body) && op.payload.issuance.body.spend_id === undoSpend; }));
+    if (spoiled) return refused({ code: spoiled.code, refs: spoiled.refs, field: spoiled.field || null });
+  }
   if (undoOf && holds.length && !undoable) return holdRefusal();
   // Spec :153 "only if no later Start captured the accepted effect" (review B9). FC01's
   // request carries no Start capture (:91), which lives on the authenticated Start op
@@ -964,7 +989,7 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:1e6ea50cf95c31e69284c6854986634fe212f6a4cf56c20fbfe2dab2c12e2924';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:1d87743d41827618de425e971563ea11e1e2b770305ed75f88a410a8942c443d';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf,
   heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]), isHold };

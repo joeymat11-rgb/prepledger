@@ -247,7 +247,7 @@ export async function openTodayOverLocalEra({
     profile: Capture.SOURCE_PROFILE, sourceCodec: Source });
   const workoutCommands = Commands.createWorkoutCommands({ prescriptionCapture });
   const eraClock = clock || (live ? liveEraClock(live) : clock);
-  /* NATIVE-LOAD FC08 (NATIVE-LOAD-SPEC R9.6 b739c2f8 on R9.4 a575692, first built on R7; DECISIONS:784-785). The trusted native-load
+  /* NATIVE-LOAD FC08 (NATIVE-LOAD-SPEC R9.8 105cc28 (sha256 28c73fa4) on R9.4 a575692, first built on R7; DECISIONS:784-785). The trusted native-load
      capability is installed HERE, at construction, and nowhere else: its ticket registry
      is private to this installation, so a caller can hand the durable client nothing but
      an opaque ticket this module issued for an issuance it holds. */
