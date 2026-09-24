@@ -1288,7 +1288,8 @@ test('R7-P1 DEPENDENT OF A HELD EFFECT (property seeds 20269845, 20274085; spec 
 // checks, base moves (including a return to the original value), renames, plan edits,
 // captures by a later Start, and cold reopens; every projection is the cold fold.
 // Invariants, after every step and at the end:
-//  I1 no working weight exists that no yes authorized (w is the base's or an accepted target);
+//  I1 no working weight exists that no yes authorized (w is the base's or an accepted target;
+//     round 17c, spec R9.8 :156: a consented RESTORE target is an accepted target too);
 //  I2 a proven cancellation (an undo offered and recorded) is never lost, and never re-offered;
 //  I3 the same result under both delivery orders (responses moved to a second device,
 //     causal parents chained, counters reversed) and under revision R1 or R2;
@@ -1318,6 +1319,12 @@ function propertySequence(seed){
  const fold=o=>EFFECTS.m.foldNativeLoad(gen(o));
  const held=f=>f.issues.some(i=>i.lift===LIFT&&['NATIVE_LOAD_EFFECT_CONFLICT','NATIVE_LOAD_BASIS_REPAIR_REQUIRED','NATIVE_LOAD_RECORD_INVALID'].includes(i.code));
  const fail=(what,extra)=>{const e=new Error('PROPERTY '+what+' seed='+seed+' trace='+JSON.stringify(m.trace)+(extra?' '+JSON.stringify(extra):''));e.code='PROPERTY_COUNTEREXAMPLE';throw e;};
+ // Round 17c (Astra L10 D-L10-8; spec R9.8 :156): a consented RESTORE (an Undo whose target is
+ // unlike its own base, the shape FC01 classifies by) writes its recorded target, so that target
+ // is an accepted image for I1, as an accepted adoption or earn target is (seed 20261085). A
+ // RETIRE (target = its base) adds nothing. The shape test is R8's (acceptUndo, sameShape).
+ const consentUndo=d=>{if(JSON.stringify(d.target_load.scalar)===JSON.stringify(d.base_load.scalar)&&JSON.stringify(d.target_load.vector)===JSON.stringify(d.base_load.vector))return;
+  m.accepted.add(d.target_load.scalar?d.target_load.scalar.value:null);m.trace.push('undo-restore');};
  // The queue entry's title t is a display label written from the CURRENT name; it is not an outcome.
  const norm=f=>({state:(()=>{const s=structuredClone(f.state);const ex=exOf(s);delete ex.n;return {ex,queue:s.queue.filter(q=>q.native_load_spend).map(q=>{const x={...q};delete x.t;return x;})};})(),
   spent:f.spent.map(x=>[x.spend_id,x.cancelled_by,x.close_ref&&x.close_ref.op_id]).sort(),
@@ -1357,7 +1364,7 @@ function propertySequence(seed){
    const live=f.spent.filter(x=>!x.cancelled_by&&!x.spend_id.startsWith('["native-load-compensation"'));
    if(!live.length)continue;
    const target=pick(live).spend_id,ev=checkOf(gen(),LIFT,m.comps.at(-1),{compensate:target});
-   if(ev.status==='offer'){const d=decisionOf(ev.offers[0]);m.extras.push(acceptOp(ev.offers[0],{op_id:'fx-p-'+(++m.k),after:m.comps.length}));m.proven.push({target,undo:d.spend_id});m.trace.push('undo-yes');}
+   if(ev.status==='offer'){const d=decisionOf(ev.offers[0]);m.extras.push(acceptOp(ev.offers[0],{op_id:'fx-p-'+(++m.k),after:m.comps.length}));m.proven.push({target,undo:d.spend_id});m.trace.push('undo-yes');consentUndo(d);}
   }else if(action==='base'||action==='plan'){
    const ws=origW===null?[null,45,50]:[100,102.5,97.5,105];m.w=pick(ws);m.trace.push(m.w);
    if(m.lastOffer&&m.lastOffer.w!==m.w&&m.lastOffer.n===m.comps.length){
@@ -1373,7 +1380,7 @@ function propertySequence(seed){
    if(!m.proven.length)continue;
    const p=pick(m.proven),idx=m.extras.findIndex(x=>x.payload.issuance.body.compensates===p.target);
    const older=m.extras.slice(0,idx),save=m.extras;m.extras=older;const ev=checkOf(gen(),LIFT,m.comps.at(-1),{compensate:p.target});m.extras=save;
-   if(ev.status==='offer'){m.extras.push({...acceptOp(ev.offers[0],{op_id:'fx-p-'+(++m.k),after:m.comps.length}),device:'fx-device-B'});m.trace.push('undo2-yes');}
+   if(ev.status==='offer'){m.extras.push({...acceptOp(ev.offers[0],{op_id:'fx-p-'+(++m.k),after:m.comps.length}),device:'fx-device-B'});m.trace.push('undo2-yes');consentUndo(decisionOf(ev.offers[0]));}
   }else if(action==='rename'){m.n=pick(['Fx Press','Renamed Press','Bench (renamed)','Fx: Press']);m.trace.push(m.n);}
   else if(action==='capture'){
    if(held(f)||m.starts.length)continue;
@@ -2400,6 +2407,54 @@ test('R17b-L9-M07 THE WHOLE UNDO BODY IS COMPARED (Astra L9 B34): the genuine RE
  const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,acceptOp(o,{op_id:'fx-undo',after:1})],'fx-revision-1',F0({w:102.5})));
  assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'&&i.field==='issuance'));
  assert.equal(exOf(f.state).w,102.5);
+});
+// Round 17c (Astra L10 B35, B36): regression rows for two single-clause mutants no earlier row
+// killed (L10-M02, L10-M09). Test bytes only; the product is unchanged.
+// The public capture boundary: engine-capture.cjs over this file's composed engine, its capture
+// validated by the shared prescription capture (capture.cjs). Neither requires another module.
+const CAPTURE_FACTORY=require(path.join(ROOT,'rebuild/m4/workout/engine-capture.cjs')),PRESCRIPTION=require(path.join(ROOT,'rebuild/m4/workout/capture.cjs'));
+function capturedLoads(state,day=CARD_DAY){
+ const producer={app_build:'fx-app',engine_build:'fx-engine',rule_profile:CAPTURE_FACTORY.PROFILE,source_schema:'fx-schema'},basis={plan_basis:'fx-plan',input_basis:'fx-input',source_revision:1};
+ const adapter=CAPTURE_FACTORY.createEngineWorkoutCapture({engine:engineAt(day),prescriptionCapture:PRESCRIPTION.createPrescriptionCapture({parseStrictJson:JSON.parse}),producerIdentity:producer});
+ const {capture}=adapter.prepare({state,day,sleep:{},basis});
+ return capture.slots.filter(s=>s.lift_lineage_id===LIFT).map(s=>JSON.parse(s.load.source_json).value);
+}
+test('R17c-B35 A NEVER-APPLIED RESTORE RESTORES AN ABSENT PRIOR VECTOR, THROUGH THE CAPTURE BOUNDARY (Astra L10 B35, mutant L10-M02; spec R9.8 :156 "a never-applied RESTORE writes w/wSets from the recorded base_load.fields"): C1 at 105 adopted on the 100 card (prior image w 100, wSets ABSENT); its genuine RESTORE Undo (base 105, target 100); both replayed over a later unordered base w 102.5 with wSets [102.5,100,97.5] -> w 100 and NO wSets, authority compensated, the adoption cancelled, no open conflict, and the public engine-capture adapter captures [100,100,100], never the stale vector; R1 and R2',()=>{
+ effectsGate();
+ const h=heldAdoption({baseline:false}),vec=[102.5,100,97.5],moved=()=>F0({w:102.5,wSets:vec});
+ const ad=decisionOf(h.offer);assert.deepEqual([ad.base_load.fields.w.present,ad.base_load.fields.w.value,ad.base_load.fields.wSets.present],[true,100,false],'control: the adoption was issued on w 100 with NO wSets');
+ const u=checkOf(foldArgs([h.c1],[h.resp]),LIFT,h.c1,{compensate:h.spend});assert.equal(u.status,'offer',JSON.stringify(u.refusal));
+ const ud=decisionOf(u.offers[0]);assert.deepEqual([ud.base_load.scalar.value,ud.target_load.scalar.value],[105,100],'control: a RESTORE-shaped undo');
+ const comp=acceptOp(u.offers[0],{op_id:'fx-resp-2',after:1});
+ assert.deepEqual(capturedLoads(moved()),vec,'control: the capture boundary carries a present wSets vector as the card loads');
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const held0=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp],rev,moved()));
+  assert.deepEqual([exOf(held0.state).w,exOf(held0.state).wSets],[102.5,vec],'control: without the Undo the adoption is held and the later vector stands ('+rev+')');
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([h.c1],[h.resp,comp],rev,moved())),ex=exOf(f.state);
+  assert.equal(ex.w,100,'the consented prior w ('+rev+')');
+  assert.deepEqual(capturedLoads(EFFECTS.m.heldProjection(f).state),[100,100,100],'the next Start captures the restored 100 on every set, never [102.5,100,97.5] ('+rev+')');
+  assert.equal(Object.hasOwn(ex,'wSets'),false,'the prior image had NO wSets, so none survives the RESTORE ('+rev+')');
+  assert.equal(ex.native_load_authority.kind,'compensated',rev);
+  assert.equal(f.spent.find(x=>x.spend_id===h.spend).cancelled_by,ud.spend_id,'tombstone ('+rev+')');
+  assert.deepEqual(f.issues.filter(i=>!i.superseded_by&&['NATIVE_LOAD_EFFECT_CONFLICT','NATIVE_LOAD_RECORD_INVALID'].includes(i.code)),[],rev);
+ }
+});
+test('R17c-B36 A DEAD YES IS REFUSED WITH EXACTLY THE HOLD\'S OWN REFS (Astra L10 B36, mutant L10-M09; spec R9.8 :158 DEAD YES "the check refuses with that hold\'s own code, field and refs"): the R16b-CANON-CUT input (the genuine RESTORE fx-resp-2 and its early-cut copy fx-resp-9) holds fx-press RECORD_INVALID compensates with refs [fx-resp-2, fx-resp-9]; a new Undo check of the adoption refuses with exactly that code, field and refs array; R1 and R2',()=>{
+ effectsGate();
+ const h=heldAdoption({baseline:false});
+ const u=checkOf(foldArgs([h.c1],[h.resp]),LIFT,h.c1,{compensate:h.spend});assert.equal(u.status,'offer');
+ const early=structuredClone(u.offers[0]);early.body.basis.order.start_ids=[];
+ const recs=[h.resp,acceptOp(u.offers[0],{op_id:'fx-resp-2',after:1}),acceptOp(early,{op_id:'fx-resp-9',after:1})];
+ const want=[ref('fx-resp-2'),ref('fx-resp-9')];
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const args=foldArgs([h.c1],recs,rev),f=EFFECTS.m.foldNativeLoad(args);
+  const hold=f.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'&&i.lift===LIFT&&!i.superseded_by);
+  assert.deepEqual(hold.map(i=>[i.field,i.refs]),[['compensates',want]],'control: the spoiled group\'s hold ('+rev+') '+JSON.stringify(f.issues));
+  const again=checkOf(args,LIFT,h.c1,{compensate:h.spend});
+  assert.deepEqual([again.status,again.offers],['refused',[]],rev);
+  assert.deepEqual(again.refusal,{code:'NATIVE_LOAD_RECORD_INVALID',refs:want,field:'compensates'},'exactly the hold\'s own code, refs and field ('+rev+')');
+  assert.deepEqual(again.refusal.refs,hold[0].refs,'the refusal refs ARE the hold refs ('+rev+')');
+ }
 });
 test('R13-EXIT-160 (spec R9.2 :160 unprovable order, :158 exit (b)): yes Q105, then the base moves to 102.5 with no ordering op -> EFFECT_CONFLICT load_basis; C3 trained on the baseline ask at 102.5 offers [adopt-baseline 102.5]; its yes -> w 102.5, Q105 retired with its spend kept, the conflict superseded; R1 and R2',()=>{
  effectsGate();

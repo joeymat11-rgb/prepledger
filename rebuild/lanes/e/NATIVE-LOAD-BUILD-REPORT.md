@@ -424,6 +424,70 @@ Red on 4b83f4c product bytes with this round's tests: FC12 R8-P2/P3/P4 x2, R9-B2
     - R12-decode-absent is still pin-only. Astra judges it behaviourally equivalent.
   - Full local set (80 files) vs e04b8e6: 1135 tests, 67 failing in both, 0 new, 0 base-only (r17b\\full-compare.txt 8C94BD33, arguments in the correct order). The base worktree was removed.
 
+## Round 17c (UNCOMMITTED, on c0695e0, which holds rounds 17/17a/17b; Astra L10 REJECT B35/B36 at c0695e0, reviewed against R9.8 105cc28): test bytes only
+- Scope. Only FC12 and this report changed (git status). The product bytes are c0695e0's:
+  - native-load.cjs 595305b36c87d1ce2a0a16e9241cd4a17eeed205231cb1e13e517ffc1de0704b;
+  - native-load-effects.cjs 07b6f2611916b64eafe37379fb8c41d085d37627c655ff4e897ae65ae1e6771a;
+  - today-bindings.mjs 91aa980f...d797, today-entry.mjs 169d5658...7ef6, engine-capture.cjs 94685ca4...3c15, all unmodified.
+  - PRODUCER_REVISION is unchanged (earned/native-load/v1+sha256:1d87743d...443d); R2-REVISION ok.
+  - No test pin binds FC12's bytes (git grep of rebuild/m4, m3, engine, coach, lanes/e and .github finds only CI's `node --test` line and reports), so nothing was re-pinned. FA03 is unchanged (77ce3963).
+  - No missed-debut row was touched: H11 option 1 (DECISIONS:796) waits for spec R9.9 and round 18.
+- Mutants this round are in-memory only. r17c\overlay.cjs is a --require preload that wraps Module.prototype._compile and swaps exactly one anchor occurrence in the source handed to the compiler. The file on disk is never written; both product hashes above were re-read after every run. Each run prints `OVERLAY <id> applied 1` from the test process.
+- B35 (native-load.cjs:543, L10-M02 `['w', 'wSets']` -> `['w']`). New FC12 row R17c-B35, Astra's input:
+  - C1 at 105 adopted on the 100 card. The adoption's recorded base_load.fields is w present 100 and wSets ABSENT (asserted).
+  - Its genuine RESTORE Undo (base 105, target 100), issued at base 100.
+  - Both replayed over a later unordered base w 102.5 with wSets [102.5,100,97.5].
+  - Controls: capturing that base alone gives [102.5,100,97.5], so the boundary carries a present vector; without the Undo, w 102.5 and that vector stand (the adoption is held).
+  - Asserted under R1 and R2:
+    - w 100;
+    - the public capture boundary captures [100,100,100]. The boundary is engine-capture.cjs createEngineWorkoutCapture over FC12's composed engine, validated by capture.cjs createPrescriptionCapture, on heldProjection(fold).state;
+    - no own wSets;
+    - authority compensated, and the adoption's tombstone names the Undo;
+    - no open EFFECT_CONFLICT or RECORD_INVALID.
+  - Original: PASS (r17c\rows-orig.txt 767342F2).
+  - L10-M02: FAIL at the capture assertion, captured [102.5,100,97.5] instead of [100,100,100] under fx-revision-1 (r17c\rows-L10-M02.txt 9C37D022).
+- B36 (native-load-effects.cjs:869, L10-M09 `refs: spoiled.refs` -> `refs: []`). New FC12 row R17c-B36:
+  - Input: the R16b-CANON-CUT / R17-DEAD-YES input, the genuine RESTORE fx-resp-2 plus its early-cut copy fx-resp-9.
+  - Asserted under R1 and R2:
+    - the fold's only active RECORD_INVALID of fx-press is field compensates, with refs exactly [fx-resp-2, fx-resp-9] (op_id and commitment);
+    - a new Undo check of the adoption returns status refused, offers [] and refusal exactly {NATIVE_LOAD_RECORD_INVALID, [fx-resp-2, fx-resp-9], compensates};
+    - its refs deep-equal the hold's refs.
+  - Original: PASS. L10-M09: FAIL, refusal refs [] (r17c\rows-L10-M09.txt 83AB4F99).
+  - Cross-check: R17c-B35 passes under L10-M09 and R17c-B36 passes under L10-M02, so each row names its own clause.
+- Whole FC12 under each mutant (in-memory): 146/147. The only failure is the named row: R17c-B35 under L10-M02 (r17c\m-L10-M02.txt B808164B) and R17c-B36 under L10-M09 (r17c\m-L10-M09.txt FCFE6C59). R7 default 150 and R8 default 100 still pass under both, as Astra measured.
+- D-L10-8 (the R7 walk's I1 oracle):
+  - Red before, on FC12 at c0695e0 (9c645c9a): seed 20261085 alone fails I1 "unauthorized weight 97.5 at step 10 ... accepted [102.5]" (r17c\red-r7-20261085.txt D5120AD4). The yes 102.5 on 97.5 was undone by a consented RESTORE to 97.5; the base later moved to 102.5, so the adoption never applied, and R9.8 :156 writes the RESTORE's recorded 97.5.
+  - Change, to the accepted set only: R7's propertySequence gains consentUndo(d).
+    - An Undo yes (actions undo and undo2) whose target differs from its own base, in scalar or vector, adds its target scalar value to m.accepted (null for a null target). This is R8's sameShape test, which is FC01's RESTORE classification.
+    - A RETIRE adds nothing.
+    - The header's I1 line now says so. A trace tally 'undo-restore' counts these yeses; it feeds coverage only.
+  - Green after: seed 20261085 passes (r17c\green-r7-20261085.txt 39BBFDB0). R7 default (150 from 20260923) passes inside FC12 147/147.
+  - Extended, 17000 sequences from 20260923 with ALL:
+    - before: 78 counterexamples, namely 76 I1, 1 I5 (seed 20265787) and 1 I3 (seed 20270133) (r17c\r7-orig-17k.json 945E847E);
+    - after: 2, the same I5 and I3 seeds, and 0 I1 (r7-after-17k.json D159BF6E; 381 consented RESTOREs).
+- STOP on the D-L10-8 remainder. It needs more than the accepted-set definition, so it is not changed here.
+  - The two remaining extended counterexamples are not I1 and not product findings. Each is an R7 model convention that R8 already corrected.
+  - I3, seed 20270133 (twoDevice): R7 gives device-B plan ops a DESCENDING sequence (1000-i) against their own ascending causal chain. R8 dropped that in round 13 (1000+i, seed 20261438). With only that line overlaid in memory, the seed passes (r17c\diag-I3-20270133.txt E10627FC).
+  - I5, seed 20265787: an adopt-baseline yes is undone by a RESTORE to null, then the plan w moves to 45. The RESTORE's recorded null stands (R9.8 :156), so nothing the lift's offers read changes, and the old issuance stays fresh. R8 exempts this since round 16 (restoreRooted, seed 5016917). With only that exemption overlaid in memory, the seed passes (r17c\diag-I5-20265787.txt EEBAE407).
+  - With both overlays: 17000 from 20260923 give 0 counterexamples (r17c\r7-diag-both-17k.json B4EA455A).
+  - Porting the two conventions to R7 is a model change beyond the accepted set, so it is left to the PM. Until then an R7 extended failure is not mutant-sensitivity evidence.
+- Reruns on the final bytes (FC12 f395029d):
+  - FC12 147/147, that is 145 plus R17c-B35 and R17c-B36; R2-REVISION ok (r17c\g1-fc12.txt C6CFE93E).
+  - FA03 43/43 (r17c\g1-fa03.txt 59218E70).
+  - R8 walk: 3 x 17,000 = 51,000 walks (seeds 20261001, 1000001 and 5000001, ALL), 0 counterexamples (r17c\p17c-17k-*.json EA7C5CAE, 6CFE8127, 56265317). The reports are byte-identical to round 17b's: the R8 model and the product are unchanged.
+- Mutant accounting. I adopt Astra L10's recount: my round-17b "187 by behaviour" wrongly counted R12-decode-absent (byte pin only) and R16-registrar-source (a source-text assertion) as behavioural kills.
+  - The inventory is 191: round 17b's 189, plus L10-M02 and L10-M09.
+  - 187 are killed by behaviour: 185, plus L10-M02 by R17c-B35 and L10-M09 by R17c-B36.
+  - 1 fails only a source-text assertion: R16-registrar-source (D-L10-9).
+  - 3 survive behaviourally:
+    - R7-comp-reprice-host and R16b-comp-some-host: host-only reachability (D-L10-7);
+    - R12-decode-absent: equivalent over supported inputs; only the byte pin catches it.
+  - The 189 were not rerun. The product bytes are unchanged, and in the round-17b summary no mutant is killed by R7-PROPERTY alone: all 34 that R7 kills also fail another behavioural row (r17c\r7only.cjs). So the R7 oracle change cannot turn a recorded kill into a survivor.
+  - Astra's other L10 mutants (M01, M03-M08, M10) are killed by existing rows per the L10 table. They were not re-executed here.
+- Files, all LF with no added non-ASCII:
+  - FC12 rebuild/m4/spec/native-load-options.test.cjs f395029dbe3be9ea82065d111f5731e758651f1157b153b691b89b0861217029 (3169 lines);
+  - this report.
+
 ## REVIEW INDEX: the R9.6 build as it stands after round 16 (for an independent review of rounds 10-16)
 - Base and scope:
   - Rounds 10-15 are committed at ab445c6 (by the PM); round 16 is uncommitted on it. The owner grant is DECISIONS:784-785.
@@ -483,3 +547,11 @@ Red on 4b83f4c product bytes with this round's tests: FC12 R8-P2/P3/P4 x2, R9-B2
   - r16\mutants.ps1: the mutants (r16\anchors.cjs checks that every anchor is unique);
   - hygiene.cjs: LF and ASCII.
   The protected five are never loaded (guard.cjs).
+- Round 17c map (Astra L10 at c0695e0, spec R9.8 105cc28; details in the Round 17c section). Only FC12 changed; the product, FA03 and PRODUCER_REVISION are unchanged.
+  - B35 -> FC12 R17c-B35. It kills L10-M02 (native-load.cjs:543). A never-applied RESTORE over a later base of w 102.5 with wSets [102.5,100,97.5] gives w 100 and no wSets, and the public boundary (engine-capture.cjs plus capture.cjs) captures [100,100,100]. R1 and R2.
+  - B36 -> FC12 R17c-B36. It kills L10-M09 (native-load-effects.cjs:869). The dead-yes refusal is exactly {RECORD_INVALID, [fx-resp-2, fx-resp-9], compensates}, equal to the hold's own refs. R1 and R2.
+  - D-L10-8 -> FC12 R7-PROPERTY, the I1 accepted set (consentUndo). Seed 20261085 is red at c0695e0 and green now; the extended run has 0 I1 counterexamples.
+    - The remainder is STOPPED: I3 at seed 20270133 and I5 at seed 20265787. They need R8's round-13 and round-16 conventions, which were not ported.
+  - Reproduce from nlr-build\r17c:
+    - run-test.ps1 -Tests <file> [-Pattern] [-Overlay mut-L10-M0x.json]: FC12 and FA03, with or without an in-memory mutant;
+    - run-r7.ps1 -Runs -Seed [-All]: the R7 walk; NLR_R7_OVERLAY=diag-*.json adds the diagnostics.
