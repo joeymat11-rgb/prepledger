@@ -137,3 +137,94 @@ print nothing) -> exporter v3 (section 5; chain arg = the tip at run time, now 6
 because no declared child has a null needle) -> artifact review and commit -> release-object exit 0 -> merge-forward -> hosted
 both-OS standing step (section 3; (iii)'s b-lom clause no longer applies) -> Fable seal read -> PM local --full under :796 (d) ->
 POSTFIX receipt (tag "cowork", :3752). D-BLOM stays open past the seal until the re-pointed, reviewed hosted-blom run after 2026-10-05.
+
+## Round 6 (Fable l1 D1, fence SPEC_KEYS) (builder claude-opus-5-5, 2026-09-24) - UNCOMMITTED, for the PM
+Worktree %TEMP%/earned-s9int, rebuild/b-s9-integration HEAD ffb31c6 = origin (round 5 committed with Fable l1), clean before
+the edit, not switched. Ledger :777-:799 read from the PM tree. REVIEW-S9-BLOM-2B-l1.md read whole; this round pays D1 and
+answers D2-D4. The fence judged by refs/remotes/origin/rebuild/t2-client-core as last fetched, cd16a38 (not fetched by me).
+Runs: fence red, fence green, staticcheck; each under %TEMP%\earned-runtime.lock, taken by New-Item and released after.
+### 6.1 Load proof, read before any run
+- sealed-inventory-fence.test.mjs imports (:56-63): node:assert/strict, node:test, node:child_process, node:crypto, node:fs,
+  node:os, node:path, node:url. No require, no import(), no createRequire. Its only spawns are execFileSync("git", ...) (:87)
+  and a deliberately absent binary (:956, row (10)). It reads b-package.cjs as TEXT at the chain ref (idsOf), packages/S9.json
+  at HEAD, the chain's acceptance artifact and rebuild.yml. It loads none of the protected five and no rebuild/engine module.
+### 6.2 Red first (fence unfixed, only the new row added; file b5bf8d6b..., 125492 B)
+- New row "Fable l1 D1 (33)" builds eight throwaway reseal children that satisfy conditions (2)-(5) and differ only in the
+  top-level key set. Must SKIP: release absent; release null; release as the block S9.json carries ({rulingLineSha256}).
+  Must refuse at (1): an unknown extra key (releases); top-level freeze beside a release block; top-level released; Release;
+  release standing in for a missing required key (notes), so the key COUNT still matches.
+- Observed (MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, node --test --test-reporter=tap <fence>, cwd the worktree):
+  # tests 54, # pass 52, # fail 2, exit 1. Row (33): "release present and null: (1)" and "release present as the block
+  packages/S9.json carries: (1)" where skip was expected (today's defect); release absent skipped; the five refusal worlds
+  refused at (1). THE REAL ROW: not ok, "this change drew 1 refusal(s), 0 of them sealed path(s) that
+  rebuild/m4/spec/acceptance-s8-real-shape.json at refs/remotes/origin/rebuild/t2-client-core (cd16a38d...) does not
+  release", actual ["FENCE-RESEAL-CHILD-UNVERIFIED (1) rebuild/lanes/b/tooling/packages/S9.json is not the runner's own
+  SPEC_KEYS key closure (b-package.cjs:1071)"]. Log kept: %TEMP%\opus55-s9r6\red.log (sha256 9c0057fa..., 18914 B).
+### 6.3 The rule and the fix
+- H5 as the runner defines it: SPEC_KEYS at b-package.cjs:1172-1183 (runner 5321181a) is 22 keys; `release` (:1183) is the
+  ONE optional key (H5 comment :1175-1182); spec() closes it at :1852 with keys({ ...s, release: null }, SPEC_KEYS, ...), and
+  keys() (:681) deepEquals the sorted key lists. No other spec key is optional (freeze and released belong to the
+  authorizations and artifact closures).
+- Fence :75-87: the by-value copy is now those 22 keys ending "release"; its comment cites :1172-1183, :1183 and :1852 and says
+  why it moved. Condition (1) (:287-289) applies the same freeze pattern, Object.keys({ ...spec, release: null }) against
+  SPEC_KEYS; its refusal text cites "b-package.cjs:1172-1183, closed at :1852" (was :1071). Nothing else in condition (1) or
+  in (2)-(5) moved; the copy stays by value (the fence still imports nothing it audits).
+- specFile() fixtures now carry release: null (a present key the runner admits); row (20)'s closure assertion holds unedited.
+  No assertion was weakened or removed. numstat +58 -5; 1995 lines, ASCII only, LF.
+### 6.4 Green (fence 606ad877..., same env and argv)
+- Whole file: # tests 54, # pass 54, # fail 0, 1..54, exit 0 (55.7 s). Row (33) ok; THE REAL ROW ok, as a VERIFIED SKIP: the red
+  run shows the real branch enters the reseal claim (refusal at (1)), and inside the claim the only green return is the skip
+  after condition (5). Log: %TEMP%\opus55-s9r6\green.log (sha256 5befaa9b..., 13447 B).
+- S9 child sealed-inventory-fence: argv ["--test", "--test-reporter=tap", "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"],
+  declared needle "# pass 53" (the hosted count at 7fe1c5d5, 53 rows). Observed terminal line now "# pass 54" (one new row), so
+  that child's needle moved to "# pass 54" and nothing else in the child moved. The fence's lane-cell step (rebuild.yml:271)
+  runs the same file.
+### 6.5 Pins
+- The fence is a declared S9 product file: product["rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"], role new, pre
+  null, post af7b6f34a10d6a36c2982ae0713ff127a26a4e34736ac69346b6f3e66822a29c ->
+  606ad877cdd4cc297b13384c9290967cf9112fb8f6ed1ba995efb38907c4cd78 (126228 B). No other S9 place pins it: the child names it
+  in argv only; no execution pin, coverage row or note in S9.json names it.
+- S9.json: c05a8e34639d8545eba36d7902f442637c7037e1a1a58e077ded0e6186038c8f ->
+  c5df18f1ec8a1e2d069fef4f46e396c81690167616cdd2373521d02cdffa4975 (91266 B both, 1781 lines). Parse-compared to HEAD: exactly
+  two values moved (that post; children[24].needle); 22 top-level keys, same order; canonical 2-space + LF; CR 0; U+2013/U+2014
+  16/17 = HEAD (none added); 32 children. numstat +2 -2.
+- NOT changed, for the PM (git grep of 563 remote-tracking refs plus this worktree for af7b6f34 and c05a8e34, explicit
+  pathspecs, soak/private/ledger/src/history.js/app.js excluded by glob and again in memory):
+  - af7b6f34 pinned: origin/rebuild/b-s10-integration 62788b1 S10.json:344 (fence role edited, pre af7b6f34, post 6abf4d4d;
+    S10's fence still cites :1071 at its :75 and :281, so it carries D1 too and must rebase over row (33) and re-pin pre to
+    606ad877 when S10 re-binds to sealed S9; its fence child needle is null at :1862) and its S9.json copy :1180; older S9.json
+    copies at :1175 on c-s9-fence-matrix-fix, e-native-load-build, e-native-load-red, p-s9-hosted20-proof, p-s9-hosted20-run.
+  - af7b6f34 cited (history) on t2-client-core cd16a38 and p-s9-exporter-v3: HANDOFF-PM-2026-09-21-ASTRA-CURRENT.md:18,
+    HANDOFF-PM-2026-09-22-CLAUDE-OPUS-5-5.md:19, astra/S9-FENCE-AND-PUBLIC-THREE-2026-09-22.md:26,
+    astra/reviews/S9-FENCE-JOB-MATRIX-FIX-REVIEW-L3.md:7, astra/reviews/S9-PUBLIC-WAVE-FIVE-FIELD-REVIEW-L1.md:32.
+  - c05a8e34 cited: this file :94 and :123 (round 5) and REVIEW-S9-BLOM-2B-l1.md:22 and :95; no other ref, no test, workflow
+    or tool.
+  - Not searched: earned-h20 hosted-blom/ (only BLOM-OPTIONS.md may be opened) and other worktrees' uncommitted files.
+### 6.6 Staticcheck
+- C:\Users\joeym\AppData\Local\Temp\opus55-s9prep\staticcheck.cjs (sha256 96f96984dc2caaaab26056e1e6ae19c009660c00a30e2dad2869792c89d22723,
+  10918 B, unchanged since round 4), cwd the worktree: loaded only itself, legacy-gates.cjs, target.cjs, trace-v2.cjs and
+  strict-json.cjs; 28 PASS, 0 REFUSED; "32 children", "255 pins", spec sha256 row c5df18f1ec8a1e2d...
+- Same checks at the local chain ref cd16a38 through C:\Users\joeym\AppData\Local\Temp\opus55-s9prep\staticcheck-attip.cjs
+  (sha256 1338a921..., 740 B): 28 PASS, 0 REFUSED; the :788/:789 receipts hold there.
+### 6.7 Fable l1 D2-D4
+- D2: the D-BLOM note (S9.json notes[4]) counts the EIGHT m3/m4 code files the LOM-S6 walk reads (legacy-order.test.mjs:176-192,
+  skip rule :178), today-model.cjs one of them. :799's "today-model.cjs ... plus eight" counted a NINTH,
+  rebuild/m4/workout/test/s9-engine-files-differential.cjs, which the walk skips because it sits under a test/ directory.
+  The note is walk-accurate and stays as it is; amending :799's arithmetic or accepting the note's count in the seal line is
+  the PM's call.
+- D3, correcting 5.2: the cells that read packages/S9.json are the six s9-* mirrors, release-object and reference-closure,
+  PLUS sealed-inventory-fence.test.mjs (its key closure, condition (1), now :287-289, where D1 lived) and
+  rebuild/m3/w7-preview/today/test/package.test.cjs, which names packages/S9.json in a comment (:108). 5.2's conclusion
+  stands: none of them counts children or names b-lom or legacy-order, and the b-lom drop left the key set unchanged.
+- D4, correcting 5.6: S10-INTEGRATION-REPORT.md at 62788b1 cites a1f9fa38 at :38, :45 AND :63 (5.6 listed :63 only).
+### 6.8 Observation, not changed
+- O1: condition (1) compares the sorted keys joined with ",", where keys() (:681) deepEquals the sorted arrays, so a key
+  containing a comma could make two different key sets join equal; the fence also parses with JSON.parse where spec() uses
+  parseExact (duplicate keys). Both pre-date this round and neither is touched by D1; the runner's own spec() still refuses
+  such a spec in the same CI run. A tightening would be its own reviewed edit.
+### 6.9 Remaining order
+5.7 unchanged, with D1 paid in the tree: review this round -> commit (fence, S9.json, this file) -> clean step -> exporter v3
+-> artifact review and commit -> release-object exit 0 -> merge-forward -> hosted both-OS standing step, where the
+sealed-inventory-fence child is now expected to print "# pass 54" -> Fable seal read -> PM local --full under :796 (d) ->
+POSTFIX receipt. Scratch (outside the worktree): %TEMP%\opus55-s9r6 (hash.cjs, run-fence.cjs, grep-pins.cjs,
+verify-s9json.cjs, red.log, green.log, pins.log, pins8.log, fence-RED-state.test.mjs.txt).

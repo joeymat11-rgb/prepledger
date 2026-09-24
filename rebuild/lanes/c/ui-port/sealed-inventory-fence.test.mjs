@@ -72,12 +72,19 @@ const CHAIN_REF = "refs/remotes/origin/rebuild/t2-client-core";
 const SPEC_DIR = "rebuild/m4/spec/";
 const RUNNER = "rebuild/lanes/b/tooling/b-package.cjs";
 const PACKAGES = "rebuild/lanes/b/tooling/packages/";
-/* b-package.cjs:1071, copied BY VALUE because a cell that audits the sealed set must not
-   import the thing it audits. */
+/* b-package.cjs:1172-1183 (runner 5321181a), copied BY VALUE because a cell that audits
+   the sealed set must not import the thing it audits. It mirrors H5 exactly: twenty-two
+   keys, of which `release` (:1183) is the ONE optional key and every other key is
+   required. spec() closes it at :1852 with the freeze pattern,
+   keys({ ...s, release: null }, SPEC_KEYS, ...), and condition (1) below applies the same
+   pattern, so an absent release and a present one are both admitted and a key that is
+   neither is refused. Until S9 round 6 this copy was the twenty-one keys of the old
+   :1071 without `release`, and packages/S9.json's release block (6dc2596) was refused at
+   (1): Fable l1 D1, row (33). */
 const SPEC_KEYS = ["version", "lanePackage", "packageId", "status", "brief", "sourceBase",
   "dIds", "laws", "carriedAcceptedIds", "privateLiveTriggered", "parent", "tooling",
   "product", "coverage", "carrierSuccessor", "witnessFlips", "protectedSurfaces",
-  "authorizations", "artifact", "children", "notes"];
+  "authorizations", "artifact", "children", "notes", "release"];
 
 /* ------------------------------------------------------------------ git, as bytes.
    encoding "buffer" on purpose: the artifact comparison below is byte-exact, and a
@@ -277,8 +284,9 @@ function fence(root, chainRef) {
     try { spec = JSON.parse(git(root, ["show", "HEAD:" + specPath]).toString("utf8")); } catch { spec = null; }
     if (spec === null || typeof spec !== "object" || Array.isArray(spec))
       return bad(1, specPath + " does not parse as a JSON object");
-    if (Object.keys(spec).sort().join(",") !== [...SPEC_KEYS].sort().join(","))
-      return bad(1, specPath + " is not the runner's own SPEC_KEYS key closure (b-package.cjs:1071)");
+    /* H5's freeze pattern (b-package.cjs:1852): release optional, every other key exact. */
+    if (Object.keys({ ...spec, release: null }).sort().join(",") !== [...SPEC_KEYS].sort().join(","))
+      return bad(1, specPath + " is not the runner's own SPEC_KEYS key closure (b-package.cjs:1172-1183, closed at :1852)");
 
     const parent = spec.parent === null || typeof spec.parent !== "object" ? {} : spec.parent;
     const option = (Array.isArray(parent.options) ? parent.options : []).find((o) => o !== null && typeof o === "object" && o.id === parent.chosen) ?? null;
@@ -1912,6 +1920,51 @@ test("P-S9-5 (32) - every required job retains both OS runs and the workflow for
       ...matrixJobFixture(q("decoy"), goodMatrixBody()), ...matrixJobFixture("font-transport", goodMatrixBody())];
     assert.throws(() => assertTwoOsJob(quotedSibling, "public-gates"), /direct matrix\.os keys/);
   }
+});
+
+/* ====== FABLE l1 D1 (REVIEW-S9-BLOM-2B-l1 section 9), S9 ROUND 6: CONDITION (1) IS H5 ====
+   Condition (1) held the spec to a BY-VALUE copy of the runner's SPEC_KEYS taken when the
+   list had twenty-one keys. H5 (b-package.cjs:1172-1183) made it twenty-two with `release`
+   OPTIONAL, closed in spec() at :1852 by the freeze pattern keys({ ...s, release: null },
+   SPEC_KEYS, ...): absent is fine, present (null or a block) is fine, and any key that is
+   neither a SPEC_KEYS key nor absent is refused. packages/S9.json has carried a top-level
+   release block since 6dc2596, so the copy refused the one real reseal child it exists to
+   verify and THE REAL ROW went red. This row holds condition (1) to H5 in BOTH directions:
+   every key set the runner's closure admits reaches the skip here, and every key set it
+   refuses is refused here at (1) - including a spec where `release` stands in for a
+   missing required key, so the key COUNT still matches, and the two optional keys of
+   OTHER closures (authorizations.freeze, the artifact's released) at the top level. */
+test("Fable l1 D1 (33) - condition (1) is H5's closure: release optional, any other key refused", () => {
+  const BLOCK = () => ({ rulingLineSha256: ZERO });
+  const worlds = [
+    ["release absent, as in every spec sealed before H5", (s) => { delete s.release; }, "skip"],
+    ["release present and null", (s) => { s.release = null; }, "skip"],
+    ["release present as the block packages/S9.json carries", (s) => { s.release = BLOCK(); }, "skip"],
+    ["one unknown extra key, release absent", (s) => { delete s.release; s.releases = null; }, "(1)"],
+    ["top-level freeze beside a release block", (s) => { s.release = BLOCK(); s.freeze = null; }, "(1)"],
+    ["top-level released (the artifact's optional key)", (s) => { delete s.release; s.released = {}; }, "(1)"],
+    ["a case variant of release", (s) => { delete s.release; s.Release = BLOCK(); }, "(1)"],
+    ["release standing in for a missing required key", (s) => { s.release = BLOCK(); delete s.notes; }, "(1)"],
+  ];
+  const outcomes = [];
+  for (const [what, mutate] of worlds) {
+    const root = chain({ product: [APP] });
+    const spec = JSON.parse(specFile({ packageId: "S9", parentId: "S8", artifact: FIX_ART,
+      sha256: shaOfBlob(root, CHAIN_REF, FIX_ART),
+      sourceBase: gitText(root, ["rev-parse", CHAIN_REF]).trim() }));
+    mutate(spec);
+    child(root, { specBody: JSON.stringify(spec, null, 1) + "\n",
+      alsoTouch: { [APP]: "the reseal child's own edit\n" } });
+    const r = fence(root, CHAIN_REF);
+    const skipped = r.status === "skip" && r.refusals.length === 0
+      && String(r.reason).startsWith("FENCE-RESEAL-CHILD S9 " + PACKAGES + "S9.json ");
+    const atOne = r.status === "fail" && r.refusals.length === 1
+      && /^FENCE-RESEAL-CHILD-UNVERIFIED \(1\) /.test(r.refusals[0]);
+    outcomes.push(what + ": " + (skipped ? "skip" : atOne ? "(1)" : r.status + " " + names(r)));
+    if (atOne) outcomes.push(what + " refusal: " + r.refusals[0]);
+  }
+  assert.deepEqual(outcomes.filter((o) => !o.includes(" refusal: ")),
+    worlds.map(([what, , want]) => what + ": " + want), outcomes.join("\n"));
 });
 
 /* ================================================================ THE REAL ROW ========

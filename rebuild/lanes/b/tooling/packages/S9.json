@@ -1177,7 +1177,7 @@
     },
     "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs": {
       "pre": null,
-      "post": "af7b6f34a10d6a36c2982ae0713ff127a26a4e34736ac69346b6f3e66822a29c",
+      "post": "606ad877cdd4cc297b13384c9290967cf9112fb8f6ed1ba995efb38907c4cd78",
       "role": "new"
     },
     "rebuild/lanes/c/ui-port/pack-pin.test.mjs": {
@@ -1700,7 +1700,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"
       ],
-      "needle": "# pass 53"
+      "needle": "# pass 54"
     },
     {
       "name": "ui-pack-pins",
