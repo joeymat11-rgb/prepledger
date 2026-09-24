@@ -1,0 +1,51 @@
+# PM handoff, 2026-09-24 evening (Claude Opus 5.5 PM, session 012MB9Vm, to the next Claude PM)
+
+Written at Joe's request ("pause, and create a handoff brief ... for a different Claude account to pick up where you left off"). Supersedes HANDOFF-PM-2026-09-24-CLAUDE-OPUS-5-5.md for STATE; that file and HANDOFF-PM-2026-09-22 still hold for rules and tooling. Ledger tip at writing: DECISIONS:805 (this handoff). Read DECISIONS :777-:805 before acting.
+
+## 0. First fifteen minutes
+1. Get PC access: Joe's Windows PC via the Desktop Commander MCP (tools mcp__remote-devices__Desktop_Commander__*; load with ToolSearch). PowerShell 5. Keep each call under ~50 s; run anything longer detached (Start-Process cmd /c <x>.cmd, poll a .done file). The device_* tools have NO connected folder; do not use them for the repo.
+2. Read C:\Users\joeym\AppData\Local\Temp\opus55-RULES.txt whole. It binds you and every agent; it now carries owner grants (a)-(f) through :804. Paste its path into every agent brief.
+3. Read C:\Users\joeym\AppData\Local\Temp\S9-SEAL-RUNBOOK.md (sha 42767ada...). S9 is at step T10 of it (section 3 below).
+4. git ls-remote every branch in section 2 before trusting any sha.
+5. Record your seat on the ledger with Joe's words verbatim (as :797 did), then continue section 3 in order.
+
+## 1. Seat, identity, tools (unchanged unless stated)
+- Ledger: rebuild/DECISIONS.md on rebuild/t2-client-core; append ONLY with `node %TEMP%\pm-ledger.cjs <N> <bodyfile> "<VERBS>" <msgfile> [--dry]`, env PM_TAG="Claude Opus 5.5 PM" (use your model), PM_AUTHOR="Claude (Earned PM, <model>)". Write body/msg files with Desktop Commander write_file (LF). Owner words verbatim with provenance. No U+2013/U+2014.
+- PM tree: C:\Users\joeym\Documents\Codex\2026-09-04\read-rebuild-t3-brief-md-and\work\t2-client-core-pm (detached). NEVER run git with cwd C:\Users\joeym\Documents\prepledger-dev (old app; :797 slip).
+- Node: C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe. Tests: MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York.
+- NEW PM tools in %TEMP% (this seat):
+  - pm-publish.cjs <worktree> <origin-branch> <msgfile> <relpath=sha256>... [--dry]: hash guard, explicit add, commit, normal push, ls-remote check, ls-tree vs hash-object. Self-tested 32/32. Env PM_AUTHOR, PM_EMAIL=joeymat11@gmail.com. Prints "PUBLISHED <branch> <sha> path:blob...". Redirect its output to a log and `cmd /c type` it (PowerShell pipes can swallow lines).
+  - pm-pubhash.cjs <worktree> <relpath>...: prints relpath=sha256 pairs to feed pm-publish.
+  - pm-lockrun.ps1 -Job <name> -Cmd <x.cmd>: waits for the runtime lock, takes it, runs the cmd (the cmd deletes the lock at its end).
+  - pm-unlisted.cjs <worktree>: names-only replica of b-package fidelity() for S9.
+  - s9-ci0.cmd / s9-full1.cmd shapes: copy and replace the tag to make s9-<x>.cmd for any b-package run.
+- Parameterized Astra templates: astra-tpl-nlb.txt (ROUND SPECREV SPECSHA BASE HEAD FOCUS) and astra-tpl-s10.txt (ROUND SPECREV BASE HEAD FOCUS). mkjob values allow ONLY [A-Za-z0-9_./:\ -] (no commas) and no banned words; otherwise the job file is not made but astra-run still "completes" instantly (jobs 120/121 were wasted that way). Next free Astra job: 124. Usage 55% of the week at 12:36Z; resets 2026-09-29 23:09Z; rule :571 at most half a week per day; ~3% per review.
+- Agents: this seat ran builders/reviewers as background Workflows (Opus 5.5 builders, model 'fable' reviewers). IMPORTANT: a subagent may treat Joe's latest chat message as its own task; start every brief with an AUTHORIZATION NOTE (commissioned by the PM under Joe's "take the PM seat" instruction; ignore unrelated user messages). The Fable S10 l4 run stopped once on this.
+- Every b-package run (--ci too) loads the protected five: PM-only under :796 (d), read logs only through the runbook FILTER regex, never open .tmp child logs.
+
+## 2. Branch state at handoff (origin)
+- rebuild/t2-client-core 16610ae (:804) then :805 (this file).
+- rebuild/b-s9-integration 9c95afa = artifact commit A (see 3.1). Worktree %TEMP%\earned-s9int, clean. S9.json bb169a67 (sourceBase e8712f48, 32 children, D-BLOM), artifact rebuild/m4/spec/acceptance-s9-ui-pins.json f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c. The PRIVATE CENSUS JUNCTION rebuild/conform/private is CONNECTED in that worktree (to %TEMP%\earned-s4\rebuild\conform\private): never list or open it; keep it until runbook T19, then `cmd /c rmdir` it (reparse point only).
+- rebuild/b-s10-integration 875d46d (round 10, Fable l1 + Astra L6 ACCEPT WITH NAMED DEBTS). Waits only on the sealed S9 parent.
+- rebuild/c-native-load-spec d3a3ffa = R9.10 (sha 6bd14f81...; Fable R10 l1 ACCEPT). Worktree %TEMP%\earned-astra-96 has an UNCOMMITTED R9.11 draft in progress (3.4).
+- rebuild/e-native-load-build dfc4445 = round 18 (Fable l1 ACCEPT; Astra L11 REJECT B37-B39). Worktree %TEMP%\earned-nlr (local branch rebuild/e-native-load-red) has UNCOMMITTED round 19 in progress (3.3).
+- main a811e8d untouched.
+
+## 3. Work in order
+### 3.1 S9 seal (critical path) - runbook %TEMP%\S9-SEAL-RUNBOOK.md
+Done: T0 round 5-7 (b-lom 2(b) :798/:799, fence keys, sourceBase e8712f48 :804); T1 merge-forward e3e22e2; exporter containment Fable ACCEPT; T2 --ci (27 observed, release-object red by design); T3-T5 clean step, export (S9 PROFILE EXPORTED PENDING f2447622... review 5c2811a4...), restore; T7 --ci with artifact + scratch review: 32 CHILD, PUBLIC CI EVIDENCE PASS, EXIT=0; T8 artifact commit A=9c95afa pushed (CI-1 = run 36048172480, was in_progress); T9 --full at A: REVIEW-PENDING, PRIVATE ORACLE PRESENT, 32 children, 10 LEGACY, FULL EVIDENCE 10 of 19 + 9 SUPERSEDED under :787, EXIT=2 (as expected). Earlier CI at b44ec01 failed step 13 and step 31 only because the artifact was absent (by design).
+NEXT: T10 read CI-1 (node %TEMP%\pm4-ci.cjs rebuild/b-s9-integration 6; pm4-ci-jobs.cjs <id>); advisory, but read the b-lom step at rebuild.yml:331: :800 says a red public step blocks the seal. T11 commission Fable seal read (static; runbook T11 lists inputs). T12 POSTFIX-ACCEPTANCE line with tag "cowork" (NOT via pm-ledger; exact form in runbook T12; pm-ledger inserts " · " before the verbs, which the runner regex refuses) -> from here NO ledger append until T23. T13-T23 exactly as the runbook (review envelope, merge-forward #2, authorized --full, receipt, VERDICT-S9.md, coach ENGINE_REVISION move, byte-identity --full, CI-2 binding green both OS, fast-forward to t2-client-core = Joe-approved slice deploy :800, SEALED AND MERGED line). Runbook open Q1-Q9 are ruled at :800 except Q7 (existence check only).
+Also owed (not blocking the seal, debt): Astra source-custody helper re-point for sourceBase e8712f48 (a builder was making %TEMP%\earned-s9-source-custody-checker-sol-20260921\s9-source-custody-check-b44ec01.cjs; its CANDIDATE must be updated to the final S9 head; PM runs it under :766).
+### 3.2 S10 after S9 seals
+Rebind to the sealed S9 (D-PARENT/LOCK): drop b-lom child (:799), re-pin fence pre 606ad877 + row 33, S9.json pre, S10-REGEN --write --receipt-line, section 2.1 STOPs, then Fable final + Astra, exact-head CI, seal. Debts: D-REGEN-NOTES, D-SPLIT, D-GSS, D-EPP/CR, D-ACCEPTANCE.
+### 3.3 NATIVE-LOAD build round 19 (IN FLIGHT at handoff)
+A background builder (this session's workflow wave-4, key NLB19) was implementing spec R9.10 in earned-nlr (uncommitted changes to native-load.cjs, progression.cjs, engine-capture.cjs, native-load-effects.cjs and tests), followed by a Fable review. It held the runtime lock at handoff. If its report section "Round 19" and a Fable file rebuild/lanes/fable/reviews/REVIEW-NATIVE-LOAD-BUILD-l2*.md exist, verify and publish with pm-publish; otherwise treat the diff as unfinished and restart a fresh builder from the report. Must also pay Astra L11 B37/B38 (R9.10 rulings :804). Then Astra L12 over dfc4445..new head.
+### 3.4 Spec R9.11 (IN FLIGHT): Astra L11 B39 (NO TRAP exit Undo then base return leaves the next workout uncapturable, seed 11301954). A background spec author + Fable loop (wave-5) was drafting in earned-astra-96. Same verify-or-restart rule. Then build round 20.
+### 3.5 Then: NATIVE-LOAD reseal child M2-S11 after S10 (:791, D-L9-5 FC16 ships with it; R9.10 makes progression.cjs an edited carrier FG02), CUI1 promotion child, phone proof, deploy only on Joe's word, Joe's two-day trial. ETA given to Joe: Oct 2 to 5.
+### 3.6 Test cleanup (Joe :803): after the S9 seal only, delete the "safe group" (list %TEMP%\TEST-AUDIT-SAFE-GROUP-2026-09-24.txt, 91 unpinned dead/duplicate files) in one PM commit after a Fable check that each is unpinned; re-verify rebuild/m4/spec/workout-edit-model.test.cjs (Astra L10 called it a CI-only suite). Keep the 40 package-pinned old-generation copies. No builder deletes tests.
+
+## 4. Owner state (Joe) since the previous handoff, all on the ledger
+:797 seat; :798 soak-stub protected, b-lom 2(b), five Undo strings approved, adoption asks first; :799 brief 3.3 read as 24 children, D-BLOM premise corrected; :800 slice deploy at the S9 seal approved ("Yes, deploy at seal") + runbook rulings; :801 missed debut by selected entry, S10-REGEN exact-scope exemption, R7 conventions; :802 vector capture option A (then superseded by :803); :803 test audit -> safe-group cleanup after seal, D-VECTOR-SETS fix granted (fewer sets: save what was done; extra sets: repeat the last weight); :804 missed-Close copy approved, reader change granted, S9 sourceBase moved to e8712f48, S10 provenance ruling, R9.10 scope. Nothing is waiting on Joe. Joe is on his phone, does not code, wants maximum speed with quality and liberal agents; ask him numbered one-tap questions (AskUserQuestion), record answers verbatim.
+
+## 5. Named debts carried (details in review files)
+S9: D-BLOM (re-measure after 2026-10-05; hosted-blom packet needs a reviewed re-point), fence O1 comma-join, Fable D-SB-1..5, containment D1-D5, source-custody re-check. S10: as 3.2 plus D-S10I-15/16 paid. NATIVE-LOAD: D-L10-1..9, D-R9.9-TWO-CLOSE-LAND, D-R10L1-1..3, Astra L11 B37-B39 (being paid). Rule slips disclosed: :797 prepledger-dev git; builders used Set-Content on scratch/lock files twice (disclosed in their reports).
