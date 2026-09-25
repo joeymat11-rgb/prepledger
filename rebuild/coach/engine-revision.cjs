@@ -22,6 +22,6 @@
  * updated by the reseal's own ticket - a stale revision can never ship
  * silently.
  */
-const ENGINE_REVISION = "M2-S8-REAL-SHAPE@3b1b8b91dd5a6ff0";
+const ENGINE_REVISION = "M2-S9-UI-PINS@cb31838ff0db8406";
 
 module.exports = { ENGINE_REVISION };
