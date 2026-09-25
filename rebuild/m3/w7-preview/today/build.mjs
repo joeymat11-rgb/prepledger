@@ -1,4 +1,4 @@
-// Build the Today page: the owner-approved 2026-09-08 design over the real engine and
+// Build the Today page: the owner-approved 2026-09-18 design over the real engine and
 // the real durable client. Installs nothing; writes exactly three ignored assets.
 //
 // The design pins and the class/copy binding live in ./design.cjs, which depends on
@@ -30,7 +30,7 @@ import ProblemReport from "./problem-report.cjs";
 
 const { assertNoAiDashesInAssets } = PlainCopy;
 const { BUILD_PLACEHOLDER, COMMIT_PLACEHOLDER, COMMIT_UNKNOWN } = ProblemReport;
-const { APPROVED, readApproved, readFonts, assertDesignBinding, composeStyles } = design;
+const { APPROVED, readApproved, readFonts, readSceneAssets, assertDesignBinding, composeStyles } = design;
 
 export const SOURCE = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(SOURCE, "../../../..");
@@ -41,7 +41,7 @@ export const SCRATCH = path.join(ROOT, ".tmp/w7-today-build");
 export const SOURCE_REL = path.relative(ROOT, SOURCE).split(path.sep).join("/");
 const OWN_PREFIX = "rebuild/m3/w7-preview/today/";
 export const ASSETS = Object.freeze(["index.html", "styles.css", "app.js"]);
-export { APPROVED, readApproved, readFonts, assertDesignBinding, composeStyles };
+export { APPROVED, readApproved, readFonts, readSceneAssets, assertDesignBinding, composeStyles };
 
 /* THE IMPORT ROUTE'S THREE NAMES, RE-REASONED IN PLACE (DECISIONS:475 (1) and
    (4); the reason that stood here is replaced, not deleted, and the boundary it
@@ -479,6 +479,8 @@ async function realDirectory(directory) {
 export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
   const approved = readApproved();
   const fonts = readFonts();
+  const sceneAssets = readSceneAssets();
+  const sceneSource = await fs.readFile(path.join(SOURCE, "scene.mjs"), "utf8");
   const shell = design.shellHtml();
   const template = design.templateHtml();
   const chrome = design.chromeCss();
@@ -491,22 +493,28 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
     outfile: path.join(scratch, "app.js"),
     entryPoints: [path.join(SOURCE, "today-entry.mjs")],
   });
-  const inputs = assertBundleInputs(built.inventory);
+  const sceneInput = { path: SOURCE_REL + "/scene.mjs", sha256: design.sha256(sceneSource) };
+  const inventory = [...built.inventory, sceneInput];
+  const inputs = assertBundleInputs(inventory);
+  assert(inputs.includes(sceneInput.path), "BUNDLE-INPUTS FAIL: scene.mjs is not in the shipped bundle");
   /* THE IMPORT ROUTE'S OWN LAW, run over esbuild's own graph for THIS build
      (buildBrowser writes it beside the bundle) before a byte is written. */
   const graph = JSON.parse(await fs.readFile(built.outfile + ".meta.json", "utf8")).metafile;
   const importRoute = assertImportRouteIsolation(graph);
   /* The build names itself, from what went into it, before a byte is written. */
-  const buildId = buildIdOf(built.inventory);
-  const buildTag = buildTagOf(built.inventory);
+  const buildId = buildIdOf(inventory);
+  const buildTag = buildTagOf(inventory);
   /* S6 item 4 - and the commit those inputs were read at, so the page can say it. */
   const commit = commitOf();
 
+  const sceneUrls = Object.fromEntries(sceneAssets.map((asset) => [asset.key, asset.url]));
+  const scenePrelude = `\n// ${sceneInput.path}\nglobalThis.__earnedSceneAssets=${JSON.stringify(sceneUrls)};\n`;
   const contents = {
     "index.html": shell.replace("<!-- APPROVED_TEMPLATES -->", template),
-    "styles.css": composeStyles(approved, chrome, fonts),
+    "styles.css": composeStyles(approved, chrome, fonts, sceneAssets),
     "app.js": injectCommit(
-      injectBuildId((await fs.readFile(built.outfile)).toString("utf8"), buildTag), commit),
+      injectBuildId((await fs.readFile(built.outfile)).toString("utf8"), buildTag), commit)
+      + scenePrelude + sceneSource,
   };
   assertNoNetworkReference(Object.entries(contents));
   /* Before a byte is written: nothing in the bundle reads a global only Node has. */
@@ -521,9 +529,10 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
   for (const name of ASSETS) await fs.writeFile(path.join(dist, name), contents[name]);
   assert.deepEqual((await fs.readdir(dist)).sort(), [...ASSETS].sort(), "PACKAGE-ALLOWLIST FAIL");
 
-  return { dist, assets: [...ASSETS], inputs, inventory: built.inventory, dashes, nodeGlobals,
+  return { dist, assets: [...ASSETS], inputs, inventory, dashes, nodeGlobals,
     buildId, buildTag, commit, importRoute, graph,
-    approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })), binding };
+    approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })),
+    scene: sceneAssets.map((asset) => ({ file: asset.file, sha256: asset.sha256 })), binding };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

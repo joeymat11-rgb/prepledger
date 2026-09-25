@@ -17,7 +17,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { startServer } from "./serve.mjs";
 import design from "./design.cjs";
 // P1 (DECISIONS:114 (1)): every state this check reaches is also swept for an em or en
@@ -64,17 +64,35 @@ const HEADLINES = design.headlineVocabulary();
 // tests prove slot by slot where every figure came from.
 const FICTIONAL = ["2,252", "2,344", "235 g", "180.9 lb", "181.3 lb", "135 lb", "About 60 min", "9 exercises"];
 const VIEWPORT = { width: 390, height: 844 };
+const VISUAL_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "cui1-browser-proof-"));
+console.log(`CUI1 VISUAL CAPTURE DIR ${VISUAL_DIR}`);
+const visual = { viewport: VIEWPORT };
+const namedWait = async (page, name, predicate) => {
+  console.log(`CUI1 WAIT START ${name}`);
+  try {
+    const result = await page.waitForFunction(predicate);
+    console.log(`CUI1 WAIT PASS ${name}`);
+    return result;
+  } catch (error) {
+    console.error(`CUI1 WAIT FAIL ${name}`);
+    throw error;
+  }
+};
 
 /* A2 review B2: the weigh-in is a real encrypted-repository transaction now, so the
    check waits for the sheet to close and the reading to appear rather than for a
    selector that was already on screen. */
 const recorded = async (page) => {
   await page.waitForSelector('[role="dialog"]', { state: "detached" });
-  await page.waitForFunction(() => /\u2713/.test(document.querySelector('[data-slot="morning"]').textContent));
+  await namedWait(page, "morning-recorded-checkmark",
+    () => /\u2713/.test(document.querySelector('[data-slot="morning"]').textContent));
 };
 
 const server = await startServer({ port: 0 });
 const url = `http://127.0.0.1:${server.address().port}/`;
+// The shipped fresh-install route opens setup first. The supported preview route
+// requests Today explicitly and carries deterministic review hooks for this witness.
+const todayUrl = url + "?screen=today&date=board&state=T-02";
 const browser = await chromium.launch({ executablePath, headless: true });
 let failures = 0;
 const problems = [];
@@ -96,8 +114,102 @@ try {
     }
   });
 
-  await page.goto(url, { waitUntil: "load" });
+  await page.goto(todayUrl, { waitUntil: "load" });
   await page.waitForSelector('[data-slot="instruction"]');
+  await namedWait(page, "ink-scene-ready",
+    () => window.__earnedScene && window.__earnedScene.snapshot().ready);
+  const sceneWitness = await page.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
+  assert(sceneWitness, "C-UI-1 SCENE-RUNTIME-MISSING: actual preview exposed no scene witness");
+  assert.deepEqual(sceneWitness.hooks, { theme: "ink", screen: "today", chrome: false, date: "board", state: "T-02" });
+  assert.equal(sceneWitness.assets, 4, "the actual preview owns four pinned scene assets");
+  assert(sceneWitness.draws >= 1 && sceneWitness.scheduled >= 1, "the moving scene drew and scheduled a frame");
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: path.join(VISUAL_DIR, "ink-today-390x844.png") });
+  visual.inkToday = sceneWitness;
+
+  /* CUI1 interface blockers 7e25a69. B1: the pack gate's only live-screen probe is
+     ".screen.is-active .ui"; it must be the real application host, holding its real
+     controls, and must not sit under an aria-hidden ancestor (decoration stays hidden).
+     B3: chrome=1 must draw the pinned status bar and home indicator inside the active
+     screen; chrome=0 keeps them undrawn. Nothing here plants a probe element. */
+  const interfaceWitness = (target) => target.evaluate(() => {
+    const ui = document.querySelector(".screen.is-active .ui");
+    const chrome = (kind) => {
+      const node = document.querySelector(".screen.is-active > .chrome." + kind);
+      if (!node) return null;
+      return { shown: getComputedStyle(node).display !== "none",
+        height: Math.round(node.getBoundingClientRect().height),
+        ariaHidden: node.getAttribute("aria-hidden") };
+    };
+    return { actives: document.querySelectorAll(".screen.is-active").length,
+      uiIsLiveHost: !!ui && ui.id === "phone",
+      uiUnderAriaHidden: !ui || !!ui.closest('[aria-hidden="true"]'),
+      uiHoldsPrimary: !!ui && !!ui.querySelector('[data-slot="primary"]'),
+      status: chrome("status"), home: chrome("home") };
+  });
+  assert.deepEqual(await interfaceWitness(page), { actives: 1, uiIsLiveHost: true,
+    uiUnderAriaHidden: false, uiHoldsPrimary: true,
+    status: { shown: false, height: 0, ariaHidden: "true" },
+    home: { shown: false, height: 0, ariaHidden: "true" } },
+  "C-UI-1 B1/B3: the active screen's .ui is the real live host and chrome=0 draws no chrome");
+
+  const dawnContext = await browser.newContext({ viewport: VIEWPORT });
+  try {
+    const dawn = await dawnContext.newPage();
+    await dawn.goto(url + "?theme=dawn&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
+    await dawn.waitForSelector('[data-slot="instruction"]');
+    await namedWait(dawn, "dawn-scene-ready",
+      () => window.__earnedScene && window.__earnedScene.snapshot().ready);
+    await dawn.evaluate(() => document.fonts.ready);
+    const witness = await dawn.evaluate(() => window.__earnedScene.snapshot());
+    assert.deepEqual(witness.hooks,
+      { theme: "dawn", screen: "today", chrome: true, date: "board", state: "T-02" });
+    assert(witness.draws >= 1 && witness.scheduled >= 1,
+      "the Dawn scene completed a moving frame before capture");
+    assert.deepEqual(await interfaceWitness(dawn), { actives: 1, uiIsLiveHost: true,
+      uiUnderAriaHidden: false, uiHoldsPrimary: true,
+      status: { shown: true, height: 54, ariaHidden: "true" },
+      home: { shown: true, height: 5, ariaHidden: "true" } },
+    "C-UI-1 B1/B3: chrome=1 draws the pinned status bar and home indicator around the live .ui");
+    await dawn.screenshot({ path: path.join(VISUAL_DIR, "dawn-today-390x844.png") });
+    visual.dawnToday = witness;
+  } finally {
+    await dawnContext.close();
+  }
+
+  /* CUI1 review D3: the drawn chrome must RENDER as the approved pack draws it, not
+     only exist. Measured in this same browser against the approved app.html itself,
+     both themes, chrome=1: the status bar's offset in its screen, its margin, colour
+     and type size, and the same for its clock. */
+  const chromeLook = (target) => target.evaluate(() => {
+    const bar = document.querySelector(".screen.is-active > .chrome.status");
+    const screen = bar && bar.parentElement;
+    if (!bar) return null;
+    const look = (node) => { const s = getComputedStyle(node);
+      return { top: +(node.getBoundingClientRect().top - screen.getBoundingClientRect().top).toFixed(2),
+        marginTop: s.marginTop, marginBottom: s.marginBottom, color: s.color, fontSize: s.fontSize }; };
+    return { bar: look(bar), time: look(bar.querySelector(".time")) };
+  });
+  const approvedApp = pathToFileURL(path.join(here, "../../../m1/approved-2026-09-18/app/app.html")).href;
+  const chromeContext = await browser.newContext({ viewport: VIEWPORT });
+  try {
+    for (const theme of ["ink", "dawn"]) {
+      const pack = await chromeContext.newPage();
+      await pack.goto(approvedApp + "?theme=" + theme + "&screen=today&chrome=1&date=board", { waitUntil: "load" });
+      const expected = await chromeLook(pack);
+      await pack.close();
+      const ours = await chromeContext.newPage();
+      await ours.goto(url + "?theme=" + theme + "&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
+      await ours.waitForSelector('[data-slot="instruction"]');
+      const actual = await chromeLook(ours);
+      await ours.close();
+      assert(expected, "the approved pack draws a status bar with chrome=1 (" + theme + ")");
+      assert.deepEqual(actual, expected,
+        "C-UI-1 D3: the preview status bar renders as the approved pack's (" + theme + ")");
+    }
+  } finally {
+    await chromeContext.close();
+  }
 
   /* review F2: the ONE primary action must be reachable without scrolling, in both
      states. Measured against the scrolling viewport, not the document. */
@@ -162,24 +274,29 @@ try {
         const top = view.getBoundingClientRect().top;
         const box = cta.getBoundingClientRect();
         return { bottom: Math.round(box.bottom - top), viewport: Math.round(view.clientHeight),
+          exactRoom: view.clientHeight - (box.bottom - top),
           size: Math.round(parseFloat(getComputedStyle(headline).fontSize)),
           height: Math.round(headline.getBoundingClientRect().height) };
       }, title);
+      /* CUI1 review D1: the assertions below are unchanged; the unrounded headroom is
+         only REPORTED, so a platform's real margin is visible in its log. */
       assert(row.bottom <= row.viewport,
         label + ': "' + title + '" pushes the primary action out of the viewport (bottom '
         + row.bottom + " > " + row.viewport + ", headline at " + row.size + "px)");
       assert(row.size >= 33,
         label + ': "' + title + '" drove the headline below the 33px floor (' + row.size + "px)");
-      rows.push({ title, room: row.viewport - row.bottom, size: row.size });
+      rows.push({ title, room: row.viewport - row.bottom, exactRoom: row.exactRoom, size: row.size });
     }
     const worst = rows.reduce((a, b) => (a.room <= b.room ? a : b));
+    const exactWorst = Math.min(...rows.map((r) => r.exactRoom)).toFixed(2);
     const shrunk = rows.filter((r) => r.size < 47);
-    return { worst, shrunk, count: rows.length };
+    const atFloor = rows.filter((r) => r.size === 33).length;
+    return { worst, exactWorst, shrunk, atFloor, count: rows.length };
   };
 
   const sweepContext = await browser.newContext({ viewport: VIEWPORT });
   const sweepPage = await sweepContext.newPage();
-  await sweepPage.goto(url, { waitUntil: "load" });
+  await sweepPage.goto(todayUrl, { waitUntil: "load" });
   await sweepPage.waitForSelector('[data-slot="primary"]');
   const sweptBefore = await sweep(sweepPage, "before a weigh-in");
   await sweepPage.reload({ waitUntil: "load" });
@@ -218,7 +335,7 @@ try {
      second browser profile so it does not disturb the reading above. */
   const spikeContext = await browser.newContext({ viewport: VIEWPORT });
   const spikePage = await spikeContext.newPage();
-  await spikePage.goto(url, { waitUntil: "load" });
+  await spikePage.goto(todayUrl, { waitUntil: "load" });
   await spikePage.waitForSelector('[data-slot="primary"]');
   await spikePage.click('[data-slot="primary"]');
   await spikePage.fill("#morning-weight", "191.7");
@@ -235,12 +352,13 @@ try {
 
   const refuseContext = await browser.newContext({ viewport: VIEWPORT });
   const refusePage = await refuseContext.newPage();
-  await refusePage.goto(url, { waitUntil: "load" });
+  await refusePage.goto(todayUrl, { waitUntil: "load" });
   await refusePage.waitForSelector('[data-slot="primary"]');
   await refusePage.click('[data-slot="primary"]');
   await refusePage.fill("#morning-weight", "10000");
   await refusePage.click('[role="dialog"] button[type="submit"]');
-  await refusePage.waitForFunction(() => document.querySelector("#weigh-error").textContent.trim().length > 0);
+  await namedWait(refusePage, "impossible-weight-refusal",
+    () => document.querySelector("#weigh-error").textContent.trim().length > 0);
   const refusal = (await refusePage.textContent("#weigh-error")).trim();
   assert(refusal.length > 0, "an impossible weight is refused in words, not silently");
   assert.match(refusal, /Nothing was recorded/);
@@ -256,7 +374,7 @@ try {
 
   // A genuinely new page in the same origin (the app-kill path).
   const relaunched = await context.newPage();
-  await relaunched.goto(url, { waitUntil: "load" });
+  await relaunched.goto(todayUrl, { waitUntil: "load" });
   await relaunched.waitForSelector('[data-slot="morning"]');
   assert.equal((await relaunched.textContent('[data-slot="morning"]')).trim(), logged, "a new page sees the same reading");
   await sweepForDashes(page, "Today, after a real reload");
@@ -265,9 +383,10 @@ try {
   for (const [route, where] of [["why", "Why this plan"], ["nutrition", "the nutrition entry"],
     ["coach", "the coach entry"], ["recovery", "the recovery check-in"]]) {
     await relaunched.click('[data-go="' + route + '"]');
-    await relaunched.waitForFunction(() => !document.querySelector('[data-slot="kcal-note"]'));
+    await namedWait(relaunched, "route-leaves-today-" + route,
+      () => !document.querySelector('[data-slot="kcal-note"]'));
     await sweepForDashes(relaunched, where);
-    await relaunched.goto(url, { waitUntil: "load" });
+    await relaunched.goto(todayUrl, { waitUntil: "load" });
     await relaunched.waitForSelector('[data-slot="morning"]');
   }
 
@@ -299,7 +418,7 @@ try {
      sideways at either width. */
   await page.click('[data-slot="problem-entry"]');
   await page.waitForSelector('[data-slot="problem-text"]', { state: "visible" });
-  await page.waitForFunction(() => {
+  await namedWait(page, "problem-report-populated", () => {
     const area = document.querySelector('[data-slot="problem-text"]');
     return !!area && area.value.length > 0;
   });
@@ -362,7 +481,7 @@ try {
   try {
     const first = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport: VIEWPORT });
     const killPage = first.pages()[0] || await first.newPage();
-    await killPage.goto(url, { waitUntil: "load" });
+    await killPage.goto(todayUrl, { waitUntil: "load" });
     await killPage.waitForSelector('[data-slot="primary"]');
     await killPage.click('[data-slot="primary"]');
     await killPage.waitForSelector("#morning-weight");
@@ -389,7 +508,7 @@ try {
 
     const second = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport: VIEWPORT });
     const after = second.pages()[0] || await second.newPage();
-    await after.goto(url, { waitUntil: "load" });
+    await after.goto(todayUrl, { waitUntil: "load" });
     await after.waitForSelector('[data-slot="morning"]');
     assert.equal((await after.textContent('[data-slot="morning"]')).trim(), killedLine,
       "the reading survived a REAL process kill");
@@ -401,6 +520,49 @@ try {
   }
 
   assert.deepEqual(problems, [], "no page error, console error or offsite request");
+  const reduced = await browser.newContext({ viewport: VIEWPORT, reducedMotion: "reduce" });
+  try {
+    const still = await reduced.newPage();
+    /* A fresh browser context must open the real public Today lifecycle before it
+       can open the workout over that context's local installation. Going straight
+       to ?screen=workout leaves the app host unpainted even though the independent
+       scene review hook correctly says "workout". */
+    await still.goto(url + "?theme=dawn&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
+    await still.waitForSelector('[data-slot="instruction"]');
+    await namedWait(still, "reduced-bootstrap-scene-ready",
+      () => window.__earnedScene && window.__earnedScene.snapshot().ready);
+    await still.goto(url + "?theme=dawn&screen=workout&chrome=1&date=board&state=W-18", { waitUntil: "load" });
+    await namedWait(still, "workout-screen-ready",
+      () => document.documentElement.dataset.screen === "workout"
+        && !!document.querySelector('[data-slot="session-title"]')
+        && !!document.querySelector('[data-slot="lift"]'));
+    await namedWait(still, "reduced-scene-ready",
+      () => window.__earnedScene && window.__earnedScene.snapshot().ready);
+    const active = await still.evaluate(() => {
+      const state = (selector) => {
+        const node = document.querySelector(selector);
+        if (!node) return { visible: false, nonempty: false };
+        const style = getComputedStyle(node);
+        return { visible: !node.hidden && style.display !== "none" && style.visibility !== "hidden",
+          nonempty: node.textContent.trim().length > 0 };
+      };
+      return { title: state('[data-slot="session-title"]'), lift: state('[data-slot="lift"]') };
+    });
+    assert(active.title.visible && active.title.nonempty && active.lift.visible && active.lift.nonempty,
+      "the actual active Workout title and lift are ready before its scene is judged");
+    const witness = await still.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
+    assert.deepEqual(witness.hooks,
+      { theme: "dawn", screen: "workout", chrome: true, date: "board", state: "W-18" });
+    assert.equal(witness.draws, 1, "reduced motion draws exactly one still scene frame");
+    assert.equal(witness.scheduled, 0, "reduced motion schedules no scene animation frame");
+    await still.evaluate(() => document.fonts.ready);
+    await still.screenshot({ path: path.join(VISUAL_DIR, "dawn-workout-reduced-390x844.png") });
+    visual.dawnWorkoutReduced = witness;
+  } finally {
+    await reduced.close();
+  }
+  fs.writeFileSync(path.join(VISUAL_DIR, "visual-summary.json"),
+    JSON.stringify(visual, null, 2) + "\n", "utf8");
   console.log(`A1 TODAY BROWSER CHECK PASS — mounted, weighed in (${logged}), spike note shown, impossible weight `
     + `refused, survived a real reload and a new page; primary action inside the ${VIEWPORT.width}x${VIEWPORT.height} `
     + `viewport in both states (bottom ${before.bottom} and ${afterBox.bottom} of ${before.viewport}; `
@@ -408,9 +570,10 @@ try {
     + `the reading survived a REAL process kill (taskkill /F /T on ${killed} ${PROCESS_NAME} of a persistent profile, `
     + `kill verified) and localStorage holds nothing; no network request; no prototype figure on screen; `
     + `${sweptBefore.count} engine headline titles swept in both states — worst headroom `
-    + `${sweptBefore.worst.room}px before / ${sweptAfter.worst.room}px after; `
+    + `${sweptBefore.worst.room}px before / ${sweptAfter.worst.room}px after `
+    + `(unrounded ${sweptBefore.exactWorst}px / ${sweptAfter.exactWorst}px); `
     + `${sweptBefore.shrunk.length} title(s) fitted down to ${[...new Set(sweptBefore.shrunk.map((r) => r.size))].join("/") || "none"}px `
-    + `(33px floor never reached); unwired entry points labelled on Today's face; `
+    + `(${sweptBefore.atFloor} before / ${sweptAfter.atFloor} after at the 33px floor, none below it); unwired entry points labelled on Today's face; `
     + `no em/en dash in the rendered DOM of ${dashStates.length} screen states (DECISIONS:114): `
     + dashStates.join(", ")
     + `; "Report a problem" copied its eight-field block (${problem.tap}px tap target, ${problem.font}px box, `
@@ -420,7 +583,7 @@ try {
     + `320px: ${narrow.primaryTop} to ${narrow.primaryBottom} of ${narrow.viewport})`);
 } catch (error) {
   failures = 1;
-  console.error("A1 TODAY BROWSER CHECK FAIL — " + error.message);
+  console.error("A1 TODAY BROWSER CHECK FAIL — " + (error && error.stack ? error.stack : String(error)));
   for (const problem of problems) console.error("  " + problem);
 } finally {
   await browser.close();
