@@ -69,6 +69,27 @@
    preview-owned scene layer only, the bar takes back what the approved pack computes for
    it: inherited type size and colour and no margin. No pinned byte changes. */
 .scene-frame > .chrome.status { font-size: inherit; color: inherit; margin: 0; }
+
+/* ==== C-UI-6 COACH (begin) ====
+   The Coach screen is the pack's own chassis (ruling 4): a scrolling .body and a fixed
+   .stack as the two children of .ui. Only on the coach frame, these lines give back what
+   the pinned app.css computes for .screen-coach .ui (position absolute over the frame,
+   the column flex, the 22 px inset, no bottom padding, no scroll of its own) where the
+   CUI1 host rule above restates .view's values instead (named debt D2). Then five
+   properties of the 2026-09-08 legacy structure layer, which reaches coach elements the
+   pinned pack never sets, are put back to what the pack computes: the h1 letter spacing,
+   the first prompt's top border, the back chevron's colour and padding, the legacy green
+   on a proposal's change line and the legacy primary's border and weight. No colour, type
+   size or spacing of its own: every value is a pinned token or the pack's computed value. */
+.scene-frame.screen-coach > .view.ui { position: absolute; inset: 0; height: auto; display: flex;
+  flex-direction: column; padding: 0 var(--inset); overflow: hidden; }
+.screen-coach .coach-title, .screen-coach .panel-title { letter-spacing: normal; }
+.screen-coach .prompts > .prompt:first-child { border-top-color: var(--line-soft); }
+.screen-coach .prompts > .prompt:first-child:active { border-top-color: var(--line); }
+.screen-coach .header .back { padding: 0; color: inherit; }
+.screen-coach .proposal .change { color: inherit; }
+.screen-coach .primary { border: 0; font-weight: inherit; }
+/* ==== C-UI-6 COACH (end) ==== */
 @media (max-width: 430px) {
   .stage { display: block; min-height: 100dvh; padding: 0; }
   .review { display: none; }

@@ -22,6 +22,11 @@ const { createTodayModel } = require("./today-model.cjs");
    character never reaches the athlete, and one unrewritable sentence never costs them
    the whole of Today. */
 const { plainOrDrop } = require("./plain-copy.cjs");
+/* ==== C-UI-6 COACH (begin) ==== the coach screen's view (rebuild/lanes/c/ui-port/C-UI-6.md
+   MAY CHANGE: "the coach stub in today-app.cjs becomes the coach screen; a new coach-app.mjs
+   ... for the view"). An ES module with no top-level await, required synchronously so the
+   route paints in the same turn the stub did. ==== C-UI-6 COACH (end) ==== */
+const CoachApp = require("./coach-app.mjs");
 /* REPORT A PROBLEM (DECISIONS:140 (3)). The diagnostic block's shape lives in ONE
    module and this file only gathers what the page can honestly observe and hands it
    over. Nothing here reads a store, and the control writes nothing at all. */
@@ -1691,6 +1696,26 @@ function mountToday(doc, model, options = {}) {
     }
   }
 
+  /* ==== C-UI-6 COACH (begin) ====
+     The Coach route paints coach-app.mjs's screen (the pack's #screen-coach) into the same
+     #phone host every other route uses. Leaving it closes it, which takes back every
+     attribute it put on the scene frame (orb state, mode, mic, level) so no other screen
+     inherits them. Nothing on it records, sends or listens: there is no live coach in
+     this build, and the screen says so in the pack's own words when asked. */
+  let coachView = null;
+  function closeCoach() {
+    if (!coachView) return false;
+    const view = coachView;
+    coachView = null;
+    return view.close();
+  }
+  function renderCoach(focus) {
+    coachView = CoachApp.openCoach({ doc, phone, focus, back: () => render("today", true) });
+    return coachView.root;
+  }
+  CoachApp.installCoachStates(doc.defaultView || null, () => { render("coach"); return coachView; });
+  /* ==== C-UI-6 COACH (end) ==== */
+
   function render(next, focus = false) {
     /* S4 REAL DAY r3 (review round 2, finding 1) - A DISPOSED MOUNT PAINTS
        NOTHING. #phone is the ONE node every mount of this page shares, so the
@@ -1714,6 +1739,7 @@ function mountToday(doc, model, options = {}) {
        stale when it resolves and applies nothing, so the destination the athlete chose
        is never repainted from under him. A repaint of the SAME screen is the same
        mount and keeps the token. */
+    closeCoach();   /* C-UI-6: any paint replaces the coach screen, so it is closed first */
     if (next !== screen) {
       mountToken += 1;
       if (next === "sleep") hooks.forgetCheckInRead();
@@ -1776,8 +1802,7 @@ function mountToday(doc, model, options = {}) {
     }
     if (next === "measure") return renderMeasure(focus);
     if (next === "import") return renderImport(focus);
-    if (next === "coach") return renderStub("t-coach", focus,
-      "The coach is not wired yet. There is no conversation here, and nothing on this screen comes from your records.");
+    if (next === "coach") return renderCoach(focus);   /* C-UI-6 */
     if (next === "workout") {
       if (facade.workout() && typeof facade.workout().open === "function") {
         /* A3 — the check-in is reachable from the workout flow too, in the approved
@@ -1935,6 +1960,7 @@ function mountToday(doc, model, options = {}) {
       if (disposed) return false;
       disposed = true;
       mountToken += 1;
+      closeCoach();   /* C-UI-6 */
       if (typeof phone.removeEventListener === "function") hooks.unlisten(phone, "keydown", onPhoneKeydown);
       return true;
     },

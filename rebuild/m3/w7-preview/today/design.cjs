@@ -121,7 +121,9 @@ const APPROVED_COPY = Object.freeze([
   "Targets guide your day. Any suggested change comes with a reason and your choice to accept it.",
   "A quick check-in.", "Energy right now", "Muscle soreness right now", "Stress right now",
   "Low", "Moderate", "High", "None", "Mild", "Significant",
-  "Ask your coach.", "Make sense of your plan and the progress behind it.",
+  /* C-UI-6: "Ask your coach." and its lead left this list with the coach stub they
+     were the template's words for. The stub is now the drawn state C-02, built by
+     coach-app.mjs, and its words are bound there (assertCoachBinding below). */
   /* A3 — every word of the approved recovery screen (?screen=recovery), question by
      question, choice by choice, including the conditional detail the approved notes
      enumerate. Each is asserted to occur verbatim in the approved references AND in
@@ -908,6 +910,76 @@ function assertSetupBinding(approved, templateHtml, root = ROOT) {
     refusals: vocabulary.refusals.length };
 }
 
+/* ---------------------------------------------------------------------------
+   ==== C-UI-6 COACH (begin) ====
+   The coach screen's words and runtime classes, bound as tightly as Today's.
+   ---------------------------------------------------------------------------
+   Every quoted string between the two COACH-COPY markers of coach-app.mjs (the live
+   screen's words, the pack's 65 coach states and their review metadata) must occur
+   VERBATIM in the pinned approved references and carry no dash. The references are the
+   pinned COPY_SOURCES plus the pack's own app.js and states.js, pinned here by sha256:
+   the pack README names app.js with app.html as the implementation reference whose
+   "classes and copy ... the port binds to" (it alone says "Tap to stop"), and states.js
+   is the state driver whose panel words the coach's panels share. Every class the view
+   writes at runtime (coach-app.mjs COACH_CLASSES, read out of the source here) must be a
+   selector in the approved stylesheets. And the shipped template must carry the coach
+   screen's two gate font identities as the real elements the pack draws: the serif
+   headline h1.coach-title and the sans line p.coach-line (gate.py KNOWN_FACE coach). */
+const COACH_SOURCE = "coach-app.mjs";
+const COACH_EXTRA_REFERENCES = Object.freeze([
+  { file: "rebuild/m1/approved-2026-09-18/app/app.js", sha256: "0f12d829d4bcd5fd207dbd51b64d7f822ffd8034c1c0d9616fa5e9ff2daefb2b" },
+  { file: "rebuild/m1/approved-2026-09-18/app/states.js", sha256: "e299d044b5fbb3a20ca1eb8e8c808585dd92e3880b76530553e4be17a40441c9" },
+]);
+const COACH_TEMPLATE_IDENTITIES = Object.freeze([
+  '<h1 class="coach-title">Coach.</h1>',
+  '<p class="coach-line">Talk through today’s plan.</p>',
+  '<div class="prompts" id="prompts">',
+  '<button class="mic-button" type="button" id="mic"',
+  '<div class="body">',
+  '<div class="stack">',
+]);
+function coachVocabulary(root = ROOT) {
+  const source = fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", COACH_SOURCE), "utf8");
+  const start = source.indexOf("/* COACH-COPY-START */");
+  const end = source.indexOf("/* COACH-COPY-END */");
+  assert(start > 0 && end > start, `COACH-BINDING FAIL: the copy region of ${COACH_SOURCE} could not be located`);
+  const region = source.slice(start, end);
+  const lines = [...new Set([...region.matchAll(/'((?:[^'\\\n]|\\.)*)'/g)]
+    .map((m) => m[1].replace(/\\(.)/g, "$1")).filter((s) => s !== ""))];
+  assert(lines.length >= 150, `COACH-BINDING FAIL: only ${lines.length} coach strings harvested`);
+  const block = source.match(/export const COACH_CLASSES = Object\.freeze\(\[([\s\S]*?)\]\);/);
+  assert(block, `COACH-BINDING FAIL: COACH_CLASSES could not be located in ${COACH_SOURCE}`);
+  const classes = [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  assert(classes.length >= 20, `COACH-BINDING FAIL: only ${classes.length} coach classes harvested`);
+  return { lines, classes, source };
+}
+function assertCoachBinding(approved, templateHtml, root = ROOT) {
+  const extra = COACH_EXTRA_REFERENCES.map((pin) => {
+    const bytes = fs.readFileSync(path.join(root, pin.file));
+    assert.equal(sha256(bytes), pin.sha256, `COACH-SOURCE-PIN FAIL: ${pin.file}`);
+    return bytes.toString("utf8");
+  });
+  const approvedText = [...readCopyReferences(root).map((entry) => entry.text), ...extra].join("\n");
+  const { lines, classes } = coachVocabulary(root);
+  for (const line of lines) {
+    assert(approvedText.includes(line), `COACH-BINDING FAIL: "${line}" is not in the approved references`);
+    assert.equal(plainCopy(line), line, `COACH-BINDING FAIL: "${line}" carries a dash`);
+  }
+  const css = approved.map((entry) => entry.styles).join("\n");
+  for (const token of classes) {
+    const selector = new RegExp("\\." + token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w-])");
+    assert(selector.test(css), `COACH-BINDING FAIL: .${token} is not in the approved stylesheets`);
+  }
+  const at = templateHtml.indexOf('<template id="t-coach">');
+  assert(at >= 0, "COACH-BINDING FAIL: the coach screen is not in the shipped template");
+  const section = templateHtml.slice(at, templateHtml.indexOf("</template>", at));
+  for (const needle of COACH_TEMPLATE_IDENTITIES) {
+    assert(section.includes(needle), `COACH-BINDING FAIL: the coach template lacks ${needle}`);
+  }
+  return { copy: lines.length, classes: classes.length };
+}
+/* ==== C-UI-6 COACH (end) ==== */
+
 function assertRuntimeCopyBinding(appSource, references = readCopyReferences(),
   preview = PREVIEW_RUNTIME_COPY, adopted = ADOPTED_RUNTIME_COPY) {
   const byFile = new Map(references.map((entry) => [entry.file, entry.text]));
@@ -964,7 +1036,9 @@ function assertDesignBinding(approved, templateHtml, appSource) {
   /* A4 — the first-run screens' own vocabulary, harvested from the one module
      that owns it, and the owner's no-dash rule applied to every sentence of it. */
   const setup = assertSetupBinding(approved, templateHtml);
-  return { classes: used.size, recovery, setup, copy: PREVIEW_COPY.length + APPROVED_COPY.length
+  /* C-UI-6 - the coach screen's own vocabulary and runtime classes. */
+  const coach = assertCoachBinding(approved, templateHtml);
+  return { classes: used.size, recovery, setup, coach, copy: PREVIEW_COPY.length + APPROVED_COPY.length
     + (appSource === undefined ? 0 : RUNTIME_COPY.length + CHECKIN_RUNTIME_COPY.length
       + ADOPTED_RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
 }
@@ -1067,6 +1141,8 @@ module.exports = {
   assertDesignBinding, composeStyles, textOf, classTokens, sha256,
   recoverySection, recoveryVocabulary, assertRecoveryBinding, assertRuntimeCopyBinding,
   setupVocabulary, assertSetupBinding, setupSource,
+  /* C-UI-6 COACH */
+  COACH_SOURCE, COACH_EXTRA_REFERENCES, COACH_TEMPLATE_IDENTITIES, coachVocabulary, assertCoachBinding,
   SETUP_MODEL_SOURCE, SETUP_SOURCES,
   headlineVocabulary, ENGINE_DIR, ENGINE_TITLE_SOURCES, ENGINE_NON_TITLE_SOURCES,
   templateHtml, appSource, chromeCss, shellHtml,

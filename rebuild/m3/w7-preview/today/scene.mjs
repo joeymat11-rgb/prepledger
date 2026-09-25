@@ -362,8 +362,10 @@ function installScene(view, doc) {
   };
   const currentScreen = () => {
     if (host.querySelector('[data-slot="workout-detail"]')) return "workout";
-    const title = host.querySelector("h1");
-    if (title && title.textContent.trim() === "Ask your coach.") return "coach";
+    /* ==== C-UI-6 COACH (begin) ==== the coach screen is the pack's own markup now, so it
+       is known by the pack's headline element, not by the stub's old h1 words. */
+    if (host.querySelector(".coach-title")) return "coach";
+    /* ==== C-UI-6 COACH (end) ==== */
     if (host.querySelector('[data-slot="instruction"]')) return "today";
     return live.screen;
   };
