@@ -349,3 +349,55 @@ test('S10-REGEN B5-L5 CONTROL: a changed Markdown report outside rebuild/engine/
   assert.equal(r.reads.includes(name), false, 'the helper READ ' + name);
   assert.equal(r.out.includes(name), false, 'the report was declared or named: ' + r.out);
 });
+
+/* DECISIONS:812 (S10 rebind onto the sealed S9): the sealed S9 artifact pins
+   rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs as a product (declared new at S9 round 7), and
+   b-package.cjs:2575-2577 requires every parent product pin in S10's inventory, so SCOPE holds that path as a
+   third exact-file entry, admitted BY IDENTITY ONLY: no directory root is added. Rows: the exact file, pinned by
+   the sealed parent (and declared by the parent S9.json, as at d7f6540), is carried pre == post, whether S10.json
+   does not yet declare it or already declares it carried; a sibling under rebuild/conform/v4/postfix/test/, a
+   case variant of the exact name and a path below it are each still refused BY NAME as outside the S10 product
+   scope, through the changed paths and through the sealed parent product, before any read of it. Every name and
+   byte here is invented on the fake ports. */
+const CI2 = 'rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs';
+const CI2_BYTES = 'synthetic ci-second-gate bytes\n';
+const parentPins = (w, name, bytes) => {   // the sealed parent pins name as a product, and its S9.json declares it
+  for (const r of [P, HEAD]) w.at[r][name] = bytes;
+  w.disk[name] = bytes;
+  editArt(w, (a) => { a.product[name] = sha(bytes); });
+  editS9(w, (s) => { s.product[name] = { pre: null, post: sha(bytes), role: 'new' }; });
+};
+for (const declaredInS10 of [false, true]) {
+  test('S10-REGEN DECISIONS:812: the exact SCOPE file ' + CI2 + ', pinned by the sealed parent' + (declaredInS10 ? ' and declared carried in S10.json' : ' and undeclared in S10.json') + ', is admitted and carried pre == post', () => {
+    const w = sealed(world(), 'ACCEPTED'); parentPins(w, CI2, CI2_BYTES);
+    if (declaredInS10) editSpec(w, (s) => { s.product[CI2] = { pre: sha(CI2_BYTES), post: sha(CI2_BYTES), role: 'carried' }; });
+    const r = run(w);
+    assert.equal(r.error, null, String(r.error && r.error.stack));
+    assert.equal(r.exitCode, 0, r.out);
+    assert.equal(/REGEN-PATH-REFUSED|PROBLEM/.test(r.out), false, r.out);
+    const h = sha(CI2_BYTES).slice(0, 8);
+    if (declaredInS10) assert.equal(r.out.includes(CI2 + ':'), false, 'a declared carried pin moved: ' + r.out);
+    else assert(r.out.includes(CI2 + ': undeclared  =>  carried ' + h + '->' + h), 'not carried pre == post: ' + r.out);
+  });
+}
+const CI2_REFUSED = [
+  ['a sibling under rebuild/conform/v4/postfix/test/', 'rebuild/conform/v4/postfix/test/other.test.cjs'],
+  ['a case variant of the exact name', 'rebuild/conform/v4/postfix/test/CI-Second-Gate.test.cjs'],
+  ['a path below the exact name', CI2 + '/x.cjs'],
+];
+const CI2_SOURCES = [   // each world also carries the exact file, pinned by the sealed parent, as at d7f6540
+  ['changed paths', (name) => { const w = sealed(world(), 'ACCEPTED'); parentPins(w, CI2, CI2_BYTES); everywhere(w, name); w.changed.push(name); return w; }],
+  ['the sealed parent product (declared by the parent S9.json too)', (name) => { const w = sealed(world(), 'ACCEPTED'); parentPins(w, CI2, CI2_BYTES); parentPins(w, name, MARKER); return w; }],
+];
+for (const [label, name] of CI2_REFUSED) {
+  for (const [source, build] of CI2_SOURCES) {
+    test('S10-REGEN DECISIONS:812 REFUSES ' + label + ' (' + name + ') supplied through ' + source + ' as outside the S10 product scope, BY NAME, before any read of it', () => {
+      const r = run(build(name));
+      assert.equal(r.error, null, String(r.error && r.error.stack));
+      assert.equal(r.reads.includes(name), false, 'the helper READ ' + name + ' before refusing it');
+      for (const f of r.reads) assert(SEALED_READS.has(f), 'a product read happened before the refusal: ' + f);
+      assert.equal(r.exitCode, 2, 'not refused: ' + r.out);
+      assert(r.out.includes('REGEN-PATH-REFUSED') && r.out.includes(name + ' (outside the S10 product scope)'), 'not refused BY NAME as outside the S10 product scope: ' + r.out);
+    });
+  }
+}

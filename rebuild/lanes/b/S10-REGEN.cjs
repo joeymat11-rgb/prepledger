@@ -20,9 +20,13 @@
    ledger coordinate, a parent binding the runner re-reads (it is optional only for a dry run).
 
    THE PATH BOUNDARY (B5). Nothing is read outside a POSITIVE, reviewed scope:
-   (1) SCOPE below is the fixed list of S10 product roots (every declared S10 path, every S9 product
-       and execution pin, measured to lie under one of them); FIXED_INPUTS are the only files read
-       before discovery, and they are validated first.
+   (1) SCOPE below is the fixed list of S10 product roots and exact files: 36 entries, 29 directory
+       roots and 7 exact files (every declared S10 path, every S9 product and execution pin, measured
+       to lie under one of them: at parent d7f6540 and HEAD 59d7fd9, 309 names, 616 path/revision
+       pairs). rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs, a sealed S9 product pin that
+       b-package.cjs:2575-2577 requires S10 to carry, is an exact file by identity only, with no
+       directory root (DECISIONS:812). FIXED_INPUTS are the only files read before discovery, and
+       they are validated first.
    (2) Discovery is `git diff --name-only <P> HEAD -- <SCOPE...>`, never an unscoped diff; every
        git call that names a path passes it after an explicit `--` (ls-tree), and blob bytes are read
        only by object id (cat-file) after that path passed validation.
@@ -46,7 +50,8 @@ const fs = require('node:fs'), path = require('node:path'), cp = require('node:c
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const SPEC = 'rebuild/lanes/b/tooling/packages/S10.json', S9SPEC = 'rebuild/lanes/b/tooling/packages/S9.json';
 const RUNNER = 'rebuild/lanes/b/tooling/b-package.cjs', REGIONS = 'rebuild/lanes/c/today-split-spike/regions.json';
-const SCOPE = ['.github/workflows/rebuild.yml', '.github/workflows/shared-preflight.yml', 'rebuild/engine/',
+const SCOPE = ['.github/workflows/rebuild.yml', '.github/workflows/shared-preflight.yml',
+  'rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs', 'rebuild/engine/',
   'rebuild/lanes/b/S10-REGEN.cjs', 'rebuild/lanes/b/S10-REGEN.test.cjs', 'rebuild/lanes/b/S9-UI-PINS-BRIEF.md', 'rebuild/lanes/b/tooling/',
   'rebuild/lanes/c/p3-today-hotfix/', 'rebuild/lanes/c/passphrase-normalize/', 'rebuild/lanes/c/s9-today-carry/',
   'rebuild/lanes/c/today-split-spike/', 'rebuild/lanes/c/today-split/', 'rebuild/lanes/c/ui-port/',
@@ -90,8 +95,13 @@ const AUTH_ALLOWLIST = new Set([]);
    path EQUAL to an exact-file SCOPE entry (SCOPE without a trailing slash), and to nothing else: that
    admits .github/workflows/rebuild.yml and .github/workflows/shared-preflight.yml, which S10
    declares, by identity; any other path with a .github segment (or any dot-name) is refused, and
-   (b)-(d) still apply to the exact files. All 309 names S10-REGEN validates at the real repository
-   (declared, parent, execution, fixed, artifact, split and changed) pass (a)-(d). */
+   (b)-(d) still apply to the exact files. DECISIONS:801 (2) names three exact files since :812: those
+   two and rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs (no dot-name segment; in SCOPE by
+   identity only, so a sibling under rebuild/conform/v4/postfix/test/ stays outside the S10 product
+   scope). Re-measured at parent d7f6540 and HEAD 59d7fd9 with that entry: all 309 names S10-REGEN
+   validates (declared, parent, execution, fixed, artifact, split and changed) pass (a)-(d); 36 SCOPE
+   entries, 304 reviewed exact paths, 616 path/revision pairs; the only move is that path, undeclared
+   => carried f3c470c6->f3c470c6. */
 const CREDENTIAL_NAMES = new Set(['_netrc', 'netrc', '.netrc', 'credentials', 'known_hosts', 'authorized_keys', 'authorized_keys2',
   ...['id_rsa', 'id_dsa', 'id_ecdsa', 'id_ed25519', 'id_ecdsa_sk', 'id_ed25519_sk'].flatMap((k) => [k, k + '.pub']),
   '.git-credentials', '.gitconfig', '.htpasswd', '.pypirc', '.npmrc', '.pgpass', '.dockercfg']);
