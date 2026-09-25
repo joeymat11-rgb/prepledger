@@ -1,0 +1,7742 @@
+{
+ "schema": "earned/copy-lock/v1",
+ "note": "S10 copy lock corpus. Sealed. Rewritten only by copy-lock-measure.mjs --write inside a reseal child; see rebuild/lanes/c/COPY-LOCK.md.",
+ "scanRoots": [
+  "rebuild/m3/w7-preview/today",
+  "rebuild/m3/w7-preview/import",
+  "rebuild/m3/w7-preview/measure",
+  "rebuild/slice/pwa"
+ ],
+ "tools": [
+  "rebuild/m3/w7-preview/today/browser-check.mjs",
+  "rebuild/m3/w7-preview/today/build.mjs",
+  "rebuild/m3/w7-preview/today/checkin-check.mjs",
+  "rebuild/m3/w7-preview/today/dash-check.mjs",
+  "rebuild/m3/w7-preview/today/food-check.mjs",
+  "rebuild/m3/w7-preview/today/gym-check.mjs",
+  "rebuild/m3/w7-preview/today/machine-settings-check.mjs",
+  "rebuild/m3/w7-preview/today/serve.mjs",
+  "rebuild/m3/w7-preview/today/setup-check.mjs",
+  "rebuild/m3/w7-preview/today/sleep-check.mjs",
+  "rebuild/slice/pwa/browser-offline-check.mjs",
+  "rebuild/slice/pwa/build-pwa.mjs",
+  "rebuild/slice/pwa/serve-pwa.mjs"
+ ],
+ "scanned": [
+  "rebuild/m3/w7-preview/import/import-screen.mjs",
+  "rebuild/m3/w7-preview/measure/measure-baseline.mjs",
+  "rebuild/m3/w7-preview/measure/measure-commands.cjs",
+  "rebuild/m3/w7-preview/measure/measure-host.mjs",
+  "rebuild/m3/w7-preview/measure/measure-model.mjs",
+  "rebuild/m3/w7-preview/measure/measure-screen.mjs",
+  "rebuild/m3/w7-preview/measure/measure-sources.mjs",
+  "rebuild/m3/w7-preview/measure/measure-view.mjs",
+  "rebuild/m3/w7-preview/today/checkin-app.mjs",
+  "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+  "rebuild/m3/w7-preview/today/checkin-host.mjs",
+  "rebuild/m3/w7-preview/today/checkin-model.mjs",
+  "rebuild/m3/w7-preview/today/design.cjs",
+  "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+  "rebuild/m3/w7-preview/today/food-commands.cjs",
+  "rebuild/m3/w7-preview/today/food-host.mjs",
+  "rebuild/m3/w7-preview/today/food-model.cjs",
+  "rebuild/m3/w7-preview/today/gym-app.mjs",
+  "rebuild/m3/w7-preview/today/gym-host.mjs",
+  "rebuild/m3/w7-preview/today/gym-model.mjs",
+  "rebuild/m3/w7-preview/today/gym-settings-lane.mjs",
+  "rebuild/m3/w7-preview/today/index.shell.html",
+  "rebuild/m3/w7-preview/today/local-source-basis.mjs",
+  "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
+  "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
+  "rebuild/m3/w7-preview/today/plain-copy.cjs",
+  "rebuild/m3/w7-preview/today/preview.css",
+  "rebuild/m3/w7-preview/today/problem-report.cjs",
+  "rebuild/m3/w7-preview/today/reading-host.mjs",
+  "rebuild/m3/w7-preview/today/screens.template.html",
+  "rebuild/m3/w7-preview/today/setup-app.mjs",
+  "rebuild/m3/w7-preview/today/setup-commands.mjs",
+  "rebuild/m3/w7-preview/today/setup-host.mjs",
+  "rebuild/m3/w7-preview/today/setup-model.mjs",
+  "rebuild/m3/w7-preview/today/sleep-commands.cjs",
+  "rebuild/m3/w7-preview/today/sleep-host.mjs",
+  "rebuild/m3/w7-preview/today/sleep-model.cjs",
+  "rebuild/m3/w7-preview/today/split-kinds.mjs",
+  "rebuild/m3/w7-preview/today/starter-week.mjs",
+  "rebuild/m3/w7-preview/today/today-app.cjs",
+  "rebuild/m3/w7-preview/today/today-engine.cjs",
+  "rebuild/m3/w7-preview/today/today-entry.mjs",
+  "rebuild/m3/w7-preview/today/today-lanes.cjs",
+  "rebuild/m3/w7-preview/today/today-model.cjs",
+  "rebuild/m3/w7-preview/today/today-readings.cjs",
+  "rebuild/slice/pwa/icons.cjs",
+  "rebuild/slice/pwa/preflight.css",
+  "rebuild/slice/pwa/preflight.html",
+  "rebuild/slice/pwa/preflight.js",
+  "rebuild/slice/pwa/pwa.cjs",
+  "rebuild/slice/pwa/shell.cjs",
+  "rebuild/slice/pwa/sw-source.js"
+ ],
+ "states": {
+  "GYM-ACTIVE-SET": {
+   "error": "",
+   "texts": [
+    "+",
+    "2",
+    "Actual reps",
+    "Actual weight in pounds",
+    "Checking this device's local storage…",
+    "Clean reps left",
+    "Decrease reps",
+    "Decrease weight",
+    "Earned Today",
+    "Earned · Today",
+    "Earned: Today",
+    "Exercise 1 of 1",
+    "How are you feeling today?",
+    "Increase reps",
+    "Increase weight",
+    "Log set 1",
+    "Machine settings",
+    "No settings saved yet.",
+    "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+    "Ready.",
+    "Reps",
+    "Set progress",
+    "Setup",
+    "Synthetic effort",
+    "Synthetic lift",
+    "Synthetic plan",
+    "Synthetic reason",
+    "Synthetic workout",
+    "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+    "This set’s plan",
+    "Up next",
+    "Weight (lb)",
+    "What counts as a clean rep?",
+    "What you did · Set 1",
+    "Why?",
+    "Your settings for this machine",
+    "at the end",
+    "←",
+    "−"
+   ]
+  },
+  "GYM-SETTINGS-EDITOR-OPEN": {
+   "error": "",
+   "texts": [
+    "+",
+    "2",
+    "Actual reps",
+    "Actual weight in pounds",
+    "Add another setting",
+    "Anything to remember",
+    "Checking this device's local storage…",
+    "Clean reps left",
+    "Close without saving",
+    "Decrease reps",
+    "Decrease weight",
+    "Earned Today",
+    "Earned · Today",
+    "Earned: Today",
+    "Exercise 1 of 1",
+    "How are you feeling today?",
+    "Increase reps",
+    "Increase weight",
+    "Log set 1",
+    "Machine settings",
+    "No settings saved yet.",
+    "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+    "Ready.",
+    "Reps",
+    "Save the settings for this machine",
+    "Save these settings",
+    "Set progress",
+    "Setting",
+    "Setup",
+    "Synthetic effort",
+    "Synthetic lift",
+    "Synthetic plan",
+    "Synthetic reason",
+    "Synthetic workout",
+    "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+    "This set’s plan",
+    "Up next",
+    "Value",
+    "Weight (lb)",
+    "What counts as a clean rep?",
+    "What you did · Set 1",
+    "Why?",
+    "Your settings for this machine",
+    "at the end",
+    "←",
+    "−"
+   ]
+  },
+  "GYM-SETTINGS-REFUSED-EMPTY": {
+   "error": "Add a setting or a cue before saving. Nothing was recorded.",
+   "texts": [
+    "+",
+    "2",
+    "Actual reps",
+    "Actual weight in pounds",
+    "Add a setting or a cue before saving. Nothing was recorded.",
+    "Add another setting",
+    "Anything to remember",
+    "Checking this device's local storage…",
+    "Clean reps left",
+    "Close without saving",
+    "Decrease reps",
+    "Decrease weight",
+    "Earned Today",
+    "Earned · Today",
+    "Earned: Today",
+    "Exercise 1 of 1",
+    "How are you feeling today?",
+    "Increase reps",
+    "Increase weight",
+    "Log set 1",
+    "Machine settings",
+    "No settings saved yet.",
+    "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+    "Ready.",
+    "Reps",
+    "Save the settings for this machine",
+    "Save these settings",
+    "Set progress",
+    "Setting",
+    "Setup",
+    "Synthetic effort",
+    "Synthetic lift",
+    "Synthetic plan",
+    "Synthetic reason",
+    "Synthetic workout",
+    "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+    "This set’s plan",
+    "Up next",
+    "Value",
+    "Weight (lb)",
+    "What counts as a clean rep?",
+    "What you did · Set 1",
+    "Why?",
+    "Your settings for this machine",
+    "at the end",
+    "←",
+    "−"
+   ]
+  },
+  "GYM-SETTINGS-N2": {
+   "error": "Add a setting or a cue before saving. Nothing was recorded.",
+   "texts": [
+    "+",
+    "2",
+    "Actual reps",
+    "Actual weight in pounds",
+    "Add a setting or a cue before saving. Nothing was recorded.",
+    "Add another setting",
+    "Anything to remember",
+    "Checking this device's local storage…",
+    "Clean reps left",
+    "Close without saving",
+    "Decrease reps",
+    "Decrease weight",
+    "Earned Today",
+    "Earned · Today",
+    "Earned: Today",
+    "Exercise 1 of 1",
+    "How are you feeling today?",
+    "Increase reps",
+    "Increase weight",
+    "Log set 1",
+    "Machine settings",
+    "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+    "Ready.",
+    "Reps",
+    "Save the settings for this machine",
+    "Save these settings",
+    "Seat",
+    "Set progress",
+    "Setting",
+    "Setup",
+    "Synthetic effort",
+    "Synthetic lift",
+    "Synthetic plan",
+    "Synthetic reason",
+    "Synthetic workout",
+    "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+    "This set’s plan",
+    "Up next",
+    "Value",
+    "Weight (lb)",
+    "What counts as a clean rep?",
+    "What you did · Set 1",
+    "Why?",
+    "Your settings for this machine",
+    "at the end",
+    "four",
+    "six",
+    "←",
+    "−"
+   ]
+  },
+  "GYM-SETTINGS-SAVED": {
+   "error": "",
+   "texts": [
+    "+",
+    "2",
+    "Actual reps",
+    "Actual weight in pounds",
+    "Checking this device's local storage…",
+    "Clean reps left",
+    "Decrease reps",
+    "Decrease weight",
+    "Earned Today",
+    "Earned · Today",
+    "Earned: Today",
+    "Exercise 1 of 1",
+    "How are you feeling today?",
+    "Increase reps",
+    "Increase weight",
+    "Log set 1",
+    "Machine settings",
+    "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+    "Ready.",
+    "Reps",
+    "Seat",
+    "Set progress",
+    "Setup",
+    "Synthetic effort",
+    "Synthetic lift",
+    "Synthetic plan",
+    "Synthetic reason",
+    "Synthetic workout",
+    "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+    "This set’s plan",
+    "Up next",
+    "Weight (lb)",
+    "What counts as a clean rep?",
+    "What you did · Set 1",
+    "Why?",
+    "Your settings for this machine",
+    "at the end",
+    "six",
+    "←",
+    "−"
+   ]
+  }
+ },
+ "entries": [
+  {
+   "text": " (local offset ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " (run in)",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": " L ",
+   "files": {
+    "rebuild/slice/pwa/icons.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": " The rate is not measured yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " and ",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-readings.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " answer choices harvested",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " at ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": " at byte ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " carries no module banner for ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " carries no policy",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " carries what looks like a ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " clean reps left",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " clean reps left.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " complete",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " could not be located in ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " current",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " done",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " em/en dash(es) in text the athlete can see (DECISIONS:114): ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " exercise",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " exercises",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " files of this build are stored on this device. Everything the launch needs is here.",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " files.",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " first-run sentences harvested",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " g protein",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " h",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 4
+   },
+   "lists": []
+  },
+  {
+   "text": " in ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " is no longer ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " is not an asset kind this guard can read",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " is not an exact path \u2014 a wildcard would stack policies",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " is not closed",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " is not in the approved stylesheets",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " is served with no rule of its own",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " kcal",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": " lb",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": " lb × ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": " lb, to one decimal place. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-readings.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " lb/week.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " lb/week; its range is ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " logged",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " matched ",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " names ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1,
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " of ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 3,
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1,
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " placeholders harvested",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " readings support the rate, ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " recorded",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " refusal sentences harvested",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " reps",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 2
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " reps · ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " reps.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " set",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " sets",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " sets · aim for ",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " sets, aim for ",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " stored reading(s) the plan did not use.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " times",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " to ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-model.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": " was copied from ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " was not rendered (DECISIONS:114): ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " · Why this plan?",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "\" is missing from the shipped screen",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "\" is not in the approved references",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "# Emitted by rebuild/slice/pwa/build-pwa.mjs. One exact path per rule: Netlify",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "# applies every matching rule, so overlapping rules would send two policies.",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "$1 to ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "';font-style:",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "'s policy names a remote origin",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "(display-mode: standalone)",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "+ clean reps left",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ", Earned’s standard step",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ", estimated 1RM",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ", its standard step. Change it if yours is different.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ", so a literal cannot be ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ". Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "45 degree back extension",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "45 degree leg press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ";font-weight:",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "A calorie range is not available yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "A few details to help put today’s training in context. Answer what you can; leave the rest blank.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "A lift in this file has no name Earned can read. Nothing on this ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "A little",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "A morning weight is recorded between ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-readings.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "A priority needs a name. Leave it out instead.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "A quick check-in.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "A rep you could complete with the same range of motion and control, without changing your technique to finish it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "A workout you already recorded on this phone has a different number ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "A workout you already recorded on this phone names a lift ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "AI_DASH_GUARD_BLIND: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "AI_DASH_IN_BUILD: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "AI_DASH_IN_UI: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "AI_DASH_IN_UI: a dash this page cannot rewrite reached the screen",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "APPROVED-COLOUR FAIL: ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "APPROVED-PIN FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "APPROVED-RECOVERY FAIL: only ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "APPROVED-RECOVERY FAIL: the approved ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "APPROVED-RECOVERY FAIL: the approved placeholder \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "APPROVED-RECOVERY FAIL: the authoritative Additions C reference is not pinned",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "APPROVED-RECOVERY FAIL: the recovery screen could not be located",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "APPROVED-STYLES FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "AWS access key id",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Ab crunch machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Ab wheel rollout",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "About how many days away from training?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "About how many hours did you sleep?",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Abs",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Accepted engine did not compose applyRead",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-engine.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Actual reps",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Actual weight in pounds",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Add",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Add a note, if useful",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Add a setting or a cue before saving. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Add an exercise",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Add another setting",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Add today’s context",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Aim to finish with ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "All ",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "An approximate sleep length is recorded between 0 and 24 hours. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "An earlier workout was never finished",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "An injected clock is required",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-engine.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "An offline launch needs a secure origin (https, or 127.0.0.1). This page is not on one.",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer at least one question, or leave the check-in for today. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Anything else affecting today?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Anything in particular?",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Anything the answers missed?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Anything to remember",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Arms",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Ask your coach",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Ask your coach.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Assisted pull-up machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "At two days there is no room for arms or shoulders on their own. They get worked by the presses and the rows, and Earned does not yet count that toward them.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Back",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1,
+    "rebuild/m3/w7-preview/measure/measure-screen.mjs": 1,
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Back extension",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Back squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Back to Today",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Back to all of them",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Back to my plan",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Barbell bench press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Barbell curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Barbell row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Baseline",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Bed and wake times",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Bed time",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Biceps",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Build ",
+   "files": {
+    "rebuild/m3/w7-preview/today/problem-report.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Build it again",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Build my week for me",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Bulgarian split squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "CACHE-NAME FAIL: a precache path appears twice",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "CACHE-NAME FAIL: an empty precache list",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "CACHE-NAME FAIL: bad precache path ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "CACHE-NAME FAIL: bad sha256 for ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "CLASS-BINDING FAIL: .",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-BINDING FAIL: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-BINDING FAIL: declared approved copy missing from the template: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-BINDING FAIL: declared approved copy missing upstream: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-BINDING FAIL: declared preview runtime copy missing from the view: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-BINDING FAIL: declared runtime copy missing from the view: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-BINDING FAIL: declared runtime copy missing upstream: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-BINDING FAIL: preview-owned runtime copy is in the approved references and must be declared approved: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Cable crunch",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Cable curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Cable fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Cable lateral raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Cable rear-delt fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Calories are recorded as a whole number between 0 and 20000. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Calories eaten",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Calves",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Cancel",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Cancelled. Nothing on this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Carbohydrate",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Change sleep",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Check-in: missing approved template ",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Check-in: no host element",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Check-in: template slot missing: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Checked against engine revision",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Checking this device's local storage…",
+   "files": {
+    "rebuild/m3/w7-preview/today/index.shell.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Checking whether sleep was saved.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Chest",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Chest dip",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Chest press machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Chest-supported row machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Choose 3 or 4 lifts to follow for the whole trial. This is chosen once and is not changed afterwards.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Choose 3 or 4 lifts.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Choose a completed night.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Choose clean reps left, or Unsure.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Choose the earned-port file",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Choose times or hours asleep.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Clean reps left",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Close the unfinished workout",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Close without saving",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Close-grip bench press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Comparison",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Confirmed from your check-in on ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Confirmed from your check-in.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Copied. Send it to Joe.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Core",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Corrected ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Crunch",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "DAY doesn’t have a session kind yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Daily targets",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Date",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Days",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Days away from training is recorded as a whole number of days. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Dead bug",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Deadlift",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Decrease reps",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Decrease weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Did every workout in this file happen before ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Do not add a weight yet. Earned asks for that at the gym, on the day.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Does it affect your usual movement?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Dumbbell bench press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Dumbbell curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Dumbbell fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Dumbbell row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Dumbbell shoulder press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "EARNED MEASUREMENT COMPARISON",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Each setting needs a short name and a short value, and each name only once. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Earlier check-ins are shown as recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Earned",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 2,
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1,
+    "rebuild/slice/pwa/icons.cjs": 1,
+    "rebuild/slice/pwa/pwa.cjs": 2
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Earned Today",
+   "files": {
+    "rebuild/m3/w7-preview/today/index.shell.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned alternates upper and lower down your week, and when the count is odd it repeats the kind across your longest gap. That is Earned’s own rule, not a published standard. Change any day and Earned will leave it alone after that.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned cannot show today's plan.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned can’t build your week yet",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned could not prepare today’s workout, and nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Earned could not read today's record back just now, so what is shown here may not be the whole day.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Earned could not tell whether this intake was recorded on this device. It may have been kept and it may not.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Earned fills the days you chose with a starting set of exercises. Rename, remove or add anything afterwards.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Earned has not finished storing itself on this device yet. Open it once with a connection.",
+   "files": {
+    "rebuild/slice/pwa/sw-source.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned plans two kinds of day so far: upper body and lower body.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned · Today",
+   "files": {
+    "rebuild/m3/w7-preview/today/index.shell.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned: Today",
+   "files": {
+    "rebuild/m3/w7-preview/today/index.shell.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned’s standard start",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned’s suggestion",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Eat about",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Effort unknown",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 2
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Energy",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Energy logging adherence",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Energy right now",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Engine schema version",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Engine sha256",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Enter both times.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Enter calories, protein, or both. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Enter hours from 0 to 24, with up to two decimal places.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Enter the weight and reps you actually completed.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Enter valid times.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Enter what you actually ate today. Either figure on its own is enough.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Enter whole minutes awake within the time in bed.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Entered as an approximate duration.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Escape",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Estimate from clock times: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Estimate how many more you could have done at the end of the set. If you can’t tell, choose Unsure.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Estimated 1RM uses the Epley formula: ",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Exercise ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 2
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Export as text",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Face pull",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Farmer's carry",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Fat",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Feeling ill",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "File sha256",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 3
+   },
+   "lists": []
+  },
+  {
+   "text": "File size in bytes",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Files you took back",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Finish this workout",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "First run: no host element",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "First run: template slot missing - ",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Food logging adherence",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "For a clock-change night, enter hours asleep.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "For example, quads and glutes",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "For example, the lightest pin, and how far apart the pins are.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "For matching times, enter hours asleep instead.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Forearms",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Friday",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "From bed and wake times.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "From your check-in on ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "From your sleep record for ",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Front delts",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Front raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Front squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "GitHub OAuth/app/refresh token",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "GitHub fine-grained token",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "GitHub personal access token",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Glute kickback",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Glutes",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Goblet squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Good",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Good morning",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Google API key",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Gym card: missing approved template ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Gym card: no host element",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Gym card: template slot missing: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "HASHED-NAME FAIL: ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "HEADERS FAIL: ",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 5
+   },
+   "lists": []
+  },
+  {
+   "text": "HEADERS FAIL: the shell must stay index.html",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "HEADERS FAIL: the worker is storable",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "HEADERS FAIL: two rules match ",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "HEADLINE-VOCABULARY FAIL: the engine's title literals could not be read",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Hack squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Hammer curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Hamstrings",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Hanging leg raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Here’s your week.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Hide the text table",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "High",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 2,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Hip abduction",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Hip thrust",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "History imported",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Hours",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Hours asleep",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "How are you feeling today?",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "How do you want to record it?",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "How do you want to start?",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "How does it affect movement?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "How was the quality?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "I cannot do the movement",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "I change how I move",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "ICON-PURPOSE FAIL: ",
+   "files": {
+    "rebuild/slice/pwa/icons.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "ICON-SIZE FAIL",
+   "files": {
+    "rebuild/slice/pwa/icons.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Import my history",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 2,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Import this history",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Imported at",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Imported. Today and your gym card now use it.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Improving",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Incline barbell bench press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Incline chest press machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Incline dumbbell curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Incline dumbbell press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Increase reps",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Increase weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Install and offline launch",
+   "files": {
+    "rebuild/slice/pwa/preflight.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Instrument Sans",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Instrument Serif",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Inverted row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Is this new or changed?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "I’ll choose",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "JSON Web Token",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Keep pain separate from ordinary muscle soreness.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Keep this night",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Last night’s sleep",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Last time: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Lat pulldown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Lateral raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Lateral raise machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Lats",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Leave the jump blank and Earned uses ",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Leave unanswered",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 3
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Leg extension",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Leg press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Leg press calf raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Legs",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Let’s set up your week.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Lightest setting",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Location and movement",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Log set ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Log this morning's weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Low",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 2,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Lower back",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Lower body",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Lunge",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Lying leg curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Machine fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Machine settings",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Make sense of your plan and the progress behind it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Measure",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-screen.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Measure: no host element",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 3
+   },
+   "lists": []
+  },
+  {
+   "text": "Mild",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 2,
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 3,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Minutes awake",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Moderate",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 2,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Monday",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Muscle soreness right now",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "My machine’s jumps are uneven: let me list them",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "NAME has no lightest setting yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "NAME has nothing it works yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "NETWORK-REFERENCE FAIL: ",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "NO-NUMBERS FAIL: the template carries a literal figure: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Name what you actually use. A machine’s own label is a fine name.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Netlify personal access token",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Neutral-grip pulldown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "New",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Newest reading: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Next",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Next · ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Next · Set ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Night",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Night of ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1,
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No baseline yet. Baseline window: the last 8 to 12 complete weeks on the frozen app, ",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No check-in was recorded for this date.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "No noticeable effect",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "No reading is stored on this device yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No session is scheduled today.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No settings saved yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "No sleep recorded for this night.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "No supporting estimate is available.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No, answer it here",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "PREVIEW_COPY"
+   ]
+  },
+  {
+   "text": "None",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Nordic curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Not available on this device",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Not available yet",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Not enough data yet",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Not everything opened: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Not everything opened: athlete state: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Not in the list?",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Not now",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "PREVIEW_COPY"
+   ]
+  },
+  {
+   "text": "Not prescribed",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Not prescribed. The engine issues no carbohydrate or fat target.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Not prescribed. The engine issues no carbohydrate target.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Not prescribed. The engine issues no fat target.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Not sure",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 3,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 3
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Not wired yet",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Nothing by that name yet. You can add it yourself below.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Nothing can be explained while the local record is not trusted.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Nothing can be recorded on this device: its encrypted local store did not open.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Nothing is recorded yet. Every answer is blank, and blank means unknown: never none, never zero.",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Nothing was lost and nothing was changed. Log your set as usual, and open Earned again on this device to see them.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Nothing you entered is lost. Read today's record again below, or open Earned again on this device.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Offline launch:",
+   "files": {
+    "rebuild/slice/pwa/preflight.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Okay",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "On iPhone: in Safari, tap Share, then Add to Home Screen.",
+   "files": {
+    "rebuild/slice/pwa/preflight.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "One exercise",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "One exercise (unnamed)",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "One exercise on your KIND day still has no name.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "One of your exercises is not finished yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "One question before anything is written.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Ongoing, unchanged",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Open recovery check-in",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Opening this device's encrypted store.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-screen.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Opening today…",
+   "files": {
+    "rebuild/m3/w7-preview/today/index.shell.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Optional",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Or let Earned build it for me",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Or pick them myself",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Ordering answer needed",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Overhead press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Overhead tricep extension",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+   "files": {
+    "rebuild/m3/w7-preview/today/index.shell.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "PEM private key",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "PRIVATE-GUARD FAIL: ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 3
+   },
+   "lists": []
+  },
+  {
+   "text": "PRIVATE-GUARD FAIL: the output contains a private path: ",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Pain",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Pallof press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Pick a part of it. Earned counts arms and legs one muscle at a time, so it needs to know which one.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Plank",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Poor",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Preacher curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Protein",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Protein eaten",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Protein is recorded as a whole number of grams between 0 and 1000. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Put them smallest first and we’ll take it from there.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Quads",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Quality not recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Quality: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Quite a lot",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Rack pull",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Read today's record again",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Reading your saved settings for this machine.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Ready for set ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Ready.",
+   "files": {
+    "rebuild/m3/w7-preview/today/index.shell.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Rear delts",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Rear-delt fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Rear-delt machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Reason label",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Record this weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Record today's intake",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Record waist",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Recorded ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Recorded and kept on this device. Earned cannot show today's figures back through its own ledger yet: it has no starting estimate of your body composition, and that ledger will not open without one. Nothing is lost, and they appear here as soon as that estimate exists.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Recorded today",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 2
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Recorded today at ",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Recording it again replaces today's figures.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Recovery check-in on ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Remove",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Remove this setting",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Report a problem",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Reps",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Reps you aim to reach before the weight goes up",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Rest",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Restore required",
+   "files": {
+    "rebuild/m3/w7-preview/today/problem-report.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Resume ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Resume today’s workout",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Reverse wrist curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Review today’s workout",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Romanian deadlift",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "SERVICE-WORKER FAIL: a placeholder survived",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "SERVICE-WORKER FAIL: the cache name is not in the emitted worker",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "SETUP-BINDING FAIL: declared first-run copy missing from the view: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "SETUP-BINDING FAIL: the first-run screen is not in the shipped template",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "SETUP-VOCABULARY FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "SETUP-VOCABULARY FAIL: only ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "SHELL-EDIT FAIL: ",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "SHELL-EDIT FAIL: an unhashed asset name survived",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "SHELL-EDIT FAIL: the body marker is missing",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "SHELL-EDIT FAIL: the old viewport meta survived",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "SHELL-EDIT FAIL: the viewport does not cover",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Sample data. Set up your week to start your own.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Saturday",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Save correction",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Save sleep",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Save the settings for this machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Save these settings",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Save time not recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Saved in this device's encrypted local store. It survives a reload, a restart, a reboot and a crash.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Saving sleep...",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Sealed on the PC at",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Search by name, or say what you want to work and pick from there.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Search for an exercise",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Seated cable row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Seated calf raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Seated leg curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Select all and copy, then send it to Joe.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Set ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Set progress",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Set up your week",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Sets of each exercise",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Setting",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Settings could not be read.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Setup",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Shoulder press machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Shoulders",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Shrug",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Shrug machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Side delts",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Side plank",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Significant",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 2,
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 3,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Six short questions. Nothing here is a target or a promise: it is what your gym can do and when you can get there.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Skip",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Slack token",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Sleep",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Sleep cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep it. Open Earned again on this device, or use one that allows local storage.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Sleep could not be saved on this device.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Sleep nights qualifying",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Sleep saved on this device.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Sleep was saved. The screen could not refresh. Open it again.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Smallest jump up",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Something else",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Standing calf raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Standing on",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Start ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Start is not available until this device can read your setup. Reload to try again.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Start using Earned",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Still needs the import review",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Storing this build on this device: ",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Straight-arm pulldown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Strength markers",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Stress right now",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Sunday",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "T-bar row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "TYPOGRAPHY-FORMAT FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "TYPOGRAPHY-MANIFEST FAIL",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "TYPOGRAPHY-PIN FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "TYPOGRAPHY-SIZE FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Take your rest.",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Taken back at",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tap the days you will be in the gym, then say what each one is. You can change this whenever your week changes.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tap the days you will be in the gym. Earned says what each day is.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tap what you care about most. You can leave this empty.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Targets guide your day. Any suggested change comes with a reason and your choice to accept it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Tell us what DAY is: upper or lower.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That doesn’t look like a weight. Numbers only.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That file could not be taken back on its own. It is still listed below.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That file was taken back. Nothing on this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That is where Earned starts every new lift, the same for every exercise below. Change either one if you already know better.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That passphrase or file did not unlock. Check the six words and the file.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The PC oracle verdict",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "The check-in changed. Review its hours again.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "The check-in could not be read on this device.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "The coach is not wired yet. There is no conversation here, and nothing on this screen comes from your records.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The date changed. Check which night this is for.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "The estimated loss rate is ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The file the PC wrote. It is sealed: nothing can read it without the six words.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The full nutrition screen is not wired yet. Energy and protein above are today's engine targets; nothing else on this screen is a value.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The jump needs to be more than nothing.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+   "files": {
+    "rebuild/m3/w7-preview/today/index.shell.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The offline copy could not be installed: ",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The offline copy did not answer. Reload once, with a connection.",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The point is to work each muscle about twice a week, with a couple of days between sessions of the same kind.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The rate itself",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The readings behind it",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The store's own reason: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The stored history does not establish a measured weekly rate yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The trial has no day one yet. It begins on the day this device records your first entry.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The whole stack, smallest first",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "These settings could not be recorded on this device, and no part of them was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "This browser did not give the page an encrypted local store to import into.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This browser did not give the page an encrypted local store to keep a workout in.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This browser did not give the page an encrypted local store to keep measurements in.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This browser does not offer an offline launch. Everything else on this page still works, and nothing is lost.",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This check-in could not be recorded on this device, and no part of it was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "This device could not open its encrypted local store, so no check-in can be recorded here.",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "This device could not open its encrypted local store, so nothing can be recorded here.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "This device has no lifts to choose markers from yet.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This device holds ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This device is already set up. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This device's local record could not be trusted, so nothing is shown.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This file was saved under a different name than the one you ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This file was written by a different training week than the one you set ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This intake could not be recorded on this device, and no part of it was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "This is about the machine, not about you. Look at the stack or the plates and tell us what it can make.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This morning",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "This morning ✓ ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This morning: not logged yet",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This night changed while you were editing. Review the saved record before trying again.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "This page is not being served by its offline copy yet. Reload once, with a connection, to finish.",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This phone has no saved setup to compare this file with. Nothing on ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This set’s plan",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This table is on this device only. Select it and copy it.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This weight could not be recorded, and nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This weight could not be recorded, and nothing was recorded. ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Those days",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Thursday",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Time awake",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Time awake was not recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Time away",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "To remember:",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Today",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 6
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Today could not open on this device. Nothing was changed or recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today did not open. ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today did not open: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today needs JavaScript. Nothing has been recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/index.shell.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today preview: missing approved template ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today preview: no #phone host element",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today preview: template slot missing: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today's exercises are not available: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today's intake",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Today's target ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today's weigh-in is already recorded on this device. Changing a recorded reading needs the correction path, which is not wired yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-readings.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Today’s workout cannot open",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Today’s workout is recorded on this device.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Training adherence",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Traps",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Trial",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Trial day one: ",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tricep dip",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tricep extension machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tricep pushdown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Triceps",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Try reading it again",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Tuesday",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Two days is the floor of what Earned can count, not the middle of it. Each muscle gets six sets a week here, and Earned’s band starts at eight.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Type the six words from the PC",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Undo",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Undone on this device from the saved-set screen before the next set.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Unlock",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Unlocked. Nothing has been written to this phone yet.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Unsure",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Up next",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Upper back",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Upper body",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Upright row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Use these hours",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Use these markers",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Value",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "WRITER-OUTSIDE-GESTURE: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-lanes.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Waist",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Waist (in)",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Waist in inches, between ",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Waist, 4 week trend",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Wake time",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "We don’t know what to call you.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "We don’t know which days you train.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "We have not put a weight on anything. On your first session Earned will ask you to pick a load you can control, and whatever that gives is where you start.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "We need something to call you. A first name is fine.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "We will keep this with your plan. It does not change your sessions yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Wednesday",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Week",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Week ",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 3
+   },
+   "lists": []
+  },
+  {
+   "text": "Weeks 1 and 2 are run in: recorded, shown, and not the weeks the comparison reads.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Weight (lb)",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Weight in pounds",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Weight trend",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Weight trend ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Weight, 7 day average",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What counts as a clean rep?",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What do you want to work?",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What does it work?",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What else should your coach know?",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What is it called?",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What matters most",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What should we call you?",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What supports “",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What symptoms, and when did they start?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "What the weights do.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What this file holds",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What was the reason?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "What you did · Set ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "What you have noticed",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What you typed is still here.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "What you will do.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Where, and during which movement?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Which days?",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Which muscles?",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY",
+    "CHECKIN_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Why this plan?",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Why today’s workout cannot open",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Why?",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Wide-grip pulldown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "With one day, Earned can give you one upper day. A second day is what lets it cover your lower body at all.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "With two days, Earned’s full-body plan is coming; for now one upper day and one lower day.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Working.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Workout days in this file",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Workout in progress",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Workout recorded",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Workouts already recorded in Earned",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Worse than before",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Wrist curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Yes",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Yes, that’s right",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "PREVIEW_COPY"
+   ]
+  },
+  {
+   "text": "You can type them with spaces or with hyphens, and capitals do not matter.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You have KIND exercises, but no KIND day in your week.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your KIND day has no exercises in it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your agreed daily targets, together in one place.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Your answers belong alongside your training data.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Your calories",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your choice",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your daily protein target.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your figures are still in the boxes above. Record them again, and if it keeps failing, report a problem from Today.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Your food plan.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Your full nutrition plan",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Your import",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Your plan does not set a rest length.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Your plan for today",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Your plan for today. Synthetic athlete; nothing here is an account.",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your plan is unchanged: nothing in this check-in reaches a training rule yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Your plan, progress and the reasons behind it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Your protein",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your set targets are ready",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Your settings for this machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Your sleep record already has last night.",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Your week could not be recorded on this device, and no part of it was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your week has no exercises in it yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your week is saved on this device. The numbers on this screen are still the preview’s sample athlete, not you. Nothing here was measured from anything you did.",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your workout could not be opened on this device, and nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "a secret assigned in source",
+   "files": {
+    "rebuild/slice/pwa/pwa.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "a slot",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "a string literal of ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "ab roller",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "abductor machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "alternating curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "anti rotation press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "assisted pullup",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "at the end",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "attributed to the page's own sources and the guard would pass on anything",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "australian pull up",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "barbell deadlift",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "barbell front squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "barbell good morning",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "barbell hip thrust",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "barbell shrug",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "barbell squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "barbell upright row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "barbell wrist curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "bare code of ",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "bb curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "bb row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "bench dip",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "bench press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "bent over fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "bent over row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "block pull",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "body row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "box step up",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable bicep curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable chest fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable crossover",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable face pull",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable kickback",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable pallof",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable pulldown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable pushdown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable reverse fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable side raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cable upright row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "calf press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "calf raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "check-in store: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "checking this device…",
+   "files": {
+    "rebuild/slice/pwa/preflight.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "chest dips",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "chest fly machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "chest press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "chest supported row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "chin up",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "close grip bench",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "close grip pulldown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "conventional deadlift",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "createCheckInModel requires day",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "createFoodHost requires day",
+   "files": {
+    "rebuild/m3/w7-preview/today/food-host.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "createGymModel requires a composed gym host",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "createMachineSettingsHost requires day",
+   "files": {
+    "rebuild/m3/w7-preview/today/machine-settings-host.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "createMeasureHost requires day",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-host.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "createSetupModel requires today as a local ISO date",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "createSleepHost requires day",
+   "files": {
+    "rebuild/m3/w7-preview/today/sleep-host.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "dataLossGuard lost",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "dataLossGuard safe",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "db bench press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "db curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "db fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "db hammer curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "db lateral raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "db row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "db shoulder press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "default-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "default-src 'none'; script-src 'self'; connect-src 'self'",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "default-src 'none'; script-src 'self'; style-src 'self'; font-src data:; ",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "device store: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "dumbbell chest fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "dumbbell front raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "dumbbell lunge",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "dumbbell press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "dumbbell shrug",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "dumbbell squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "dumbbell step up",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "export const ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "extensor curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "ez bar preacher curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "farmers walk",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "first-run store: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "flat bench",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "flat dumbbell press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "floor crunch",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "floor press-up",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "forDate requires a date",
+   "files": {
+    "rebuild/m3/w7-preview/today/food-host.mjs": 1,
+    "rebuild/m3/w7-preview/today/sleep-host.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "forearm curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "forearm plank",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "french press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "front of thigh",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "front plank",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "g protein",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "glute bridge",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "glute ham raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "hamstring curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "hanging knee raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "high bar squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "hours asleep, approximately",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "img-src 'self' data:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; ",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "incline bench",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "incline bench press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "incline chest press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "incline curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "incline db press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "incline dumbbell bench",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "incline press machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "jump: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "kettlebell squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "knee extension",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "kneeling cable crunch",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "landmine row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "lane open",
+   "files": {
+    "rebuild/m3/w7-preview/today/problem-report.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "lat prayer",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "lat pull down",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "lateral plank",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "leg curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "leg raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "loaded carry",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "low row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine calf raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine chest press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine crunch",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine glute kickback",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine hack squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine lateral raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine leg press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine preacher curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine shrug",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "machine tricep extension",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "markup outside a comment",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "military press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "neutral grip curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "nordic hamstring curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "not answered yet",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "not yet",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 6
+   },
+   "lists": []
+  },
+  {
+   "text": "nothing named",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "of sets than this file has for that lift. Nothing on this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "offline-ready ✓",
+   "files": {
+    "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "one arm row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "overhead extension",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "overhead press machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "parallel bar dip",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "parallel dip triceps",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "partial deadlift",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "pec deck",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "pec fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "pendlay row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "plate front raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "pull up machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "quad extension",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "rear delt pec deck",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "rear delt raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "rear foot elevated split squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "reverse fly",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "reverse forearm curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "reverse lunge",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "reverse pec deck",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "ring row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "roman chair",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "rope crunch",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "rope curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "rope face pull",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "rope pushdown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "rope rear delt",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated ab machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated abduction",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated calf",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated chest press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated dumbbell press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated hamstring curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated row machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated shoulder press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated tricep press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "seated wrist curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "set up on this phone. Nothing on this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "side delt machine",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "side lateral",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "side raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "single arm row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "sit up",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "skull crusher",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "sled calf raise",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "small muted",
+   "files": {
+    "rebuild/m3/w7-preview/today/setup-app.mjs": 14
+   },
+   "lists": []
+  },
+  {
+   "text": "small quiet",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 2,
+    "rebuild/m3/w7-preview/today/machine-settings-view.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "smith shrug",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "split squat",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "standing press",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "stiff leg deadlift",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "straight arm pushdown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "straight bar curl",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "stylesheet outside a comment",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "taken from the imported history after the import lands.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "tbar row",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "the body element",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "the bundle",
+   "files": {
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "the bundle script",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "the cache name placeholder",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "the end of the stage",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "the precache placeholder",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "the stylesheet link",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "the viewport meta",
+   "files": {
+    "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "this file does not have. Nothing on this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "this first Earned workout, with none already recorded in Earned?",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "trap shrug",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "tricep extension cable",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "unknown answer ",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "unknown field ",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "unknown issue ",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "unknown question ",
+   "files": {
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "up on this phone. Nothing on this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "use strict",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1,
+    "rebuild/m3/w7-preview/measure/measure-commands.cjs": 1,
+    "rebuild/m3/w7-preview/measure/measure-model.mjs": 1,
+    "rebuild/m3/w7-preview/measure/measure-screen.mjs": 1,
+    "rebuild/m3/w7-preview/measure/measure-sources.mjs": 1,
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1,
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/food-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/food-model.cjs": 1,
+    "rebuild/m3/w7-preview/today/plain-copy.cjs": 1,
+    "rebuild/m3/w7-preview/today/problem-report.cjs": 1,
+    "rebuild/m3/w7-preview/today/sleep-commands.cjs": 1,
+    "rebuild/m3/w7-preview/today/sleep-model.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-engine.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-lanes.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-readings.cjs": 1,
+    "rebuild/slice/pwa/icons.cjs": 1,
+    "rebuild/slice/pwa/preflight.js": 1,
+    "rebuild/slice/pwa/pwa.cjs": 1,
+    "rebuild/slice/pwa/shell.cjs": 1,
+    "rebuild/slice/pwa/sw-source.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "user agent",
+   "files": {
+    "rebuild/m3/w7-preview/today/problem-report.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "v bar pulldown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "walking lunge",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "weigh-in store: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "wide grip lat pulldown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "wide pulldown",
+   "files": {
+    "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "workout store: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  }
+ ]
+}
