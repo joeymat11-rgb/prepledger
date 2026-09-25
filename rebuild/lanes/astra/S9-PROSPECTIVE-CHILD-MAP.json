@@ -1,0 +1,747 @@
+{
+  "schema": "s9-prospective-child-map/v1",
+  "status": "STATIC_PROSPECTIVE_ONLY",
+  "candidateHead": "e5d3d05bee3aaecdc4e01815b281111058a42d03",
+  "parentSpec": {
+    "path": "rebuild/lanes/b/tooling/packages/S8.json",
+    "sha256": "f17183d3561a42ddb42bb7d41143d3569b5711b9197baeb6e1a3d642367d4e88"
+  },
+  "clauses": [
+    "S9-UI-PINS-BRIEF 2.4",
+    "2.4.1",
+    "3.3",
+    "3.4",
+    "6",
+    "8 D-INTEGRATION-COUNTS",
+    "9 items 2/3/6",
+    "11.2 and 11.5",
+    "DECISIONS:732 amendment"
+  ],
+  "children": [
+    {
+      "classification": "inherited",
+      "parentName": "today-17",
+      "name": "today-17",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/today/test/adapter.test.mjs",
+        "rebuild/m3/w7-preview/today/test/catalogue.test.mjs",
+        "rebuild/m3/w7-preview/today/test/checkin.test.mjs",
+        "rebuild/m3/w7-preview/today/test/copy.test.mjs",
+        "rebuild/m3/w7-preview/today/test/design.test.cjs",
+        "rebuild/m3/w7-preview/today/test/food.test.mjs",
+        "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+        "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+        "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs",
+        "rebuild/m3/w7-preview/today/test/package.test.cjs",
+        "rebuild/m3/w7-preview/today/test/problem.test.mjs",
+        "rebuild/m3/w7-preview/today/test/setup.test.mjs",
+        "rebuild/m3/w7-preview/today/test/view.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/journey.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/lane.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/baseline.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/boundary.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "public-gates: Today hierarchy independent oracle"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "measure-hermetic",
+      "name": "measure-hermetic",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/measure/test/model.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/adherence.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "s4-real-day",
+      "name": "s4-real-day",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/local-real-day.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "a0-journeys",
+      "name": "a0-journeys",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/journey.test.mjs",
+        "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "replaced-s9-mirror",
+      "parentName": "s8-sup-source-carriers",
+      "name": "s9-sup-source-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-source-carriers.test.cjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 child execution"
+    },
+    {
+      "classification": "replaced-s9-mirror",
+      "parentName": "s8-sup-inherited-carriers",
+      "name": "s9-sup-inherited-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-inherited-carriers.test.cjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 child execution"
+    },
+    {
+      "classification": "replaced-s9-mirror",
+      "parentName": "s8-sup-defect-witnesses",
+      "name": "s9-sup-defect-witnesses",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-defect-witnesses.test.cjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 child execution"
+    },
+    {
+      "classification": "replaced-s9-mirror",
+      "parentName": "s8-sup-writers-differential",
+      "name": "s9-sup-writers-differential",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-writers-differential.test.cjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 child execution"
+    },
+    {
+      "classification": "replaced-s9-mirror",
+      "parentName": "s8-sup-second-gate",
+      "name": "s9-sup-second-gate",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-second-gate.test.cjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 child execution"
+    },
+    {
+      "classification": "replaced-s9-mirror",
+      "parentName": "engine-files-differential",
+      "name": "s9-engine-files-differential",
+      "argv": [
+        "rebuild/m4/workout/test/s9-engine-files-differential.cjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 child execution"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "d-plan-edit",
+      "name": "d-plan-edit",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/plan-edit/model.test.cjs",
+        "rebuild/lanes/d/plan-edit/durable-host.test.mjs",
+        "rebuild/lanes/d/plan-edit/browser-build.test.mjs",
+        "rebuild/lanes/d/plan-edit/client-p6.test.cjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "m4-import",
+      "name": "m4-import",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/import/test/prepare.test.cjs",
+        "rebuild/m4/import/test/reading-replay.test.cjs",
+        "rebuild/m4/import/test/engine-provider.test.cjs",
+        "rebuild/m4/import/test/local-source-order.test.cjs",
+        "rebuild/m4/import/test/browser-parity.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "m4-import-production",
+      "name": "m4-import-production",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/import/test/production-mapping.test.cjs",
+        "rebuild/m4/import/test/production-admission.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "d-import-retract",
+      "name": "d-import-retract",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/import-retract/retract.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "d-admission-swap",
+      "name": "d-admission-swap",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-followons/admission-swap.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "d-replay-measure",
+      "name": "d-replay-measure",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs",
+        "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "d-capture-start",
+      "name": "d-capture-start",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "food-live-save",
+      "name": "food-live-save",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/food-live-save.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "w7-import",
+      "name": "w7-import",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/import/test/route.test.mjs",
+        "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs",
+        "rebuild/m3/w7-preview/import/test/live-clock.test.mjs",
+        "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs",
+        "rebuild/m3/w7-preview/import/test/refusals.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "w6-host-seams",
+      "name": "w6-host-seams",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/host-seams.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "w6-local-source",
+      "name": "w6-local-source",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/test/local-source-admission.test.mjs",
+        "rebuild/m3/w6/test/local-source-consumer.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "d-replay-all",
+      "name": "d-replay-all",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "b-lom",
+      "name": "b-lom",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/b-lom/legacy-order.test.mjs",
+        "rebuild/m4/workout/test/legacy-order-mapping.test.cjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited",
+      "parentName": "d-port-admission",
+      "name": "d-port-admission",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs",
+        "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs",
+        "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "b-package --ci S9 inherited child execution; workflow group inherited"
+    },
+    {
+      "classification": "inherited-argv-extended-to-ci-group",
+      "parentName": "d-real-shape",
+      "name": "d-real-shape",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs",
+        "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs",
+        "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "public-gates: D - real-shape contracts and layout rehydration"
+    },
+    {
+      "classification": "added",
+      "name": "sealed-inventory-fence",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "rebuild.yml/public-gates:C sealed-inventory fence (!cancelled)",
+      "roleImpact": "target new"
+    },
+    {
+      "classification": "added",
+      "name": "ui-pack-pins",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/ui-port/pack-pin.test.mjs",
+        "rebuild/lanes/c/ui-port/approved-pin.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "rebuild.yml/public-gates:C design pack + approved-reference pins (!cancelled)",
+      "roleImpact": "both targets new"
+    },
+    {
+      "classification": "added",
+      "name": "reference-closure",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/ui-port/reference-closure.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "rebuild.yml/public-gates:C accepted reference closure (!cancelled)",
+      "roleImpact": "target new; four reached documents pinned-unchanged"
+    },
+    {
+      "classification": "added",
+      "name": "release-object",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/ui-port/release-object.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "rebuild.yml/public-gates:C release object (!cancelled)",
+      "roleImpact": "target new"
+    },
+    {
+      "classification": "added",
+      "name": "today-carry",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs",
+        "rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "rebuild.yml/public-gates:C Today headline + plan sentence",
+      "roleImpact": "both targets new"
+    },
+    {
+      "classification": "added",
+      "name": "passphrase-normalize",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/passphrase-normalize/helper.test.mjs",
+        "rebuild/lanes/c/passphrase-normalize/route.test.mjs",
+        "rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "rebuild.yml/public-gates:C passphrase normalize (!cancelled)",
+      "roleImpact": "all targets new"
+    },
+    {
+      "classification": "added",
+      "name": "w6-local-import",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/test/local-import.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "rebuild.yml/public-gates:W6 local import (!cancelled)",
+      "roleImpact": "target pinned-unchanged with equal measured pre/post"
+    },
+    {
+      "classification": "added",
+      "name": "f2-land",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/f2/projector.test.mjs",
+        "rebuild/lanes/d/f2/guard-coverage.test.mjs"
+      ],
+      "needle": null,
+      "needleStatus": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+      "ciHome": "rebuild.yml/public-gates:D F2 projector + guard, one step",
+      "roleImpact": "both targets new"
+    }
+  ],
+  "pythonOnly": [
+    {
+      "job": "font-transport",
+      "matrix": [
+        "ubuntu-latest",
+        "windows-latest"
+      ],
+      "command": "python rebuild/lanes/c/ui-port/font_transport_test.py",
+      "declaredChild": false,
+      "reason": "childArgv admits JavaScript targets only; workflow-only Python evidence"
+    }
+  ],
+  "roleAdditions": [
+    {
+      "path": "rebuild/lanes/b/tooling/test/release-from-seal.test.cjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/c/ui-port/pack-pin.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/c/ui-port/approved-pin.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/c/ui-port/reference-closure.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/c/ui-port/release-object.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/c/passphrase-normalize/helper.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/c/passphrase-normalize/route.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/d/f2/projector.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/lanes/d/f2/guard-coverage.test.mjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m4/workout/test/s9-supersede-source-carriers.test.cjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m4/workout/test/s9-supersede-inherited-carriers.test.cjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m4/workout/test/s9-supersede-defect-witnesses.test.cjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m4/workout/test/s9-supersede-writers-differential.test.cjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m4/workout/test/s9-supersede-second-gate.test.cjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m4/workout/test/s9-engine-files-differential.cjs",
+      "prospectiveRole": "new",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html",
+      "prospectiveRole": "pinned-unchanged",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "MUST_EQUAL_PRE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html",
+      "prospectiveRole": "pinned-unchanged",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "MUST_EQUAL_PRE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m1/approved-2026-09-08/ADDITIONS-C-APPROVED-HANDOFF.md",
+      "prospectiveRole": "pinned-unchanged",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "MUST_EQUAL_PRE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m1/MOCK.md",
+      "prospectiveRole": "pinned-unchanged",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "MUST_EQUAL_PRE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/gym-model.mjs",
+      "prospectiveRole": "pinned-unchanged",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "MUST_EQUAL_PRE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/checkin-app.mjs",
+      "prospectiveRole": "pinned-unchanged",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "MUST_EQUAL_PRE_AT_FINAL_COMPOSED_HEAD"
+    },
+    {
+      "path": "rebuild/m3/w6/test/local-import.test.mjs",
+      "prospectiveRole": "pinned-unchanged",
+      "pre": "TO_MEASURE_FROM_NAMED_SOURCEBASE",
+      "post": "MUST_EQUAL_PRE_AT_FINAL_COMPOSED_HEAD"
+    }
+  ],
+  "unresolved": {
+    "sourceBase": "CHOSEN_AND_PRESERVED: 0cd07be7cf967dfbfea8c84947ba8477f58cfb5f; full 227-pin validation owed; only 222 public pins proved",
+    "allChildNeedles": "TO_MEASURE_AT_FINAL_COMPOSED_HEAD",
+    "allProductPrePost": "TO_MEASURE_FROM_GIT/RAW_SHA256",
+    "finalChildCount": "TO_MEASURE; do not promote this planning array length",
+    "finalProductRoleCounts": "TO_MEASURE",
+    "executedClosure": "TO_MEASURE_OVER_ALL_FINAL_CHILD_ARGV",
+    "protectedClosure": {
+      "paths": [
+        "rebuild/engine/seed.cjs",
+        "rebuild/engine/migrate.cjs",
+        "rebuild/engine/merge.cjs",
+        "rebuild/engine/index.cjs",
+        "rebuild/engine/oracle-shim.cjs"
+      ],
+      "status": "BLOCKED_PENDING_JOE_PERMISSION"
+    },
+    "workflowCombinedPost": "TO_MEASURE_AFTER_ALL_STEPS",
+    "runnerFinalHashAndSevenAncestorRepins": "TO_MEASURE/DO_LAST_IF_RUNNER_BYTES_MOVE",
+    "packApprovedLiterals": "INTEGRATOR_DAY_OF_ONLY",
+    "releaseAndReviewArtifacts": "PROPOSED_SERIALIZATION_OWNED_BY_PM"
+  },
+  "sourceEvidence": {
+    "safeRouteReview": {
+      "commit": "11c4bc553208f432ccfb12c6ded6ff7eb4c61a4c",
+      "path": "rebuild/lanes/astra/reviews/S9-REMAINING-SAFE-ROUTE.md",
+      "gitBlob": "bdc288f064afc500fe8f63b036ad7166667de5ba",
+      "sha256": "bc930a474b4738a2aee5b4a162150289153bd59693bdb47a816375b50bc1d706"
+    },
+    "currentBrief": {
+      "head": "e5d3d05bee3aaecdc4e01815b281111058a42d03",
+      "path": "rebuild/lanes/b/S9-UI-PINS-BRIEF.md",
+      "gitBlob": "8b3d0e12559361c03a6a8881aaa3680310ef6b27",
+      "sha256": "abf3f670835803b94ac768bf0c0b0a0de5d2570302abd7651179e9005efb3f58"
+    },
+    "parentS8": {
+      "head": "e5d3d05bee3aaecdc4e01815b281111058a42d03",
+      "path": "rebuild/lanes/b/tooling/packages/S8.json",
+      "gitBlob": "dce48a0e545e04ba69c991b2e4390a563921796f",
+      "sha256": "f17183d3561a42ddb42bb7d41143d3569b5711b9197baeb6e1a3d642367d4e88"
+    },
+    "runner": {
+      "head": "e5d3d05bee3aaecdc4e01815b281111058a42d03",
+      "path": "rebuild/lanes/b/tooling/b-package.cjs",
+      "gitBlob": "ac7a419526efeaf6d8362c80b5810885a04eca31",
+      "sha256": "5321181a14bd5716c1d8692d40d5086cd10179609dcccced6d7a6da04704fd22"
+    },
+    "workflow": {
+      "head": "e5d3d05bee3aaecdc4e01815b281111058a42d03",
+      "path": ".github/workflows/rebuild.yml",
+      "gitBlob": "6a1945c10cd982dc5d29aaae54f1cd0d91c4edc9",
+      "sha256": "66f2ac9ceb19322a69b0b8a5ea725511fb208d546ac7662d4f0f751d9b3d9d0e"
+    },
+    "referenceReader": {
+      "head": "e5d3d05bee3aaecdc4e01815b281111058a42d03",
+      "path": "rebuild/lanes/c/ui-port/reference-closure.test.mjs",
+      "gitBlob": "bf967180e9add7cb42bf2cdeb8c9ebf73bfab469",
+      "sha256": "0ac19325f0969270037f4e9c778a1e126793767442c455ad856dc4c4b607f48b"
+    },
+    "fontPython": {
+      "head": "e5d3d05bee3aaecdc4e01815b281111058a42d03",
+      "path": "rebuild/lanes/c/ui-port/font_transport_test.py",
+      "gitBlob": "999967e73d65b86846cddff9dc79d410678e43d4",
+      "sha256": "ee1f9ee28fee97c3fe8b30d5924c2b741ee975be7aa55856b95188815b9e4d0e"
+    }
+  }
+}

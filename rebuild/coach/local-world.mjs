@@ -70,6 +70,8 @@ const MachineSettings = require('./machine-settings-commands.cjs');
 const { createCheckInModel } = CheckInModel;
 const { createTodayModel, SYNTHETIC_DAY } = TodayModel;
 
+export const { CHECKIN_SOURCE_UNAVAILABLE, SLEEP_NIGHT_CHANGED } = require('./checkin-refusals.cjs');
+
 export const COACH_DATABASE = 'earned-coach-local';
 export const COACH_NAMESPACE = 'earned-coach/device-A';
 export const COACH_ATHLETE = 'earned-coach-athlete';
@@ -327,10 +329,10 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
         const expected = identity;
         await refreshCheckIn();
         if (!alive || !checkInReadable || (confirmed && !sleepReadable)) {
-          return { ok: false, code: 'CHECKIN_SOURCE_UNAVAILABLE', copy: 'The check-in could not be read on this device. Nothing was recorded.' };
+          return CHECKIN_SOURCE_UNAVAILABLE;
         }
         if (confirmed && expected !== identity) {
-          return { ok: false, code: 'SLEEP_NIGHT_CHANGED', copy: 'This night changed while you were editing. Review the saved record before trying again. Nothing was recorded.' };
+          return SLEEP_NIGHT_CHANGED;
         }
         return model.save();
       },

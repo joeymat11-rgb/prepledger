@@ -1,0 +1,114 @@
+[
+  {
+    "run": 35784884406,
+    "job": 106939156227,
+    "head": "f333f480c3e0d5488b89ea76ba6703c7b4e455e0",
+    "log": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-ci-106939156227.log",
+    "logSha": "27f0c6ab8da95e1c0e50d50d1cf9d13a9be92df4a763216e2f7947ff41c621b1",
+    "nodeMajor": 22,
+    "workflow": ".github/workflows/rebuild.yml",
+    "sections": [
+      {
+        "target": "sealed-inventory-fence.test.mjs",
+        "command": "node --test rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs",
+        "counters": [
+          "# tests 53",
+          "# suites 0",
+          "# pass 53",
+          "# fail 0",
+          "# cancelled 0",
+          "# skipped 0",
+          "# todo 0",
+          "# duration_ms 4377.423224"
+        ],
+        "nativeFailures": []
+      },
+      {
+        "target": "passphrase-normalize/helper.test.mjs",
+        "command": "node --test rebuild/lanes/c/passphrase-normalize/helper.test.mjs rebuild/lanes/c/passphrase-normalize/route.test.mjs rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs",
+        "counters": [
+          "# tests 29",
+          "# suites 0",
+          "# pass 29",
+          "# fail 0",
+          "# cancelled 0",
+          "# skipped 0",
+          "# todo 0",
+          "# duration_ms 7237.176313"
+        ],
+        "nativeFailures": []
+      },
+      {
+        "target": "rebuild/m3/w6/test/local-import.test.mjs",
+        "command": "node --test rebuild/m3/w6/test/local-import.test.mjs",
+        "counters": [
+          "# tests 22",
+          "# suites 0",
+          "# pass 22",
+          "# fail 0",
+          "# cancelled 0",
+          "# skipped 0",
+          "# todo 0",
+          "# duration_ms 13638.996478"
+        ],
+        "nativeFailures": []
+      }
+    ]
+  },
+  {
+    "run": 35784884406,
+    "job": 106939156289,
+    "head": "f333f480c3e0d5488b89ea76ba6703c7b4e455e0",
+    "log": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-ci-106939156289.log",
+    "logSha": "440029f7a7e0da8fc24caf11e9fdc5b676e366f042cf15a417ad174c8899f8eb",
+    "nodeMajor": 22,
+    "workflow": ".github/workflows/rebuild.yml",
+    "sections": [
+      {
+        "target": "sealed-inventory-fence.test.mjs",
+        "command": "node --test rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs",
+        "counters": [
+          "# tests 53",
+          "# suites 0",
+          "# pass 53",
+          "# fail 0",
+          "# cancelled 0",
+          "# skipped 0",
+          "# todo 0",
+          "# duration_ms 64915.971"
+        ],
+        "nativeFailures": []
+      },
+      {
+        "target": "passphrase-normalize/helper.test.mjs",
+        "command": "node --test rebuild/lanes/c/passphrase-normalize/helper.test.mjs rebuild/lanes/c/passphrase-normalize/route.test.mjs rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs",
+        "counters": [
+          "# tests 29",
+          "# suites 0",
+          "# pass 29",
+          "# fail 0",
+          "# cancelled 0",
+          "# skipped 0",
+          "# todo 0",
+          "# duration_ms 9670.6058"
+        ],
+        "nativeFailures": []
+      },
+      {
+        "target": "rebuild/m3/w6/test/local-import.test.mjs",
+        "command": "node --test rebuild/m3/w6/test/local-import.test.mjs",
+        "counters": [
+          "# tests 22",
+          "# suites 0",
+          "# pass 22",
+          "# fail 0",
+          "# cancelled 0",
+          "# skipped 0",
+          "# todo 0",
+          "# duration_ms 16772.3446"
+        ],
+        "nativeFailures": []
+      }
+    ]
+  }
+]

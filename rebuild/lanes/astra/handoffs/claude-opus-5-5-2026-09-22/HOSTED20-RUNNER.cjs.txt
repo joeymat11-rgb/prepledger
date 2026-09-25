@@ -1,0 +1,87 @@
+'use strict';
+
+// Proposal only. This file must not run until its manifest, source isolation,
+// and permission boundary have independent acceptance.
+const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+
+const ROOT = process.cwd();
+const MANIFEST = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+assert.equal(MANIFEST.status, 'REVIEWED_AND_AUTHORIZED');
+assert.equal(MANIFEST.groupCount, 20);
+assert.equal(MANIFEST.groups.length, 20);
+assert(Array.isArray(MANIFEST.hydratedBlobObjectIds));
+assert(Array.isArray(MANIFEST.hydratedBlobPairs));
+
+const rawDir = path.join(ROOT, '.proof-raw');
+fs.mkdirSync(rawDir, { recursive: false });
+const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
+const count = (text, label) => {
+  const hits = [...text.matchAll(new RegExp('^# ' + label + ' (\\d+)\\s*$', 'gm'))];
+  assert.equal(hits.length, 1);
+  return Number(hits[0][1]);
+};
+
+const summaries = [];
+let failed = false;
+for (let i = 0; i < MANIFEST.groups.length; i += 1) {
+  const group = MANIFEST.groups[i];
+  const outPath = path.join(rawDir, String(i).padStart(2, '0') + '.stdout');
+  const errPath = path.join(rawDir, String(i).padStart(2, '0') + '.stderr');
+  const outFd = fs.openSync(outPath, 'wx', 0o600);
+  const errFd = fs.openSync(errPath, 'wx', 0o600);
+  const result = spawnSync(process.execPath, group.argv, {
+    cwd: ROOT,
+    env: {
+      PATH: process.env.PATH,
+      SystemRoot: process.env.SystemRoot,
+      HOME: process.env.HOME,
+      RUNNER_TEMP: process.env.RUNNER_TEMP,
+      TZ: 'America/New_York',
+      MEASURED_TEST_NOW: '2026-09-03',
+      GIT_NO_LAZY_FETCH: '1',
+      GIT_CONFIG_NOSYSTEM: '1',
+      GIT_TERMINAL_PROMPT: '0'
+    },
+    stdio: ['ignore', outFd, errFd],
+    windowsHide: true
+  });
+  fs.closeSync(outFd);
+  fs.closeSync(errFd);
+  const stdout = fs.readFileSync(outPath);
+  const stderr = fs.readFileSync(errPath);
+  const text = stdout.toString('utf8');
+  let counters = null;
+  try {
+    counters = group.argv.includes('--test') ? {
+      tests: count(text, 'tests'), pass: count(text, 'pass'),
+      fail: count(text, 'fail'), skipped: count(text, 'skipped')
+    } : null;
+  } catch {
+    failed = true;
+  }
+  if (result.status !== 0 || result.error || (counters && (counters.fail !== 0 || counters.skipped !== 0))) failed = true;
+  summaries.push({
+    name: group.name,
+    exit: Number.isInteger(result.status) ? result.status : null,
+    signal: result.signal || null,
+    counters,
+    stdoutSha256: sha(stdout),
+    stderrSha256: sha(stderr)
+  });
+}
+
+const receipt = {
+  version: 1,
+  sourceHead: MANIFEST.sourceHead,
+  specSha256: MANIFEST.specSha256,
+  node: process.version,
+  groups: summaries,
+  verdict: failed ? 'RED' : 'PASS'
+};
+fs.writeFileSync(path.join(ROOT, 's9-hosted-proof-summary.json'), JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
+for (const row of summaries) process.stdout.write(`GROUP ${row.name} EXIT ${row.exit} ${row.counters ? `TESTS ${row.counters.tests} PASS ${row.counters.pass} FAIL ${row.counters.fail} SKIP ${row.counters.skipped}` : 'COUNTERS N/A'}\n`);
+process.exit(failed ? 1 : 0);

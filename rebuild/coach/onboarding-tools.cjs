@@ -55,6 +55,8 @@ const TIERS = Object.freeze({
 
 const C6_CODES = Object.freeze({
   TOOL_NOT_IN_LIST: "ONBOARDING_TOOL_NOT_IN_LIST",
+  TOOL_THREW: "ONBOARDING_TOOL_THREW",
+  SETUP_INPUT_INVALID: "SETUP_INPUT_INVALID",
   CONFIRMATION_REQUIRED: CODES.CONFIRMATION_REQUIRED,
   ANSWER_INVALID: "ONBOARDING_ANSWER_INVALID",
   CATALOGUE_ENTRY_UNKNOWN: "ONBOARDING_CATALOGUE_ENTRY_UNKNOWN",
@@ -86,13 +88,13 @@ const ok = (tool, tier, turn_id, values, extra) =>
   Object.freeze({ tool, tier, turn_id, ok: true, values: values || {}, ...(extra || {}) });
 
 const unavailable = (tool, tier, turn_id, code, reason, source) =>
-  Object.freeze({ tool, tier, turn_id, ok: false,
+  T.assertNoLeak(Object.freeze({ tool, tier, turn_id, ok: false,
     unavailable: Object.freeze({ code, reason, source: source || null }),
     values: Object.freeze({
       code: T.tagged(turn_id, "coach.refusal.code", code, "code", ""),
       reason: T.text(turn_id, "coach.refusal." + code, reason),
     }),
-    state_unchanged: true });
+    ...(code === C6_CODES.TOOL_THREW ? {} : { state_unchanged: true }) }));
 
 /* ----------------------------------------------------------- the factory -- */
 
@@ -350,8 +352,11 @@ function createOnboardingTools({ setup, catalogue, model, commands, effective = 
     let action;
     try { action = commands.prepare({ action: commands.ACTION, input }); }
     catch (error) {
-      return unavailable("submit", TIER.FACT, turn_id, (error && error.message) || "SETUP_INPUT_INVALID",
-        model.COPY.saveRefused, "setup-commands.mjs prepare()");
+      const message = T.provenance(error);
+      const code = typeof message === "string" && Object.prototype.hasOwnProperty.call(model.REFUSAL_SENTENCES || {}, message)
+        ? message : C6_CODES.SETUP_INPUT_INVALID;
+      return unavailable("submit", TIER.FACT, turn_id, code,
+        model.COPY.saveRefused, "setup-commands.mjs prepare(): " + T.provenance(error));
     }
     if (!host || typeof host.save !== "function") {
       return unavailable("submit", TIER.FACT, turn_id, C6_CODES.SETUP_HOST_ABSENT,
@@ -394,29 +399,30 @@ function createOnboardingTools({ setup, catalogue, model, commands, effective = 
   });
 
   /* THE ONLY ENTRY POINT, and the closed door (A3). A name that is not a key of
-     TIERS gets a refusal that NAMES IT and lists the seven, and nothing throws
+     TIERS gets a fixed refusal with the name in source and lists the seven, and nothing throws
      past the caller: a transcript that tried an invented tool is diagnosable
      without a debugger. There is no default handler (mutant C4). */
   async function dispatch(name, args, turn_id) {
     if (typeof turn_id !== "string" || !turn_id) throw new TypeError("dispatch: a turn_id is required");
-    if (!Object.prototype.hasOwnProperty.call(TIERS, name) || typeof IMPL[name] !== "function") {
-      return Object.freeze({
-        ok: false, tool: name, tier: null, turn_id,
+    if (typeof name !== "string" || !Object.prototype.hasOwnProperty.call(TIERS, name) || typeof IMPL[name] !== "function") {
+      return T.assertNoLeak(Object.freeze({
+        ok: false, tool: typeof name === "string" ? name : "(not a tool name)", tier: null, turn_id,
         code: C6_CODES.TOOL_NOT_IN_LIST,
-        reason: String(name) + " is not one of the seven onboarding tools",
+        reason: T.UNKNOWN_TOOL_COPY,
         allowed: ONBOARDING_TOOLS.slice(),
         unavailable: Object.freeze({ code: C6_CODES.TOOL_NOT_IN_LIST,
-          reason: String(name) + " is not one of the seven onboarding tools",
-          source: "onboarding-tools.cjs TIERS" }),
+          reason: T.UNKNOWN_TOOL_COPY,
+          source: "onboarding-tools.cjs TIERS: " + T.provenance(name) }),
         values: Object.freeze({}),
         state_unchanged: true,
-      });
+      }));
     }
     try { return await IMPL[name](args, turn_id); }
     catch (error) {
       /* A refusal, never a stack past the caller. */
-      return unavailable(name, TIERS[name], turn_id, "ONBOARDING_TOOL_THREW",
-        (error && error.message) || "the tool refused", "onboarding-tools.cjs dispatch");
+      return unavailable(name, TIERS[name], turn_id, C6_CODES.TOOL_THREW,
+        "Something went wrong inside that tool on this device. I could not complete the request.",
+        "onboarding-tools.cjs dispatch: " + T.provenance(error));
     }
   }
 

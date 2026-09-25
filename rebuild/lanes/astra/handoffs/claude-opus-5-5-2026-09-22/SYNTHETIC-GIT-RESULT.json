@@ -1,0 +1,14 @@
+{
+  "kind": "synthetic-git-blob-isolation",
+  "root": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-git-blob-isolation-bc94695833",
+  "git": "git version 2.53.0.windows.3",
+  "sourceHead": "7d9b50c693bcf5a09d37498d489ddbaeb4f6fe38",
+  "allowedInitiallyAbsent": true,
+  "excludedInitiallyAbsent": true,
+  "allowedHydrated": true,
+  "allowedPresent": true,
+  "excludedStillAbsent": true,
+  "excludedAfterRemoteRemovalAbsent": true,
+  "verdict": "PASS",
+  "scope": "two invented files only; no project or protected bytes; no general sandbox claim"
+}

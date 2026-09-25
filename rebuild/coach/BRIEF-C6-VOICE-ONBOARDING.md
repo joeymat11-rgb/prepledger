@@ -90,7 +90,7 @@ daily tools, and a `dispatch(name, args, turn_id)` that is the ONLY entry point.
 
 ```
 { ok: false, tool: <the name as given>, code: "ONBOARDING_TOOL_NOT_IN_LIST",
-  reason: "<name> is not one of the seven onboarding tools", allowed: [...the seven] }
+  reason: "I cannot use that tool here, so I did nothing.", allowed: [...the seven] }
 ```
 
 The refusal **names the tool that was attempted**, so a transcript that tried one is diagnosable without a

@@ -1,0 +1,44 @@
+[
+  {
+    "file": "HOSTED20-SCOPE.md",
+    "originalPath": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-hosted-protected-20-proposal\\S9-HOSTED-PROTECTED-20-SCOPE.md",
+    "originalSha256": "8f78e363984d1feb5f3cab57cf7f119bab851d69bd2f4c8641c152c3a0b637b9",
+    "publishedSha256": "8f78e363984d1feb5f3cab57cf7f119bab851d69bd2f4c8641c152c3a0b637b9",
+    "status": "UNREVIEWED_PROPOSAL_OR_BOUNDARY_NOT_EXECUTION_AUTHORITY"
+  },
+  {
+    "file": "HOSTED20-MANIFEST.proposal.json",
+    "originalPath": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-hosted-protected-20-proposal\\S9-HOSTED-PROTECTED-20-MANIFEST.proposal.json",
+    "originalSha256": "47e8f19d138752841125153dba72973c5816d080f8d559cded6110111d17dfd2",
+    "publishedSha256": "032ffcbd7134eaf5c4947eee3f3457e1c954085efc2bb53ad6c12af8737ef4e5",
+    "status": "UNREVIEWED_PROPOSAL_OR_BOUNDARY_NOT_EXECUTION_AUTHORITY"
+  },
+  {
+    "file": "HOSTED20-WORKFLOW.yml.txt",
+    "originalPath": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-hosted-protected-20-proposal\\s9-hosted-proof.proposal.yml",
+    "originalSha256": "4df8dedfe537a4aeb79968e98f399bf54e2d8e462e542f3ccdb5f1b0f1e05b67",
+    "publishedSha256": "4df8dedfe537a4aeb79968e98f399bf54e2d8e462e542f3ccdb5f1b0f1e05b67",
+    "status": "UNREVIEWED_PROPOSAL_OR_BOUNDARY_NOT_EXECUTION_AUTHORITY"
+  },
+  {
+    "file": "HOSTED20-RUNNER.cjs.txt",
+    "originalPath": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-hosted-protected-20-proposal\\s9-hosted-proof-runner.proposal.cjs",
+    "originalSha256": "1b113a1e6ca97ccb3b1d0dcd997a200ca93abf66be25723ab5d961070cd6fb7b",
+    "publishedSha256": "1b113a1e6ca97ccb3b1d0dcd997a200ca93abf66be25723ab5d961070cd6fb7b",
+    "status": "UNREVIEWED_PROPOSAL_OR_BOUNDARY_NOT_EXECUTION_AUTHORITY"
+  },
+  {
+    "file": "HOSTED20-REVIEW-BOUNDARY.md",
+    "originalPath": "C:\\Users\\joeym\\AppData\\Local\\Temp\\astra-successor-s9-hosted20-prep-review\\S9-HOSTED20-STATIC-HANDOFF-2026-09-22.md",
+    "originalSha256": "99834c6e3dc4c94a821110bfd433153df497697e95be191cea751c81d127b5ee",
+    "publishedSha256": "99834c6e3dc4c94a821110bfd433153df497697e95be191cea751c81d127b5ee",
+    "status": "UNREVIEWED_PROPOSAL_OR_BOUNDARY_NOT_EXECUTION_AUTHORITY"
+  },
+  {
+    "file": "SYNTHETIC-GIT-RESULT.json",
+    "originalPath": "C:\\Users\\joeym\\AppData\\Local\\Temp\\earned-s9-synthetic-git-isolation-result-20260922.json",
+    "originalSha256": "272a95e6c2a847aea6f057272e7f8166a9c9b4be85b57187e8d5cbfb854d6337",
+    "publishedSha256": "272a95e6c2a847aea6f057272e7f8166a9c9b4be85b57187e8d5cbfb854d6337",
+    "status": "UNREVIEWED_PROPOSAL_OR_BOUNDARY_NOT_EXECUTION_AUTHORITY"
+  }
+]

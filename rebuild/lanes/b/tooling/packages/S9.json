@@ -13,7 +13,7 @@
       "lineSha256": "04b0f897d8869b73c1034f67f7ac805fbc032601fa1b810b78b4f20b26663913"
     }
   },
-  "sourceBase": "0cd07be7cf967dfbfea8c84947ba8477f58cfb5f",
+  "sourceBase": "e8712f48b32e33738cdf81dd8d6cd72d0a72523d",
   "dIds": [],
   "laws": {},
   "carriedAcceptedIds": [
@@ -1175,9 +1175,14 @@
       "post": "d872eaff3fb12a75227822218c569cf8deec820efeb59fe88aa84df0516422d0",
       "role": "new"
     },
+    "rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs": {
+      "pre": "237dcb89279dfdbbb5c4011172c9149f8b23b7b170448b41ffa03e509ee03b2c",
+      "post": "f3c470c60748e637c82130a121d18bee989b537e45a619e74ee1f63998a276a5",
+      "role": "new"
+    },
     "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs": {
       "pre": null,
-      "post": "af7b6f34a10d6a36c2982ae0713ff127a26a4e34736ac69346b6f3e66822a29c",
+      "post": "606ad877cdd4cc297b13384c9290967cf9112fb8f6ed1ba995efb38907c4cd78",
       "role": "new"
     },
     "rebuild/lanes/c/ui-port/pack-pin.test.mjs": {
@@ -1667,16 +1672,6 @@
       "needle": "# pass 28"
     },
     {
-      "name": "b-lom",
-      "argv": [
-        "--test",
-        "--test-reporter=tap",
-        "rebuild/lanes/d/b-lom/legacy-order.test.mjs",
-        "rebuild/m4/workout/test/legacy-order-mapping.test.cjs"
-      ],
-      "needle": null
-    },
-    {
       "name": "d-port-admission",
       "argv": [
         "--test",
@@ -1710,7 +1705,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"
       ],
-      "needle": "# pass 53"
+      "needle": "# pass 54"
     },
     {
       "name": "ui-pack-pins",
@@ -1783,8 +1778,9 @@
   ],
   "notes": [
     "M2-S9-UI-PINS is M2-S8-REAL-SHAPE's child under the standing reseal ruling DECISIONS:455, briefed at rebuild/lanes/b/S9-UI-PINS-BRIEF.md (the DECISIONS:732 fold, paper of record caa0abf), with its THEME at DECISIONS:788, its BRIEF-BY-SHA at :789, its GATE-SUPERSESSION token line at :787 and its RELEASE-FROM-SEAL token line at :786. It releases exactly rebuild/m3/w7-preview/today/preview.css and rebuild/m3/w7-preview/today/build.mjs from the seal, pins the whole approved 09-18 design pack, retains the actual 09-08 runtime references, carries no CUI1 product or reference promotion (DECISIONS:732) and changes no rebuild/engine byte.",
-    "Needles are the counts observed in the accepted bounded runs (DECISIONS:771-:775) and in hosted run 35815674720 at 7fe1c5d5 under :784; s9-sup-source-carriers' \"# pass 4\" is a prediction (its hosted red was SUP-4 reading the then-absent coverage citation) that the execution of record must confirm; b-lom's needle stays null (HELD_SPLIT_REQUIRED), so this spec refuses CHILD-NEEDLE-EMPTY b-lom and cannot seal until a reviewed and granted split supplies an observed needle.",
+    "Needles are the counts observed in the accepted bounded runs (DECISIONS:771-:775) and in hosted run 35815674720 at 7fe1c5d5 under :784; s9-sup-source-carriers' \"# pass 4\" is a prediction (its hosted red was SUP-4 reading the then-absent coverage citation) that the execution of record must confirm; b-lom is not a child of this package (D-BLOM, below).",
     "Python font transport is workflow-only, never child argv.",
-    "No deferred product or reference promotion is declared."
+    "No deferred product or reference promotion is declared.",
+    "D-BLOM, THE ONE PARENT CHILD THIS PACKAGE DOES NOT RE-DECLARE, NAMED SO THE OMISSION IS A DECISION. The parent's child b-lom (its two argv files rebuild/lanes/d/b-lom/legacy-order.test.mjs and rebuild/m4/workout/test/legacy-order-mapping.test.cjs, sealed at \"# pass 30\" in rebuild/m4/spec/acceptance-s8-real-shape.json) is not declared here: the owner chose BLOM-OPTIONS 2(b) at DECISIONS:798 and the PM read brief 3.3 as 24 children at DECISIONS:799, because its LOM-S6 walk (legacy-order.test.mjs:176-189) reads every code file under rebuild/m3 and rebuild/m4, the protected soak app included, which stays protected until 2026-10-05. Both cell files stay role carried at the parent's bytes, and CI keeps running the test at rebuild.yml:331. S8's \"# pass 30\" is the last sealed evidence and does NOT prove this tree: today-model.cjs (imported at legacy-order.test.mjs:38) moved after S8's proposed-artifact commit 0cd07be (the commit DECISIONS:528 accepted; this spec's sourceBase until P-S9-1 was amended at DECISIONS:804 to the S8 seal merge e8712f48, which holds the same rebuild/m3 and rebuild/m4/workout trees as 0cd07be), and eight m3/m4 code files the walk reads changed since (0cd07be..6dc2596, equally e8712f48..6dc2596, soak-named paths not measured), today-model.cjs among them: rebuild/m3/setup/port/passphrase.cjs (added), rebuild/m3/setup/port/unseal.cjs, rebuild/m3/w6/local/import-bundle.mjs, rebuild/m3/w7-preview/import/import-screen.mjs, rebuild/m3/w7-preview/today/design.cjs, rebuild/m3/w7-preview/today/today-app.cjs, rebuild/m3/w7-preview/today/today-model.cjs and rebuild/m4/workout/setup-tags.cjs (added). It is re-measured after 2026-10-05 by the hosted-blom NO-path packet once that packet is re-pointed (its runner and re-pin require exactly one b-lom child in the spec they read, and this spec has none) and reviewed."
   ]
 }

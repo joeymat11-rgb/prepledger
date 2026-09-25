@@ -19,6 +19,7 @@
  */
 
 const T = require("./tools.cjs");
+const EditValues = require("../m4/workout/edit-values.cjs");
 
 const TIER = T.TIER;
 const CODES = T.CODES;
@@ -43,6 +44,8 @@ const WAVE1_TIERS = Object.freeze({
 });
 
 const W1_CODES = Object.freeze({
+  TOOL_NOT_IN_LIST: "WAVE1_TOOL_NOT_IN_LIST",
+  TOOL_THREW: "WAVE1_TOOL_THREW",
   CONFIRMATION_REQUIRED: CODES.CONFIRMATION_REQUIRED,
   GYM_SESSION_ABSENT: CODES.GYM_SESSION_ABSENT,
   MACHINE_SETTINGS_ABSENT: "COACH_MACHINE_SETTINGS_ABSENT",
@@ -69,13 +72,13 @@ const ok = (tool, tier, turn_id, values, extra) =>
   Object.freeze({ tool, tier, turn_id, ok: true, values: values || {}, ...(extra || {}) });
 
 const unavailable = (tool, tier, turn_id, code, reason, source) =>
-  Object.freeze({ tool, tier, turn_id, ok: false,
+  T.assertNoLeak(Object.freeze({ tool, tier, turn_id, ok: false,
     unavailable: Object.freeze({ code, reason, source: source || null }),
     values: Object.freeze({
       code: T.tagged(turn_id, "coach.refusal.code", code, "code", ""),
       reason: T.text(turn_id, "coach.refusal." + code, reason),
     }),
-    state_unchanged: true });
+    ...(code === W1_CODES.TOOL_THREW ? {} : { state_unchanged: true }) }));
 
 /* world  : the openCoachWorld world (today, gym, machineSettings)
  * coach  : createCoachTools(world), so one turn can call the C5 fifteen and
@@ -182,7 +185,7 @@ function createWave1Tools({ world, coach, reasons = null, effortChoices = [],
     catch (error) {
       return unavailable("record_machine_settings", TIER.FACT, turn_id, W1_CODES.MACHINE_SETTINGS_INVALID,
         "I could not keep that, and I have kept nothing.",
-        (error && error.message) || "machine-settings-commands.cjs");
+        "machine-settings-commands.cjs: " + T.provenance(error));
     }
     if (!saved.ok) {
       return unavailable("record_machine_settings", TIER.FACT, turn_id,
@@ -225,15 +228,25 @@ function createWave1Tools({ world, coach, reasons = null, effortChoices = [],
     }
     /* The confirm NAMES THE WEIGHT AND THE REPS it is confirming (mutant D6), so
        a yes is a yes to these numbers and not to the conversation. */
-    const load = a.load, reps = a.reps;
-    if (load === undefined || load === null || load === "" || reps === undefined || reps === null || reps === "") {
+    const numericInput = (value) => typeof value === "string" && value.trim() !== "" ? Number(value) : value;
+    const load = numericInput(a.load), reps = numericInput(a.reps);
+    // Preserve numeric text from the transcript, but quote only the validated
+    // number. Objects are never coerced or allowed into the confirmation.
+    if (!EditValues.validValue("load", { value: load, unit: "lb" })
+        || !EditValues.validValue("reps", { value: reps, unit: "rep" })) {
       return unavailable("log_set", TIER.FACT, turn_id, W1_CODES.SET_NOT_RECORDED,
-        "Tell me the weight and the reps you actually did.", "gym-model.mjs ENTER_PERFORMED");
+        "Tell me the weight and the reps you actually did.", "wave1-tools.cjs log_set invalid-input refusal");
     }
     if (a.confirmed !== true) {
-      return unavailable("log_set", TIER.FACT, turn_id, W1_CODES.CONFIRMATION_REQUIRED,
-        "Say yes and I will log " + load + " lb for " + reps + " reps. Nothing is recorded yet.",
+      const sentence = "Say yes and I will log " + load + " lb for " + reps + " reps. Nothing is recorded yet.";
+      const refused = unavailable("log_set", TIER.FACT, turn_id, W1_CODES.CONFIRMATION_REQUIRED,
+        "Nothing is recorded yet. Say yes to confirm the weight and reps.",
         "BRIEF-COACH-WAVE1-TEXT.md section 2 step 4");
+      // memory-tools.cjs precedent: awaiting words are data, never a text tag.
+      return T.assertNoLeak(Object.freeze({ ...refused, confirmation: Object.freeze({
+        text: Object.freeze({ display: sentence, value: sentence, kind: "set-confirmation",
+          source: "coach.log_set.confirmation (caller numbers, not yet recorded)", licensed: false }),
+      }) }));
     }
     /* The effort word maps onto the ACCEPTED choice set, or nothing happens.
        Nothing is preselected and there is no default. */
@@ -289,18 +302,20 @@ function createWave1Tools({ world, coach, reasons = null, effortChoices = [],
 
   async function dispatch(name, args, turn_id) {
     if (typeof turn_id !== "string" || !turn_id) throw new TypeError("dispatch: a turn_id is required");
-    if (!Object.prototype.hasOwnProperty.call(TIERS, name) || typeof SERVED[name] !== "function") {
-      return Object.freeze({ ok: false, tool: name, tier: null, turn_id,
-        code: "WAVE1_TOOL_NOT_IN_LIST",
-        reason: String(name) + " is not one of the wave-one tools",
+    if (typeof name !== "string" || !Object.prototype.hasOwnProperty.call(TIERS, name) || typeof SERVED[name] !== "function") {
+      return T.assertNoLeak(Object.freeze({ ok: false, tool: typeof name === "string" ? name : "(not a tool name)", tier: null, turn_id,
+        code: W1_CODES.TOOL_NOT_IN_LIST,
+        reason: T.UNKNOWN_TOOL_COPY,
         allowed: ALLOWED.slice(), values: Object.freeze({}), state_unchanged: true,
-        unavailable: Object.freeze({ code: "WAVE1_TOOL_NOT_IN_LIST",
-          reason: String(name) + " is not one of the wave-one tools", source: "wave1-tools.cjs TIERS" }) });
+        unavailable: Object.freeze({ code: W1_CODES.TOOL_NOT_IN_LIST,
+          reason: T.UNKNOWN_TOOL_COPY,
+          source: "wave1-tools.cjs TIERS: " + T.provenance(name) }) }));
     }
     try { return await SERVED[name](args, turn_id); }
     catch (error) {
-      return unavailable(name, TIERS[name], turn_id, "WAVE1_TOOL_THREW",
-        (error && error.message) || "the tool refused", "wave1-tools.cjs dispatch");
+      return unavailable(name, TIERS[name], turn_id, W1_CODES.TOOL_THREW,
+        "Something went wrong inside that tool on this device. I could not complete the request.",
+        "wave1-tools.cjs dispatch: " + T.provenance(error));
     }
   }
 

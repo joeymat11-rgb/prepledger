@@ -1,0 +1,40 @@
+{
+  "schema": "earned/s9-measure-hermetic-copy-manifest/v1",
+  "head": "b3fb9ce92084e1dd4abe6608d2d914b79924a12d",
+  "spec": {
+    "path": "rebuild/lanes/b/tooling/packages/S9.json",
+    "sha256": "10bb848c37bb0f41ea0ad63eca6fced47bbec50da90de928387a933dc8c35ba5"
+  },
+  "files": [
+    {
+      "path": "rebuild/m3/w7-preview/measure/test/model.test.mjs",
+      "sha256": "ff2a531fd74afe98cc9acbcfd875dc175ae3686661eda5e34e8b5d61529b566e"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/measure/test/adherence.test.mjs",
+      "sha256": "219ad91f1e83ff97e1a61e2d1d609a28d4416e3a1e40768502789f3c4cda7446"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/measure/measure-model.mjs",
+      "sha256": "fbdac126c2b2f3ac476bbcdf66786459f429df4a8ebc5ebe34c74b93cf91ad87"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/measure/measure-view.mjs",
+      "sha256": "836bc79e07899d806d33ca680d1830ebc996adc81131b7193e1f05e1580b57ac"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/measure/measure-sources.mjs",
+      "sha256": "8e7f620c5286cdde7933ec4829539b74e36f0b6aba660d89e317d468351b84d4"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/measure/measure-fixture.json",
+      "sha256": "a141382091a8c6323cc4830fe093051a5506f80b38afd6cade3ec2320bbc11f5"
+    }
+  ],
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/m3/w7-preview/measure/test/model.test.mjs",
+    "rebuild/m3/w7-preview/measure/test/adherence.test.mjs"
+  ]
+}
