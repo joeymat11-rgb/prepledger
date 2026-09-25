@@ -151,8 +151,13 @@ const RUNTIME_COPY = Object.freeze([
   "This morning", "Weight trend", "Why this plan?", "Your set targets are ready",
   /* A2 — the gym card composes these beside bound values, exactly as A1's four are
      composed. Each occurs verbatim in Refinement A, the reviewed workout/rest
-     prototype, and each is checked against the view sources as well. */
-  "Exercise ", " of ", "What you did · Set ", "Last time: ", "Log set ", " logged",
+     prototype, and each is checked against the view sources as well.
+     C-UI-4 (S12): "Exercise N of M" is no longer on the card (the 2026-09-18 board draws
+     the session, the set dots and "Set N of M" instead), so its fragment is no longer
+     declared here: a declaration the screen no longer says would fail the binding.
+     The card composes "Set N of M" and the Log label "Log L × R" (the pack's own
+     "Set 1 of 4" and "Log 50 × 8"), so their fragments "Set " and "Log " are declared. */
+  " of ", "Set ", "Log ", "What you did · Set ", "Last time: ", "Log set ", " logged",
   " reps", "Aim to finish with ", " clean reps left", "Effort unknown",
   "Ready for set ", "Next · Set ", "Next · ", "Resume ", "Workout in progress", " complete",
   " recorded",

@@ -362,6 +362,9 @@ function installScene(view, doc) {
   };
   const currentScreen = () => {
     if (host.querySelector('[data-slot="workout-detail"]')) return "workout";
+    /* C-UI-4 (S12): the gym card's set and rest screens carry the pack's #log, which no
+       other screen draws, so a card opened from Today's Start is dressed as Workout. */
+    if (host.querySelector(":scope > .stack #log")) return "workout";
     const title = host.querySelector("h1");
     if (title && title.textContent.trim() === "Ask your coach.") return "coach";
     if (host.querySelector('[data-slot="instruction"]')) return "today";
@@ -374,6 +377,11 @@ function installScene(view, doc) {
   const draw = sceneRenderer({ frame, view, hooks: live, assets, counters });
   const update = () => {
     date();
+    /* C-UI-4 (S12): a chassis screen's scrolling body fades only while there is more to
+       see (ruling 4, app.css ".screen .ui > .body.can-scroll"), as app.js's scrollFades
+       does for every .body; scrollFades installs once per element. */
+    const body = host.querySelector(":scope > .body");
+    if (body) scrollFades(body, view);
     const screen = currentScreen();
     if (screen === live.screen) return;
     frame.classList.remove(`screen-${live.screen}`);
