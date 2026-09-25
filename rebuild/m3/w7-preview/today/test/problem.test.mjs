@@ -3593,3 +3593,96 @@ test('S6C.7b - the BUILT page carries the commit exactly once, and still pins it
     assert.equal(printed, 'Build ' + commitOf(), 'and it is this worktree\'s HEAD');
   }
 });
+
+/* ======================= S10 ROUND 11: THE SPLIT'S WRITER CELLS AND ITS BOOT ROW =======================
+   D3 (Astra L3 175f6323, carried verbatim by DECISIONS:633 and :662 into the S10 brief 7.1): two writer
+   cells the cut's own suites did not hold. M18: readSleepCheckInView forces a fresh check-in read before
+   EACH paint of the check-in view, also when the view is opened again for the SAME date (trace read,
+   paint, read, paint; the survivor gives read, paint, paint and repaints a stale record). M21: a
+   successful sleep save clears what was typed (hours "" after the save; the survivor keeps "7.5" and a
+   second tap writes it again). S-R33 (DECISIONS:633; L3 D4, L4 D4): the boot contract takes a PLAIN
+   options object. Its row pins the accepted acquisition counts at the integrated bytes (options.sleep
+   read twice, the residual today-lanes.cjs bootFoodDays discloses; every other boot option once) and
+   the boot output a plain object gives: the sleep lane the page mounts is the one options.sleep holds
+   after model.setFoodDays, as the uncut page mounted it. An accessor-valued option is outside S-R33. */
+
+test('S10 D3 / M18 - the check-in view reads the log again before EACH paint, also for the same date', async () => {
+  const fault = faultDatabase();
+  const lane = { indexedDB: fault.indexedDB, crypto: webcrypto };
+  const model = createTodayModel({ today: DAY, basisState: createCleanInitState({ setup: sleepFirstRunDocument() }) });
+  const entry = await createCheckInEntry(model, lane);
+  const trace = [];
+  /* The host and the entry are frozen, so the trace rides on objects that inherit from them. */
+  const host = Object.create(entry.host, { forDate: { value: async (day) => {
+    trace.push('read'); return entry.host.forDate(day);
+  } } });
+  const checkin = Object.create(entry, { host: { value: host } });
+  const page = screenOn({ model, mount: { checkin } });
+  const record = () => page.pick('sleep-checkin-record').textContent;
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  trace.length = 0;      // what the mount itself read is not this cell's question
+  await page.api.render('sleep-checkin');
+  await page.api.sleepCheckInReady();
+  trace.push('paint');
+  const first = record();
+  /* Between the two visits the check-in for the morning after that night is recorded. */
+  entry.checkin.draft().answerSleepHere();
+  entry.checkin.draft().set('sleep_hours', '7');
+  entry.checkin.draft().choose('sleep_quality', 'Good');
+  assert.equal((await entry.checkin.save()).ok, true);
+  await page.api.render('sleep-checkin');
+  await page.api.sleepCheckInReady();
+  trace.push('paint');
+  assert.deepEqual(trace, ['read', 'paint', 'read', 'paint'],
+    'the same-date check-in view was painted without a fresh read (M18)');
+  assert.notEqual(record(), first, 'the second paint repainted the stale record');
+  assert.match(record(), new RegExp(DAY), 'the check-in recorded for ' + DAY + ' is what the view shows');
+  if (entry.host) entry.host.close();
+});
+
+test('S10 D3 / M21 - a successful hours save clears what was typed; 7.5 is not kept for a second tap', async () => {
+  const kit = await device();
+  const model = createTodayModel({ today: DAY });
+  const page = screenOn({ model, mount: { sleep: await laneOver(kit.host) } });
+  page.api.render('sleep');
+  page.click('[data-action="sleep-mode-hours"]');
+  page.type('sleep-hours', '7.5');
+  await page.tapSave();
+  assert.equal(page.pick('sleep-error').textContent, '', 'the save had to record');
+  assert.deepEqual((await kit.host.all()).map((row) => row.night), [{ date: NIGHT, hours: 7.5 }]);
+  const box = page.pick('sleep-hours');
+  assert(box, 'the hours field is still on the screen after the save');
+  assert.equal(box.value, '', 'the typed hours survived a successful save (M21)');
+  await page.tapSave();
+  assert.equal((await opsOf(kit.host.repository)).length, 1, 'a second tap wrote the kept hours again');
+  kit.host.close();
+});
+
+test('S10 S-R33 - a PLAIN options object: the accepted acquisition counts and the boot output', async () => {
+  const stub = () => ({ host: null, rows: () => [], refresh: async () => [], save: async () => ({ ok: false }), close() {} });
+  const laneA = stub(), laneB = stub(), food = stub();
+  const plain = { food, sleep: laneA };
+  const reads = {};
+  const options = new Proxy(plain, { get(target, key) {
+    if (typeof key === 'string') reads[key] = (reads[key] || 0) + 1;
+    return target[key];
+  } });
+  const base = createTodayModel({ today: DAY });
+  let foodDays = 0;
+  /* The reviewer's composed-page input (L2 F2): setFoodDays is where a page may hand the sleep lane over. */
+  const model = new Proxy(base, { get(target, key) {
+    if (key === 'setFoodDays') return (lane) => { foodDays += 1; plain.sleep = laneB; return target.setFoodDays(lane); };
+    const value = target[key];
+    return typeof value === 'function' ? value.bind(target) : value;
+  } });
+  const dom = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' });
+  const api = mountToday(dom.window.document, model, options);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(foodDays, 1, 'the page composes its food days once, at boot');
+  assert.equal(api.sleepLane(), laneB,
+    'the lane mounted is not the one options.sleep holds after setFoodDays, as the uncut page mounted it');
+  const boot = Object.fromEntries(['workout', 'checkin', 'setup', 'installation', 'setupFirst', 'food', 'sleep']
+    .map((key) => [key, reads[key] || 0]));
+  assert.deepEqual(boot, { workout: 1, checkin: 1, setup: 1, installation: 1, setupFirst: 1, food: 1, sleep: 2 },
+    'the boot acquisition counts moved from the accepted ones (S-R33: sleep twice, the rest once)');
+});

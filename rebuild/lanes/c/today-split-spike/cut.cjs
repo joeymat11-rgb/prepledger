@@ -256,6 +256,18 @@ function checkDeclaredText() {
         "reviewed against (R2 F4: dropping Object.freeze( from the read-only facade here " +
         "changed no source byte and exited 0).");
     }
+    /* S10 D7 (Astra L3 175f6323): headLines and closeLines were recorded by gen-witness.cjs
+       and read by nothing, so incrementing either exited 0 with identical product bytes. They
+       are now VALIDATED, by the same expression gen-witness.cjs records them with: a count that
+       is not the block's own is refused by name, like the digest above. */
+    for (const [field, part] of [["headLines", "head"], ["closeLines", "close"]]) {
+      const have = (P[part] || []).length;
+      if (w[field] !== have) {
+        fail("product block " + dest + ": DECLARED " + field + " " + w[field] + " IS NOT THE " +
+          "BLOCK'S OWN " + part + " COUNT " + have + ". The witness's line counts are checked, not " +
+          "informational (S10 D7).");
+      }
+    }
   }
   if (nprod !== D.counts.products) {
     fail("the table declares " + nprod + " product blocks; the declared-text witness records " +
@@ -727,6 +739,21 @@ for (const [file, regions] of Object.entries(table.files)) {
   }
   for (const [x, s] of enclosing) {
     report.nested.push({ file, seam: s.r.id, replace: x.r.id, lines: [x.start, x.end] });
+  }
+  /* S10 D6 (Astra L3 175f6323, "competing replaces nested in a seam"). The exemption above
+     lets a replace sit inside a seam; it never let two replaces claim the same lines. The
+     nested rows left the `flat` comparison below, so two witnessed replace rows on one line
+     inside one seam were never compared and the cut exited 0 with whichever text won. Every
+     nested replace is now compared with every other nested replace, order-independently. */
+  const nestedRows = [...enclosing.keys()];
+  for (let i = 0; i < nestedRows.length; i += 1) {
+    for (let j = i + 1; j < nestedRows.length; j += 1) {
+      const a = nestedRows[i], b = nestedRows[j];
+      if (a.start > b.end || b.start > a.end) continue;
+      const [p, q] = a.r.id < b.r.id ? [a, b] : [b, a];
+      fail(file + ": regions " + p.r.id + " [" + p.start + "," + p.end + "] and " +
+        q.r.id + " [" + q.start + "," + q.end + "] OVERLAP (competing replaces nested in a seam)");
+    }
   }
   const flat = sorted.filter((x) => !enclosing.has(x));
   for (let i = 1; i < flat.length; i += 1) {
