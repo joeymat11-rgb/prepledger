@@ -1,0 +1,25 @@
+diff --git a/rebuild/lanes/astra/s9-exporter-v3/export-s9-profile-v3.cjs.txt b/rebuild/lanes/astra/s10-exporter-v1/export-s10-profile-v1.cjs.txt
+index 3a8960c..24efeee 100644
+--- a/rebuild/lanes/astra/s9-exporter-v3/export-s9-profile-v3.cjs.txt
++++ b/rebuild/lanes/astra/s10-exporter-v1/export-s10-profile-v1.cjs.txt
+@@ -12 +12 @@ const runnerRel = 'rebuild/lanes/b/tooling/b-package.cjs';
+const specRel = 'rebuild/lanes/b/tooling/packages/[-S9-]{+S10+}.json';
+@@ -30 +30 @@ const guarded = file => { const l = file.toLowerCase(); return l.startsWith('reb
+// and git >= 2.44 (floor of the reviewed toolchain family; installed is 2.[-55-]{+53.0.windows.3+}).
+@@ -33 +33 @@ let savedArgv, savedLog, savedError, savedCompileEnv = [], changedCompileEnv = f
+const scratchRoot = 'C:/Users/joeym/AppData/Local/Temp/earned-[-s9-]{+s10+}-profile-export-results';
+@@ -45 +45 @@ try {
+  assert(/^[-s9-]{+s10+}-[a-z0-9-]{1,80}$/.test(outputName));
+@@ -104 +104 @@ try {
+  process.argv = [process.execPath, runnerFile, '--ci', '--package', '[-S9-]{+S10+}'];
+@@ -115 +115 @@ try {
+  assert.equal(artifact.lanePackage, '[-S9-]{+S10+}');
+@@ -170 +170 @@ try {
+  const line = '[-S9-]{+S10+} PROFILE EXPORTED PENDING ' + sha(artifactBytes) + ' ' + sha(reviewBytes)
+@@ -172 +172 @@ try {
+  assert(/^[-S9-]{+S10+} PROFILE EXPORTED PENDING [a-f0-9]{64} [a-f0-9]{64} chain=[a-f0-9]{40} node=v24\.\d+\.\d+ git=\d+\.\d+\.\d+(?:\.[0-9A-Za-z]+)*$/.test(line));
+@@ -182,2 +182,2 @@ try {
+  fs.writeFileSync(path.join(destination, 'acceptance-[-s9-]{+s10+}-[-ui-]{+today+}-[-pins-]{+split+}.json'), artifactBytes, { flag: 'wx' });
+  fs.writeFileSync(path.join(destination, 'review-[-s9-]{+s10+}-[-ui-]{+today+}-[-pins-]{+split+}.json'), reviewBytes, { flag: 'wx' });
+@@ -186 +186 @@ try {
+  output('[-S9-]{+S10+} PROFILE EXPORT REFUSED'); process.exitCode = 1;

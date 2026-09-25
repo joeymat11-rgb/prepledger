@@ -1,0 +1,195 @@
+'use strict';
+// Prospective export only. Independent containment review and explicit runtime authority
+// are required before invocation; a static protected-source allowance does not cover this.
+// v2 successor of export-s9-profile.cjs (7541ad0e...): closes review debts D1, D3, D5 and
+// asserts the PM D2 ruling (protected five are hashed only; no byte of them reaches output).
+// v3 successor of v2 (70f2a92b...): closes l2 E1 (config/untracked/index-flag channels).
+const fs = require('node:fs'), path = require('node:path');
+const cp = require('node:child_process'), crypto = require('node:crypto');
+const Module = require('node:module'), assert = require('node:assert/strict');
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const runnerRel = 'rebuild/lanes/b/tooling/b-package.cjs';
+const specRel = 'rebuild/lanes/b/tooling/packages/S10.json';
+const marker = '// ------------------------------------------------------------------ 8. main sequence';
+const output = message => process.stdout.write(message + '\n');
+// D3: the eight modules the compiled runner prefix imports (review l1 section 1).
+const importedRel = ['rebuild/conform/v4/postfix/run.cjs', 'rebuild/conform/v4/postfix/legacy-gates.cjs',
+  'rebuild/conform/v4/postfix/strict-json.cjs', 'rebuild/conform/v4/postfix/target.cjs',
+  'rebuild/conform/v4/postfix/trace-v2.cjs', 'rebuild/m4/spec/native-carriers-errors.cjs',
+  'rebuild/m4/spec/load-write-reference.cjs', 'rebuild/m4/spec/load-write-source.cjs'];
+// D2: the protected five; hashed as carried pins only, never executed, never emitted.
+const protectedRel = ['rebuild/engine/seed.cjs', 'rebuild/engine/migrate.cjs', 'rebuild/engine/merge.cjs',
+  'rebuild/engine/index.cjs', 'rebuild/engine/oracle-shim.cjs'];
+const isGitVar = key => /^GIT_/i.test(key);
+// E1: during the compile, every GIT_* and XDG_CONFIG_HOME is replaced; git reads no system/global config.
+const isCompileVar = key => isGitVar(key) || /^XDG_CONFIG_HOME$/i.test(key);
+const nullDevice = process.platform === 'win32' ? 'NUL' : '/dev/null';
+const compileGitKeys = ['GIT_CONFIG_GLOBAL', 'GIT_CONFIG_NOSYSTEM', 'GIT_NO_REPLACE_OBJECTS'];
+const guarded = file => { const l = file.toLowerCase(); return l.startsWith('rebuild/') || l.startsWith('.github/'); };
+// D5: node major 24 (the reviewed runtime; Module#_compile/_nodeModulePaths are internal APIs)
+// and git >= 2.44 (floor of the reviewed toolchain family; installed is 2.53.0.windows.3).
+function toolchainOk(nodeVersion, gitLine) { const n = /^v(\d+)\.(\d+)\.(\d+)$/.exec(nodeVersion), g = /^git version (\d+)\.(\d+)\.(\d+)((?:\.[0-9A-Za-z]+)*)$/.exec(gitLine); return !!(n && g && Number(n[1]) === 24 && (Number(g[1]) > 2 || (Number(g[1]) === 2 && Number(g[2]) >= 44))); }
+let savedArgv, savedLog, savedError, savedCompileEnv = [], changedCompileEnv = false;
+const scratchRoot = 'C:/Users/joeym/AppData/Local/Temp/earned-s10-profile-export-results';
+try {
+  const args = process.argv.slice(2);
+  assert(args.length === 6 && args[0] === '--execute-reviewed-export');
+  const [, rootArg, expectedHead, expectedRunnerSha, outputName, expectedChain] = args;
+  assert(/^[a-f0-9]{40}$/.test(expectedHead) && /^[a-f0-9]{64}$/.test(expectedRunnerSha));
+  assert(/^[a-f0-9]{40}$/.test(expectedChain));
+  const root = fs.realpathSync(rootArg), scratch = fs.realpathSync(scratchRoot);
+  assert.equal(scratch.toLowerCase(), path.resolve(scratchRoot).toLowerCase());
+  assert(fs.lstatSync(scratchRoot).isDirectory() && !fs.lstatSync(scratchRoot).isSymbolicLink());
+  const relative = path.relative(root, scratch);
+  assert(relative.startsWith('..' + path.sep) || path.isAbsolute(relative));
+  assert(/^s10-[a-z0-9-]{1,80}$/.test(outputName));
+  const destination = path.join(scratch, outputName);
+  assert(!fs.existsSync(destination));
+  // D3: git never sees a caller GIT_* variable; only GIT_NO_REPLACE_OBJECTS=1 is passed.
+  // E1: no system or global config, and HOME / XDG_CONFIG_HOME point at a path that does not
+  // exist (inside the not-yet-created destination), so no user config or excludes file is read.
+  const absentHome = path.join(destination, 'absent-home');
+  const gitEnv = Object.fromEntries(Object.entries(process.env).filter(([k]) => !isGitVar(k) && !/^(HOME|XDG_CONFIG_HOME)$/i.test(k)));
+  Object.assign(gitEnv, { GIT_NO_REPLACE_OBJECTS: '1', GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: nullDevice, HOME: absentHome, XDG_CONFIG_HOME: absentHome });
+  const git = argv => cp.execFileSync('git', ['--no-replace-objects', '-C', root, ...argv],
+    { stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 32 * 1024 * 1024, env: gitEnv });
+  // E1: tracked changes and untracked files anywhere refuse (flags override any status config);
+  // ignored entries refuse under rebuild/ or .github/; every index entry must be plain 'H'
+  // (no skip-worktree 'S', assume-unchanged 'h', unmerged or other flag).
+  const cleanTree = () => {
+    for (const e of git(['status', '--porcelain', '-z', '--untracked-files=all', '--ignored=matching']).toString('utf8').split('\0').filter(Boolean)) {
+      assert(e.startsWith('!! ')); assert(!guarded(e.slice(3)));
+    }
+    for (const e of git(['ls-files', '-v', '-z']).toString('utf8').split('\0').filter(Boolean)) assert(e.startsWith('H '));
+  };
+  const top = git(['rev-parse', '--show-toplevel']).toString('utf8').trim();
+  assert.equal(fs.realpathSync(top).toLowerCase(), root.toLowerCase());
+  const gitLine = git(['--version']).toString('utf8').trim();
+  assert(toolchainOk(process.version, gitLine));
+  const nodeVersion = process.version, gitVersion = gitLine.slice('git version '.length);
+  assert.equal(git(['rev-parse', 'HEAD']).toString('utf8').trim(), expectedHead);
+  cleanTree();
+  const chainRef = 'refs/remotes/origin/rebuild/t2-client-core';
+  const chainHead = git(['rev-parse', chainRef]).toString('utf8').trim();
+  assert(/^[a-f0-9]{40}$/.test(chainHead));
+  assert.equal(chainHead, expectedChain); // D1 start
+  const runnerFile = path.join(root, runnerRel), source = fs.readFileSync(runnerFile);
+  assert.equal(sha(source), expectedRunnerSha);
+  assert.equal(sha(git(['show', expectedHead + ':' + runnerRel])), expectedRunnerSha);
+  const spec = fs.readFileSync(path.join(root, specRel));
+  assert.equal(sha(spec), sha(git(['show', expectedHead + ':' + specRel])));
+  // D3: declared import pins = blobs at the runner commit; disk must match BEFORE any import runs.
+  const importPins = new Map();
+  for (const file of importedRel) {
+    const declared = sha(git(['show', expectedHead + ':' + file]));
+    assert.equal(sha(fs.readFileSync(path.join(root, file))), declared);
+    importPins.set(file, declared);
+  }
+  const text = source.toString('utf8'), split = text.split(marker);
+  assert.equal(split.length, 2);
+  // Compile the exact unchanged function definitions; the campaign/main sequence is absent.
+  // Imported top-level modules and spec()/parent() still have effects requiring review.
+  const append = '\nconst exportSpec = spec(); const exportBound = parent(exportSpec);\n'
+    + 'module.exports = proposed(exportSpec, exportBound);\n';
+  const compiled = new Module(runnerFile, module);
+  compiled.filename = runnerFile;
+  compiled.paths = Module._nodeModulePaths(path.dirname(runnerFile));
+  savedArgv = process.argv; savedLog = console.log; savedError = console.error;
+  // E1: HOME is left as is for the compile (it also drives os.homedir for non-git code); with
+  // GIT_CONFIG_GLOBAL set git reads no HOME config, and the runner's git verbs do not read excludes.
+  savedCompileEnv = Object.entries(process.env).filter(([k]) => isCompileVar(k)); changedCompileEnv = true;
+  for (const [k] of savedCompileEnv) delete process.env[k];
+  Object.assign(process.env, { GIT_NO_REPLACE_OBJECTS: '1', GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: nullDevice });
+  assert.deepEqual(Object.keys(process.env).filter(isCompileVar).sort(), compileGitKeys);
+  process.argv = [process.execPath, runnerFile, '--ci', '--package', 'S10'];
+  console.log = () => {}; console.error = () => {};
+  compiled._compile(split[0] + append, runnerFile);
+  const artifact = compiled.exports;
+  assert.deepEqual(Object.keys(process.env).filter(isCompileVar).sort(), compileGitKeys);
+  // D3: every module loaded from inside root is one of the eight pinned imports.
+  for (const key of Object.keys(require.cache)) {
+    const r = path.relative(root, key);
+    if (r === '..' || r.startsWith('..' + path.sep) || path.isAbsolute(r)) continue;
+    assert(importPins.has(r.split(path.sep).join('/')));
+  }
+  assert.equal(artifact.lanePackage, 'S10');
+  assert.equal(artifact.runner.sha256, expectedRunnerSha);
+  assert.equal(artifact.spec.sha256, sha(spec));
+  const artifactBytes = Buffer.from(JSON.stringify(artifact, null, 2) + '\n');
+  const reviewBytes = Buffer.from(JSON.stringify({ version: 1, status: 'PENDING', receipt: null }, null, 2) + '\n');
+  assert.equal(sha(fs.readFileSync(runnerFile)), expectedRunnerSha);
+  assert.equal(sha(fs.readFileSync(path.join(root, specRel))), sha(spec));
+  assert.equal(git(['rev-parse', 'HEAD']).toString('utf8').trim(), expectedHead);
+  assert.equal(git(['rev-parse', chainRef]).toString('utf8').trim(), chainHead);
+  assert.equal(chainHead, expectedChain); // D1 mid
+  const allPins = new Map(Object.entries(artifact.executionPins));
+  for (const [file, pin] of Object.entries(artifact.product)) {
+    assert(pin && typeof pin.post === 'string' && /^[a-f0-9]{64}$/.test(pin.post));
+    if (allPins.has(file)) assert.equal(allPins.get(file), pin.post);
+    allPins.set(file, pin.post);
+  }
+  if (allPins.has(artifact.parent.artifact)) assert.equal(allPins.get(artifact.parent.artifact), artifact.parent.sha256);
+  allPins.set(artifact.parent.artifact, artifact.parent.sha256);
+  if (allPins.has(artifact.parent.review)) assert.equal(allPins.get(artifact.parent.review), artifact.parent.reviewSha256);
+  allPins.set(artifact.parent.review, artifact.parent.reviewSha256);
+  for (const [file, hash] of importPins) {
+    if (allPins.has(file)) assert.equal(allPins.get(file), hash);
+    allPins.set(file, hash);
+  }
+  const protectedText = [];
+  for (const [file, hash] of allPins) {
+    assert(typeof hash === 'string' && /^[a-f0-9]{64}$/.test(hash));
+    assert(typeof file === 'string' && (file.startsWith('rebuild/') || file.startsWith('.github/')));
+    assert(!file.toLowerCase().startsWith('rebuild/conform/private/'));
+    assert(!file.includes(String.fromCharCode(92)) && !file.split('/').some(p => p === '.' || p === '..' || p === ''));
+    assert.equal(sha(git(['show', expectedHead + ':' + file])), hash);
+    const onDisk = fs.readFileSync(path.join(root, file));
+    assert.equal(sha(onDisk), hash);
+    if (protectedRel.includes(file)) protectedText.push(onDisk.toString('utf8'));
+  }
+  for (const file of protectedRel) {
+    if (!allPins.has(file) && fs.existsSync(path.join(root, file))) protectedText.push(fs.readFileSync(path.join(root, file), 'utf8'));
+  }
+  // D2 (PM ruling, DECISIONS:766 scope): under a protected-five key the artifact carries only
+  // sha256 / short role-token / null / boolean leaves, and no protected byte range of >= 40
+  // (a trimmed line) or any non-path artifact string of >= 24 chars is shared with their text.
+  // E2 (PM ruling): these leak checks are a SECONDARY control; PM review of spec strings is primary.
+  const strings = [];
+  const walk = (value, guard) => {
+    if (typeof value === 'string') { strings.push(value); if (guard) assert(/^[a-f0-9]{64}$/.test(value) || /^[a-z][a-zA-Z-]{0,31}$/.test(value)); return; }
+    if (value === null || typeof value !== 'object') { if (guard) assert(value === null || typeof value === 'boolean'); return; }
+    for (const [k, v] of Object.entries(value)) { strings.push(k); walk(v, guard || protectedRel.includes(k)); }
+  };
+  walk(artifact, false);
+  const joined = strings.join('\u0000') + '\u0000' + artifactBytes.toString('utf8') + '\u0000' + reviewBytes.toString('utf8');
+  for (const t of protectedText) {
+    for (const piece of t.split(/\r?\n/)) { const s = piece.trim(); if (s.length >= 40) assert(!joined.includes(s)); }
+    for (const s of strings) if (s.length >= 24 && !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(s) && !/^[\w.@\/-]+$/.test(s)) assert(!t.includes(s));
+  }
+  protectedText.length = 0;
+  const line = 'S10 PROFILE EXPORTED PENDING ' + sha(artifactBytes) + ' ' + sha(reviewBytes)
+    + ' chain=' + chainHead + ' node=' + nodeVersion + ' git=' + gitVersion;
+  assert(/^S10 PROFILE EXPORTED PENDING [a-f0-9]{64} [a-f0-9]{64} chain=[a-f0-9]{40} node=v24\.\d+\.\d+ git=\d+\.\d+\.\d+(?:\.[0-9A-Za-z]+)*$/.test(line));
+  cleanTree();
+  assert.equal(git(['rev-parse', 'HEAD']).toString('utf8').trim(), expectedHead);
+  assert.equal(git(['rev-parse', chainRef]).toString('utf8').trim(), chainHead);
+  assert.equal(chainHead, expectedChain); // D1 end
+  assert(!fs.existsSync(destination));
+  assert.equal(fs.realpathSync(scratchRoot).toLowerCase(), scratch.toLowerCase());
+  fs.mkdirSync(destination);
+  assert.equal(fs.realpathSync(destination).toLowerCase(), destination.toLowerCase());
+  assert(fs.lstatSync(destination).isDirectory() && !fs.lstatSync(destination).isSymbolicLink());
+  fs.writeFileSync(path.join(destination, 'acceptance-s10-today-split.json'), artifactBytes, { flag: 'wx' });
+  fs.writeFileSync(path.join(destination, 'review-s10-today-split.json'), reviewBytes, { flag: 'wx' });
+  output(line);
+} catch (_) {
+  output('S10 PROFILE EXPORT REFUSED'); process.exitCode = 1;
+} finally {
+  if (changedCompileEnv) {
+    for (const k of Object.keys(process.env)) if (isCompileVar(k)) delete process.env[k];
+    for (const [k, v] of savedCompileEnv) process.env[k] = v;
+  }
+  if (savedArgv) process.argv = savedArgv;
+  if (savedLog) console.log = savedLog;
+  if (savedError) console.error = savedError;
+}
