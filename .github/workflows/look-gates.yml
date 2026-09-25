@@ -28,6 +28,7 @@ on:
   push:
     branches:
       - rebuild/c-look-s12
+      - rebuild/c-look-cui*
 
 permissions:
   contents: read
