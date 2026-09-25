@@ -17,7 +17,9 @@
            its listening weight when none is, and nothing on the screen animates;
      C6-8  leaving the screen takes back every attribute it put on the frame;
      C6-9  the coach binding refuses a word the design does not have;
-     C6-10 today-app routes Coach to this view and no longer carries the stub. */
+     C6-10 today-app routes Coach to this view and no longer carries the stub;
+     C6-12 the live route says the board's words: C-03 at rest, C-61 on every ask, and
+           each board line the pack keeps off its screen is a recorded departure. */
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -371,4 +373,82 @@ test("C6-11 scene first, then Today, then Coach: the coach's attributes land on 
   } finally {
     globalThis.Image = PreviousImage;
   }
+});
+
+/* C6-12 (look round 3; DECISIONS:820 (2) and (3)) THE LIVE ROUTE SAYS THE BOARD'S WORDS.
+   At rest the live screen (no review state in the URL) shows exactly the pack's reference
+   state C-03, word for word, with the example pill. Where the boards draw more than the
+   pack does (the Idle pill, the wordmark and the two sub lines), each is the pack's own
+   element kept off its screen, stays off the live screen, and is a departure the pack's
+   comparison page records; the template's note says so and cites it. Every ask (a
+   prompt, the mic, Send) answers with C-61's words and nothing else, and no stub (C-02)
+   or not wired text reaches the live route in any mode. */
+test("C6-12 the live route says the board's words: C-03 at rest, C-61 on every ask, board-only lines are recorded departures", () => {
+  const record = (id) => JSON.parse(read("quality/baseline/states/" + id + "-ink.json")).text;
+  const timers = manualTimers();
+  const { doc, phone } = page("http://127.0.0.1:4178/?screen=coach");
+  const view = openCoach({ doc, phone, timers });   /* the live route: the URL names no state */
+  const frame = view.frame();
+  assert.equal(doc.documentElement.getAttribute("data-state"), null, "no review state is applied on the live route");
+  const rest = visibleText(phone, frame);
+  assert.equal(rest, record("C-03"), "at rest the live screen is the pack's reference state C-03");
+  assert.equal(phone.querySelector('.header .pill[title="Example numbers, not your data"]').textContent, "example");
+
+  /* the board-only lines: the pack's own elements, kept off the pack's screen and the live one, each recorded */
+  const pack = new JSDOM(read("app/app.html")).window.document;
+  const compare = read("app/compare.html");
+  const css = design.readApproved().map((a) => a.styles).join("\n");
+  const twoLines = /Coach header, two lines \(your ruling, 2026-09-17\)[^<]*The scope line and the "what you can ask" line are gone/;
+  const boardOnly = [
+    ["#coach-state-text", pack.querySelector("#coach-state").hasAttribute("hidden"),
+      /the Coach state pill appears only while listening or answering, never "Idle"/],
+    [".wordmark", /\.screen-coach \.wordmark \{ display: none; \}/.test(css),
+      /the wordmark stays on Today and inner screens carry the back arrow and their own title/],
+    [".coach-sub", pack.querySelector("#screen-coach .coach-sub").hasAttribute("hidden"), twoLines],
+    [".coach-sub2", pack.querySelector("#screen-coach .coach-sub2").hasAttribute("hidden"), twoLines],
+  ];
+  for (const [selector, packHides, ruling] of boardOnly) {
+    const words = norm(pack.querySelector("#screen-coach " + selector).textContent);
+    assert(words, selector + " carries words in the pack");
+    assert(packHides, "the pack keeps " + selector + " off its coach screen at rest");
+    assert(!(" " + rest + " ").includes(" " + words + " "), selector + " is not on the live screen: " + words);
+    assert.match(compare, ruling, selector + " is a departure the pack's comparison page records");
+  }
+  const template = design.templateHtml();
+  const at = template.indexOf('<template id="t-coach">');
+  const note = norm(template.slice(template.lastIndexOf("<!--", at), at));
+  assert(!/the boards dropped/.test(note), "the template note does not say the boards dropped the sub lines (they draw them)");
+  assert.match(note, /app\/compare\.html records the owner ruling of 2026-09-17/, "the template note cites the recorded ruling");
+
+  /* the stub's own words, taken from the drawn C-02 on a review page, never typed here */
+  const drawn = page("http://127.0.0.1:4178/?screen=coach&state=C-02");
+  openCoach({ doc: drawn.doc, phone: drawn.phone });
+  const stubWords = [...drawn.phone.querySelectorAll(".panel .note-block, .panel .panel-lead")].map((node) => norm(node.textContent));
+  assert.equal(stubWords.length, 2, "the drawn stub carries its lead and its note");
+  const clean = (when) => {
+    const text = visibleText(phone, frame);
+    assert(!/not wired/i.test(text), when + ": no not wired text on the live route");
+    for (const words of stubWords) assert(!text.includes(words), when + ": the stub C-02 does not show");
+    assert.equal(phone.querySelector(".panel"), null, when + ": no panel on the live route");
+    return text;
+  };
+  clean("at rest");
+
+  /* every ask: C-61's words, and nothing else on the card */
+  const card = phone.querySelector("#coach-answer");
+  const asks = [["a prompt", () => phone.querySelector("#prompts .prompt").click()],
+    ["the mic", () => phone.querySelector("#mic").click()],
+    ["Send", () => { phone.querySelector("#coach-text-mode").click(); phone.querySelector("#coach-text button").click(); }]];
+  for (const [how, ask] of asks) {
+    ask();
+    assert.equal(visibleText({ children: [card] }, frame), COACH_COPY.noLiveCoach + " " + COACH_COPY.nothingChanged, how + " is answered with C-61's words only");
+    clean(how);
+    timers.run();
+    clean(how + ", settled");
+  }
+  phone.querySelector(".coach-back-links .link").click();
+  clean("back to voice");
+  phone.querySelector("#coach-tap").click();
+  clean("tap mode");
+  view.close();
 });
