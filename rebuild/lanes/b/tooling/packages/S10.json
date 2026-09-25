@@ -1,12 +1,17 @@
 {
   "version": 1,
   "lanePackage": "S10",
-  "packageId": null,
-  "status": "PROPOSED",
+  "packageId": "M2-S10-TODAY-SPLIT",
+  "status": "BRIEF-ACCEPTED",
   "brief": {
-    "file": null,
-    "sha256": null,
-    "acceptedLedgerLine": null
+    "file": "rebuild/lanes/b/S10-TODAY-SPLIT-BRIEF.md",
+    "sha256": "e5aabac9809f70dc5dcc105892a4f4ff468193d713c6e6d99a044bf40e5b74c8",
+    "acceptedLedgerLine": {
+      "ledgerLine": 831,
+      "role": "cowork",
+      "line": "- 2026-09-25 · cowork · BRIEF ACCEPTED BY SHA for M2-S10-TODAY-SPLIT: rebuild/lanes/b/S10-TODAY-SPLIT-BRIEF.md, sha256 e5aabac9809f70dc5dcc105892a4f4ff468193d713c6e6d99a044bf40e5b74c8 (81810 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "1fa5309c2d70eaa39873439e85e689c43083a720eb857d8102667dd640e3bea0"
+    }
   },
   "sourceBase": "d7f654017962d35661adea8cf3688251ad686b9e",
   "dIds": [],
@@ -1556,10 +1561,10 @@
     "moves": {},
     "successors": null,
     "superseded": {
-      "rulingLineSha256": null,
+      "rulingLineSha256": "d8884ec6f13e0df0ff078bc2c0d2d90ffc1c06d1820c15fdcf5e3ddcaa550c92",
       "gates": {
         "source-carriers": {
-          "why": "DECISIONS:153 (the standing role) and S10's own GATE-SUPERSESSION token clause (PROPOSED, not yet on the chain; rulingLineSha256 null until the PM appends it): the carrier RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers pinned by CHANGES_SHA. UNLIKE S9, S10 MOVES engine bytes: today.cjs and writers.cjs, each the parent post plus exactly one owner-worded clause (DECISIONS:631 O-1a; D-EPP-3). Both files had already left the reconstruction at the parent (M2-S3-COMPANION, M2-H3-CLEAN-INIT), so S10 moves them further from it and cannot mend it - executed and measured in s10-sup-source-carriers",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the carrier RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers pinned by CHANGES_SHA. UNLIKE S9, S10 MOVES engine bytes: today.cjs and writers.cjs, each the parent post plus exactly one owner-worded clause (DECISIONS:631 O-1a; D-EPP-3). Both files had already left the reconstruction at the parent (M2-S3-COMPANION, M2-H3-CLEAN-INIT), so S10 moves them further from it and cannot mend it - executed and measured in s10-sup-source-carriers",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -1572,7 +1577,7 @@
           }
         },
         "inherited-carriers": {
-          "why": "DECISIONS:153 and S10's own token clause (PROPOSED): priorModule re-reads every prior engine module against the same sha-pinned list, so today.cjs and writers.cjs are refused there; at S10 each is the parent post plus one declared EPP clause, every other module stands at the parent post - executed and measured in s10-sup-inherited-carriers",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: priorModule re-reads every prior engine module against the same sha-pinned list, so today.cjs and writers.cjs are refused there; at S10 each is the parent post plus one declared EPP clause, every other module stands at the parent post - executed and measured in s10-sup-inherited-carriers",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -1585,7 +1590,7 @@
           }
         },
         "defect-witnesses": {
-          "why": "DECISIONS:153 and S10's own token clause (PROPOSED): the FROZEN side of every comparison is built through the same reconstruction, which refuses on this tree; S10's complete comparison is taken against the accepted engine read from Git at this package's own sourceBase, and any difference would have to be D-EPP-3's declared departure - executed and measured in s10-sup-defect-witnesses",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the FROZEN side of every comparison is built through the same reconstruction, which refuses on this tree; S10's complete comparison is taken against the accepted engine read from Git at this package's own sourceBase, and any difference would have to be D-EPP-3's declared departure - executed and measured in s10-sup-defect-witnesses",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -1598,7 +1603,7 @@
           }
         },
         "writers-differential": {
-          "why": "DECISIONS:153 and S10's own token clause (PROPOSED): the gate's subject writers.cjs is the parent post plus the one owner-worded clause at :227, neither the reconstruction's pre- nor post-image - executed and measured in s10-sup-writers-differential",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the gate's subject writers.cjs is the parent post plus the one owner-worded clause at :227, neither the reconstruction's pre- nor post-image - executed and measured in s10-sup-writers-differential",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -1611,7 +1616,7 @@
           }
         },
         "second-gate": {
-          "why": "DECISIONS:153 and S10's own token clause (PROPOSED): the second reading pins fe516c1 and goes through the reconstruction, so it refuses this tree; S10's second reading is taken from Git at its own sourceBase against the disk composition - executed and measured in s10-sup-second-gate",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the second reading pins fe516c1 and goes through the reconstruction, so it refuses this tree; S10's second reading is taken from Git at its own sourceBase against the disk composition - executed and measured in s10-sup-second-gate",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -1627,7 +1632,7 @@
     }
   },
   "release": {
-    "rulingLineSha256": null
+    "rulingLineSha256": "6f6b5410071eab452cfa0a9f46748ea08c1db8533345f46361ea91626106c525"
   },
   "carrierSuccessor": null,
   "witnessFlips": [],
@@ -1648,16 +1653,21 @@
       "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
       "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
     },
-    "theme": null,
+    "theme": {
+      "ledgerLine": 830,
+      "role": "cowork",
+      "line": "- 2026-09-25 · cowork · THEME M2-S10-TODAY-SPLIT - the reseal child that places the accepted writers-out Today split (b35a48e3), the accepted gym-settings writer change (66d32530) and the owner-granted EPP engine repair (0d38b8e, with D-EPP-2 at rebuild/m4/workout/engine-capture.cjs, DECISIONS:785) on the sealed S9 parent, hands rebuild/m3/w7-preview/today/today-app.cjs and rebuild/m3/w7-preview/today/gym-app.mjs out of the seal and seals their writer siblings; its behaviour/delta contract is rebuild/lanes/b/S10-TODAY-SPLIT-BRIEF.md; its parent is M2-S9-UI-PINS, rebuild/m4/spec/acceptance-s9-ui-pins.json sha256 f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c (receipt DECISIONS:809); it moves rebuild/engine/today.cjs and writers.cjs by the two owner-worded clauses of DECISIONS:631 and retires the nine byte-identity gates again under its own token line. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "c497e941acaf414c9dfa9a2c2a562af27d02149065cee4e0b3780df141c1c17b"
+    },
     "review": {
       "role": "cowork",
-      "prefix": null,
+      "prefix": "POSTFIX-ACCEPTANCE M2-S10-TODAY-SPLIT",
       "terminal": "ACCEPTED"
     }
   },
   "artifact": {
-    "file": null,
-    "review": null
+    "file": "rebuild/m4/spec/acceptance-s10-today-split.json",
+    "review": "rebuild/m4/spec/review-s10-today-split.json"
   },
   "children": [
     {
@@ -1688,7 +1698,7 @@
         "rebuild/m3/w7-preview/measure/test/baseline.test.mjs",
         "rebuild/m3/w7-preview/measure/test/boundary.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 726"
     },
     {
       "name": "measure-hermetic",
@@ -1698,7 +1708,7 @@
         "rebuild/m3/w7-preview/measure/test/model.test.mjs",
         "rebuild/m3/w7-preview/measure/test/adherence.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 11"
     },
     {
       "name": "s4-real-day",
@@ -1707,7 +1717,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/local-real-day.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 15"
     },
     {
       "name": "a0-journeys",
@@ -1717,7 +1727,7 @@
         "rebuild/m3/w6/host/test/journey.test.mjs",
         "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 23"
     },
     {
       "name": "d-plan-edit",
@@ -1729,7 +1739,7 @@
         "rebuild/lanes/d/plan-edit/browser-build.test.mjs",
         "rebuild/lanes/d/plan-edit/client-p6.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 90"
     },
     {
       "name": "m4-import",
@@ -1743,7 +1753,7 @@
         "rebuild/m4/import/test/browser-parity.test.mjs",
         "rebuild/m4/import/test/engine-pins-unprotected.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 63"
     },
     {
       "name": "m4-import-production",
@@ -1753,7 +1763,7 @@
         "rebuild/m4/import/test/production-mapping.test.cjs",
         "rebuild/m4/import/test/production-admission.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 28"
     },
     {
       "name": "d-import-retract",
@@ -1762,7 +1772,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/import-retract/retract.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 13"
     },
     {
       "name": "d-admission-swap",
@@ -1771,7 +1781,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/p3-followons/admission-swap.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 4"
     },
     {
       "name": "d-replay-measure",
@@ -1781,7 +1791,7 @@
         "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs",
         "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 9"
     },
     {
       "name": "d-capture-start",
@@ -1790,7 +1800,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 14"
     },
     {
       "name": "food-live-save",
@@ -1799,7 +1809,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/food-live-save.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 6"
     },
     {
       "name": "w7-import",
@@ -1812,7 +1822,7 @@
         "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs",
         "rebuild/m3/w7-preview/import/test/refusals.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 35"
     },
     {
       "name": "w6-host-seams",
@@ -1821,7 +1831,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/host-seams.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 9"
     },
     {
       "name": "w6-local-source",
@@ -1831,7 +1841,7 @@
         "rebuild/m3/w6/test/local-source-admission.test.mjs",
         "rebuild/m3/w6/test/local-source-consumer.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 26"
     },
     {
       "name": "d-replay-all",
@@ -1843,7 +1853,7 @@
         "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs",
         "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 28"
     },
     {
       "name": "d-port-admission",
@@ -1854,7 +1864,7 @@
         "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs",
         "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 35"
     },
     {
       "name": "d-real-shape",
@@ -1870,7 +1880,7 @@
         "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs",
         "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 62"
     },
     {
       "name": "sealed-inventory-fence",
@@ -1879,7 +1889,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 58"
     },
     {
       "name": "ui-pack-pins",
@@ -1889,7 +1899,7 @@
         "rebuild/lanes/c/ui-port/pack-pin.test.mjs",
         "rebuild/lanes/c/ui-port/approved-pin.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 121"
     },
     {
       "name": "reference-closure",
@@ -1898,7 +1908,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/reference-closure.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 5"
     },
     {
       "name": "release-object",
@@ -1907,7 +1917,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/release-object.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 14"
     },
     {
       "name": "today-carry",
@@ -1917,7 +1927,7 @@
         "rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs",
         "rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 9"
     },
     {
       "name": "passphrase-normalize",
@@ -1928,7 +1938,7 @@
         "rebuild/lanes/c/passphrase-normalize/route.test.mjs",
         "rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 29"
     },
     {
       "name": "w6-local-import",
@@ -1937,7 +1947,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-import.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 22"
     },
     {
       "name": "f2-land",
@@ -1947,7 +1957,7 @@
         "rebuild/lanes/d/f2/projector.test.mjs",
         "rebuild/lanes/d/f2/guard-coverage.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 81"
     },
     {
       "name": "epp-proposed-pick",
@@ -1956,7 +1966,7 @@
         "--test-reporter=tap",
         "rebuild/engine/test/proposed-pick.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 9"
     },
     {
       "name": "d-epp-2-capture",
@@ -1965,7 +1975,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/engine-capture-proposed.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 13"
     },
     {
       "name": "today-split-fence",
@@ -1974,7 +1984,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/today-split/writer-fence.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 404"
     },
     {
       "name": "s10-sup-source-carriers",
@@ -1983,7 +1993,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s10-supersede-source-carriers.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 4"
     },
     {
       "name": "s10-sup-inherited-carriers",
@@ -1992,7 +2002,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s10-supersede-inherited-carriers.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 3"
     },
     {
       "name": "s10-sup-defect-witnesses",
@@ -2001,7 +2011,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s10-supersede-defect-witnesses.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 3"
     },
     {
       "name": "s10-sup-writers-differential",
@@ -2010,7 +2020,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s10-supersede-writers-differential.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 3"
     },
     {
       "name": "s10-sup-second-gate",
@@ -2019,14 +2029,14 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s10-supersede-second-gate.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 3"
     },
     {
       "name": "s10-engine-files-differential",
       "argv": [
         "rebuild/m4/workout/test/s10-engine-files-differential.cjs"
       ],
-      "needle": null
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 2 named files move, each"
     },
     {
       "name": "s10-copy-lock",
@@ -2035,18 +2045,18 @@
         "--test-reporter=tap",
         "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 6"
     }
   ],
   "notes": [
-    "PROPOSED DRAFT, NOT A SPEC OF RECORD. Composed by the S10 builder (claude-opus-5-5) on rebuild/b-s10-integration and merge-forwarded (never rebased) onto the SEALED S9 parent M2-S9-UI-PINS: seal tip (fast-forward) d7f654017962d35661adea8cf3688251ad686b9e (DECISIONS:810) is sourceBase; parent artifact rebuild/m4/spec/acceptance-s9-ui-pins.json sha256 f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c, review rebuild/m4/spec/review-s9-ui-pins.json sha256 7f372d97170cbc4f58025a84ba4c705488aae6a7ff11c61e0e97b1b2b4eddcb4, receipt DECISIONS:809; the parent b-lom child is dropped (DECISIONS:799, debt D-BLOM, note below). Still STOPs of S10-WORKING-BRIEF.md (c58b892) section 2.1, null here: packageId (S10_PACKAGE_ID), brief file/sha256/acceptedLedgerLine, THEME, RELEASE-FROM-SEAL and GATE-SUPERSESSION ruling line hashes, artifact paths and review prefix. Every child needle is null: no child has been observed at the composed candidate.",
+    "M2-S10-TODAY-SPLIT is the reseal child of M2-S9-UI-PINS (package id and brief of record PM RULED at DECISIONS:816), briefed at rebuild/lanes/b/S10-TODAY-SPLIT-BRIEF.md, the brief of record by sha256 e5aabac9809f70dc5dcc105892a4f4ff468193d713c6e6d99a044bf40e5b74c8 at DECISIONS:831; its THEME stands at DECISIONS:830, its GATE-SUPERSESSION token line at DECISIONS:829 and its RELEASE-FROM-SEAL token line at DECISIONS:828, each cited here by its own sha256 on rebuild/t2-client-core. Composed by the S10 builder (claude-opus-5-5) on rebuild/b-s10-integration and merge-forwarded (never rebased) onto the SEALED S9 parent: seal tip (fast-forward) d7f654017962d35661adea8cf3688251ad686b9e (DECISIONS:810) is sourceBase; parent artifact rebuild/m4/spec/acceptance-s9-ui-pins.json sha256 f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c, review rebuild/m4/spec/review-s9-ui-pins.json sha256 7f372d97170cbc4f58025a84ba4c705488aae6a7ff11c61e0e97b1b2b4eddcb4, receipt DECISIONS:809; the parent b-lom child is dropped (DECISIONS:799, debt D-BLOM, note below). Child needles: 35 are the counts the PM seat observed at f4125cd under grant (g) DECISIONS:816, recorded at DECISIONS:827 (needle table sha256 ad2374d64792...; s10-engine-files-differential by its terminal line); m4-import-production was re-observed as \"# pass 28\" at these bytes with status BRIEF-ACCEPTED (red at f4125cd only by the sealing-window rule, DECISIONS:826, :827).",
     "PRODUCT MAP (regenerated by rebuild/lanes/b/S10-REGEN.cjs at parent d7f654017962d35661adea8cf3688251ad686b9e). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s9-ui-pins.json f24476220ec9); post is sha256 of the bytes at HEAD dc08f36f56ce36303ddccc8223def0fb38c6319b. Parent-released paths are not declared: rebuild/m3/w7-preview/today/build.mjs, rebuild/m3/w7-preview/today/preview.css. New paths are every path HEAD changed since the parent, inside the S10 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself; tracked Markdown under rebuild/engine/ is declared because the engine-inventory cells walk every tracked file there. Roles: {\"edited\":22,\"carried\":230,\"new\":47,\"superseded-by-child\":1,\"released\":2}.",
-    "CHILD today-17 KEEPS ITS HISTORICAL NAME (D-S10I-3): at S10 it runs 22 test files (S9's 17 plus the five gss-annex files), so the 17 in the name is not a count. Its needle stays the runner's grammar: one string of at least 8 characters, no line break, matched at the start of a line of the child's own TAP output (b-package.cjs CHILD-NEEDLE-EMPTY and CHILD-NEEDLE-NOT-A-TERMINAL-LINE), i.e. '# pass N' with N observed at the composed candidate; it is null until observed.",
+    "CHILD today-17 KEEPS ITS HISTORICAL NAME (D-S10I-3): at S10 it runs 22 test files (S9's 17 plus the five gss-annex files), so the 17 in the name is not a count. Its needle stays the runner's grammar: one string of at least 8 characters, no line break, matched at the start of a line of the child's own TAP output (b-package.cjs CHILD-NEEDLE-EMPTY and CHILD-NEEDLE-NOT-A-TERMINAL-LINE), i.e. '# pass N' with N observed at the composed candidate; observed at f4125cd as '# pass 726' by the PM seat under grant (g) (DECISIONS:816, :827).",
     "INPUTS, in merge order: Track A TODAY-SPLIT b35a48e35a1f3e3c278c377934794a32b632535b (:662); Track B GSS 66d325308bc584950163c1c177799ce4953fa298 (:765); EPP 0d38b8e2633ee46b033f8386670bf6e25ef10862 with D-EPP-2 5a953d59a1fce5f27ff368b4997350a655f94f69 riding with it (:780 Q3, :785, :791), as its own engine-tier input. NATIVE-LOAD is excluded (:791).",
     "D-EPP-3, DECLARED DEPARTURE (f0a5eb1a; payer the S10 seal chain by :780 Q3): rebuild/engine/today.cjs and rebuild/engine/writers.cjs are sealed S8 product keys and are declared edited here with their composed posts. For an untapped PROPOSED entry the repaired engine deliberately departs from the frozen app's behaviour although no golden row moves; the file headers still say they were copied from frozen. Owed and NOT run: the port oracle on the synthetic fixture, the sensitivity pass, the private gate, exact-head CI on both systems.",
     "PARENT-UNPINNED PATHS (regenerated at d7f654017962d35661adea8cf3688251ad686b9e): 7 path(s) existed at the parent pinned by neither its product map nor its execution pins and change here, so they are declared role new with pre null (DECISIONS:792): rebuild/m3/w7-preview/today/machine-settings-view.mjs, rebuild/m3/w7-preview/today/today-model.cjs, rebuild/m4/import/test/s3/s3-portable-sources.json, rebuild/m4/spec/configured-history-candidate/run.cjs, rebuild/m4/workout/engine-capture.cjs, rebuild/m4/workout/test/configuration-capture.test.cjs, rebuild/m4/workout/test/engine-capture.test.cjs.",
     "EXECUTION PIN SUPERSEDED (regenerated at d7f654017962d35661adea8cf3688251ad686b9e): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: rebuild/lanes/b/tooling/packages/S9.json pre bb169a67847d10963fcaa0d69c14d5e157ad0a81525e22352ef116d6071ac86c post a66530aaccbd7fc463ab27e32cabfc729045ec97d900de1b45320673ec3d29b8.",
-    "S10's OWN GATE SUPERSESSION. coverage.superseded retires the parent's five carriers (nine gates) again under S10's OWN reason: S10 moves today.cjs and writers.cjs by one owner-worded clause each, so S9's reason ('changes NO engine byte') is not carried. Evidence is S10's own s10-sup-* cells and s10-engine-files-differential. rulingLineSha256 is null: the S10 GATE-SUPERSESSION and RELEASE-FROM-SEAL token lines exist only as PROPOSED drafts in S10-INTEGRATION-REPORT.md, for the PM to append after review.",
+    "S10's OWN GATE SUPERSESSION. coverage.superseded retires the parent's five carriers (nine gates) again under S10's OWN reason, the token clause DECISIONS:829 (RULED), located by its own sha256 d8884ec6f13e...: S10 moves today.cjs and writers.cjs by one owner-worded clause each (DECISIONS:631 O-1a), so S9's reason ('changes NO engine byte', DECISIONS:787) is not carried. Evidence is S10's own s10-sup-* cells and s10-engine-files-differential. The released pair today-app.cjs and gym-app.mjs leaves the seal under the RELEASE-FROM-SEAL token line DECISIONS:828 (RULED), located by its own sha256 6f6b5410071e... (release.rulingLineSha256).",
     "DECISIONS:792 CARRIERS. rebuild/m4/import/local-source-profile.cjs SOURCE_PINS today.cjs is re-pinned to the EPP bytes (declared edited), and s3-portable-sources.json re-pins local-source-profile.cjs with it. rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs takes a minimal import-path fix (fake-indexeddb from rebuild/m3/w6). D-REGEN-NOTES reconciled at the re-bind: D-EPP-4 (self-sensitivity guard for proposed-pick) is paid in bytes at 12be4ea (row EPP-R9); the real cell's GREEN half is measured on hosted CI, run 36158401022 at f97924a, step 'E - EPP proposed-pick' success on ubuntu-latest and windows-latest (a step conclusion, not a row count); its four-deletion RED half on the real engine is still owed (D-S10I-8). The writer fence's RECORDED RESIDUE row was re-anchored at 9642243 (not an S-R30 row, PM ruling); the full writer fence was green locally at 47983ba (404/404, round 4) and its CI step 'C - the Today split writer fence over the released view files' succeeded on both systems in the same run. Reconciled in S10 round 11 (D-REGEN-NOTES, Astra L6 :146).",
     "D-BLOM, CARRIED FROM THE PARENT (DECISIONS:798, :799). The b-lom child (argv rebuild/lanes/d/b-lom/legacy-order.test.mjs and rebuild/m4/workout/test/legacy-order-mapping.test.cjs) is not declared here, exactly as the sealed parent M2-S9-UI-PINS does not declare it (its S9.json notes[4]): :799 binds the same narrowing on S10 when it re-binds to the sealed S9. Its LOM-S6 walk reads every code file under rebuild/m3 and rebuild/m4, the protected soak app included, which stays protected until 2026-10-05. Both cell files keep whatever role the product map gives them, and CI keeps running the test in its rebuild.yml step. The last sealed evidence is S8's \"# pass 30\"; it does not prove this tree. Debt D-BLOM is re-measured after 2026-10-05 by the hosted-blom NO-path packet once that packet is re-pointed and reviewed."
   ]
