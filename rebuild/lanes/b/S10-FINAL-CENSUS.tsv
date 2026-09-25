@@ -350,3 +350,13 @@ rebuild/m4/workout/test/s10-supersede-inherited-carriers.test.cjs	new	A	declared
 rebuild/m4/workout/test/s10-supersede-second-gate.test.cjs	new	A	declared	S10	N	-0 +1	0/202	declared new: new file
 rebuild/m4/workout/test/s10-supersede-source-carriers.test.cjs	new	A	declared	S10	N	-0 +1	0/231	declared new: new file
 rebuild/m4/workout/test/s10-supersede-writers-differential.test.cjs	new	A	declared	S10	N	-0 +1	0/228	declared new: new file
+rebuild/m3/w7-preview/import/test/page-bundle.test.mjs	edited	M	declared	S10	N	-182 +182	1/9	declared edited: test/cell bytes [ADDENDUM 92be4e3..f4125cd, commit dc08f36]
+rebuild/m3/w7-preview/import/test/page-bundle.test.mjs	edited	M	declared	S10	N	-184 +192	1/1	declared edited: test/cell bytes [ADDENDUM 92be4e3..f4125cd, commit dc08f36]
+rebuild/m3/w7-preview/import/test/page-bundle.test.mjs	edited	M	declared	S10	N	-187 +195	1/2	declared edited: test/cell bytes [ADDENDUM 92be4e3..f4125cd, commit dc08f36]
+rebuild/m3/w7-preview/import/test/page-bundle.test.mjs	edited	M	declared	S10	N	-384 +394	0/8	declared edited: test/cell bytes [ADDENDUM 92be4e3..f4125cd, commit dc08f36]
+rebuild/m3/w7-preview/import/test/page-bundle.test.mjs	edited	M	declared	S10	N	-386 +403	1/1	declared edited: test/cell bytes [ADDENDUM 92be4e3..f4125cd, commit dc08f36]
+rebuild/m3/w7-preview/import/test/page-bundle.test.mjs	edited	M	declared	S10	N	-388 +405	2/3	declared edited: test/cell bytes [ADDENDUM 92be4e3..f4125cd, commit dc08f36]
+rebuild/m4/import/production-mapping.cjs	edited	M	declared	S10	N	-55 +55	1/2	declared edited: product/tooling bytes [ADDENDUM 92be4e3..f4125cd, commit dc08f36]
+rebuild/lanes/fable/reviews/REVIEW-S10-T4-FIX-l1.md	undeclared	A	undeclared	S10	N	-0 +1	0/47	new record file (report/review/brief/spec), not product, no execution route [ADDENDUM 92be4e3..f4125cd, commit dc08f36]
+rebuild/lanes/astra/reviews/S10-INTEGRATION-REVIEW-L8.md	undeclared	A	undeclared	S10	N	-0 +1	0/164	new record file (report/review/brief/spec), not product, no execution route [ADDENDUM 92be4e3..f4125cd, commit f4125cd]
+rebuild/lanes/fable/reviews/REVIEW-S10-FINAL-CENSUS-l1.md	undeclared	A	undeclared	S10	N	-0 +1	0/137	new record file (report/review/brief/spec), not product, no execution route [ADDENDUM 92be4e3..f4125cd, commit f4125cd]
