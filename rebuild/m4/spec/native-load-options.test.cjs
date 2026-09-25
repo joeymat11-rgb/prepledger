@@ -3691,9 +3691,19 @@ function propertySequence8(seed){
   }else if(action==='legacy'){
    // Round 15 (spec R9.4 :159, D-R9-LEGACY-ENTRY): legacy entries go mostly onto a HELD lift,
    // as a lone PROPOSED or a DEBUT that today.cjs would pick if it were visible.
+   // Round 20 part C (PM ruling on STOP-R20B1-1/-2, option (b); the Fable advisor's invariants): the generator draws only the
+   // legacy entries a writer can queue. NEEDS-LOAD: no writer queues a legacy debut on a lift whose w is null (E/writers.cjs:383
+   // calls earnWalk only over a numeric w; E/progression.cjs:365 nextLoad of a null w is null, so earn.cjs pushes nothing;
+   // FC01:549 is reached only by an earn, refused RECORD_INVALID base_load at :501 over a null w; row R20-LEGACY-NEEDS-LOAD), so
+   // a draw on a w-null lift is PROPOSED only (E/today.cjs:55 never picks a PROPOSED entry). VECTOR-SHIFT: a debut queued on a
+   // vector lift carries the shifted vector (E/earn.cjs:63, :88; FC01:516-517 refuses a scalar candidate over a vector; row
+   // R20-LEGACY-VECTOR-SHIFT), so an entry drawn on a lift with B.wSets carries newWSets = wSets.map(x=>x+(newW-w)). The state
+   // draw is kept (then overridden), so every seed keeps its action sequence. A null w reached LATER through a native RESTORE
+   // is not excluded: that is D-R20-RESTORE-OVER-LEGACY (row R20-RESTORE-OVER-LEGACY), a carried debt.
    const hl=lifts.filter(x=>held(f,x)),LL=hl.length&&chance(0.7)?pick(hl):L;
    if(m.legacy[LL])delete m.legacy[LL];
-   else m.legacy[LL]={exId:LL,kind:'debut',done:false,state:pick(['PROPOSED','DEBUT']),newW:(m.base[LL].w===null?60:m.base[LL].w+5),t:'SYNTHETIC legacy'};
+   else{const B=m.base[LL],drawn=pick(['PROPOSED','DEBUT']),newW=B.w===null?60:B.w+5;
+    m.legacy[LL]={exId:LL,kind:'debut',done:false,state:B.w===null?'PROPOSED':drawn,newW,...(Array.isArray(B.wSets)&&typeof B.w==='number'?{newWSets:B.wSets.map(x=>x+(newW-B.w))}:{}),t:'SYNTHETIC legacy'};}
    m.trace.push(['legacy',LL,m.legacy[LL]?m.legacy[LL].state:false,held(f,LL)?'held':'free']);
   }
   checkInvariants('step '+step);
@@ -4621,6 +4631,11 @@ function b39AfterUndo(s,rev,label,extra,w){
  assert.deepEqual([gx.w,Object.hasOwn(gx,'wSets'),b39Card(EFFECTS.m.heldProjection(g).state)],[60,false,[60,60,60]],label+" C4's yes "+JSON.stringify(g.issues));
  b2Invariant(g,label+" after C4's yes");
 }
+// D-R20L1-3 (Fable R20-l1 F3): this row's own measured red on 189d076 and on the part-B1 product is its STATE assertion
+// (Q105 [false,'DEBUT'], w null), which precedes its capture assertion. The spec's named red for (n), ENGINE_CAPTURE_BASELINE_UNPROVEN
+// through the real capture, is retained elsewhere: FA03 N27-B39-HOST (gym.read blocked ENGINE_CAPTURE_BASELINE_UNPROVEN with Q45
+// pending on 189d076 and on part B1; round-20 part B2 logs z-fa-189 d209c0e9, z-fa-b1 fb89e46d) and the walk at seed 11301954 on
+// 189d076 and on part B1 (I15 ENGINE_CAPTURE_BASELINE_UNPROVEN at train 4 with Q105 pending; part B1 log 9F4AC1FD).
 test('N27-B39-RETURN-UNDO R9.11 (spec R9.11 M (n), B39; red on dfc4445, 189d076 and the part-B1 product: ENGINE_CAPTURE_BASELINE_UNPROVEN through the real capture with Q105 pending): the exit and its Undo (recorded at base 97.5), then the base returns to 100 -> the exit applies as M (1)\'s dissolved-hold exit on the held projection and its Undo restores w null (wSets null); Q105 done/SUPERSEDED with its spend kept; no issue; the baseline ask captures; then as (m): C4 offers [adopt-baseline 60] and its yes gives 60 on every set; typed v2 and host v1, R1 and R2',()=>{
  effectsGate();
  for(const v1 of [false,true]){const s=b39Return(v1);
@@ -4697,13 +4712,126 @@ test('N27-B39-CLAIM-ORDER R9.11 (green-kept, killed by the mutants that drop M (
   }
  }
 });
-test('N27-B39-INVARIANT R9.11 (spec R9.11 M, :158 INVARIANT): over the end states of N27-B39-CONTROL (m), RETURN-UNDO (n), RETURN (o), UNDO-AFTER-RETURN (p), NULL-VECTOR, REPAIR-REVERT, N28-B5-ASTRA, N28-B5-NO-UNDO and N28-NEVER-HELD-NULL: no registered projection has a lift with w null or ABSENT and a visible unfinished native entry, no programme has a numeric w over a present-null wSets, and the next day prepares through the real capture; typed v2 and host v1, R1 and R2',()=>{
+// D-R20L1-3 (Fable R20-l1 F4): the aggregate also folds the logs of N27-B39-ORDINARY, -CLAIM-ORDER (a) (b) and -REPAIR-REVERT (its
+// control, reverted, reverted with the Undo), rebuilt here exactly as those rows build them (each row also asserts its own
+// controls and calls b2Invariant where it did before).
+function b39MoreLogs(v1,rev,r){
+ const out=[];
+ {const c1t=C(1,{reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),c1=v1?v1Of(c1t):c1t;
+  const A=(extra,w,rv)=>{const a=foldArgs([c1],extra,rv,F0({w}));if(v1)captureOn(a.generation,c1,[null,null,null]);return a;};
+  const yes=acceptOp(checkOf(A([],null,R1),LIFT,c1).offers[0],{op_id:'fx-ord',after:1});
+  out.push(['ORDINARY',A([yes],50,rev)]);}
+ {const q=landingScenario(R1),qB={...acceptOp(q.offer,{op_id:'fx-resp-1B',after:3}),device:'fx-device-B'},qC=acceptOp(q.offer,{op_id:'fx-resp-1C',after:3});
+  for(const [name,copy] of [['(a)',qB],['(b)',qC]]){const body=structuredClone(r.exit.payload.issuance.body);body.basis.load_basis.authority_refs=[ref(copy.op_id)];
+   const exit2=acceptOp({body,reason:r.exit.payload.issuance.reason},{op_id:'fx-exit-2',after:3});out.push(['CLAIM-ORDER '+name,r.atW(100,[],[copy,exit2],rev)]);}}
+ {const s=correctedScenario(),c3t=C(3,{date:'2026-10-12',reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),c3=v1?v1Of(c3t):c3t;
+  const RR=(comps,extra,rv)=>{const a=foldArgs([...comps,c3],[s.resp,...extra],rv);if(v1)captureOn(a.generation,c3,[null,null,null]);return a;};
+  const evx=checkOf(RR(s.cs2,[],R1),LIFT,c3),dx=decisionOf(evx.offers[0]),exit=acceptOp(evx.offers[0],{op_id:'fx-exit',after:3});
+  const undo=acceptOp(checkOf(RR(s.cs2,[exit],R1),LIFT,c3,{compensate:dx.spend_id}).offers[0],{op_id:'fx-exit-undo',after:3});
+  out.push(['REPAIR-REVERT control',RR(s.cs2,[exit],rev)],['REPAIR-REVERT reverted',RR(s.cs,[exit],rev)],['REPAIR-REVERT reverted with the Undo',RR(s.cs,[exit,undo],rev)]);}
+ return out;
+}
+test('N27-B39-INVARIANT R9.11 (spec R9.11 M, :158 INVARIANT; D-R20L1-3): over the end states of N27-B39-CONTROL (m), RETURN-UNDO (n), RETURN (o), UNDO-AFTER-RETURN (p), NULL-VECTOR, N28-B5-ASTRA, N28-B5-NO-UNDO, N28-NEVER-HELD-NULL, N27-B39-ORDINARY, -CLAIM-ORDER (a) (b) and -REPAIR-REVERT (control, reverted, reverted with the Undo): no registered projection has a lift with w null or ABSENT and a visible unfinished native entry, no programme has a numeric w over a present-null wSets, and the next day prepares through the real capture; typed v2 and host v1, R1 and R2',()=>{
  effectsGate();
  for(const v1 of [false,true])for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev;
   const r=b39Return(v1),n=b39NullVector(v1),b=b5Fixture(v1),h=neverHeldNull(v1);
   const u=checkOf(r.atW(100,[],[r.exit],rev),LIFT,r.c3,{compensate:r.xd.spend_id}),undoP=acceptOp(u.offers[0],{op_id:'fx-undo-p',after:3});
   const folds=[['(m)',r.atW(97.5,[],[r.exit,r.undo],rev)],['(n)',r.atW(100,[],[r.exit,r.undo],rev)],['(o)',r.atW(100,[],[r.exit],rev)],['(p)',r.atW(100,[],[r.exit,undoP],rev)],
-   ['NULL-VECTOR',n.at([n.c2],[n.exit,n.undo],rev)],...b5Variants(b,rev).map(([k,a])=>['B5 '+k,a()]),['NEVER-HELD-NULL',h.at([h.ny1,acceptOp(h.named,{op_id:'nc-rec',after:2})],rev)]];
+   ['NULL-VECTOR',n.at([n.c2],[n.exit,n.undo],rev)],...b5Variants(b,rev).map(([k,a])=>['B5 '+k,a()]),['NEVER-HELD-NULL',h.at([h.ny1,acceptOp(h.named,{op_id:'nc-rec',after:2})],rev)],...b39MoreLogs(v1,rev,r)];
   for(const [k,a] of folds)b2Invariant(EFFECTS.m.foldNativeLoad(a),L+' '+k);
+ }
+});
+// ======================================================================
+// ROUND 20 PART C (test bytes only). The PM rulings on STOP-R20B1-1/-2 (walk option (b), the Fable advisor's invariants: rows
+// R20-LEGACY-NEEDS-LOAD and R20-LEGACY-VECTOR-SHIFT, stated in the walk's legacy generator), D-R20-RESTORE-OVER-LEGACY (the one
+// real path for -1: a carried-debt row asserting the current refusal; spec R9.13 is prepared separately) and STOP-R20B2-2
+// (D-R9.11-TWO-EXIT's null-capture second exit pinned as measured: N27-B39-TWO-EXIT-NULL).
+// ======================================================================
+// An accept context for a body of the evaluation ev (as applyAccept builds it, for a body that may differ from the offer's).
+const r20Ctx=(ev,b)=>({event:'accept',basis:b.basis,spent:[],completion:null,authority:{response_refs:[ref('fx-resp-1')],
+ issuance:{producer:'earned/native-load/v1',body:b,reason:ev.offers[0].reason??null,revision:'fx-revision-1',source:ev.basis.source,moment:'2026-10-20T12:00:00.000Z'},source_cut:ev.basis.source}});
+// The three earnWalk arms that queue at w 100 on the N02c facts: the DEBUT (earn.cjs:88), the PROPOSED on one sighting with the
+// terminal set 2 in reserve (:97) and the PROPOSED after a hot opener with the terminal set 2 in reserve (:63).
+const r20Arms=d1=>[['DEBUT (earn.cjs:88)','DEBUT',{ex:{topAt:100,topRun:1},en:{w:100,reps:TOP,rir:2,rirSets:[2,1,1]},r:TOP,prevMeta:{w:100,reps:TOP},dEarn:d1}],
+ ['PROPOSED one sighting (earn.cjs:97)','PROPOSED',{en:{w:100,reps:TOP,rir:2,rirSets:[2,1,2]},r:TOP,dEarn:d1}],
+ ['PROPOSED hot opener (earn.cjs:63)','PROPOSED',{ex:{topAt:100,topRun:1},en:{w:100,reps:TOP,rir:0,rirSets:[0,1,2]},r:TOP,prevMeta:{w:100,reps:TOP},dEarn:d1}]];
+test('R20-LEGACY-NEEDS-LOAD (PM ruling on STOP-R20B1-1, option (b): the invariant the walk\'s legacy generator states; green-kept, killed by planted defects at FC01:501 and E/progression.cjs:365): no writer emits a debut on a lift whose w is null. (1) The reader-exposed earn path: nextLoad of a w-null lift is null (E/progression.cjs:365) and the unchanged earnWalk queues nothing on the three inputs that queue at w 100 (the DEBUT of earn.cjs:88, the PROPOSED of :97 and :63); E/writers.cjs:383 calls earnWalk only over a numeric w. (2) FC01:549, the native DEBUT push, is reached only by an earn: the N02c earn body re-recorded over a null w (load_basis.w, base_load.fields.w present null, base_load null on every slot) is refused RECORD_INVALID base_load at :501, with no queue write, where the body as issued queues; evaluateNativeLoad on the w-null lift offers no earn',()=>{
+ const {cs,s,E}=n02cY();
+ for(const [name,want,inp] of r20Arms(cs[1].date)){
+  assert.deepEqual(canonical(E,s,inp).map(q=>[q.state,q.newW]),[[want,105]],'control at w 100: '+name);
+  assert.deepEqual(canonical(E,s,{...inp,ex:{...(inp.ex||{}),w:null}}),[],'w null: '+name+' queues nothing');
+ }
+ assert.deepEqual([E.nextLoad(exOf(s)),E.nextLoad({...exOf(s),w:null})],[105,null],'E/progression.cjs:365: an absent load has no next load');
+ nativeGate(E);
+ const ev=evaluate(E,s,request(s,cs,cs[1])),good=decisionOf(ev.offers[0]);assert.equal(good.kind,'earn','control: the earn offer at w 100');
+ const t0=E.applyNativeLoadDecision(s,good,r20Ctx(ev,good));
+ assert.deepEqual([t0.status,t0.effect&&t0.effect.kind,t0.state.queue.length],['applied','queued',1],'control: the earn as issued queues its DEBUT (FC01:549)');
+ const sN=withFacts(F0({w:null}),cs),bad=structuredClone(good),nul={present:true,value:null};
+ bad.basis.load_basis.w=nul;bad.base_load.fields.w=structuredClone(nul);bad.base_load.scalar=null;bad.base_load.vector=bad.base_load.vector.map(()=>null);
+ const t=E.applyNativeLoadDecision(sN,bad,r20Ctx(ev,bad));
+ assert.deepEqual([t.status,t.refusal&&t.refusal.code,t.refusal&&t.refusal.field],['refused','NATIVE_LOAD_RECORD_INVALID','base_load'],'FC01:501: an earn over a null w is refused before :549 '+JSON.stringify(t.refusal));
+ assert.ok(!t.state||!t.state.queue.some(q=>q&&q.exId===LIFT&&q.kind==='debut'),'no debut queued over the null w');
+ const evN=evaluate(E,sN,request(sN,cs,cs[1]));
+ assert.ok(!(evN.offers||[]).some(o=>decisionOf(o).kind==='earn'),'the w-null lift is offered no earn '+JSON.stringify([evN.status,evN.refusal,(evN.offers||[]).map(o=>decisionOf(o).kind)]));
+});
+test('R20-LEGACY-VECTOR-SHIFT (PM ruling on STOP-R20B1-2, option (b): the invariant the walk\'s legacy generator states; green-kept, killed by planted defects on the earn.cjs vector shift and at FC01:516-517): a debut queued on a per-set-weight lift carries the shifted vector. (1) The unchanged earnWalk on the N02c facts with fx-press wSets [100,100,95]: each of the three arms (earn.cjs:88, :97, :63) queues newW 105 with newWSets [105,105,100], never a scalar debut over the vector. (2) FC01:516-517 on N11 (wSets [100,95]): the DEBUT 105 [105,100] body as issued applies and queues newWSets [105,100]; the same body with a scalar candidate (newWSets null) is refused RECORD_INVALID candidate. (A scalar legacy debut over a stored vector at the capture boundary, ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED, W/engine-capture.cjs:82-83, is pinned by FIT-MALFORMED R9.10.)',()=>{
+ const {cs,s,E}=n02cY(),vec={wSets:[100,100,95]};
+ for(const [name,want,inp] of r20Arms(cs[1].date))
+  assert.deepEqual(canonical(E,s,{...inp,ex:{...(inp.ex||{}),...vec}}).map(q=>[q.state,q.newW,q.newWSets]),[[want,105,[105,105,100]]],'vector lift: '+name+' carries the shifted vector');
+ const n=n11(X(2));nativeGate(n.E);
+ const ev=evaluate(n.E,n.s,request(n.s,n.cs,n.cs[1])),good=decisionOf(ev.offers[0]);
+ assert.deepEqual([ev.offers.length,good.kind,good.candidate.newW,good.candidate.newWSets],[1,'earn',105,[105,100]],'control: N11 offers DEBUT 105 [105,100]');
+ const t0=n.E.applyNativeLoadDecision(n.s,good,r20Ctx(ev,good));
+ assert.deepEqual([t0.status,t0.state.queue.at(-1).newW,t0.state.queue.at(-1).newWSets],['applied',105,[105,100]],'control: the queued debut carries the shifted vector');
+ const bad=structuredClone(good);bad.candidate.newWSets=null;
+ const t=n.E.applyNativeLoadDecision(n.s,bad,r20Ctx(ev,bad));
+ assert.deepEqual([t.status,t.refusal&&t.refusal.code,t.refusal&&t.refusal.field],['refused','NATIVE_LOAD_RECORD_INVALID','candidate'],'FC01:516-517: a scalar candidate over a vector basis '+JSON.stringify(t.refusal));
+});
+// D-R20-RESTORE-OVER-LEGACY fixture (the Fable advisor's one real path for STOP-R20B1-1: FC01:542 dispatches a compensate
+// BEFORE the :544 LEGACY_PENDING test, and the unapplied-RESTORE branch :578-586 writes the recorded base_load.fields): base w
+// null; C1 on the baseline ask at 60 and its [adopt-baseline 60] yes (rl-y1, applied: w 60); its Undo issued and recorded
+// while that adoption is applied (RESTORE: base 60, target null; rl-undo); then the base re-admitted at w 100 carrying a
+// pending legacy DEBUT 105 (a shape a writer can queue: numeric w, no vector).
+function restoreOverLegacy(v1=false){
+ const c1t=C(1,{reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),c1=v1?v1Of(c1t):c1t;
+ const LEG={exId:LIFT,kind:'debut',done:false,state:'DEBUT',newW:105,t:'SYNTHETIC legacy debut'};
+ const at=(extra,w,rev=R1)=>{const b=F0({w});if(w!==null)b.queue.push(structuredClone(LEG));const a=foldArgs([c1],extra,rev,b);if(v1)captureOn(a.generation,c1,[null,null,null]);return a;};
+ const ev=checkOf(at([],null),LIFT,c1);
+ assert.deepEqual(ev.offers.map(o=>[decisionOf(o).kind,decisionOf(o).target_load.scalar.value]),[['adopt-baseline',60]],'control: C1 offers [adopt-baseline 60]');
+ const y1=acceptOp(ev.offers[0],{op_id:'rl-y1',after:1}),spend=decisionOf(ev.offers[0]).spend_id;
+ const u=checkOf(at([y1],null),LIFT,c1,{compensate:spend});assert.equal(u.status,'offer','control: the Undo while applied '+JSON.stringify(u.refusal));
+ const ud=decisionOf(u.offers[0]);assert.deepEqual([ud.base_load.scalar,ud.target_load.scalar],[lb(60),null],'control: a RESTORE (base 60, target null)');
+ return {c1,y1,spend,ud,undo:acceptOp(u.offers[0],{op_id:'rl-undo',after:1}),at};
+}
+test('R20-RESTORE-OVER-LEGACY KNOWN-RED CARRIED DEBT D-R20-RESTORE-OVER-LEGACY (PM ruling on STOP-R20B1-1; it asserts the CURRENT refused output and turns red when the spec fix lands: R9.13, projectHeld hides an unfinished legacy debut of a lift whose projected w is null): an adopt-baseline, its RESTORE Undo recorded while applied, then the base re-admitted at w 100 carrying a pending legacy DEBUT 105 -> the adoption is held back (the legacy entry is pending, FC01:544) while its Undo applies through the unapplied-RESTORE branch (FC01:542 before :544; :578-586) and writes w null under the legacy DEBUT: the next day\'s capture refuses ENGINE_CAPTURE_BASELINE_UNPROVEN through cardLoads (E/today.cjs picks the legacy DEBUT; W/engine-capture.cjs:67). Controls: not re-admitted (base w null, no legacy entry), the Undo leaves the baseline ask, which captures; re-admitted without the Undo, the moved base holds the adoption (EFFECT_CONFLICT load_basis [rl-y1], w 100) and the held projection hides the legacy entry (R9.4 :159), so the baseline ask captures; typed v2 and host v1, R1 and R2',()=>{
+ effectsGate();
+ for(const v1 of [false,true]){const s=restoreOverLegacy(v1);
+  for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev;
+   const c0=EFFECTS.m.foldNativeLoad(s.at([s.y1,s.undo],null,rev));
+   assert.deepEqual([exOf(c0.state).w,b2Active(c0),b39Card(EFFECTS.m.heldProjection(c0).state)],[null,[],[null,null,null]],L+' control: not re-admitted, the Undo leaves the baseline ask '+JSON.stringify(c0.issues));
+   const c1=EFFECTS.m.foldNativeLoad(s.at([s.y1],100,rev));
+   assert.deepEqual([exOf(c1.state).w,b2Active(c1),b39Card(EFFECTS.m.heldProjection(c1).state)],[100,[['EFFECT_CONFLICT','load_basis',['rl-y1'],'act']],[null,null,null]],L+' control: re-admitted without the Undo, the adoption is held and the held projection hides the legacy entry '+JSON.stringify(c1.issues));
+   const f=EFFECTS.m.foldNativeLoad(s.at([s.y1,s.undo],100,rev)),ex=exOf(f.state);
+   assert.deepEqual([ex.w,f.state.queue.filter(q=>q&&q.exId===LIFT&&!q.done&&typeof q.native_load_spend!=='string').map(q=>[q.state,q.newW])],[null,[['DEBUT',105]]],L+' the Undo writes w null under the pending legacy DEBUT '+JSON.stringify(f.issues));
+   assert.equal(b39Card(EFFECTS.m.heldProjection(f).state),'ENGINE_CAPTURE_BASELINE_UNPROVEN',L+' D-R20-RESTORE-OVER-LEGACY: the capture refuses the whole day (current output, carried debt)');
+  }
+ }
+});
+test('N27-B39-TWO-EXIT-NULL R9.11 (PM ruling on STOP-R20B2-2: D-R9.11-TWO-EXIT\'s NULL-capture second exit pinned as measured, walk class (c) EFFECT_CONFLICT load_basis 3455/3455 in round 20 part B2; kills the M (1)-only half of mutant (ii), "a superseded hold treated as dissolved", which applied the second exit): b39Control\'s hold (the Q105 yes at base 100, the base re-admitted at 97.5 with no ordering op: EFFECT_CONFLICT load_basis), C3 at 60 and C3b at 65 both trained on the held baseline ask and each offered the exit naming [the Q105 yes] before either is answered; device A accepts C3\'s exit (fx-exit-a), then device B accepts C3b\'s (fx-exit-b; its causal parents are the plan ops device B had folded: the Q105 yes) -> the first exit applies: w 60, Q105 done/SUPERSEDED with its spend kept, the Q105 hold superseded; the second is refused EFFECT_CONFLICT load_basis [fx-exit-b] (an active hold), its effect not live; the next card is therefore the baseline ask; typed v2 and host v1, R1 and R2',()=>{
+ effectsGate();
+ for(const v1 of [false,true]){const s=b39Control(v1);
+  const cbt=C(4,{date:'2026-10-13',reps:TOP,loads:65,prescribed:null,effort:e(2,1,1)}),cb=v1?v1Of(cbt):cbt;
+  const evB=checkOf(s.at([cb],[]),LIFT,cb);assert.equal(evB.status,'offer','control: C3b\'s exit '+JSON.stringify(evB.refusal));
+  const dB=decisionOf(evB.offers[0]);
+  assert.deepEqual([evB.offers.length,dB.kind,dB.target_load.scalar.value,dB.basis.load_basis.authority_refs],[1,'adopt-baseline',65,[ref('fx-resp-1')]],'control: the second exit names the Q105 yes');
+  const exA={...s.exit,op_id:'fx-exit-a',after:4},exB={...acceptOp(evB.offers[0],{op_id:'fx-exit-b',after:4}),device:'fx-device-B'};
+  const log=rev=>{const a=s.at([cb],[exA,exB],rev);a.generation.collections.ops['fx-exit-b'].causal_parents=['fx-resp-1'];return a;};
+  for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev,f=EFFECTS.m.foldNativeLoad(log(rev)),ex=exOf(f.state);
+   assert.deepEqual([ex.w,ex.native_load_authority&&ex.native_load_authority.spend_id,liveQ(f,s.spend)],[60,s.xd.spend_id,[[true,'SUPERSEDED']]],L+' the first exit applies '+JSON.stringify(f.issues));
+   assert.ok(f.spent.some(x=>x.spend_id===s.spend&&!x.cancelled_by),L+': the Q105 spend is kept');
+   assert.deepEqual(b2Issues(f),[['EFFECT_CONFLICT','load_basis',['fx-resp-1'],'sup'],['EFFECT_CONFLICT','load_basis',['fx-exit-b'],'act']],L+' the second exit: EFFECT_CONFLICT load_basis '+JSON.stringify(f.issues));
+   assert.equal(f.spent.some(x=>x.spend_id===dB.spend_id&&!x.cancelled_by&&!f.issues.some(i=>i.spend_id===dB.spend_id)),false,L+': the second exit has no live effect');
+   assert.deepEqual(b39Card(EFFECTS.m.heldProjection(f).state),[null,null,null],L+' the next card');
+  }
  }
 });

@@ -1179,7 +1179,7 @@ test('N27-B39-HOST R9.11 [Y] (spec R9.11 M (q), Astra\'s host reduction; red on 
   assert.equal(v5.lift.id, 'demo-press'); assert.match(v5.prescription.line, /^45 lb/, 'the card reads 45 lb');
   five.entry.gymHost.close(); last.close();
 });
-test('N28-HOST-NO-NEVER-HELD R9.12 [Y] (spec M R9.12 revision 3 NEW ROWS, the host side of RESIDUAL (iv) :157; green-kept, killed by mutant (xii)): through the durable host\'s check and a reopen, every issued body (read back from the log after its yes) obeys: an adopt-baseline carries authority_refs [] unless an active hold of the lift names each ref, and then exactly that hold\'s holding-record Refs; the only other non-empty fill is the MISSED-DEBUT claim, on an adopt-observed, naming exactly its latest consumed Close. (a) a never-held lift with w null and a baseline-ask completion: [] ; (b) the L12-B5 host input (D1 45 on the 40 card adopted, D2 trained on the 45 card) at an admitted base 42.5 (y1 held), the check on D2: exactly [y1]; (d) after that exit and its Undo (no return), D3 on the baseline ask: []; (c) the same input after the return (base 40; after the fix y1 and the exit apply and nothing holds), D3 lifted at 50 on its card: the offer obeys the rule (after the fix an adopt-observed 50 with []); (e) N28-NEVER-HELD-NULL\'s input on the host (w null, D1 at 60 adopted, D2 lifted 65 on the 60 card): []. Host v1 slots at the host\'s own revision (typed v2 and R2 are FC12 cells: walk I17)', async () => {
+test('N28-HOST-NO-NEVER-HELD R9.12 [Y] (spec M R9.12 revision 3 NEW ROWS, the host side of RESIDUAL (iv) :157; green-kept, killed by mutant (xii)): through the durable host\'s check and a reopen, every issued body (read back from the log after its yes) obeys: an adopt-baseline carries authority_refs [] unless an active hold of the lift names each ref, and then exactly that hold\'s holding-record Refs; the only other non-empty fill is the MISSED-DEBUT claim, on an adopt-observed, naming exactly its latest consumed Close. (a) a never-held lift with w null and a baseline-ask completion: [] ; (b) the L12-B5 host input (D1 45 on the 40 card adopted, D2 trained on the 45 card) at an admitted base 42.5 (y1 held), the check on D2: exactly [y1]; (d) after that exit and its Undo (no return), D3 on the baseline ask: []; (c) the same input after the return (base 40; after the fix y1 and the exit apply and nothing holds), D3 lifted at 50 on its card: the offer obeys the rule (after the fix an adopt-observed 50 with []); and (D-R20L1-4) the same input after the return with the exit\'s Undo accepted (w null, no active hold), D3 on the baseline ask at 50: the offer is an adopt-baseline and it carries [], so the rule\'s adopt-baseline clause is exercised after the return; (e) N28-NEVER-HELD-NULL\'s input on the host (w null, D1 at 60 adopted, D2 lifted 65 on the 60 card): []. Host v1 slots at the host\'s own revision (typed v2 and R2 are FC12 cells: walk I17)', async () => {
   const moved = day => withPress(day, { w: 42.5 });
   const HOLDS = ['NATIVE_LOAD_EFFECT_CONFLICT', 'NATIVE_LOAD_RECORD_INVALID', 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', 'NATIVE_LOAD_SOURCE_OVERLAP'];
   const holdRefs = p => p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by && HOLDS.includes(i.code)).flatMap(i => i.refs.map(r => r.op_id)).sort();
@@ -1214,7 +1214,7 @@ test('N28-HOST-NO-NEVER-HELD R9.12 [Y] (spec M R9.12 revision 3 NEW ROWS, the ho
     assert.deepEqual((await yesOn(h2, era, r2.offers.find(o => o.kind === 'adopt-observed'), '(e)')).refs, [], '(e) nc-y1 applied, never held: []');
     h2.close(); era.close();
   }
-  for (const variant of ['held', 'return']) { // (b), then (d) or (c)
+  for (const variant of ['held', 'return', 'return-undo']) { // (b), then (d), (c) or (c) with the Undo (D-R20L1-4)
     const fault = faultDatabase(), era = await reopenAt(fault, D1);
     hostGate(era);
     const one = await dayEntry(era, D1);
@@ -1250,6 +1250,26 @@ test('N28-HOST-NO-NEVER-HELD R9.12 [Y] (spec M R9.12 revision 3 NEW ROWS, the ho
       assert.ok(o3, '(d) ' + JSON.stringify(r3.refusal));
       assert.deepEqual((await yesOn(h3, again, o3, '(d)')).refs, [], '(d) a baseline ask after a superseded hold: []');
       h3.close(); again.close();
+    } else if (variant === 'return-undo') {
+      // D-R20L1-4 (Fable R20-l1 F6): after the return the (c) card is 45, so its later completion is an adopt-observed and the
+      // adopt-baseline clause of the rule held vacuously there. Here the exit's Undo is accepted after the return (w null: the
+      // held projection's image, as N28-B5-ASTRA order (B)); D3 on the baseline ask at 50 is then offered an adopt-baseline.
+      host.close(); again.close();
+      const back = await reopenAt(fault, D3), hb = await back.createNativeLoadHost({ day: D3, engineState: basisFor(D3) });
+      const u = await hb.check({ lift_lineage_id: 'demo-press', completion_op_id: c2, intent: { compensate: y2.body.spend_id } });
+      assert.equal(u.status, 'offer', '(c) the exit\'s Undo after the return ' + JSON.stringify(u.refusal));
+      assert.equal((await hb.respond({ handle: u.offers[0].handle, proposal_id: u.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+      const pu = await hb.project(); hb.close();
+      assert.deepEqual([pressOf(pu).w, holdRefs(pu)], [null, []], '(c) after the return and the exit\'s Undo: w null, no active hold');
+      const three = await dayEntryWith(back, D3, basisFor(D3)), slots = await slotsOf(three.entry, D3);
+      assert.ok(slots.filter(x => x.lift_lineage_id === 'demo-press').every(x => x.load.state === 'not_prescribed'), '(c) the baseline ask after the Undo');
+      three.entry.gymHost.close();
+      await trainOn(back, D3, basisFor(D3), { load: '50' });
+      const h3 = await back.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), c3 = (await closesOf(back))[2];
+      const r3 = await h3.check({ lift_lineage_id: 'demo-press', completion_op_id: c3 }), o3 = r3.offers.find(o => o.kind === 'adopt-baseline');
+      assert.ok(o3, '(c) an adopt-baseline on the baseline-ask completion ' + JSON.stringify(r3.refusal) + ' ' + JSON.stringify(r3.offers.map(o => o.kind)));
+      assert.deepEqual((await yesOn(h3, back, o3, '(c) adopt-baseline after the return')).refs, [], '(c) the adopt-baseline after the return and the Undo: []');
+      h3.close(); back.close();
     } else {
       host.close(); again.close();
       const back = await reopenAt(fault, D3), hb = await back.createNativeLoadHost({ day: D3, engineState: basisFor(D3) });
