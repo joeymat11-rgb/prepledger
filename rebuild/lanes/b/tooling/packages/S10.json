@@ -2027,6 +2027,15 @@
         "rebuild/m4/workout/test/s10-engine-files-differential.cjs"
       ],
       "needle": null
+    },
+    {
+      "name": "s10-copy-lock",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs"
+      ],
+      "needle": null
     }
   ],
   "notes": [

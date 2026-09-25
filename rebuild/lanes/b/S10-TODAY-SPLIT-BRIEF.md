@@ -159,7 +159,7 @@ State at this brief of record (FINAL, 2026-09-25; replaces the working paper's
 - S10 declarations: `rebuild/lanes/b/tooling/packages/S10.json` at f97924a,
   sha256 66df4c06d8574545cdcfadbb61290e3366df8a2c91b716eb8ba7ec78a2bc343f,
   status PROPOSED; packageId, brief, theme, release and supersession hashes,
-  artifact paths, review prefix and all 35 child needles are null until
+  artifact paths, review prefix and all 35 child needles (36 with s10-copy-lock, section 8 answer 8) are null until
   runbook T4-T6; 297 declared paths (232 carried, 20 edited, 42 new, 2
   released, 1 superseded-by-child; its notes[1]); runner
   `rebuild/lanes/b/tooling/b-package.cjs` sha256
