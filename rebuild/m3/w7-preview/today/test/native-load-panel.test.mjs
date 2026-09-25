@@ -1131,3 +1131,139 @@ test('FIT-PANEL R9.10 [Y] (spec R9.10 L FIT-PANEL, T/gym-model.mjs:68-76; DECISI
     one.entry.gymHost.close(); era.close();
   }
 });
+// Round 20 part B2 (spec R9.11 M (q) N27-B39-HOST; spec R9.12 revision 3 N28-HOST-NO-NEVER-HELD, RESIDUAL (iv) :157). The
+// durable host, as N27 (a) and R16-B28 use it: the admitted basis is the page's engineState (withPress moves the base), the
+// check and the yes run through createNativeLoadHost, and each issued body is read back from the installation's own log.
+const D5 = '2030-02-18';
+const closesOf = async era => (await opsOf(era)).filter(o => o.kind === 'session-close').sort((a, b) => a.device_seq - b.device_seq).map(o => o.op_id);
+const bodyOfResponse = async (era, proposalId) => (await responsesOf(era)).find(o => o.payload.proposal_id === proposalId).payload.issuance.body;
+test('N27-B39-HOST R9.11 [Y] (spec R9.11 M (q), Astra\'s host reduction; red on dfc4445, 189d076 and the part-B1 product: gym.read blocked ENGINE_CAPTURE_BASELINE_UNPROVEN with Q45 pending): yes Q45 over 40; a reopen admits base 42.5 (no ordering op); D3 on the baseline ask at 60 and its exit yes [adopt-baseline 60, 60]; the exit\'s Undo accepted; a reopen at base 40 -> gym.read is ready, demo-press is the baseline ask (not_prescribed) and demo-row normal; D4 at 45 offers [adopt-baseline 45]; after its yes and a reopen the card reads 45 lb', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const entry = await yesTo(era, 'demo-press');
+  entry.gymHost.close(); era.close();
+  const moved = day => withPress(day, { w: 42.5 });
+  const again = await reopenAt(fault, D3), three = await dayEntryWith(again, D3, moved(D3));
+  assert.equal((await train(three.entry, 12, '1', { load: '60' })).finished.ok, true);
+  await three.entry.nativeLoad.settled(); await three.entry.nativeLoad.check();
+  const offer = three.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.ok(offer, 'the exit on D3 ' + JSON.stringify(three.entry.nativeLoad.view().refusals));
+  assert.deepEqual([offer.kind, offer.loads], ['adopt-baseline', [60, 60]]);
+  assert.equal((await three.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  three.entry.gymHost.close();
+  const exit = await bodyOfResponse(again, offer.proposalId), q45 = (await responsesOf(again))[0].op_id;
+  assert.deepEqual(exit.basis.load_basis.authority_refs.map(r => r.op_id), [q45], 'the exit names the Q45 yes');
+  const host = await again.createNativeLoadHost({ day: D3, engineState: moved(D3) });
+  const undo = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: exit.evidence.at(-1).close.op_id, intent: { compensate: exit.spend_id } });
+  assert.equal(undo.status, 'offer', JSON.stringify(undo.refusal));
+  assert.equal((await host.respond({ handle: undo.offers[0].handle, proposal_id: undo.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+  host.close(); again.close();
+  const later = await reopenAt(fault, D4), four = await dayEntry(later, D4), view = await four.entry.gym.read();
+  assert.equal((await responsesOf(later)).length, 3, 'three responses kept');
+  assert.equal(view.phase, 'ready', 'gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+  const slots = await slotsOf(four.entry, D4);
+  assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), 'demo-press: the baseline ask');
+  assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), 'demo-row normal');
+  const h4 = await later.createNativeLoadHost({ day: D4, engineState: basisFor(D4) }), p4 = await h4.project();
+  assert.deepEqual([pressOf(p4).w, nativeQueue(p4.state, 'demo-press').filter(x => !x.done), p4.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, [], []], 'w null, no pending native entry, no active issue');
+  h4.close();
+  assert.equal((await train(four.entry, 12, '1', { load: '45' })).finished.ok, true);
+  await four.entry.nativeLoad.settled(); await four.entry.nativeLoad.check();
+  const a45 = four.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.ok(a45, 'D4 ' + JSON.stringify(four.entry.nativeLoad.view().refusals));
+  assert.deepEqual([a45.kind, a45.loads], ['adopt-baseline', [45, 45]]);
+  assert.equal((await four.entry.nativeLoad.accept(a45.proposalId)).acknowledged, true);
+  four.entry.gymHost.close(); later.close();
+  const last = await reopenAt(fault, D5), five = await dayEntry(last, D5), v5 = await five.entry.gym.read();
+  assert.equal(v5.phase, 'ready', v5.code || '');
+  assert.equal(v5.lift.id, 'demo-press'); assert.match(v5.prescription.line, /^45 lb/, 'the card reads 45 lb');
+  five.entry.gymHost.close(); last.close();
+});
+test('N28-HOST-NO-NEVER-HELD R9.12 [Y] (spec M R9.12 revision 3 NEW ROWS, the host side of RESIDUAL (iv) :157; green-kept, killed by mutant (xii)): through the durable host\'s check and a reopen, every issued body (read back from the log after its yes) obeys: an adopt-baseline carries authority_refs [] unless an active hold of the lift names each ref, and then exactly that hold\'s holding-record Refs; the only other non-empty fill is the MISSED-DEBUT claim, on an adopt-observed, naming exactly its latest consumed Close. (a) a never-held lift with w null and a baseline-ask completion: [] ; (b) the L12-B5 host input (D1 45 on the 40 card adopted, D2 trained on the 45 card) at an admitted base 42.5 (y1 held), the check on D2: exactly [y1]; (d) after that exit and its Undo (no return), D3 on the baseline ask: []; (c) the same input after the return (base 40; after the fix y1 and the exit apply and nothing holds), D3 lifted at 50 on its card: the offer obeys the rule (after the fix an adopt-observed 50 with []); (e) N28-NEVER-HELD-NULL\'s input on the host (w null, D1 at 60 adopted, D2 lifted 65 on the 60 card): []. Host v1 slots at the host\'s own revision (typed v2 and R2 are FC12 cells: walk I17)', async () => {
+  const moved = day => withPress(day, { w: 42.5 });
+  const HOLDS = ['NATIVE_LOAD_EFFECT_CONFLICT', 'NATIVE_LOAD_RECORD_INVALID', 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED', 'NATIVE_LOAD_SOURCE_OVERLAP'];
+  const holdRefs = p => p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by && HOLDS.includes(i.code)).flatMap(i => i.refs.map(r => r.op_id)).sort();
+  const rule = (body, held, label) => {
+    const ar = (body.basis.load_basis.authority_refs || []).map(r => r.op_id);
+    if (!ar.length) return ar;
+    if (body.kind === 'adopt-baseline') assert.deepEqual(ar, held, label + ': an adopt-baseline names exactly the active hold\'s refs');
+    else { assert.equal(body.kind, 'adopt-observed', label + ': only an adopt-observed carries the claim'); assert.deepEqual(ar, [body.evidence.at(-1).close.op_id], label + ': the claim names exactly its latest consumed Close'); }
+    return ar;
+  };
+  const yesOn = async (host, era, offer, label) => {
+    const held = holdRefs(await host.project());
+    assert.equal((await host.respond({ handle: offer.handle, proposal_id: offer.proposalId, answer: 'accept' })).acknowledged, true, label);
+    const body = await bodyOfResponse(era, offer.proposalId);
+    return { body, refs: rule(body, held, label) };
+  };
+  const trainOn = async (era, day, basis, opts) => { const d = await dayEntryWith(era, day, basis); assert.equal((await train(d.entry, 12, '1', opts)).finished.ok, true, day); await d.entry.nativeLoad.settled(); d.entry.gymHost.close(); };
+  { // (a) and (e)
+    const fault = faultDatabase(), era = await reopenAt(fault, D1);
+    hostGate(era);
+    const b = day => withPress(day, { w: null });
+    await trainOn(era, D1, b(D1), { load: '60' });
+    const host = await era.createNativeLoadHost({ day: D1, engineState: b(D1) }), c1 = (await closesOf(era))[0];
+    const r = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: c1 }), off = r.offers.find(o => o.kind === 'adopt-baseline');
+    assert.ok(off, '(a) ' + JSON.stringify(r.refusal));
+    assert.deepEqual((await yesOn(host, era, off, '(a)')).refs, [], '(a) a never-held lift: []');
+    host.close();
+    await trainOn(era, D2, b(D2), { loadFor: { 'demo-press': 65 } });
+    const h2 = await era.createNativeLoadHost({ day: D2, engineState: b(D2) }), c2 = (await closesOf(era))[1];
+    const r2 = await h2.check({ lift_lineage_id: 'demo-press', completion_op_id: c2 });
+    assert.ok(r2.offers.some(o => o.kind === 'adopt-observed'), '(e) the adoption of 65 ' + JSON.stringify(r2.refusal));
+    assert.deepEqual((await yesOn(h2, era, r2.offers.find(o => o.kind === 'adopt-observed'), '(e)')).refs, [], '(e) nc-y1 applied, never held: []');
+    h2.close(); era.close();
+  }
+  for (const variant of ['held', 'return']) { // (b), then (d) or (c)
+    const fault = faultDatabase(), era = await reopenAt(fault, D1);
+    hostGate(era);
+    const one = await dayEntry(era, D1);
+    assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true);
+    await one.entry.nativeLoad.settled(); await one.entry.nativeLoad.check();
+    const adopt = one.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+    assert.equal(adopt && adopt.kind, 'adopt-observed');
+    assert.equal((await one.entry.nativeLoad.accept(adopt.proposalId)).acknowledged, true);
+    one.entry.gymHost.close();
+    const two = await dayEntry(era, D2);
+    assert.match((await two.entry.gym.read()).prescription.line, /^45 lb/, 'y1 applied: the D2 card is 45');
+    assert.equal((await train(two.entry)).finished.ok, true);
+    await two.entry.nativeLoad.settled(); two.entry.gymHost.close(); era.close();
+    const again = await reopenAt(fault, D3), host = await again.createNativeLoadHost({ day: D3, engineState: moved(D3) });
+    const y1 = (await responsesOf(again))[0].op_id, c2 = (await closesOf(again))[1];
+    assert.deepEqual(holdRefs(await host.project()), [y1], '(b) the admitted base 42.5 holds y1');
+    const ex = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: c2 }), off = ex.offers.find(o => o.kind === 'adopt-baseline');
+    assert.ok(off, '(b) the exit ' + JSON.stringify(ex.refusal));
+    const y2 = await yesOn(host, again, off, '(b)');
+    assert.deepEqual(y2.refs, [y1], '(b) exactly [y1 response Ref]');
+    if (variant === 'held') {
+      const u = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: c2, intent: { compensate: y2.body.spend_id } });
+      assert.equal(u.status, 'offer', '(d) the Undo ' + JSON.stringify(u.refusal));
+      assert.equal((await host.respond({ handle: u.offers[0].handle, proposal_id: u.offers[0].proposalId, answer: 'accept' })).acknowledged, true);
+      host.close();
+      const three = await dayEntryWith(again, D3, moved(D3)), slots = await slotsOf(three.entry, D3);
+      assert.ok(slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), '(d) the baseline ask after the exit and its Undo');
+      three.entry.gymHost.close();
+      await trainOn(again, D3, moved(D3), { load: '50' });
+      const h3 = await again.createNativeLoadHost({ day: D3, engineState: moved(D3) }), c3 = (await closesOf(again))[2];
+      assert.deepEqual(holdRefs(await h3.project()), [], '(d) no active hold: y1\'s hold is superseded');
+      const r3 = await h3.check({ lift_lineage_id: 'demo-press', completion_op_id: c3 }), o3 = r3.offers.find(o => o.kind === 'adopt-baseline');
+      assert.ok(o3, '(d) ' + JSON.stringify(r3.refusal));
+      assert.deepEqual((await yesOn(h3, again, o3, '(d)')).refs, [], '(d) a baseline ask after a superseded hold: []');
+      h3.close(); again.close();
+    } else {
+      host.close(); again.close();
+      const back = await reopenAt(fault, D3), hb = await back.createNativeLoadHost({ day: D3, engineState: basisFor(D3) });
+      hb.close();
+      await trainOn(back, D3, basisFor(D3), { loadFor: { 'demo-press': 50 } });
+      const h3 = await back.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), c3 = (await closesOf(back))[2];
+      const r3 = await h3.check({ lift_lineage_id: 'demo-press', completion_op_id: c3 });
+      const o3 = r3.offers.find(x => x.lift === 'demo-press');
+      assert.ok(o3, '(c) an offer on the later completion ' + JSON.stringify(r3.refusal));
+      await yesOn(h3, back, o3, '(c) ' + o3.kind);
+      const p = await h3.project(); h3.close(); back.close();
+      const cold = await reopenAt(fault, D3), hc = await cold.createNativeLoadHost({ day: D3, engineState: basisFor(D3) }), pc = await hc.project();
+      assert.equal(JSON.stringify([pc.state, pc.issues]), JSON.stringify([p.state, p.issues]), '(c) a cold reopen projects the same');
+      hc.close(); cold.close();
+    }
+  }
+});

@@ -441,9 +441,14 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
       if (baseVec.some((v) => v !== null)) return 'base_load';
       if (cap.some((v) => typeof v === 'number')) {
         const holding = (id) => (issues || []).some((i) => i && i.lift === lift && isHold(i) && !i.superseded_by && (i.refs || []).some((x) => map(x) && x.op_id === id));
+        // Spec R9.12 (1b) (:155 arm (ii), Astra L12-B5; PM ruling STOP-R912-1/-2 option (C)): a ref that NO hold issue of
+        // the lift names, active or superseded, is also admitted when its op is proven before the Start of the latest
+        // consumed completion (ONE ANCHOR, latest as ranked above), as the fold's dissolved-hold exit (M (1)) requires.
+        // A ref that no hold ever named meets the same test: RESIDUAL (iv) (:157), never issued by the guarded host.
+        const dissolved = (id) => !(issues || []).some((i) => i && i.lift === lift && isHold(i) && (i.refs || []).some((x) => map(x) && x.op_id === id));
         const ok = (r) => { if (r === null || !authentic(r)) return false; const o = byId.get(r.op_id);
           return o.class === 'plan' && o.kind === 'proposal-response' && map(o.payload) && map(o.payload.issuance) && map(o.payload.issuance.body) &&
-            o.payload.issuance.body.lift_lineage_id === lift && holding(r.op_id); };
+            o.payload.issuance.body.lift_lineage_id === lift && (holding(r.op_id) || (dissolved(r.op_id) && provenBefore([o], byId.get(latest.start), byId))); };
         if (!ar.length || !ar.every(ok)) return 'base_load';
       }
     } else if (body.kind === 'adopt-observed' && ar.length) {
@@ -555,6 +560,30 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
   // that are not proven to precede it in the log.
   const behindHolds = (lift, recOps) => (disputed.get(lift) || []).some((h) => !h.issue.superseded_by &&
     (!h.logOrdered || !h.ops.length || !h.ops.every((hop) => provenBefore(recOps, hop, byId))));
+  // Spec R9.11 M (1), R9.12 (:158 EXIT AFTER ITS HOLDS DISSOLVE; ONE ANCHOR; PM ruling STOP-R912-1/-2 option (C), no
+  // witness): an adopt-baseline naming a non-empty load_basis.authority_refs, on a lift with NO active hold at its place,
+  // keeps its exit (b) meaning when every ref is an authentic proposal-response of this lift, proven before the Start of
+  // the latest consumed completion (the consumed root of greatest rank in facts.order.start_ids, ranked as S8 ranks it;
+  // no facts or no consumed root: no anchor, no exit), and no hold issue of the lift, active or superseded, names it.
+  // A ref that no hold ever named passes the same test: RESIDUAL (iv) (:157). A null and a numeric capture alike.
+  const dissolvedExit = (body, holdIssues) => {
+    if (body.kind !== 'adopt-baseline' || holdIssues.length || !facts) return false;
+    const lift = body.lift_lineage_id;
+    const ar = map(body.basis) && map(body.basis.load_basis) && Array.isArray(body.basis.load_basis.authority_refs) ? body.basis.load_basis.authority_refs : [];
+    if (!ar.length) return false;
+    const rank = new Map(((facts.order && facts.order.start_ids) || []).map((id, k) => [id, k]));
+    const roots = body.consumes.map((c) => { try { const k = JSON.parse(c); return Array.isArray(k) && k.length === 3 && text(k[0]) ? k[0] : null; } catch (_) { return null; } }).filter(Boolean);
+    const latest = roots.slice().sort((a, b) => (rank.get(a) ?? -1) - (rank.get(b) ?? -1)).pop();
+    const anchor = latest ? byId.get(latest) : null;
+    if (!anchor || anchor.class !== 'session' || anchor.kind !== 'session-start') return false;
+    return ar.every((r) => {
+      if (!map(r) || !byId.has(r.op_id) || byId.get(r.op_id).canonical_content_commitment !== r.commitment) return false;
+      const o = byId.get(r.op_id);
+      return o.class === 'plan' && o.kind === 'proposal-response' && map(o.payload) && map(o.payload.issuance) && map(o.payload.issuance.body) &&
+        o.payload.issuance.body.lift_lineage_id === lift && provenBefore([o], anchor, byId) &&
+        !issues.some((i) => i && i.lift === lift && isHold(i) && (i.refs || []).some((x) => map(x) && x.op_id === r.op_id));
+    });
+  };
   // The native-load family: every native accept is admitted, coalesced or refused BY NAME.
   for (const op of ops) {
     if (!(op.class === 'plan' && op.kind === 'proposal-response' && map(op.payload) && map(op.payload.issuance) && op.payload.issuance.producer === PRODUCER)) continue;
@@ -661,8 +690,9 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
       // it adopts when that Start is itself proven before the response.
       const anchors = [g.ops[0], ...body.consumes.map((c) => { try { const k = JSON.parse(c); return Array.isArray(k) ? byId.get(k[0]) : null; } catch { return null; } })
         .filter((s) => s && s.kind === 'session-start' && provenBefore([s], g.ops[0], byId))];
-      const exitB = body.kind === 'adopt-baseline' && holdIssues.length > 0 &&
-        holdIssues.flatMap((i) => i.refs || []).every((r) => { const hop = byId.get(r.op_id); return !!hop && anchors.some((a) => provenBefore([hop], a, byId)); });
+      const exitB = (body.kind === 'adopt-baseline' && holdIssues.length > 0 &&
+        holdIssues.flatMap((i) => i.refs || []).every((r) => { const hop = byId.get(r.op_id); return !!hop && anchors.some((a) => provenBefore([hop], a, byId)); })) ||
+        dissolvedExit(body, holdIssues);
       const V = exitB ? projectHeld(state, [lift]) : state;
       const behind = !exitB && behindHolds(lift, g.ops);
       const overlap = spent.filter((x) => x.spend_id !== body.spend_id && x.consumes.some((c) => body.consumes.includes(c)));
@@ -1065,7 +1095,7 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:b9763f168d002f57aae7119663058e63f1546ed486f154985f2c91fbbb9ee19e';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:1d7dbe40782cc96971a94911aa90ed9dc77a28440ef5f60fbdc088f628803def';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf,
   heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]), isHold };

@@ -558,6 +558,9 @@ function transition(state, decision, context) {
   if (Array.isArray(ex.wSets)) refuse('VECTOR_ADOPTION_UNDEFINED', responseRefs);
   const prior = fieldImage(ex);
   ex.w = d.target_load.scalar.value;
+  // Spec R9.11 M (3), SCALAR ADOPTION OVER A NULL VECTOR (:150): a scalar adoption removes a PRESENT null wSets (the
+  // prior image above is taken first), so no native path leaves a numeric w over a null wSets (engine-capture.cjs:80-82).
+  if (Object.hasOwn(ex, 'wSets') && ex.wSets === null) delete ex.wSets;
   ex.wAt = session.effective.local_date;
   ex.topAt = null; ex.topRun = 0;
   ex.native_load_authority = { kind: 'adopted', spend_id: d.spend_id, response_refs: responseRefs, prior };
