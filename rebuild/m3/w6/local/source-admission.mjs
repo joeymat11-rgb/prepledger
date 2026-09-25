@@ -483,6 +483,14 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
     state.retirements={...(state.retirements||{}),[row.id]:currentDay()};
    }
   }
+  /* A-LEGACY-VECTOR, THE ADMISSION INVARIANT (NATIVE-LOAD-SPEC R9.13 (iv); owner approval DECISIONS:819, "Spread it evenly").
+     A pending legacy scalar debut or unlock on a lift that stores per-set weights is admitted with the shifted per-set vector
+     (legacyVectorAdmission, at the foot of this module). ORDERING, as above: on the replayed state, after the document-lift
+     append and BEFORE any family reads it, so every later reader sees ONE state. The replayed state is not a digest input (Q
+     hashes operations, interpretation, programme, order map and engine; programme() ran above, before this), so the source
+     and checkpoint digests and the programme basis are the same with or without it. An entry it cannot spread evenly (open
+     question N-Q1) is left as it was; its day refuses as before and nothing is raised. */
+  legacyVectorAdmission(state);
   const facts=reading({operations:ops,dispositions:c.dispositions||{},receipts:c.receipts||{},frontier:c.sync.frontier,outbox:c.outbox,rejected:c.rejected||{}});
   const days=new Set((state.reads||[]).map(r=>r.d)),nativeReads=facts.records.filter(r=>r.original.kind==='fact').sort((a,b)=>a.original.device_seq-b.original.device_seq);
   let last=(state.reads||[]).map(r=>r.d).sort().at(-1)||null;
@@ -829,3 +837,27 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
  const api=Object.freeze({reviewSource,prepareSource:(review,answers)=>prepareSource(review,answers),reopen,rollback,assertCurrent:handle=>{assertLocalSourceQualification(handle);const q=qualifications.get(handle);if(q.controller!==api)fail('LOCAL_SOURCE_QUALIFICATION_UNOWNED');return current(q.held);},view:async handle=>{assertLocalSourceQualification(handle);const q=qualifications.get(handle);if(q.controller!==api)fail('LOCAL_SOURCE_QUALIFICATION_UNOWNED');await current(q.held);return q.view;},invalidate(){epoch++;},close(){closed=true;epoch++;}});
  return api;
 }
+/* A-LEGACY-VECTOR BEGIN (NATIVE-LOAD-SPEC R9.13 (iv), an ADMISSION INVARIANT; owner approval DECISIONS:819: "If found, spread
+   that pending increase evenly or skip it?" = "Spread it evenly (Recommended)"). The ONE write: a LEGACY SCALAR STRUCTURAL ENTRY
+   (a queue item not done, not PROPOSED, kind debut or unlock, no native_load_spend string, a finite numeric newW and no
+   newWSets: the entry engine-capture.cjs:82-83 refuses over a per-set-weight lift) on a lift whose wSets is an array, under
+   PRECONDITION P (w a finite number and every wSets element a finite number <= w), gets newWSets = wSets.map(x => x + (newW - w)):
+   the earn.cjs:88 shape (also :63, :97), so no set is above the old app's own card newW and the trailing sets stay equal or lower.
+   Nothing else is written: newW, state, t, every other entry, w and wSets are unchanged. An entry that fails P is left unconverted
+   and returned by name (open question N-Q1). A converted entry carries newWSets and is never converted again (idempotent).
+   Dependency-free on purpose: the NATIVE-LOAD walk (rebuild/m4/spec/native-load-options.test.cjs) evaluates these exact bytes,
+   read between the two markers, because this module's own graph reaches a protected engine file. */
+export function legacyVectorAdmission(state){
+ const exercises=Array.isArray(state&&state.exercises)?state.exercises:[],queue=Array.isArray(state&&state.queue)?state.queue:[],named=[];
+ for(const q of queue){
+  if(!q||typeof q!=='object'||q.done||q.state==='PROPOSED'||(q.kind!=='debut'&&q.kind!=='unlock')||typeof q.native_load_spend==='string'||
+   typeof q.newW!=='number'||!Number.isFinite(q.newW)||q.newWSets!==undefined)continue;
+  const ex=exercises.find(x=>x&&x.id===q.exId);
+  if(!ex||!Array.isArray(ex.wSets))continue;
+  if(typeof ex.w!=='number'||!Number.isFinite(ex.w)||!ex.wSets.every(x=>typeof x==='number'&&Number.isFinite(x)&&x<=ex.w)){
+   named.push({exId:q.exId,kind:q.kind,newW:q.newW,w:ex.w===undefined?null:ex.w,wSets:ex.wSets.slice()});continue;}
+  q.newWSets=ex.wSets.map(x=>x+(q.newW-ex.w));
+ }
+ return named;
+}
+/* A-LEGACY-VECTOR END */

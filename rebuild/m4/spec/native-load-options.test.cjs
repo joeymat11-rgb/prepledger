@@ -1294,18 +1294,59 @@ test('R7-P1 DEPENDENT OF A HELD EFFECT (property seeds 20269845, 20274085; spec 
 //     round 17c, spec R9.8 :156: a consented RESTORE target is an accepted target too);
 //  I2 a proven cancellation (an undo offered and recorded) is never lost, and never re-offered;
 //  I3 the same result under both delivery orders (responses moved to a second device,
-//     causal parents chained, device B's own sequence ascending with that chain, round 18)
+//     causal parents chained, device B's own sequence ascending with that chain, round 18;
+//     since round 21c by deliveryTransform, which keeps FC03 provenBefore identical)
 //     and under revision R1 or R2;
 //  I4 a rename never changes an outcome;
 //  I5 a stale offer never writes: after a plan edit the old issuance is never fresh (round 18:
 //     except under a consented RESTORE, whose recorded target a w-only edit cannot move).
 // NATIVE_LOAD_PROPERTY_RUNS (default 150) and NATIVE_LOAD_PROPERTY_SEED (default 20260923).
 // ======================================================================
+// Round 21c (spec R9.13 (viii) WALK-I3-PARTIAL-ORDER; Fable R21 l1 F2 = D-R21L1-2): a delivery transform that I3 compares
+// against must keep provenBefore (FC03's own function, read out of the product file and evaluated as written, as ALV is) for
+// every ordered pair of ops. orderKept is that precondition, before and after each transformed log: it throws
+// TRANSFORM_ORDER_CHANGED, which is not a counterexample, so the walk stops loudly (never a skip).
+const PROVEN=(()=>{try{const src=require('node:fs').readFileSync(EFFECTS_FILE,'utf8'),a=src.indexOf('\nfunction provenBefore('),b=a<0?-1:src.indexOf('\n}\n',a),t=src.match(/\nconst text = [^\n]*;\n/);
+ if(a<0||b<0||!t)return {fn:null,reason:'function provenBefore or const text absent from '+EFFECTS_FILE};
+ return {fn:new Function(t[0].trim()+src.slice(a,b+2)+'\nreturn provenBefore;')(),reason:null};}catch(err){return {fn:null,reason:String(err&&err.message||err)};}})();
+const provenPairs=ops=>{assert.ok(PROVEN.fn,'RED PROVEN_BEFORE_ABSENT: '+PROVEN.reason);const xs=Object.values(ops),byId=new Map(xs.map(x=>[x.op_id,x])),out=[];
+ for(const a of xs)for(const b of xs)if(a!==b&&PROVEN.fn([a],b,byId))out.push(a.op_id+' < '+b.op_id);return out.sort();};
+function orderKept(before,ops,where){const after=provenPairs(ops);if(JSON.stringify(after)===JSON.stringify(before))return;
+ const A=new Set(after),B=new Set(before),e=new Error('TRANSFORM_ORDER_CHANGED '+where+' added '+JSON.stringify(after.filter(x=>!B.has(x)))+' dropped '+JSON.stringify(before.filter(x=>!A.has(x))));
+ e.code='TRANSFORM_ORDER_CHANGED';throw e;}
+// The delivery transform both walks use (R7 and R8 twoDevice). provenBefore is not transitive across a device's own sequence:
+// it walks only causal_parents (and device_predecessor_op_id) and uses device_seq at the two end points only. So chaining each
+// op after its same-device predecessor (round 21a's R8 form) ADDS pairs whenever an op on another device names a causal parent
+// on that device (measured, R8 seed 20261001: the device-B dup fx-p-3 names fx-p-1, and fx-close-1 .. fx-start-4 became proven
+// before it). Rule (viii) allows a move "only where that adds no pair": each plan op of an original device d may move, in
+// original order, to device 'fx-2dev|'+d (sequence 1000+i); a moved op p gains as causal parents the ops of d below it that do
+// not move, and each op of d above it that does not move gains p; the ops of d that move keep their order on the new device.
+// All plan ops move when that keeps provenBefore identical; otherwise ops are admitted one at a time in (device, sequence)
+// order, each only if the whole relation stays identical. orderKept is then asserted. stats counts moved and kept plan ops.
+function deliveryTransform(ops,where,stats){
+ const pre=provenPairs(ops),all=Object.values(ops),orig=new Map(all.map(op=>[op.op_id,{device_id:op.device_id,device_seq:op.device_seq,has:Object.hasOwn(op,'causal_parents'),parents:Array.isArray(op.causal_parents)?op.causal_parents.slice():op.causal_parents}]));
+ const byDev=new Map();for(const op of all){if(!byDev.has(op.device_id))byDev.set(op.device_id,[]);byDev.get(op.device_id).push(op);}
+ for(const xs of byDev.values())xs.sort((x,y)=>x.device_seq-y.device_seq||(x.op_id<y.op_id?-1:1));
+ const plan=[...byDev.values()].flat().filter(op=>op.class==='plan');
+ const add=(op,id)=>{const ps=Array.isArray(op.causal_parents)?op.causal_parents:[];if(!ps.includes(id))op.causal_parents=[...ps,id];};
+ const apply=moved=>{
+  for(const op of all){const o=orig.get(op.op_id);op.device_id=o.device_id;op.device_seq=o.device_seq;if(o.has)op.causal_parents=Array.isArray(o.parents)?o.parents.slice():o.parents;else delete op.causal_parents;}
+  for(const [d,xs] of byDev){
+   for(const p of xs){if(!moved.has(p.op_id))continue;const s=orig.get(p.op_id).device_seq;
+    for(const q of xs){if(q===p||moved.has(q.op_id))continue;const t=orig.get(q.op_id).device_seq;if(t<s)add(p,q.op_id);else if(t>s)add(q,p.op_id);}}
+   let i=0;for(const p of xs)if(moved.has(p.op_id)){p.device_id='fx-2dev|'+d;p.device_seq=1000+(i++);}}
+  return JSON.stringify(provenPairs(ops))===JSON.stringify(pre);
+ };
+ let chosen=new Set(plan.map(p=>p.op_id));
+ if(!apply(chosen)){chosen=new Set();for(const p of plan){chosen.add(p.op_id);if(!apply(chosen))chosen.delete(p.op_id);}apply(chosen);}
+ orderKept(pre,ops,where);
+ if(stats){stats.moved+=chosen.size;stats.kept+=plan.length-chosen.size;}
+}
 function mulberry32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function propertySequence(seed){
  const rnd=mulberry32(seed),pick=xs=>xs[Math.floor(rnd()*xs.length)],chance=p=>rnd()<p;
  const baseline=chance(0.25),origW=baseline?null:100;
- const m={w:origW,n:'Fx Press',comps:[],extras:[],starts:[],proven:[],accepted:new Set(),restores:new Set(),trace:[],k:0};
+ const m={w:origW,n:'Fx Press',comps:[],extras:[],starts:[],proven:[],accepted:new Set(),restores:new Set(),trace:[],k:0,dev2:{moved:0,kept:0}};
  const base=(patch={})=>{const b=F0(origW===null?{w:null}:{});exOf(b).w=patch.w!==undefined?patch.w:m.w;exOf(b).n=patch.n||m.n;return b;};
  const gen=(o={})=>{
   const a=foldArgs(m.comps,m.extras,o.rev||'fx-revision-1',base(o.base));
@@ -1313,12 +1354,12 @@ function propertySequence(seed){
   for(const s of m.starts){if(!ops[s.anchor])continue;/* an older view (undo2) predates this Start */ops[s.c.start]={op_id:s.c.start,athlete_id:ATH,device_id:DEVICE,device_seq:s.afterSeq(ops),class:'session',kind:'session-start',payload:{},canonical_content_commitment:commit(s.c.start)};captureOn(a.generation,s.c,s.loads);}
   for(const c of m.comps)if(c.v1)captureOn(a.generation,c,c.cap);
   if(o.twoDevice){
-   const all=Object.values(ops).sort((x,y)=>x.device_seq-y.device_seq||(x.op_id<y.op_id?-1:1));
-   all.forEach((op,i)=>{if(i)op.causal_parents=[all[i-1].op_id];});
-   // Round 18 (DECISIONS:801 (3), the R8 round-13 convention, R8 seed 20261438; R7 seed
-   // 20270133): device B's own sequence follows its causal chain (1000+i). A descending
-   // sequence (1000-i) contradicts device B's own causal parents, which no authentic log holds.
-   const resp=all.filter(op=>op.class==='plan');resp.forEach((op,i)=>{op.device_id='fx-device-B';op.device_seq=1000+i;});
+   // Round 21c (spec R9.13 (viii); D-R21L1-2 (b)): the round-18 form chained every op after the previous op of ONE global
+   // device_seq sort and put every plan op on device 'fx-device-B' (the dup/undo2 device), so a dup or an older-view undo
+   // on device B became ordered against every op of the main device (R7 seed 20260960, TRANSFORM_ORDER_CHANGED: fx-p-2 and
+   // fx-p-3 gained 30+ pairs). Round 18's rule stands (a moved sequence ascends with its causal chain, 1000+i; R8 seed
+   // 20261438, R7 seed 20270133); the move itself is now deliveryTransform's (above), shared with R8.
+   deliveryTransform(ops,'R7 twoDevice seed='+seed,m.dev2);
    void seq;
   }
   return a;
@@ -1418,6 +1459,7 @@ function propertySequence(seed){
  for(const e2 of f.effects)tally['effect:'+e2.kind]=(tally['effect:'+e2.kind]||0)+1;
  for(const i of f.issues)tally['issue:'+i.code]=(tally['issue:'+i.code]||0)+1;
  if(baseline)tally.baseline=1;
+ tally['twoDevice:moved']=m.dev2.moved;tally['twoDevice:kept']=m.dev2.kept; // Round 21c: plan ops deliveryTransform moved / kept
  Object.defineProperty(tally,'detail',{value:{trace:m.trace,issues:f.issues,spent:f.spent,w:exOf(f.state).w},enumerable:false});
  return tally;
 }
@@ -3131,11 +3173,24 @@ function walkCapture(state,day){
  return adapter.prepare({state,day,sleep:{},basis:structuredClone(WALK_CAP_BASIS)}).capture;
 }
 const liftOfSpend=s=>{try{return JSON.parse(s)[1];}catch{return null;}};
+// Round 21b (spec R9.13 (iv) A-LEGACY-VECTOR, D-L13-LEGACY-WALK; owner approval DECISIONS:819 "Spread it evenly"): the walk and the
+// R913-ALV-* rows call the PRODUCT's admission conversion. rebuild/m3/w6/local/source-admission.mjs cannot be loaded here: its module
+// graph reaches a protected-five file (it imports m4/import/engine-provider.cjs, which requires rebuild/engine/migrate.cjs; the guard
+// refuses it). So its dependency-free conversion is read out of the product file between its A-LEGACY-VECTOR markers and evaluated
+// as written: the product's own bytes, never a copy (R913-ALV-PRODUCT pins the markers, the export and the call site).
+const ALV=(()=>{const file=path.join(ROOT,'rebuild/m3/w6/local/source-admission.mjs');
+ try{const src=require('node:fs').readFileSync(file,'utf8'),a=src.indexOf('/* A-LEGACY-VECTOR BEGIN'),b=src.indexOf('/* A-LEGACY-VECTOR END */');
+  if(a<0||b<a)return {fn:null,src,reason:'A-LEGACY-VECTOR markers absent from '+file};
+  const at=src.indexOf('export function legacyVectorAdmission(',a);if(at<0||at>b)return {fn:null,src,reason:'export function legacyVectorAdmission absent between the markers'};
+  return {fn:new Function(src.slice(at+'export '.length,b).trim()+'\nreturn legacyVectorAdmission;')(),src,reason:null};}
+ catch(err){return {fn:null,src:null,reason:String(err&&err.message||err)};}})();
+// I18's own predicate (never the product's): a LEGACY SCALAR STRUCTURAL ENTRY (spec R9.13 (iv) DEFINITIONS).
+const alvScalar=q=>!!q&&!q.done&&q.state!=='PROPOSED'&&(q.kind==='debut'||q.kind==='unlock')&&typeof q.native_load_spend!=='string'&&typeof q.newW==='number'&&Number.isFinite(q.newW)&&q.newWSets===undefined;
 function propertySequence8(seed){
  const rnd=mulberry32(seed),pick=xs=>xs[Math.floor(rnd()*xs.length)],chance=p=>rnd()<p;
  const baseline=chance(0.25),rowOn=chance(0.5),origW=baseline?null:100;
  const lifts=rowOn?[LIFT,ROW]:[LIFT];
- const m={base:{},legacy:{},comps:[],extras:[],starts:[],proven:[],ledger:[],lastOffer:{},trace:[],k:0,cross:new Set(),missed:[]};
+ const m={base:{},legacy:{},comps:[],extras:[],starts:[],proven:[],ledger:[],lastOffer:{},trace:[],k:0,cross:new Set(),missed:[],dev2:{moved:0,kept:0}};
  // Lifts with a yes that an edit of ANOTHER lift (fork, fact correction) followed.
  const touch=X=>{for(const y of m.ledger)if(y.lift!==X&&y.kind!=='compensate')m.cross.add(y.lift);};
  for(const L of lifts)m.base[L]={w:origW,wSets:null,forks:[],n:L===LIFT?'Fx Press':'Fx Row'};
@@ -3145,6 +3200,10 @@ function propertySequence8(seed){
   for(const L of lifts){const ex=s.exercises.find(x=>x.id===L),B=m.base[L];ex.w=B.w;if(B.wSets)ex.wSets=B.wSets.slice();else delete ex.wSets;ex.forks=structuredClone(B.forks);ex.n=patch.n?patch.n+' '+L:B.n;
    if(B.hi!==undefined)ex.hi=B.hi;if(B.last!==undefined){if(B.last===null)delete ex.last;else ex.last=B.last.slice();}if(B.sets!==undefined)ex.sets=B.sets;}
   for(const L of lifts)if(m.legacy[L])s.queue.push(structuredClone(m.legacy[L]));
+  // Round 21b (spec R9.13 D-L13-LEGACY-WALK): the 'base', 'plan' and 'vector' actions model a RE-ADMISSION (no athlete op writes w
+  // or wSets, W/plan-edit-commands.cjs:46), so the admitted base passes through the product's A-LEGACY-VECTOR conversion (ALV above);
+  // an entry it names (out of precondition, N-Q1) is kept for I18's class (a).
+  if(ALV.fn)m.outOfP=ALV.fn(s);
   return s;
  };
  const gen=(o={})=>{
@@ -3164,12 +3223,19 @@ function propertySequence8(seed){
    if(c.startParents)ops[c.built.start].causal_parents=c.startParents.filter(id=>ops[id]);}
   for(const x of m.extras)if(x.parents&&ops[x.op_id])ops[x.op_id].causal_parents=x.parents.filter(id=>ops[id]);
   if(o.twoDevice){
-   const all=Object.values(ops).sort((x,y)=>x.device_seq-y.device_seq||(x.op_id<y.op_id?-1:1));
-   all.forEach((op,i)=>{if(i)op.causal_parents=[all[i-1].op_id];});
-   // Round 13: device B's own sequence follows the causal chain (1000+i). A descending
-   // sequence (1000-i, rounds 8-12) made device B's order contradict its own causal parents,
-   // which no authentic log can hold, and the log-ordered holds read that order (seed 20261438).
-   all.filter(op=>op.class==='plan').forEach((op,i)=>{op.device_id='fx-device-B';op.device_seq=1000+i;});
+   // Round 21a (Astra L13 D-L13-WALK-I3, seed 13030374): the transform moves the plan ops to other devices and must keep the
+   // ORIGINAL partial order exactly, never add one. Until round 20 it chained every op after the previous op of one global
+   // device_seq sort and put every plan op on ONE device B in that order, which ordered two exits that the log leaves
+   // concurrent (fx-p-7 -> fx-p-8). Now each op keeps its own causal_parents and gains, as causal parents, the op(s) just
+   // before it on its ORIGINAL device (strictly smaller device_seq); the plan ops of each original device d move to their own
+   // device 'fx-2dev|'+d in their original order (1000+i). The happens-before relation is the transitive closure of the same
+   // edges before and after (same-device chains plus causal parents), so the transform neither adds nor drops an order.
+   // Round 21c (spec R9.13 (viii) precondition, D-R21L1-2 (a)): measured against FC03 provenBefore, that round-21a form is NOT
+   // order-preserving: chaining every op after its same-device predecessor made ops of the main device proven before a device-B
+   // op that names one of them as a causal parent (seed 20261001, the first default seed: 26 pairs added, TRANSFORM_ORDER_CHANGED
+   // with the precondition asserted over it). It is replaced by deliveryTransform (R7-PROPERTY's section), which asserts the
+   // precondition itself.
+   deliveryTransform(ops,'R8 twoDevice seed='+seed,m.dev2);
   }
   if(o.unproven){
    // Responses recorded on a second device that shares no causal link with the sessions:
@@ -3240,6 +3306,11 @@ function propertySequence8(seed){
  // RETAINS its effect, labeled disputed (spec :157); it only refuses further authorization.
  const live=(f,y)=>{const x=f.spent.find(s=>s.spend_id===y.spend);return !!x&&!x.cancelled_by&&!f.issues.some(i=>i.spend_id===y.spend&&i.code!=='NATIVE_LOAD_BASIS_REPAIR_REQUIRED');};
  const checkInvariants=stage=>{
+  // Round 21b I18 A-LEGACY-VECTOR (spec R9.13 (iv), D-L13-LEGACY-WALK): after every re-admission no legacy scalar structural entry
+  // sits on a lift whose wSets is an array. Class (a), an out-of-precondition base (N-Q1), is named, never exempted.
+  {const b0=base();
+   for(const L of lifts){const ex=exIn(b0,L);if(!Array.isArray(ex.wSets))continue;const bad=b0.queue.filter(q=>q&&q.exId===L&&alvScalar(q));
+    if(bad.length)fail('I18 A-LEGACY-VECTOR a legacy scalar structural entry on a per-set-weight lift after re-admission'+((m.outOfP||[]).some(x=>x.exId===L)?' (class (a) out of precondition, N-Q1)':'')+' at '+stage,{lift:L,w:ex.w,wSets:ex.wSets,queue:bad});}}
   const f=fold();
   if(f.status!=='ready'||!f.state){m.refusedFold=(m.refusedFold||0)+1;return f;}
   // Round 15 I12 (spec R9.4 :159, D-R9-LEGACY-ENTRY): the registered projection hides EVERY
@@ -3260,6 +3331,8 @@ function propertySequence8(seed){
   {const hp=EFFECTS.m.heldProjection(f).state;
    for(const L of lifts){const pe=exIn(f.state,L),he=exIn(hp,L);
     if(he.w==null&&hp.queue.some(q=>q&&q.exId===L&&!q.done&&typeof q.native_load_spend==='string'))fail('I16 a visible unfinished native entry over w null or absent at '+stage,{lift:L,ex:he,queue:hp.queue.filter(q=>q&&q.exId===L&&!q.done)});
+    // Round 21b (spec R9.13 (v) LEGACY-OVER-NULL, :158 INVARIANT widened): nor a visible unfinished LEGACY debut/unlock entry.
+    if(he.w==null&&hp.queue.some(q=>q&&q.exId===L&&!q.done&&typeof q.native_load_spend!=='string'&&['debut','unlock'].includes(q.kind)))fail('I16 a visible unfinished legacy debut/unlock entry over w null or absent at '+stage,{lift:L,ex:he,queue:hp.queue.filter(q=>q&&q.exId===L&&!q.done)});
     if(typeof pe.w==='number'&&Object.hasOwn(pe,'wSets')&&pe.wSets===null)fail('I16 a numeric w over a present-null wSets at '+stage,{lift:L,ex:pe});}}
   for(const L of lifts){
    const ex=exIn(f.state,L),B=m.base[L],auth=ex.native_load_authority,ctx={lift:L,base:B,auth,w:ex.w,wSets:ex.wSets,ledger:m.ledger.filter(y=>y.lift===L)};
@@ -3797,6 +3870,7 @@ function propertySequence8(seed){
  for(const i of f.issues)tally['issue:'+i.code]=(tally['issue:'+i.code]||0)+1;
  for(const i of fold({unproven:'same'}).issues)tally['unproven-issue:'+i.code]=(tally['unproven-issue:'+i.code]||0)+1;
  if(baseline)tally.baseline=1;if(rowOn)tally.rowOn=1;if(m.refusedFold)tally.refusedFold=m.refusedFold;if(m.stopP4)tally['stop-P4']=1;
+ tally['twoDevice:moved']=m.dev2.moved;tally['twoDevice:kept']=m.dev2.kept; // Round 21c: plan ops deliveryTransform moved / kept
  for(const L of lifts)if(f.state&&exIn(f.state,L).native_load_authority)tally['authority:'+exIn(f.state,L).native_load_authority.kind]=(tally['authority:'+exIn(f.state,L).native_load_authority.kind]||0)+1;
  Object.defineProperty(tally,'detail',{value:{trace:m.trace,issues:f.issues,spent:f.spent},enumerable:false});
  return tally;
@@ -4803,7 +4877,7 @@ function restoreOverLegacy(v1=false){
  const ud=decisionOf(u.offers[0]);assert.deepEqual([ud.base_load.scalar,ud.target_load.scalar],[lb(60),null],'control: a RESTORE (base 60, target null)');
  return {c1,y1,spend,ud,undo:acceptOp(u.offers[0],{op_id:'rl-undo',after:1}),at};
 }
-test('R20-RESTORE-OVER-LEGACY KNOWN-RED CARRIED DEBT D-R20-RESTORE-OVER-LEGACY (PM ruling on STOP-R20B1-1; it asserts the CURRENT refused output and turns red when the spec fix lands: R9.13, projectHeld hides an unfinished legacy debut of a lift whose projected w is null): an adopt-baseline, its RESTORE Undo recorded while applied, then the base re-admitted at w 100 carrying a pending legacy DEBUT 105 -> the adoption is held back (the legacy entry is pending, FC01:544) while its Undo applies through the unapplied-RESTORE branch (FC01:542 before :544; :578-586) and writes w null under the legacy DEBUT: the next day\'s capture refuses ENGINE_CAPTURE_BASELINE_UNPROVEN through cardLoads (E/today.cjs picks the legacy DEBUT; W/engine-capture.cjs:67). Controls: not re-admitted (base w null, no legacy entry), the Undo leaves the baseline ask, which captures; re-admitted without the Undo, the moved base holds the adoption (EFFECT_CONFLICT load_basis [rl-y1], w 100) and the held projection hides the legacy entry (R9.4 :159), so the baseline ask captures; typed v2 and host v1, R1 and R2',()=>{
+test('R20-RESTORE-OVER-LEGACY R9.13 (v) LEGACY-OVER-NULL (FLIPPED from part C\'s KNOWN-RED CARRIED DEBT D-R20-RESTORE-OVER-LEGACY by PM ruling (v), DECISIONS:819; the retained red, measured on 40eb702 and part C: the next day\'s capture refused the whole day ENGINE_CAPTURE_BASELINE_UNPROVEN through cardLoads): an adopt-baseline, its RESTORE Undo recorded while applied, then the base re-admitted at w 100 carrying a pending legacy DEBUT 105 -> the adoption is held back (the legacy entry is pending, FC01:544) while its Undo applies through the unapplied-RESTORE branch (FC01:542 before :544; :578-586) and writes w null under the legacy DEBUT, which stays pending in the fold state; the registered projection hides it (w null), so the next card is the baseline ask and the day prepares; the check on a later baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue (E/native-load.cjs:222; N-Q2), and after it w stays null with no adoption receipt (D-R13L1-4). Controls: not re-admitted (base w null, no legacy entry), the Undo leaves the baseline ask, which captures; re-admitted without the Undo, the moved base holds the adoption (EFFECT_CONFLICT load_basis [rl-y1], w 100) and the held projection hides the legacy entry (R9.4 :159), so the baseline ask captures; typed v2 and host v1, R1 and R2',()=>{
  effectsGate();
  for(const v1 of [false,true]){const s=restoreOverLegacy(v1);
   for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev;
@@ -4813,7 +4887,16 @@ test('R20-RESTORE-OVER-LEGACY KNOWN-RED CARRIED DEBT D-R20-RESTORE-OVER-LEGACY (
    assert.deepEqual([exOf(c1.state).w,b2Active(c1),b39Card(EFFECTS.m.heldProjection(c1).state)],[100,[['EFFECT_CONFLICT','load_basis',['rl-y1'],'act']],[null,null,null]],L+' control: re-admitted without the Undo, the adoption is held and the held projection hides the legacy entry '+JSON.stringify(c1.issues));
    const f=EFFECTS.m.foldNativeLoad(s.at([s.y1,s.undo],100,rev)),ex=exOf(f.state);
    assert.deepEqual([ex.w,f.state.queue.filter(q=>q&&q.exId===LIFT&&!q.done&&typeof q.native_load_spend!=='string').map(q=>[q.state,q.newW])],[null,[['DEBUT',105]]],L+' the Undo writes w null under the pending legacy DEBUT '+JSON.stringify(f.issues));
-   assert.equal(b39Card(EFFECTS.m.heldProjection(f).state),'ENGINE_CAPTURE_BASELINE_UNPROVEN',L+' D-R20-RESTORE-OVER-LEGACY: the capture refuses the whole day (current output, carried debt)');
+   const hp=EFFECTS.m.heldProjection(f).state;
+   assert.deepEqual(hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done),[],L+' R9.13 (v): the registered projection hides the pending legacy DEBUT of the w-null lift');
+   assert.deepEqual(b39Card(hp),[null,null,null],L+' R9.13 (v): the next card is the baseline ask and the day prepares (40eb702: ENGINE_CAPTURE_BASELINE_UNPROVEN)');
+   const c2t=C(2,{date:'2026-10-08',reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),c2=v1?v1Of(c2t):c2t,b2=F0({w:100});
+   b2.queue.push({exId:LIFT,kind:'debut',done:false,state:'DEBUT',newW:105,t:'SYNTHETIC legacy debut'});
+   const a2=foldArgs([s.c1,c2],[s.y1,s.undo],rev,b2);if(v1){captureOn(a2.generation,s.c1,[null,null,null]);captureOn(a2.generation,c2,[null,null,null]);}
+   const ev2=checkOf(a2,LIFT,c2);
+   assert.deepEqual([ev2.status,ev2.refusal&&ev2.refusal.code,ev2.refusal&&ev2.refusal.refs,ev2.refusal&&ev2.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c2.close)],'queue'],L+' the check on the later baseline-ask completion '+JSON.stringify(ev2.refusal||ev2.offers));
+   const f2=EFFECTS.m.foldNativeLoad(a2),ex2=exOf(f2.state);
+   assert.deepEqual([ex2.w,JSON.stringify(ex2.native_load_authority),JSON.stringify(f2.state).includes('adopt:'+LIFT)],[null,JSON.stringify(ex.native_load_authority),false],L+' D-R13L1-4: after that completion w stays null, the authority unchanged, no adoption receipt');
   }
  }
 });
@@ -4833,5 +4916,224 @@ test('N27-B39-TWO-EXIT-NULL R9.11 (PM ruling on STOP-R20B2-2: D-R9.11-TWO-EXIT\'
    assert.equal(f.spent.some(x=>x.spend_id===dB.spend_id&&!x.cancelled_by&&!f.issues.some(i=>i.spend_id===dB.spend_id)),false,L+': the second exit has no live effect');
    assert.deepEqual(b39Card(EFFECTS.m.heldProjection(f).state),[null,null,null],L+' the next card');
   }
+ }
+});
+
+// ======================================================================
+// ROUND 21a (test bytes only; Astra L13 REJECT of a42168d: B1, B2, B3, D-L13-WALK-I3; PM rulings (i)-(v) of 2026-09-25).
+// ======================================================================
+// Round 21a registered the four L13-B1 rows below as node:test todos (KNOWN_RED 'L13-B1') until ruling (i) was built. Round
+// 21b built it and round 21c (Fable R21 l1 F5 (a)) deleted the registration and the mechanism (no other entry used it): the four
+// rows are ordinary tests, so a regression fails a default whole-file run.
+// L13-B2: Astra L13 probes.cjs NULL_REF, on N28-NEVER-HELD-NULL's input (base w null; nc-y1 [adopt-baseline 60] applied and never
+// held; C2's baseline-ask record re-shaped to name authority_refs). 'valid' names [nc-y1] (the ruled residual: it applies 65).
+function nullRefProbe(mode,rev){
+ const s=neverHeldNull(false),offer=structuredClone(s.named),d=decisionOf(offer),r=ref('r21-bad-ref');
+ const a=s.at([s.ny1],rev),ops=a.generation.collections.ops,src=ops['nc-y1'];
+ let refs=[ref('nc-y1')];
+ if(mode==='mixed')refs.push(ref('r21-missing'));
+ if(mode==='wrong-commitment')refs=[{...ref('nc-y1'),commitment:commit('r21-not-y1')}];
+ if(mode==='wrong-lift'||mode==='wrong-kind'){
+  ops[r.op_id]={...structuredClone(src),op_id:r.op_id,canonical_content_commitment:r.commitment};
+  if(mode==='wrong-lift'){ops[r.op_id].payload={issuance:{body:{lift_lineage_id:'fx-row'}}};a.base.exercises.push({...structuredClone(a.base.exercises[0]),id:'fx-row',n:'Invented Row'});}
+  if(mode==='wrong-kind')ops[r.op_id].kind='plan-edit';
+  refs=[r];
+ }
+ d.basis.load_basis.authority_refs=refs;
+ const rec=acceptOp(offer,{op_id:'r21-probe',after:2});
+ ops[rec.op_id]={op_id:rec.op_id,athlete_id:ATH,device_id:src.device_id,device_seq:99,class:'plan',kind:'proposal-response',payload:rec.payload,canonical_content_commitment:commit(rec.op_id)};
+ const f=EFFECTS.m.foldNativeLoad(a),hp=EFFECTS.m.heldProjection(f).state;
+ return {w:exOf(f.state).w,issues:b2Issues(f),card:cardLoads(hp)};
+}
+const nullRefRow=(mode,clause,mutant)=>test('L13-B2-NULL-REF-'+mode.toUpperCase()+' R9.12 (Astra L13 B2, mutant '+mutant+' "'+clause+'"; spec M R9.12 M (1) dissolved-hold exit, RESIDUAL (iv) :157): on N28-NEVER-HELD-NULL\'s input the C2 baseline-ask record names authority_refs that fail only the '+clause+' clause -> not a dissolved exit: w 60, EFFECT_CONFLICT load_basis [r21-probe] active, the next card the baseline ask; control \'valid\' ([nc-y1]) applies 65 on every set with no issue; typed v2, R1 and R2',()=>{
+ effectsGate();
+ for(const rev of [R1,R2]){
+  assert.deepEqual(nullRefProbe('valid',rev),{w:65,issues:[],card:[65,65,65]},rev+' control: the valid ref applies');
+  assert.deepEqual(nullRefProbe(mode,rev),{w:60,issues:[['EFFECT_CONFLICT','load_basis',['r21-probe'],'act']],card:[null,null,null]},rev+' '+mode);
+ }
+});
+nullRefRow('mixed','every ref authentic (one valid ref beside an absent one)','L13-M03 every->some');
+nullRefRow('wrong-lift','same lift (an authentic proposal-response of fx-row)','L13-M04 omit same lift');
+nullRefRow('wrong-commitment','commitment equality (the nc-y1 op_id with another commitment)','L13-M05 omit commitment');
+nullRefRow('wrong-kind','proposal-response kind (an issuance-shaped plan-edit)','L13-M06 omit response kind');
+test('L13-B2-ANCHOR-KIND R9.12 (Astra L13 B2, mutant L13-M08 "anchor without the session-start kind"; spec M R9.12 ONE ANCHOR, D-R12L3-2): b39Return\'s exit over the returned base 100 with the consumed C3 Start re-kinded session-set -> the anchor is not an authenticated session-start, so the exit is no dissolved exit: w 100, RECORD_INVALID consumes [fx-exit] active, Q105 pending DEBUT, the next card the baseline ask; typed v2, R1 and R2',()=>{
+ effectsGate();
+ const s=b39Return(false);
+ for(const rev of [R1,R2]){
+  const a=s.atW(100,[],[s.exit],rev);a.generation.collections.ops[s.c3.start].kind='session-set';
+  const f=EFFECTS.m.foldNativeLoad(a);
+  assert.deepEqual([exOf(f.state).w,b2Issues(f),f.state.queue.filter(q=>q&&q.exId===LIFT).map(q=>[q.newW,!!q.done,q.state]),cardLoads(EFFECTS.m.heldProjection(f).state)],
+   [100,[['RECORD_INVALID','consumes',['fx-exit'],'act']],[[105,false,'DEBUT']],[null,null,null]],rev+' '+JSON.stringify(f.issues));
+ }
+});
+test('L13-B3-TWO-EXIT-RETURNED R9.11 (Astra L13 B3, author mutant b2-ii-superseded-M1 "a superseded hold treated as dissolved"; D-R9.11-TWO-EXIT, PM ruling on STOP-R20B2-2): b39Return\'s hold at base 97.5; two genuine baseline-ask exit offers issued for the one hold before either yes: fx-exit (C3 at 60) and r21-exit-B (C4 at 65, its Start and response on device B knowing only the Q105 yes, not the first exit); both accepted -> the first applies (w 60, Q105 done/SUPERSEDED, the Q105 hold superseded) and the second is EFFECT_CONFLICT load_basis [r21-exit-B] active, recorded in spent with no live effect; the next card the baseline ask; typed v2, R1 and R2',()=>{
+ effectsGate();
+ for(const rev of [R1,R2]){
+  const s=b39Return(false),c4=C(4,{date:'2026-10-15',reps:TOP,loads:65,prescribed:null,effort:e(2,1,1)});
+  const ev=checkOf(s.atW(97.5,[c4],[],rev),LIFT,c4);assert.equal(ev.status,'offer',rev+' control: the second exit '+JSON.stringify(ev.refusal));
+  const d=decisionOf(ev.offers[0]);
+  assert.deepEqual([ev.offers.length,d.kind,d.target_load.scalar.value,d.basis.load_basis.authority_refs],[1,'adopt-baseline',65,[ref('fx-resp-1')]],rev+' control: issued before either yes, naming the Q105 yes');
+  const yb={...acceptOp(ev.offers[0],{op_id:'r21-exit-B',after:4}),device:'fx-device-B'};
+  const a=s.atW(97.5,[c4],[s.exit,yb],rev),ops=a.generation.collections.ops;
+  ops[c4.start].causal_parents=[s.resp.op_id];ops['r21-exit-B'].causal_parents=[s.resp.op_id,c4.close];
+  const f=EFFECTS.m.foldNativeLoad(a),ex=exOf(f.state);
+  assert.deepEqual([ex.w,ex.native_load_authority&&ex.native_load_authority.kind,f.state.queue.filter(q=>q&&q.exId===LIFT).map(q=>[q.newW,!!q.done,q.state])],[60,'adopted',[[105,true,'SUPERSEDED']]],rev+' the first exit applies '+JSON.stringify(f.issues));
+  assert.deepEqual(b2Issues(f),[['EFFECT_CONFLICT','load_basis',['fx-resp-1'],'sup'],['EFFECT_CONFLICT','load_basis',['r21-exit-B'],'act']],rev+' the second exit is held');
+  assert.ok(f.spent.some(x=>x.spend_id===d.spend_id),rev+': the second exit is recorded in spent');
+  assert.deepEqual(cardLoads(EFFECTS.m.heldProjection(f).state),[null,null,null],rev+' the next card');
+ }
+});
+// L13-B1 (Astra P/reduce-i6.cjs): two tops at 100 -> earn yes Q105 (fx-resp-1); C3 captures 105 and lifts 95 -> the missed
+// debut's [adopt-observed 95] yes (r21-missed-yes); host-v1 C4 captures and lifts 95 at the admitted base 102.5 -> the check
+// issues [adopt-baseline 95] naming both earlier responses (r21-exit); accepted; the base returns to 100. 'unproven': every
+// plan op on device B in increasing sequence without causal parents (the R8 UNPROVABLE ORDER layout); issued bodies unchanged.
+function reduceI6(rev,layout,opt={}){
+ const s=landingScenario(R1);
+ const c3=C(3,{date:'2026-10-12',reps:TOP,loads:95,prescribed:105,effort:e(2,1,1)}),three=[...s.cs,c3];
+ const ev=checkOf(foldArgs(three,[s.resp]),LIFT,c3);assert.equal(ev.status,'offer','control: the missed debut offer '+JSON.stringify(ev.refusal));
+ const y=acceptOp(ev.offers[0],{op_id:'r21-missed-yes',after:3});
+ const c4=v1Of(C(4,{date:'2026-10-15',reps:TOP,loads:95,prescribed:95,effort:e(2,1,1)})),cs=[...three,c4];
+ const args=(extras,bw,r)=>{const a=foldArgs(cs,[s.resp,y,...extras],r,F0({w:bw}));captureOn(a.generation,c4,[95,95,95]);return a;};
+ const exit=checkOf(args([],102.5,R1),LIFT,c4);assert.equal(exit.status,'offer','control: the exit on C4 '+JSON.stringify(exit.refusal));
+ const xd=decisionOf(exit.offers[0]);
+ assert.deepEqual([decisionOf(s.offer).kind,decisionOf(ev.offers[0]).kind,xd.kind,xd.target_load.scalar.value,xd.basis.load_basis.authority_refs.map(r=>r.op_id)],['earn','adopt-observed','adopt-baseline',95,['fx-resp-1','r21-missed-yes']],'control: the issued kinds and the exit refs');
+ const xo=structuredClone(exit.offers[0]);if(opt.exitRefs)decisionOf(xo).basis.load_basis.authority_refs=opt.exitRefs;
+ const a=args(opt.noExit?[]:[acceptOp(xo,{op_id:'r21-exit',after:4})],100,rev);
+ if(layout==='unproven'){let seq=0;for(const op of Object.values(a.generation.collections.ops).filter(o=>o.class==='plan').sort((p,q)=>p.device_seq-q.device_seq)){op.device_id='fx-device-B';op.device_seq=++seq;delete op.causal_parents;}}
+ const f=EFFECTS.m.foldNativeLoad(a),hp=EFFECTS.m.heldProjection(f).state;
+ return {w:exOf(f.state).w,shown:exOf(hp).w,issues:b2Issues(f),exitInSpent:f.spent.some(z=>z.spend_id===xd.spend_id),queue:f.state.queue.filter(q=>q&&q.exId===LIFT).map(q=>[q.newW,!!q.done,q.state]),card:cardLoads(hp)};
+}
+test('L13-B1-ORDERED-CONTROL (green-kept; PM ruling (i): "a genuine host exit (refs = activeHolds at check, all proven before the Start) is unchanged in the ordered layout"; Astra L13 reduce-i6): the reduction in its own authenticated order -> R1 and R2 alike: the exit applies, w 95 shown 95, no issue, the exit spent, Q105 done/MISSED, the next card 95 on every set',()=>{
+ effectsGate();
+ const want={w:95,shown:95,issues:[],exitInSpent:true,queue:[[105,true,'MISSED']],card:[95,95,95]};
+ for(const rev of [R1,R2])assert.deepEqual(reduceI6(rev,'ordered'),want,rev);
+});
+test('L13-B1-REDUCE-I6 (KNOWN-RED in round 21a, an ordinary row since 21c; Astra L13 B1 / STOP-R20B2-3, PM ruling (i): the R1 versus R2 difference is not acceptable, FC12 :3765-3766, DECISIONS:793; spec R8 UNPROVABLE ORDER): the reduction in the unproven layout -> R1 refuses exactly as R2: w 100, nothing shown (the baseline ask), DEBUT_BASIS_UNPROVEN causality [fx-close-3, fx-resp-1], RECORD_INVALID base_load [r21-missed-yes] and [r21-exit], the exit not spent, Q105 pending DEBUT. Measured on 40eb702: R2 as stated; R1 applies the exit (w 95 shown 95, card 95, Q105 SUPERSEDED)',()=>{
+ effectsGate();
+ const r2=reduceI6(R2,'unproven');
+ assert.deepEqual(r2,{w:100,shown:null,issues:[['DEBUT_BASIS_UNPROVEN','causality',['fx-close-3','fx-resp-1'],'act'],['RECORD_INVALID','base_load',['r21-missed-yes'],'act'],['RECORD_INVALID','base_load',['r21-exit'],'act']],exitInSpent:false,queue:[[105,false,'DEBUT']],card:[null,null,null]},'R2 refuses (unchanged by the ruling)');
+ assert.deepEqual(reduceI6(R1,'unproven'),r2,'R1 = R2 in the unproven layout');
+});
+// Round 21c (Fable R21 l1 F1 = D-R21L1-1): FC03 refsArm's non-empty clause ("ar.length > 0 &&") had no pin; Fable's mutant
+// fable-m2 (the clause dropped) survived the whole FC12 strict at f5380f51.
+test('R913-REFS-ARM-EMPTY R9.13 (i) (Fable R21 l1 F1 / D-R21L1-1; kills fable-m2 "return ar.every(ok)" in FC03 refsArm): the L13-B1 reduction in its ordered layout with the accepted exit\'s load_basis.authority_refs rewritten to [] (a numeric-capture adopt-baseline with EMPTY refs: a forged record, the guarded host never issues it) -> RECORD_INVALID base_load [r21-exit] active, the exit NOT spent, w 95 and Q105 done/MISSED exactly as with no exit at all (the missed debut\'s adopt-observed 95 yes), the lift held (nothing shown, the next card the baseline ask); control: without the exit record, no issue and the card 95; R1 and R2',()=>{
+ effectsGate();
+ for(const rev of [R1,R2]){
+  const none=reduceI6(rev,'ordered',{noExit:true});
+  assert.deepEqual(none,{w:95,shown:95,issues:[],exitInSpent:false,queue:[[105,true,'MISSED']],card:[95,95,95]},rev+' control: no exit record');
+  assert.deepEqual(reduceI6(rev,'ordered',{exitRefs:[]}),{w:95,shown:null,issues:[['RECORD_INVALID','base_load',['r21-exit'],'act']],exitInSpent:false,queue:[[105,true,'MISSED']],card:[null,null,null]},rev+' empty authority_refs: refused, not spent');
+ }
+});
+for(const seed of [20262146,20262505,20262924])test('L13-B1-SEED-'+seed+' (KNOWN-RED in round 21a, an ordinary row since 21c; STOP-R20B2-3 walk seed, PM ruling (i); R8 propertySequence8 I6 "unprovable order differs under" rev 2): the whole walk at this seed yields no counterexample. Measured on 40eb702: I6 (R1 applies the exit, R2 refuses RECORD_INVALID base_load)',()=>{
+ effectsGate();
+ propertySequence8(seed);
+});
+
+// ======================================================================
+// ROUND 21b (spec R9.13 at e092afa, Fable R13-l1 ACCEPT WITH NAMED DEBTS D-R13L1-1..4; PM rulings (i)-(v), DECISIONS:819).
+// (i) is pinned by round 21a's L13-B1-* rows (ordinary rows since round 21c) and R913-REFS-ARM-EMPTY; below: (iii), (iv) and (v).
+// ======================================================================
+// (v) LEGACY-OVER-NULL: an admitted base whose fx-press has w null (never held) and a pending legacy DEBUT 60, beside fx-row at
+// w 55 with its own pending legacy DEBUT 60 (the STOP-R20B1-1 class; part C walk seeds 20264592, 20273214, 20271211).
+function legacyOverNullBase(){
+ const b=withRow({w:null});b.exercises.find(x=>x.id===ROW).w=55;
+ b.queue.push({exId:LIFT,kind:'debut',done:false,state:'DEBUT',newW:60,t:'SYNTHETIC legacy debut press'},{exId:ROW,kind:'debut',done:false,state:'DEBUT',newW:60,t:'SYNTHETIC legacy debut row'});
+ return b;
+}
+const legacyPending=(f,lift=LIFT)=>f.state.queue.filter(q=>q&&q.exId===lift&&!q.done&&typeof q.native_load_spend!=='string').map(q=>[q.state,q.newW]);
+test('R913-LEGACY-OVER-NULL-UNHELD R9.13 (v) (PM ruling (v), DECISIONS:819; red on 40eb702: the capture refuses the whole day ENGINE_CAPTURE_BASELINE_UNPROVEN, W/engine-capture.cjs:67): a never-held fx-press with w null and a pending legacy DEBUT 60 in the admitted base, beside fx-row at w 55 with its own pending legacy DEBUT 60 -> the fold state keeps both entries, the registered projection hides fx-press\'s (w null) and keeps fx-row\'s; fx-press\'s card is the baseline ask and the day prepares; fx-row\'s debut takes the structural slot (60 on every set); the check on fx-press\'s baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue (E/native-load.cjs:222; N-Q2); after that completion w stays null, no authority and no adoption receipt (D-R13L1-4); typed v2 and host v1, R1 and R2',()=>{
+ effectsGate();
+ for(const v1 of [false,true])for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev,b=legacyOverNullBase();
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,b)),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([b2Issues(f),legacyPending(f),legacyPending(f,ROW)],[[],[['DEBUT',60]],[['DEBUT',60]]],L+' the fold state keeps both legacy entries; fx-press is never held');
+  assert.deepEqual([hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).length,hp.queue.filter(q=>q&&q.exId===ROW&&!q.done).length],[0,1],L+' the registered projection hides the w-null lift\'s legacy entry only');
+  let row;try{row=cardLoads(hp,{lift:ROW});}catch(err){row=String(err&&err.code||err);}
+  assert.deepEqual([b39Card(hp),row],[[null,null,null],[60,60,60]],L+' fx-press is the baseline ask and the day prepares; fx-row\'s debut takes the structural slot');
+  const c1t=C(1,{reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),c1=v1?v1Of(c1t):c1t;
+  const a=foldArgs([c1],[],rev,legacyOverNullBase());if(v1)captureOn(a.generation,c1,[null,null,null]);
+  const ev=checkOf(a,LIFT,c1);
+  assert.deepEqual([ev.status,ev.refusal&&ev.refusal.code,ev.refusal&&ev.refusal.refs,ev.refusal&&ev.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'queue'],L+' the check on the baseline-ask completion '+JSON.stringify(ev.refusal||ev.offers));
+  const f1=EFFECTS.m.foldNativeLoad(a),ex1=exOf(f1.state);
+  assert.deepEqual([ex1.w,ex1.native_load_authority===undefined,JSON.stringify(f1.state).includes('adopt:'+LIFT),legacyPending(f1)],[null,true,false,[['DEBUT',60]]],L+' D-R13L1-4: w stays null, no authority, no adoption receipt, the legacy entry pending');
+ }
+});
+test('R913-LEGACY-OVER-NULL-CONTROL R9.13 (v) (green-kept; kills the mutant that hides on a numeric-w lift too): the same pending legacy DEBUT 60 on fx-press at w 55 stays visible in the registered projection and the card prescribes 60 on every set (E/today.cjs:98); R1 and R2',()=>{
+ effectsGate();
+ for(const rev of [R1,R2]){const b=F0({w:55});b.queue.push({exId:LIFT,kind:'debut',done:false,state:'DEBUT',newW:60,t:'SYNTHETIC legacy debut press'});
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,b)),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).map(q=>[q.state,q.newW]),b39Card(hp)],[[['DEBUT',60]],[60,60,60]],rev);
+ }
+});
+// (iv) A-LEGACY-VECTOR (owner approval DECISIONS:819 "Spread it evenly"): the product conversion (ALV, read out of
+// L/source-admission.mjs by its markers, before propertySequence8) over invented old-app states at fx-press w 100.
+const alvGate=()=>assert.ok(ALV.fn,'RED A_LEGACY_VECTOR_ABSENT: '+ALV.reason+' (spec R9.13 (iv): L/source-admission.mjs replay())');
+const LEGQ=(p={})=>({exId:LIFT,kind:'debut',done:false,state:'DEBUT',newW:105,t:'SYNTHETIC legacy debut',...p});
+const alvState=(qs,patch={w:100,wSets:[100,100,95]})=>{const s=F0(patch);s.queue.push(...qs.map(q=>structuredClone(q)));return s;};
+const alvCard=s=>b39Card(EFFECTS.m.heldProjection(EFFECTS.m.foldNativeLoad(foldArgs([],[],R1,s))).state);
+test('R913-ALV-PRODUCT R9.13 (iv) (red on 40eb702: absent): L/source-admission.mjs carries the conversion between its A-LEGACY-VECTOR markers as the exported dependency-free function legacyVectorAdmission, and replay() calls it on the replayed state immediately after the document-lift append and before any family reads the state (the ORDERING rule; kills the mutant that runs it after the families)',()=>{
+ alvGate();
+ const src=ALV.src,append=src.indexOf('state.retirements={...(state.retirements||{}),[row.id]:currentDay()};'),call=src.indexOf('legacyVectorAdmission(state);'),facts=src.indexOf('const facts=reading({operations:ops');
+ assert.ok(append>0&&call>append&&facts>call,'placement: append '+append+' < call '+call+' < first family read '+facts);
+ assert.equal(src.split('legacyVectorAdmission(state);').length,2,'called exactly once');
+});
+test('R913-ALV-CONVERT R9.13 (iv) (red on 40eb702: no newWSets, and the capture refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED at W/engine-capture.cjs:83): fx-press w 100 wSets [100,100,95] with a pending legacy DEBUT newW 105 and no newWSets -> the entry gets newWSets [105,105,100], nothing is named and every other byte is unchanged; the registered projection\'s card then captures [105,105,100] through the real capture',()=>{
+ effectsGate();
+ const s=alvState([LEGQ()]);
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','control: unconverted, the day refuses (W/engine-capture.cjs:83)');
+ alvGate();
+ const before=structuredClone(s),named=ALV.fn(s),q=s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut');
+ assert.deepEqual([named,q.newWSets],[[],[105,105,100]],'the shifted vector (E/earn.cjs:88 shape)');
+ const back=structuredClone(s);delete back.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut').newWSets;
+ assert.deepEqual(back,before,'nothing else is written');
+ assert.ok(q.newWSets.every(x=>x<=q.newW),'no set above the old card newW');
+ assert.deepEqual(alvCard(s),[105,105,100],'the card captures the converted vector');
+});
+test('R913-ALV-KINDS R9.13 (iv) (green-kept except the unlock case, red on 40eb702): an unlock entry is converted the same way; a PROPOSED entry, a done entry, an entry already carrying newWSets, a native entry and an entry on a lift without wSets are byte-identical after the conversion (kills the mutants that convert PROPOSED entries or also write newW or wSets)',()=>{
+ alvGate();
+ const u=alvState([LEGQ({kind:'unlock'})]);assert.deepEqual([ALV.fn(u),u.queue.find(x=>x&&x.kind==='unlock').newWSets],[[],[105,105,100]],'unlock');
+ const same=[['PROPOSED',alvState([LEGQ({state:'PROPOSED'})])],['done',alvState([LEGQ({done:true,state:'ESTABLISH'})])],['own newWSets',alvState([LEGQ({newW:110,newWSets:[110,110,105]})])],
+  ['native',alvState([LEGQ({native_load_spend:'["native-load","fx-press",null,null,[]]'})])],['no wSets',alvState([LEGQ()],{w:100})],['w-null lift, no wSets',alvState([LEGQ({newW:60})],{w:null})]];
+ for(const [name,s] of same){const before=JSON.stringify(s);assert.deepEqual(ALV.fn(s),[],name+': nothing named');assert.equal(JSON.stringify(s),before,name+': byte-identical');}
+});
+test('R913-ALV-P R9.13 (iv) (characterization, open question N-Q1): an entry on a per-set-weight lift that fails PRECONDITION P (a set above w, a non-number set, a non-numeric w) is left unconverted and named; its day refuses as today (nothing raised)',()=>{
+ alvGate();
+ for(const [name,patch] of [['a set above w',{w:100,wSets:[100,105]}],['a non-number set',{w:100,wSets:[100,'x',95]}],['w not a number',{w:'BW',wSets:[100,100,95]}]]){
+  const s=alvState([LEGQ()],patch),before=JSON.stringify(s),named=ALV.fn(s);
+  assert.deepEqual(named,[{exId:LIFT,kind:'debut',newW:105,w:patch.w,wSets:patch.wSets}],name+': named');assert.equal(JSON.stringify(s),before,name+': unconverted');
+ }
+ assert.equal(alvCard(alvState([LEGQ()],{w:100,wSets:[100,105]})),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','the day refuses as today');
+});
+test('R913-ALV-IDEMPOTENT R9.13 (iv): a converted entry is never converted again: the conversion run twice (a reopen or a re-admission of the same source replays it) gives byte-identical state and names the same out-of-precondition entries',()=>{
+ alvGate();
+ const s=alvState([LEGQ(),LEGQ({kind:'unlock',t:'SYNTHETIC unlock'}),{exId:ROW,kind:'debut',done:false,state:'DEBUT',newW:105,t:'SYNTHETIC row debut'}]);
+ s.exercises.push({...structuredClone(exOf(s)),id:ROW,n:'Fx Row',wSets:[100,105]});
+ const n1=ALV.fn(s),j1=JSON.stringify(s),n2=ALV.fn(s);
+ assert.equal(JSON.stringify(s),j1,'byte-identical after a second run');assert.deepEqual(n2,n1,'the same named entries');
+ assert.deepEqual(n1.map(x=>x.exId),[ROW],'fx-row fails P');
+});
+test('R913-ALV-LAND R9.13 (iv) (E/writers.cjs:270): after the conversion a completion at [105,105,100] on the debut card lands it through the old app\'s own writer: w 105, wSets [105,105,100], the entry ESTABLISH; no load above 105 anywhere',()=>{
+ alvGate();
+ const s=alvState([LEGQ()]);ALV.fn(s);
+ const E=engineAt(CARD_DAY),r=E.completeSession(s,CARD_DAY,[{id:LIFT,w:105,reps:[10,10,10],rir:2,rirSets:[2,1,1],tgt:[10,10,10],isDebutNow:true}],{clean:true}),ex=r.s.exercises.find(x=>x.id===LIFT);
+ assert.deepEqual([ex.w,ex.wSets,r.s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut').state],[105,[105,105,100],'ESTABLISH']);
+ assert.ok(Math.max(ex.w,...ex.wSets)<=105,'no load above the old card');
+});
+// (iii) D-L13-TYPED-C2, a NAMED CARRIED LIMIT (PM ruling (iii): Joe's trial uses host v1; typed-v2 exit parity is carried).
+// CARRIED-LIMIT convention (Fable D-R20C-3): the title names the limit, the row asserts the CURRENT output, and it is flipped to
+// the fixed expectation when the limit is paid, never deleted. C2 typed v2 exactly as Astra's P/probes.cjs B5_TYPED_C2 builds it.
+const typedC2=(a,c2)=>{const en=a.workoutFacts.sessions.find(x=>x.start_op_id===c2.start).record.entries[0];en.profile='earned/performed-lift/v2';
+ for(const slot of en.slots)slot.prescribed_load={state:'specified',source:{value:105,unit:'lb'}};return a;};
+test('R913-TYPED-C2-CARRIED CARRIED LIMIT D-L13-TYPED-C2 (spec R9.13 (iii); PM ruling (iii), DECISIONS:819; STOP-R20B2-1 = Fable D-R20L1-2; Astra L13 B5_TYPED_C2): (a) the L12-B5 input at base 102.5 with C2 typed v2 (prescribed_load 105 on every original slot): the check on C2 refuses NATIVE_LOAD_EFFECT_CONFLICT field load_basis refs [y1 response Ref] (FC01 step 2\'s typed comparison against planNow null on the held projection, E/native-load.cjs:229/:247; the hold\'s own refusal, FC03 holdRefusal) - the CARRIED output, no offer, nothing raised; (b) control: the same input with host v1 C2 is offered exactly [adopt-baseline 105] naming [y1 response Ref]; (c) NO TRAP for typed v2: a typed-v2 C3 on the baseline ask, its Start proven after y1\'s hold, is offered exactly [adopt-baseline 60] naming [y1 response Ref] and its yes applies as exit (b): w 60, wSets absent, y1\'s hold superseded; R1 and R2',()=>{
+ effectsGate();
+ const s=b5Fixture(false),kinds=ev=>ev.status==='offer'?ev.offers.map(o=>{const d=decisionOf(o);return [d.kind,d.target_load.scalar&&d.target_load.scalar.value,d.basis.load_basis.authority_refs];}):[ev.refusal.code,ev.refusal.field,ev.refusal.refs];
+ for(const rev of [R1,R2]){
+  assert.deepEqual(kinds(checkOf(typedC2(s.at([],102.5,rev),s.c2),LIFT,s.c2)),['NATIVE_LOAD_EFFECT_CONFLICT','load_basis',[ref('l12-y1')]],rev+' (a) CARRIED: typed-v2 C2 is refused the exit');
+  assert.deepEqual(kinds(checkOf(s.at([],102.5,rev),LIFT,s.c2)),[['adopt-baseline',105,[ref('l12-y1')]]],rev+' (b) control: host v1 C2 is offered the exit');
+  const c3=C(3,{date:'2026-10-15',reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)});
+  const at3=extra=>{const a=typedC2(s.at(extra,102.5,rev,[],[c3]),s.c2);captureOn(a.generation,c3,[null,null,null]);return a;};
+  const ev=checkOf(at3([]),LIFT,c3);
+  assert.deepEqual(kinds(ev),[['adopt-baseline',60,[ref('l12-y1')]]],rev+' (c) NO TRAP: the typed-v2 baseline-ask C3 is offered exit (b)');
+  const f=EFFECTS.m.foldNativeLoad(at3([acceptOp(ev.offers[0],{op_id:'r21b-c3-exit',after:3})])),ex=exOf(f.state);
+  assert.deepEqual([ex.w,Object.hasOwn(ex,'wSets'),b2Issues(f)],[60,false,[['EFFECT_CONFLICT','load_basis',['l12-y1'],'sup']]],rev+' (c) the yes applies as exit (b) '+JSON.stringify(f.issues));
  }
 });

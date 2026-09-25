@@ -256,10 +256,20 @@ function projectHeld(state, lifts, { legacy = false } = {}) {
     queue: state.queue.filter((q) => !(q && set.has(q.exId) && (typeof q.native_load_spend === 'string' || (legacy && !q.done && HIDDEN_LEGACY_KINDS.has(q.kind))))) };
 }
 // The registered projection of a fold: every lift with an active hold, projected as above.
+// Spec R9.13 (v) LEGACY-OVER-NULL (PM ruling (v), DECISIONS:819; D-R20-RESTORE-OVER-LEGACY): the registered projection also hides
+// every unfinished LEGACY debut/unlock entry of an UNHELD lift whose fold-state w is null or absent, so that lift's card is the
+// existing baseline ask (E/today.cjs:96-110) and never a legacy newW over a null w (W/engine-capture.cjs:67 refused the whole day).
+// Native entries keep the held-only rule (the :158 INVARIANT already excludes a native entry on a w-null lift). projectHeld as the
+// fold (:696) and the check (:993) call it, legacy false, is unchanged, so FC01's LEGACY_PENDING (E/native-load.cjs:222, :544)
+// still sees the entry. A projection only: the entry, its history and the fold state are unchanged, and nothing is raised.
 function heldProjection(fold) {
   const issues = (fold && fold.issues ? fold.issues : []).filter((i) => i && typeof i.lift === 'string' && isHold(i) && !i.superseded_by);
   const lifts = new Set(issues.map((i) => i.lift));
-  return { state: fold && fold.state ? projectHeld(fold.state, [...lifts], { legacy: true }) : null, lifts, issues };
+  if (!fold || !fold.state) return { state: null, lifts, issues };
+  const state = projectHeld(fold.state, [...lifts], { legacy: true });
+  const nullW = new Set(state.exercises.filter((x) => x && x.w == null).map((x) => x.id));
+  const hide = (q) => !!q && nullW.has(q.exId) && typeof q.native_load_spend !== 'string' && !q.done && HIDDEN_LEGACY_KINDS.has(q.kind);
+  return { state: state.queue.some(hide) ? { ...state, queue: state.queue.filter((q) => !hide(q)) } : state, lifts, issues };
 }
 // The lift a native-load spend_id names (its canonical JSON's second member), or null.
 function decodeLift(spendId) {
@@ -342,6 +352,34 @@ function structural(op, byId, athleteId, base) {
 // S1-S8 all hold; the first failure names its field. Returns that field, or null.
 // Technique basis as spendIdOf reads it: the latest reset fork (plan.cjs:31 resetForksOf).
 const resetForks = (forks) => (Array.isArray(forks) ? forks : []).filter((f) => f && (f.kind ? f.kind !== 'context' : !f.split));
+// Spec R9.13 (i) REFS-ARM (PM ruling (i), DECISIONS:819; STOP-R20B2-3 = Astra L13-B1): the refs half of correspondence's S8
+// ADOPT-BASELINE arm, as ONE function (Fable D-R13L1-1) called by correspondence below AND by the fold's present-revision
+// reproducible gate, so the two can never drift. True for a body that is not an adopt-baseline, and for a baseline-ask (all-null)
+// capture: the arm is numeric-only (a null capture is governed by R9.11 M (1), dissolvedExit). For a numeric capture of the latest
+// consumed Start (ranked as S8 ranks it), true iff load_basis.authority_refs is non-empty and EVERY ref is authentic, a
+// proposal-response of this lift, and holding (an ACTIVE hold issue of the lift names it) or dissolved (NO hold issue of the lift
+// names it, active or superseded) and proven before that Start (R9.12 (1b), ONE ANCHOR; RESIDUAL (iv) :157 meets the same test).
+// Unresolvable roots, Start or session: false (correspondence then names its own field).
+function refsArm(body, { facts, byId, issues = [] }) {
+  if (!map(body) || body.kind !== 'adopt-baseline') return true;
+  const lift = body.lift_lineage_id;
+  const roots = (Array.isArray(body.consumes) ? body.consumes : []).map((r) => { try { const k = JSON.parse(r); return Array.isArray(k) && k.length === 3 && text(k[0]) && text(k[2]) ? { start: k[0], lift: k[1], close: k[2] } : null; } catch (_) { return null; } });
+  if (!roots.length || roots.some((r) => !r)) return false;
+  const rank = new Map(((facts && facts.order && facts.order.start_ids) || []).map((id, k) => [id, k]));
+  const latest = roots.slice().sort((a, b) => (rank.get(a.start) ?? -1) - (rank.get(b.start) ?? -1)).pop();
+  const start = byId.get(latest.start), hit = sessionOf(facts, latest.close, lift);
+  if (!start || !hit) return false;
+  const cap = captureOf(start, { ...hit.entry, slots: hit.entry.slots.filter((x) => x.origin !== 'added') });
+  if (!cap.some((v) => typeof v === 'number')) return true;
+  const ar = map(body.basis) && map(body.basis.load_basis) && Array.isArray(body.basis.load_basis.authority_refs) ? body.basis.load_basis.authority_refs : [];
+  const names = (i, id) => !!i && i.lift === lift && isHold(i) && (i.refs || []).some((x) => map(x) && x.op_id === id);
+  const holding = (id) => (issues || []).some((i) => names(i, id) && !i.superseded_by);
+  const dissolved = (id) => !(issues || []).some((i) => names(i, id));
+  const ok = (r) => { if (!map(r) || !byId.has(r.op_id) || byId.get(r.op_id).canonical_content_commitment !== r.commitment) return false; const o = byId.get(r.op_id);
+    return o.class === 'plan' && o.kind === 'proposal-response' && map(o.payload) && map(o.payload.issuance) && map(o.payload.issuance.body) &&
+      o.payload.issuance.body.lift_lineage_id === lift && (holding(r.op_id) || (dissolved(r.op_id) && provenBefore([o], start, byId))); };
+  return ar.length > 0 && ar.every(ok);
+}
 function correspondence(body, { facts, byId, source, issues = [], spent = [], groups = null }) {
   const lift = body.lift_lineage_id;
   const isOp0 = (id, kind) => { const o = byId.get(id); return !!o && o.class === 'session' && o.kind === kind; };
@@ -439,18 +477,9 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
       // the missed-Close arm (a missed debut is no longer a hold, :152): a Close is never an
       // admitted ref of an adopt-baseline; the Close claim moved to the MISSED-DEBUT ANCHOR below.
       if (baseVec.some((v) => v !== null)) return 'base_load';
-      if (cap.some((v) => typeof v === 'number')) {
-        const holding = (id) => (issues || []).some((i) => i && i.lift === lift && isHold(i) && !i.superseded_by && (i.refs || []).some((x) => map(x) && x.op_id === id));
-        // Spec R9.12 (1b) (:155 arm (ii), Astra L12-B5; PM ruling STOP-R912-1/-2 option (C)): a ref that NO hold issue of
-        // the lift names, active or superseded, is also admitted when its op is proven before the Start of the latest
-        // consumed completion (ONE ANCHOR, latest as ranked above), as the fold's dissolved-hold exit (M (1)) requires.
-        // A ref that no hold ever named meets the same test: RESIDUAL (iv) (:157), never issued by the guarded host.
-        const dissolved = (id) => !(issues || []).some((i) => i && i.lift === lift && isHold(i) && (i.refs || []).some((x) => map(x) && x.op_id === id));
-        const ok = (r) => { if (r === null || !authentic(r)) return false; const o = byId.get(r.op_id);
-          return o.class === 'plan' && o.kind === 'proposal-response' && map(o.payload) && map(o.payload.issuance) && map(o.payload.issuance.body) &&
-            o.payload.issuance.body.lift_lineage_id === lift && (holding(r.op_id) || (dissolved(r.op_id) && provenBefore([o], byId.get(latest.start), byId))); };
-        if (!ar.length || !ar.every(ok)) return 'base_load';
-      }
+      // Spec R9.12 (1b) (:155 arm (ii), Astra L12-B5; PM ruling STOP-R912-1/-2 option (C)) and R9.13 (i): the refs half is
+      // REFS-ARM (refsArm above), the one function the fold's present-revision reproducible gate also runs.
+      if (!refsArm(body, { facts, byId, issues })) return 'base_load';
     } else if (body.kind === 'adopt-observed' && ar.length) {
       // Spec R9.9 :155 MISSED-DEBUT ANCHOR (DECISIONS:796 (c); l11 A1, A2): an adopt-observed claims
       // it by load_basis.authority_refs exactly [the Ref of the latest consumed Close]; the claim is
@@ -726,7 +755,11 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
       const present = iss.revision === engine.revision;
       const atCut = (b) => factsAtCut(facts, b.basis.order.start_ids, b.basis.order.frontier);
       const members = body.kind === 'compensate' ? [...g.ops, ...g.alt].map((op) => op.payload.issuance.body) : [body];
-      const reproducible = present && !changed && members.every((b) => sameCut(b, atCut(b), V));
+      // Spec R9.13 (i) REFS-ARM-EVERY-REVISION, FORM (B) (PM ruling (i), DECISIONS:819; STOP-R20B2-3 = Astra L13-B1 = Fable
+      // D-R20L1-6): a record that fails REFS-ARM is never re-evaluated under a present revision; it takes the correspondence branch
+      // below, which refuses it RECORD_INVALID by its first failing field, exactly as an absent revision does (R1 = R2, :165
+      // UNPROVABLE ORDER). A record that passes REFS-ARM (every genuine host exit in the ordered layout) is re-evaluated as before.
+      const reproducible = present && !changed && members.every((b) => sameCut(b, atCut(b), V)) && refsArm(body, { facts, byId, issues });
       // STRUCTURAL CORRESPONDENCE (spec R9 :155): a record that is not re-evaluated applies
       // only when S1-S8 hold; the first failure refuses that lift by the failing field.
       if (!reproducible) {

@@ -1287,3 +1287,23 @@ test('N28-HOST-NO-NEVER-HELD R9.12 [Y] (spec M R9.12 revision 3 NEW ROWS, the ho
     }
   }
 });
+
+// ROUND 21b (spec R9.13 (v) LEGACY-OVER-NULL; PM ruling (v), DECISIONS:819). An admitted basis whose demo-press has w null and a
+// pending legacy DEBUT 60 (never held): the durable host's registered projection hides the entry, so the card is the baseline ask.
+test('R913-LEGACY-OVER-NULL-HOST [Y] (spec R9.13 (v); red on 40eb702: gym.read blocked ENGINE_CAPTURE_BASELINE_UNPROVEN): a never-held demo-press with w null and a pending legacy DEBUT 60 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has w null, no visible unfinished demo-press debut and no active issue', async () => {
+  const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), day + ' demo-press: the baseline ask');
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, 0, []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
