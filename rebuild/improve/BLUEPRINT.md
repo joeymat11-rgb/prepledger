@@ -45,7 +45,7 @@ Build an agent workforce that measurably gets better at building Earned over tim
 |---|---|---|
 | **L1: Work** | Tickets get built, reviewed and sealed | Existing process |
 | **L2: Learn** | A playbook rule is added, edited or retired, based on after-action notes | **PM**, with evidence (section 5) |
-| **L3: Learn to learn** | The coach changes its own method: how it finds lessons, how it tests them, and what it measures. It scores its own past proposals and edits its own instructions (`coach.md`) | **PM**, with evidence |
+| **L3: Learn to learn** | The coach changes its own method: how it finds lessons, how it tests them, and what it measures. It scores its own past proposals and edits its own instructions (`coach.md`) | **PM**, with evidence. PARKED for now; when it returns, the first self-rewrite goes to Joe (section 12) |
 | **L4: Restructure** | New roles or merged roles, which model does which job, new tools or skills, changes to the review chain, raising the budget cap | **Joe:** one line, yes/no, with the PM's recommended answer and the evidence |
 | **L5: Smarter model** | Not reachable by us. It is handled by the model-upgrade protocol (section 6.7) | — |
 
@@ -61,7 +61,7 @@ Only Joe can change these, by a DECISIONS ruling. An agent that proposes changin
 2. **The author is never the reviewer.** This holds for tickets, playbook changes and coach proposals (DECISIONS:778 stands).
 3. **Joe's product rulings and the design of record are out of scope.** The loop improves how the work is done, not what Earned is.
 4. **Approval gates stand.** Seals, releases, private data, spending and Joe's decision rights are unchanged. The loop may not route around them.
-5. **Budget cap.** Improvement work (section 7) stays under its cap. Raising the cap is an L4 decision.
+5. **Budget cap.** Improvement work (section 7) stays under its cap. Raising the cap is an L4 decision. (Cap amended by Joe on 2026-09-25: see section 12.)
 6. **Everything is logged and can be undone.** No playbook or coach change is made outside git, and every change carries its reason and source.
 7. **Private data stays private.** The private fixture and anything personal never goes into playbooks, scoreboard cases or reviewer packs beyond what the existing rules already allow.
 8. **This constitution cannot edit itself.**
@@ -171,7 +171,7 @@ The scoreboard has three tiers, because re-running full builds is expensive:
 
 ## 7. Budget
 
-- **Default cap:** improvement work uses no more than **10% of total agent usage** on Earned, measured weekly. The PM reports actual usage in the digest.
+- **Default cap:** improvement work uses no more than **10% of total agent usage** on Earned, measured weekly. The PM reports actual usage in the digest. (Replaced on 2026-09-25 by a daily pass cap: see section 12.)
 - **When usage is short** (an account near its limit), this order applies:
   - pause the coach and replay runs first
   - keep AARs and metrics rows
@@ -238,3 +238,19 @@ The scoreboard has three tiers, because re-running full builds is expensive:
 4. Is 5 tickets a meaningful trial length at Earned's pace? Suggest a better rule if not.
 5. Where could this loop still game itself despite the constitution?
 6. Is the L2–3 / L4 approval split in the right place?
+
+---
+
+## 12. Amendments (Joe, 2026-09-25, after the Phase 0 reviews)
+
+Recorded at DECISIONS:824 and :825. Where these conflict with the text above, these win.
+
+1. **Second reviewer.** Astra (Codex) is the second reviewer, not Grok (Joe: "Astra is second reviewer"). Fable stays the first. Both stay blind to each other.
+2. **Budget cap (Constitution rule 5 and section 7).** At most one small improvement pass a day, about 20 minutes, and never during a release freeze. This replaces the 10% cap.
+3. **Small helpers.** A small helper script that stays inside a permission Joe has already given is ordinary work (L1), not an L4 question.
+4. **When coach self-rewrites (L3) come back.** They are parked. They return at whichever of these comes FIRST:
+   - the coach has **10 graded proposals** (a proposal is graded when its experiment has ended as KEEP, RETIRE or INCONCLUSIVE and the outcome is logged), or
+   - the **6-week success test** in section 9 finishes.
+
+   Calendar guide: the coach itself starts only after four weeks of derived metric rows. Phase 1 began on 2026-09-25, so the coach starts about 2026-10-23 at the earliest, and the 6-week test ends about 2026-12-04. So L3 comes back no later than about 2026-12-04, and sooner if 10 proposals are graded first. When it comes back, the coach's first self-rewrite goes to Joe as a one-line yes/no; later ones follow section 2 (PM, with evidence).
+5. **Phase 1 is the smaller version** both reviewers recommended (DECISIONS:824): one verdict vocabulary, dispatch and return fields on every job, a short after-action block written by the reviewer, metrics derived by script (never hand-edited), one versioned playbook, 2 to 5 replay cases with mechanical grading, and a trial rule of 10 comparable chances with a change and 10 without, over 14 days (replacing the 5-ticket trial and the 3-of-5 test). Parked until four weeks of derived rows: the weekly coach, the digest ceremony, full reruns, model-upgrade ablation, a separate CHANGELOG and a copied CONSTITUTION.md.
