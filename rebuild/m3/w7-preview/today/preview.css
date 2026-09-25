@@ -153,3 +153,30 @@
   font-size: 16px;
 }
 .view [data-slot="settings-list"] .row { gap: 12px; }
+
+/* C-UI-2 BEGIN (Today face). Scoped to a host that carries the pack's chassis, so no
+   other screen moves. (1) CUI1 debt D2: `.scene-frame > .view.ui` keeps the legacy host
+   scrolling as a block; a host whose children are the pack's .body and .stack takes back
+   the pinned .ui / .screen .ui layout values (absolute, flex column, the inset, no
+   scroll), so the day scrolls in .body under the fixed stack as ruling 4 draws it.
+   (2) The 2026-09-08 `.primary` rule, laid down before the pack, still leaks a 1px ink
+   border and weight 600 onto Start; the pack draws Start with neither (`button` border 0,
+   `font: inherit`). The border reset stops at :not(:disabled) so the pack's disabled
+   Start keeps its 1px line-soft edge (app.css `.primary:disabled`). (3) The Talk row carries the product's coach entry, a label and a
+   quieter line: that line restates the pack's `.rowcard .sub` values and keeps the
+   "Not wired yet" marker whole while the sentence before it is the part that
+   shortens. (4) The weigh-in sheet is appended to this host beside the stack; the pack
+   lifts the stack to z-index 2, so the sheet takes 3 and paints over Start, Recovery
+   and Talk while it is open. No colour and no type size here is new. */
+.scene-frame > .view.ui:has(> .stack) { position: absolute; inset: 0; display: flex;
+  flex-direction: column; padding: 0 var(--inset); overflow: hidden; }
+.scene-frame > .view.ui > .stack > .primary { font-weight: inherit; }
+.scene-frame > .view.ui > .stack > .primary:not(:disabled) { border: 0; }
+.scene-frame > .view.ui:has(> .stack) > .sheet-panel { z-index: 3; }
+#talk-today .label { min-width: 0; }
+#talk-today .label > .sub { display: flex; gap: 6px; margin-top: 2px; font-size: 13px;
+  line-height: 1.3; color: var(--muted); font-weight: 430; }
+#talk-today .label > .sub > span:first-child { flex: 1 1 auto; min-width: 0; overflow: hidden;
+  white-space: nowrap; text-overflow: ellipsis; }
+#talk-today .label > .sub > [data-slot] { flex: 0 0 auto; }
+/* C-UI-2 END */

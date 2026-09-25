@@ -620,8 +620,15 @@ function mountToday(doc, model, options = {}) {
     arrows(root);
     for (const el of root.querySelectorAll("[data-go]")) hooks.listen(el, "click", () => render(el.dataset.go, true));
   }
-  function show(root, focus) {
-    phone.replaceChildren(root);
+  /* C-UI-2: Today's approved template is the pack's chassis, a scrolling .body and a
+     fixed .stack, so it has two top level elements and both are mounted. */
+  const templateParts = (id) => {
+    const node = doc.getElementById(id);
+    if (!node) throw new Error("Today preview: missing approved template " + id);
+    return [...node.content.children].map((child) => child.cloneNode(true));
+  };
+  function show(root, focus, ...more) {
+    phone.replaceChildren(root, ...more);
     if (focus) {
       const target = root.querySelector("h1") || root;
       target.tabIndex = -1;
@@ -635,8 +642,11 @@ function mountToday(doc, model, options = {}) {
     const view = model.read();
     const token = mountToken;
     if (chrome) chrome.textContent = plainOrDrop(view.storageNote, "today-storage");
-    const root = template("t-today");
+    /* C-UI-2: `root` stays the day (the .body every later append targets); the
+       stack beside it carries Start, Recovery and Talk. One slot map spans both. */
+    const [root, stack] = templateParts("t-today");
     const map = slots(root);
+    for (const [name, el] of slots(stack)) if (!map.has(name)) map.set(name, el);
     put(map, "date", dayLabel(view.today));
 
     if (view.blocked) {
@@ -651,7 +661,8 @@ function mountToday(doc, model, options = {}) {
          is wired here too. It reads nothing from the record it could not trust. */
       problemControl(map);
       wire(root);
-      show(root, focus);
+      wire(stack);
+      show(root, focus, stack);
       return;
     }
 
@@ -702,6 +713,8 @@ function mountToday(doc, model, options = {}) {
        always described. Written straight, like the check-in's, so a day with nothing
        recorded says NOTHING rather than a placeholder the athlete never entered. */
     map.get("nutrition-state").textContent = plainOrDrop(nutritionState(), "nutrition-state");
+    /* C-UI-2: the card's marker is lit only for a recorded day (pack T-25, .marker.on). */
+    map.get("nutrition-state").classList.toggle("on", map.get("nutrition-state").textContent === FOOD_SAVED);
     put(map, "coach-state", NOT_WIRED);
     /* Written straight, not through put(): when nothing is recorded this slot says
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
@@ -806,7 +819,8 @@ function mountToday(doc, model, options = {}) {
     root.append(buildFooter);
 
     wire(root);
-    show(root, focus);
+    wire(stack);
+    show(root, focus, stack);
     fitHeadline(phone, root);
     /* A change to the headline's text re-runs the fit. No test hook: the page simply
        keeps itself correct, and the browser check exercises the engine's whole title
@@ -830,14 +844,16 @@ function mountToday(doc, model, options = {}) {
     arrows(sheet);
     const input = sheet.querySelector("#morning-weight");
     const error = sheet.querySelector("#weigh-error");
-    const page = phone.firstElementChild;
-    if (page) page.inert = true;
+    /* C-UI-2: Today is two elements now (the day and the fixed stack); both go inert
+       under the sheet, so no stack control can be reached behind it. */
+    const pages = [...phone.children];
+    for (const page of pages) page.inert = true;
     phone.append(sheet);
     input.focus();
 
     function close() {
       sheet.remove();
-      if (page) page.inert = false;
+      for (const page of pages) page.inert = false;
       if (returnFocus && returnFocus.isConnected) returnFocus.focus();
     }
     for (const step of sheet.querySelectorAll("[data-step]")) {
@@ -1557,6 +1573,7 @@ function mountToday(doc, model, options = {}) {
     if (!facade.firstRun()) return false;
     const line = doc.createElement("p");
     line.dataset.slot = "sample-note";
+    line.className = "note-block sample"; // C-UI-2: the pack's sample note (T-02)
     line.textContent = plainOrDrop(SAMPLE_DATA_NOTE, "sample-note");
     let anchor = map.get("kcal") || null;
     while (anchor && anchor.parentNode !== root) anchor = anchor.parentNode;
