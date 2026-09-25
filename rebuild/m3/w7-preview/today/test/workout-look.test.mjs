@@ -195,3 +195,70 @@ test("C-UI-4 F7 the composed fragments are declared, and the W-19 mark clears on
 test("C-UI-4 ruling R2 the set dots keep the card's .slot hook beside the pack's dot classes", () => {
   assert(gymApp.includes("dot.className = 'slot' + (entryOf.done"), "one .slot per set, as gym.test:494 reads");
 });
+
+/* ---------------- round 3 (DECISIONS:820 (2) to (4): the board's words win on Workout) ----------------
+   Each new visible string is the board's own (app/app.html #screen-workout, app/states-workout.js),
+   declared in design.cjs with :820 and its state id; nothing is drawn that cannot act. */
+
+test("C-UI-4 R3-1 the board's set-card words: the example pill, Today’s set, Unlogged / Logged, RIR (clean reps left)", () => {
+  const gym = section("t-gym"), rest = section("t-rest");
+  for (const [id, html] of [["t-gym", gym], ["t-rest", rest]]) {
+    assert(html.includes('<div class="right"><span class="pill" title="Example numbers, not your data">example</span></div>'),
+      id + " carries the board's header pill (W-06)");
+  }
+  assert.match(elementWith(gym, 'id="setcard"'),
+    /<div class="top"><span class="eyebrow" data-slot="entry-title">Today’s set<\/span><span class="state" id="set-state"><span class="ring" aria-hidden="true"><\/span><span id="set-state-text">Unlogged<\/span><\/span><\/div>/);
+  assert.match(elementWith(rest, 'id="setcard"'),
+    /<div class="top"><span class="eyebrow" data-slot="entry-title"><\/span><span class="state logged" id="set-state"><span class="ring" aria-hidden="true"><\/span><span id="set-state-text">Logged<\/span><\/span><\/div>/);
+  assert(gym.includes('<span class="h" id="gym-rir-head">RIR (clean reps left)</span>'));
+  assert.doesNotMatch(gym, />Clean reps left</);
+  assert.doesNotMatch(gymApp, /put\(map, 'entry-title', 'What you did · Set ' \+ view\.set\.position\)/,
+    "the active eyebrow is the board's; the set's position is #set-count");
+});
+
+test("C-UI-4 R3-2 the rest screen's primary is the board's Start set N (W-22)", () => {
+  assert(gymApp.includes("put(map, 'primary-label', next ? 'Start set ' + next.position : FINISH_WORKOUT);"));
+  assert.doesNotMatch(gymApp, /Ready for set/);
+  const list = designSource.slice(designSource.indexOf("const RUNTIME_COPY = Object.freeze(["),
+    designSource.indexOf("const CHECKIN_RUNTIME_COPY"));
+  assert(list.includes('"Start set "') && !list.includes('"Ready for set "'));
+});
+
+test("C-UI-4 R3-3 W-18: the board's hint under the numerals, only when no load step is on file; no +/- steps", () => {
+  const card = elementWith(section("t-gym"), 'id="setcard"');
+  assert.match(card, /<div class="unit">reps<\/div><\/div>\s*<\/div>\s*<div class="w-hint" data-slot="step-hint" hidden>No load step is on file for this machine\. Type the load you used\.<\/div>/);
+  assert(gymApp.includes("map.get('step-hint').hidden = view.entry.step !== null;"));
+  assert.doesNotMatch(section("t-gym"), /pstep|w-step/, "no +/- step buttons (DECISIONS:820 (4))");
+});
+
+test("C-UI-4 R3-4 W-21: a set the layer refused is said in the board's words, the layer's reason in the tail", () => {
+  assert(gymApp.includes("export const SET_NOT_RECORDED = 'This set could not be recorded on this device, and no part of it was recorded.';"));
+  assert(gymApp.includes("export const LAYER_REASON = 'The layer’s own reason: ';"));
+  assert(gymApp.includes("lead.className = 'refusal-text';") && gymApp.includes("tail.className = 'refusal-tail';"));
+  assert(gymApp.includes("refuse(result, !!result.code);"), "only a coded logSet refusal takes W-21's dress");
+});
+
+test("C-UI-4 R3-5 the coach pill opens Coach and is drawn only with that route; no Edit on the set", () => {
+  for (const id of ["t-gym", "t-rest"]) {
+    const voice = elementWith(section(id), 'id="workout-voice"');
+    assert.match(voice, /^<div id="workout-voice" hidden>/, id);
+    assert.match(voice, /<button class="talk" type="button" id="talk-workout" data-action="coach"><span class="orb" aria-hidden="true"><\/span><span class="label" id="talk-workout-label">Earned is here<\/span><span class="mic" aria-hidden="true"><svg/, id);
+    assert.doesNotMatch(voice, /Use text mode|I’ll tap instead|text-mode/, id + ": no text or voice lane to switch");
+  }
+  assert(gymApp.includes("voice.hidden = typeof onCoach !== 'function';"));
+  assert(gymApp.includes("leaveCard(() => onCoach())"));
+  assert.doesNotMatch(section("t-gym"), /id="edit"/, "no Edit on the set: gym-model has no edit of an unlogged set");
+});
+
+test("C-UI-4 R3-6 each new board string is declared approved copy citing DECISIONS:820", () => {
+  const approved = designSource.slice(designSource.indexOf("const APPROVED_COPY = Object.freeze(["),
+    designSource.indexOf("const RUNTIME_COPY = Object.freeze(["));
+  const runtime = designSource.slice(designSource.indexOf("const RUNTIME_COPY = Object.freeze(["),
+    designSource.indexOf("const CHECKIN_RUNTIME_COPY"));
+  for (const s of ["Today’s set", "Unlogged", "Logged", "RIR (clean reps left)", "example", "Earned is here",
+    "No load step is on file for this machine. Type the load you used."]) assert(approved.includes('"' + s + '"'), s);
+  for (const s of ["Start set ", "This set could not be recorded on this device, and no part of it was recorded.",
+    "The layer’s own reason: "]) assert(runtime.includes('"' + s + '"'), s);
+  assert.match(approved, /DECISIONS:820/);
+  assert.match(runtime, /DECISIONS:820/);
+});

@@ -53,6 +53,12 @@ export const CLEAN_REP_HELP = [
   'A rep you could complete with the same range of motion and control, without changing your technique to finish it.',
   'Estimate how many more you could have done at the end of the set. If you can’t tell, choose Unsure.',
 ];
+/* C-UI-4 round 3, W-21 (DECISIONS:820 (2): the board's words win). A set the layer refused
+   is said as the board draws it: this lead sentence, then the layer's own reason (its copy
+   and its code, each once, as review B1 requires) in the refusal's tail. Both are verbatim
+   in app/states-workout.js and declared in design.cjs RUNTIME_COPY. */
+export const SET_NOT_RECORDED = 'This set could not be recorded on this device, and no part of it was recorded.';
+export const LAYER_REASON = 'The layer’s own reason: ';
 
 /* MACHINE SETTINGS, wave one (DECISIONS:154 (2), :140). Every sentence the block and
    its editor can put on the screen, declared here and nowhere else, so design.cjs binds
@@ -103,7 +109,7 @@ export function newGymDraft() { return { effort: null, entry: { load: null, reps
    durable payload and never with its old token or control authority. */
 const SETTINGS_DRAFT_CARRY = new WeakMap();
 
-export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draft, settings } = {}) {
+export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, onCoach, draft, settings } = {}) {
   if (!phone) throw new Error('Gym card: no host element');
   /* D2 round 2, R2-1 - see `show`. True while THIS mount is the screen on the phone. */
   let owns = true;
@@ -121,6 +127,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   if (!Object.hasOwn(held, 'effort')) held.effort = null;   // NOTHING is preselected
   if (!held.entry || typeof held.entry !== 'object') held.entry = { load: null, reps: null };
   let showSetup = false, showWhy = false, showHelp = false;
+  /* W-21: the code of the last set the layer refused on this mount, so a repaint that
+     carries the same remembered refusal keeps the board's dress. */
+  let setRefusedCode = null;
 
   /* ---------------- MACHINE SETTINGS (DECISIONS:154 (2)) ----------------
      WHY THIS FILE OPENS THE LANE. The other four lanes are opened by boot() in
@@ -189,6 +198,18 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   function icons(root) {
     for (const el of root.querySelectorAll('[data-arrow]')) el.innerHTML = ARROW;
     for (const el of root.querySelectorAll('[data-check]')) el.innerHTML = CHECK;
+  }
+  /* C-UI-4 round 3 (DECISIONS:820 (2), (3); W-06 #talk-workout) - the board's coach pill.
+     The coach is not live, so the pill does the one honest thing it can: it opens the Coach
+     screen, which says so (C-61). It is drawn only when the page gives the card that route,
+     exactly as the check-in row is; with no route there is nothing on the screen to tap. */
+  function coachPill(root) {
+    const voice = root.querySelector('#workout-voice');
+    if (!voice) return;
+    voice.hidden = typeof onCoach !== 'function';
+    if (typeof onCoach === 'function') {
+      hooks.listen(root.querySelector('#talk-workout'), 'click', () => leaveCard(() => onCoach()));
+    }
   }
   /* D2 ROUND 2, R2-1 - MOUNT OWNERSHIP. `phone` is the page's ONE surface and every
      screen shares it. This mount owns it from the moment it is created until the
@@ -419,7 +440,8 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
 
     /* The set card. The numerals are the entry itself: the prescribed figures, or what
        the athlete has typed over them, in the two real boxes the set is logged from. */
-    put(map, 'entry-title', 'What you did · Set ' + view.set.position);
+    /* W-06 (DECISIONS:820 (2)): the eyebrow is the board's static "Today’s set" and the
+       state word "Unlogged" (template); the set's position is #set-count. */
     const load = root.querySelector('#gym-weight');
     const reps = root.querySelector('#gym-reps');
     const loadBox = root.querySelector('#w-value');
@@ -444,6 +466,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       plan.append(left, times, right);
     } else plan.textContent = plainOrDrop(planLine || '', 'plan');
     plan.hidden = !planLine || (view.entry.load !== null && view.entry.reps !== null);
+    /* W-18 (DECISIONS:820 (2), (4)): with no load step on file the board's hint says so
+       under the numerals; there are no +/- steps, so the box always takes typed entry. */
+    map.get('step-hint').hidden = view.entry.step !== null;
     put(map, 'effort-target', view.prescription.effort);
     /* W-16 / W-17: the qualified comparison, or nothing at all (no guess, no empty row). */
     put(map, 'previous', view.previous);
@@ -495,7 +520,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       loadBox.classList.remove('w-blank', 'is-invalid');
       repsBox.classList.remove('w-blank', 'is-invalid');
     };
-    const refuse = (result) => {
+    const refuse = (result, setRefused = false) => {
       clearRefusal();
       const text = result ? refusalText(result) : '';
       if (!text) return;
@@ -513,7 +538,17 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
         logRow.parentNode.insertBefore(errorBox, logRow);
         if (own && result.copy === CHOOSE_EFFORT) rir.classList.add('is-invalid');
       }
-      errorBox.textContent = plainOrDrop(text, 'gym-error');
+      if (setRefused && !own) {
+        /* W-21 (DECISIONS:820 (2)): the board's lead, then the layer's own reason, its copy
+           and its code each once (review B1), in the refusal's tail. */
+        const lead = doc.createElement('span');
+        lead.className = 'refusal-text';
+        lead.textContent = SET_NOT_RECORDED;
+        const tail = doc.createElement('span');
+        tail.className = 'refusal-tail';
+        tail.textContent = plainOrDrop(LAYER_REASON + text + (text.endsWith('.') ? '' : '.'), 'gym-error');
+        errorBox.replaceChildren(lead, tail);
+      } else errorBox.textContent = plainOrDrop(text, 'gym-error');
       errorBox.hidden = false;
     };
     /* Typing into the boxes answers W-19's refusal, so its sentence and its mark go
@@ -563,7 +598,8 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const logOutcome = async (outcome) => {
       if (!outcome || outcome.kind !== 'gym-result' || outcome.action !== 'logSet') return;
       const result = outcome.result;
-      if (!result.ok) { refuse(result); return; }
+      if (!result.ok) { setRefusedCode = result.code || null; refuse(result, !!result.code); return; }
+      setRefusedCode = null;
       held.entry = { load: null, reps: null };
       held.effort = null; showWhy = false; showSetup = false; showHelp = false;
       await paint();
@@ -571,7 +607,8 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     };
 
     hooks.listen(root.querySelector('[data-action="back"]'), 'click', () => leaveCard(() => onBack()));
-    if (view.message) refuse(view.message);
+    if (view.message) refuse(view.message, !!view.message.code && view.message.code === setRefusedCode);
+    coachPill(root);
     icons(root);
     show(root);
     if (bindSettings) bindSettings();
@@ -611,6 +648,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     for (const el of root.querySelectorAll('[data-action="back"]')) {
       hooks.listen(el, 'click', () => leaveCard(() => onBack()));
     }
+    coachPill(root);
     icons(root);
     show(root, true);
     hooks.bindGymAction('finish', () => undefined, (outcome) => finishOutcome(view, outcome));
@@ -648,7 +686,8 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     put(map, 'next-effort', next ? next.effort : '');
     map.get('next-block').hidden = !next;
 
-    put(map, 'primary-label', next ? 'Ready for set ' + next.position : FINISH_WORKOUT);
+    /* W-22 (DECISIONS:820 (2)): the board's own "Start set N". */
+    put(map, 'primary-label', next ? 'Start set ' + next.position : FINISH_WORKOUT);
     const primaryOutcome = async (outcome) => {
       if (next) { await paint(); return; }
       await finishOutcome(view, outcome);
@@ -668,6 +707,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     for (const el of root.querySelectorAll('[data-action="back"]')) {
       hooks.listen(el, 'click', () => leaveCard(() => onBack()));
     }
+    coachPill(root);
     icons(root);
     show(root, true);
     hooks.bindGymAction(next ? 'forget' : 'finish', () => undefined, primaryOutcome);
