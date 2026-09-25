@@ -325,6 +325,73 @@ function setupNoteNeeded(enrolled, athleteLabel, state) {
   return state.athlete_label !== athleteLabel;
 }
 
+/* C-UI-2 STATUS LINE BEGIN (DECISIONS:820 (1)). The line under the greeting. The owner
+   chose the prototype's pattern "<session> today. Nothing to decide."; where the prototype
+   draws a different status for a state (app/states-today.js, the state id beside each
+   constant) that state says the prototype's words, and a state the prototype draws no
+   line for says nothing. <session> is the engine's own session name: the part of its
+   next-workout title before the day stamp ("UPPER BODY · TODAY"), only when that
+   session is today, in the sentence case the prototype writes it in. No word here is
+   the page's own. Self-contained on purpose (no require, no outer name), so a static
+   cell can evaluate this block alone. */
+const STATUS_NOTHING_TO_DECIDE = " today. Nothing to decide."; // owner's pattern; T-32, T-40c
+const STATUS_SAMPLE = " today. Sample data."; // T-02
+const STATUS_NO_CALORIE_RANGE = " today. Your calorie range is not available yet."; // T-19
+const STATUS_UNDER_WAY = " is under way."; // T-14
+const STATUS_LOGGED = " logged. Nothing to decide."; // T-15
+const STATUS_CANNOT_OPEN = "Today’s workout cannot open."; // T-16
+const STATUS_EARLIER_OPEN = "An earlier workout is still open."; // T-17
+const STATUS_NOTHING_SCHEDULED = "Nothing scheduled today, so there is nothing to start."; // T-12
+const STATUS_NO_EXERCISES = "Today’s exercises are not available, so there is nothing to start."; // T-13
+const STATUS_REST_NEXT = "Nothing to decide. Next: "; // T-11
+const STATUS_BLOCKED = "This device’s record did not verify. Nothing on this screen is a value."; // T-06
+const STATUS_STAMP = " · ";
+function statusSessionName(workout) {
+  if (!workout || workout.today !== true || typeof workout.title !== "string") return null;
+  const name = workout.title.split(STATUS_STAMP)[0].trim();
+  return name ? name.charAt(0).toUpperCase() + name.slice(1).toLowerCase() : null;
+}
+/* RECORDED DEPARTURES from the boards (Fable l3 F3/F4, PM ruling round 4; kept as built,
+   listed for the comparison page, STD 7 (6)):
+   - F3: the prototype draws the header "example" pill on EVERY Today state (app/app.html:30
+     is base markup, never hidden by states.js or states-today.js); the app shows it only
+     while Today paints the sample athlete (T-02, T-04), as its own title "Example numbers,
+     not your data" says.
+   - F4: a pending-adoption Today (today-model.cjs sets exerciseCount null) says T-12's
+     "Nothing scheduled today, so there is nothing to start." rather than T-03's "Your
+     record is opening. Nothing here is measured yet."; the view does not expose
+     pendingAdoption, and the line agrees with the app's own workout line for that state. */
+/* `session` is the durable session facade.session() answers (its phase), `sample` is
+   true while Today paints the preview's sample athlete before setup (T-02). */
+function statusLine(view, session, sample) {
+  if (!view || view.blocked) return STATUS_BLOCKED;
+  /* An open proposal has no card on Today until C-UI-3 (today-model.cjs planMove), so the
+     prototype's "One change to review." would point at nothing, and "Nothing to decide."
+     would be false: the line says nothing until the card lands (T-40). This stands ahead
+     of the phase branches (Fable l3 F2, PM ruling round 4), so no line below it, T-15's
+     and T-11's included, can say "Nothing to decide." while a proposal is open. */
+  if (view.nowModel && view.nowModel.decisionsN > 0) return "";
+  const phase = session ? session.phase : null;
+  const name = statusSessionName(view.workout);
+  if (phase === "unfinished" && session.unfinished) return STATUS_EARLIER_OPEN;
+  if (phase === "active") return name ? name + STATUS_UNDER_WAY : "";
+  if (phase === "finished") return name ? name + STATUS_LOGGED : "";
+  if (phase === "blocked" && session.code) return STATUS_CANNOT_OPEN;
+  const workout = view.workout || {};
+  if (workout.exerciseCount === null && workout.unavailableReason) return STATUS_NO_EXERCISES;
+  if (workout.today === false && typeof workout.title === "string" && workout.title.includes(STATUS_STAMP)) {
+    const [next, when] = workout.title.split(STATUS_STAMP);
+    /* T-11 is drawn only for a TOMORROW stamp; the prototype draws no line for a later
+       day ("· MON 9/21"), so that day says nothing (Fable l3 F1, PM ruling round 4). */
+    return when.trim() === "TOMORROW" ? STATUS_REST_NEXT + next.trim().toLowerCase() + ", tomorrow." : "";
+  }
+  if (!name || workout.exerciseCount === null) return STATUS_NOTHING_SCHEDULED;
+  if (sample) return name + STATUS_SAMPLE;
+  if (view.calorieTarget && view.calorieTarget.gated) return name + STATUS_NO_CALORIE_RANGE;
+  return name + STATUS_NOTHING_TO_DECIDE;
+}
+/* C-UI-2 STATUS LINE END */
+
 /* THE HEADLINE FIT (review D-1). Four of the engine's own instruction titles run to three
    lines and push the primary action out of a 390x844 viewport. This steps the headline
    down from C's 47px, one pixel at a time, ONLY until the primary action is back inside
@@ -652,6 +719,10 @@ function mountToday(doc, model, options = {}) {
     if (view.blocked) {
       put(map, "instruction", "Earned cannot show today's plan.");
       put(map, "instruction-why", view.blockedCopy || "This device's local record could not be trusted, so nothing is shown.");
+      /* C-UI-2 round 3 (DECISIONS:820): the pack's T-06 status line; no sample claim and no
+         check-in prompt over a record that could not be trusted. */
+      map.get("status-line").textContent = plainOrDrop(statusLine(view, null, false), "status-line");
+      map.get("recovery-prompt").hidden = true;
       for (const name of ["kcal", "kcal-unit", "protein", "protein-unit", "kcal-note",
         "workout-title", "workout-count", "morning", "trend", "primary-label"]) put(map, name, null);
       for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
@@ -720,13 +791,20 @@ function mountToday(doc, model, options = {}) {
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
        page inventing a state the athlete never entered. */
     map.get("recovery-state").textContent = plainOrDrop(recoveryState(), "recovery-state");
+    /* C-UI-2 round 3 (DECISIONS:820 (2), board #recovery, T-26): with nothing recorded the
+       row carries the board's invitation; any durable fact replaces it (T-27, T-28). */
+    map.get("recovery-prompt").hidden = map.get("recovery-state").textContent !== "";
     /* N2 - Today's sleep entry and its one line. Written straight, like the other two:
        a night this device holds nothing for says NOTHING rather than a placeholder. */
     put(map, "sleep-entry-label", SLEEP_TITLE);
     map.get("sleep-state").textContent = plainOrDrop(sleepState(), "sleep-state");
     setupTile(map);
-    setupNote(map);
-    sampleNote(map, root);
+    const setupOwed = setupNote(map);
+    const sample = sampleNote(map, root);
+    /* C-UI-2 round 3 (DECISIONS:820 (2), the board's header pill): shown only while the
+       figures on this screen are the preview's sample athlete (T-02, T-04), never over his own. */
+    map.get("example-pill").hidden = !(sample || setupOwed);
+    map.get("status-line").textContent = plainOrDrop(statusLine(view, today, sample), "status-line");
     problemControl(map);
     put(map, "morning", morningLine(view));
     put(map, "trend", trendLine(view));
@@ -840,7 +918,7 @@ function mountToday(doc, model, options = {}) {
     const returnFocus = doc.activeElement;
     const sheet = template("t-weigh");
     const map = slots(sheet);
-    put(map, "weigh-submit", "Record this weight");
+    put(map, "weigh-submit", "Save"); // C-UI-2 round 3, DECISIONS:820 (2): the board's #save-weight
     arrows(sheet);
     const input = sheet.querySelector("#morning-weight");
     const error = sheet.querySelector("#weigh-error");

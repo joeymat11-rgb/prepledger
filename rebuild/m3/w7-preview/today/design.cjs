@@ -116,6 +116,13 @@ const APPROVED_COPY = Object.freeze([
   "Earned", "Your plan for today", "Eat about", "Your full nutrition plan",
   "How are you feeling today?",
   "Ask your coach", "Your plan, progress and the reasons behind it.", "Weight (lb)",
+  /* C-UI-2 round 3, DECISIONS:820 (2): the approved board's words win on Today where the
+     app named the same thing differently. Each is on the board (app/app.html) and in the
+     shipped template: the Recovery row (board #recovery, state T-26), the Talk row (board
+     #talk-today, T-31), the header pill (board .pill, shown only over the sample athlete,
+     T-02/T-04) and the weigh-in field (board #weigh-form label and placeholder, T-42). */
+  "Recovery check in", "Optional. How are you feeling?", "Talk through today’s plan",
+  "example", "Example numbers, not your data", "Your weight in pounds", "Your weight",
   "Back to my plan", "Today", "Your food plan.",
   "Your agreed daily targets, together in one place.",
   "Targets guide your day. Any suggested change comes with a reason and your choice to accept it.",
@@ -156,6 +163,16 @@ const RUNTIME_COPY = Object.freeze([
   " reps", "Aim to finish with ", " clean reps left", "Effort unknown",
   "Ready for set ", "Next · Set ", "Next · ", "Resume ", "Workout in progress", " complete",
   " recorded",
+  /* C-UI-2 round 3, DECISIONS:820 (1): Today's status line, the prototype's own words per
+     state (app/states-today.js T-32 the owner's pattern, T-02, T-19, T-14, T-15, T-16, T-17,
+     T-12, T-13, T-11, T-06), composed beside the engine's session name. */
+  " today. Nothing to decide.", " today. Sample data.", " today. Your calorie range is not available yet.",
+  " is under way.", " logged. Nothing to decide.", "Today’s workout cannot open.",
+  "An earlier workout is still open.", "Nothing scheduled today, so there is nothing to start.",
+  "Today’s exercises are not available, so there is nothing to start.", "Nothing to decide. Next: ",
+  "This device’s record did not verify. Nothing on this screen is a value.",
+  /* DECISIONS:820 (2): the weigh-in submits with the board's word (board #save-weight, T-42). */
+  "Save",
 ]);
 /* A3 — the approved question wording the CHECK-IN composes at runtime, beside a
    stored answer, when it reads today's recorded check-in back. Same rule as A1's and

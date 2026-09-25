@@ -16,18 +16,22 @@
      day's own links) and a fixed .stack holding Start, Recovery and Talk and nothing else.
      The template has TWO top level elements; today-app.cjs mounts both into the live host,
      which scene.mjs makes the active screen's .ui. Every slot keeps its name. Every word
-     here is existing product copy already bound by design.cjs; the board's own labels and
-     the greeting and status line wait for the owner (C-UI-2 report, questions). -->
+     here is product copy or the approved board's own, bound by design.cjs. Round 3
+     (DECISIONS:820): the greeting IS the engine's instruction slot (the value the pack's
+     T-39 draws), the status line under it says the prototype's words for each state, and
+     where the board and the app named the same thing differently the board's words won
+     (Recovery row, Talk row, the example pill, the weigh-in field). -->
 <template id="t-today">
 <div class="body page">
   <header class="header">
     <div class="brand"><span class="wordmark">Earned</span></div>
-    <div class="right"><span class="date" data-slot="date"></span></div>
+    <div class="right"><span class="date" data-slot="date"></span><span class="pill" data-slot="example-pill" title="Example numbers, not your data" hidden>example</span></div>
   </header>
   <div class="hairline"></div>
   <section>
     <p class="label">Your plan for today</p>
-    <h1 data-slot="instruction"></h1>
+    <h1 class="greeting" id="greeting" data-slot="instruction"></h1>
+    <p class="status-line" id="status-line" data-slot="status-line"></p>
     <p data-slot="instruction-why"></p>
   </section>
   <!-- A4 / C1 · the one sentence the landing Today owes a man who has just
@@ -82,12 +86,12 @@
   <button class="primary" type="button" id="start" data-slot="primary"><span data-slot="primary-label"></span><span class="arrow" aria-hidden="true"><svg viewBox="0 0 20 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9h17M12 3l6 6-6 6"/></svg></span></button>
   <button class="rowcard" type="button" id="recovery" data-go="recovery">
     <span class="icon-square" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span>
-    <span class="text"><div class="title">How are you feeling today?</div><div class="sub"><span class="muted" data-own data-slot="recovery-state"></span></div></span>
+    <span class="text"><div class="title">Recovery check in</div><div class="sub"><span data-slot="recovery-prompt">Optional. How are you feeling?</span><span class="muted" data-own data-slot="recovery-state"></span></div></span>
     <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
   </button>
   <button class="talk" type="button" id="talk-today" data-go="coach">
     <span class="orb" aria-hidden="true"></span>
-    <span class="label">Ask your coach<span class="sub"><span>Your plan, progress and the reasons behind it.</span> <span class="muted" data-own data-slot="coach-state"></span></span></span>
+    <span class="label">Talk through today’s plan<span class="sub"><span>Your plan, progress and the reasons behind it.</span> <span class="muted" data-own data-slot="coach-state"></span></span></span>
     <span class="mic" aria-hidden="true"><svg viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="1" width="7" height="12" rx="3.5"/><path d="M1.5 10.5a7.5 7.5 0 0 0 15 0M9 18v4M5.5 22h7"/></svg></span>
   </button>
 </div>
@@ -98,10 +102,10 @@
 <form class="sheet-panel" role="dialog" aria-modal="true" aria-label="Log this morning's weight">
   <div class="section-label">This morning</div>
   <div class="field">
-    <label for="morning-weight">Weight (lb)</label>
+    <label for="morning-weight">Your weight in pounds</label>
     <div class="number-control">
       <button class="step" type="button" data-step="-0.1" aria-label="Decrease weight">−</button>
-      <input id="morning-weight" type="number" inputmode="decimal" min="0" step="any" aria-label="Weight in pounds" aria-describedby="weigh-error">
+      <input id="morning-weight" type="number" inputmode="decimal" min="0" step="any" placeholder="Your weight" aria-label="Weight in pounds" aria-describedby="weigh-error">
       <button class="step" type="button" data-step="0.1" aria-label="Increase weight">+</button>
     </div>
   </div>
