@@ -346,6 +346,8 @@ const STATUS_NO_EXERCISES = "Today’s exercises are not available, so there is 
 const STATUS_REST_NEXT = "Nothing to decide. Next: "; // T-11
 const STATUS_BLOCKED = "This device’s record did not verify. Nothing on this screen is a value."; // T-06
 const STATUS_STAMP = " · ";
+const STATUS_ONE_CHANGE = " today. One change to review."; // C-UI-3: T-40 (the prototype's face default)
+const STATUS_ONE_ANSWER = " today. One answer recorded."; // C-UI-3: T-40b
 function statusSessionName(workout) {
   if (!workout || workout.today !== true || typeof workout.title !== "string") return null;
   const name = workout.title.split(STATUS_STAMP)[0].trim();
@@ -362,17 +364,29 @@ function statusSessionName(workout) {
      record is opening. Nothing here is measured yet."; the view does not expose
      pendingAdoption, and the line agrees with the app's own workout line for that state. */
 /* `session` is the durable session facade.session() answers (its phase), `sample` is
-   true while Today paints the preview's sample athlete before setup (T-02). */
-function statusLine(view, session, sample) {
+   true while Today paints the preview's sample athlete before setup (T-02). `card` is the
+   proposal card's state as C-UI-3 drew it ("open", "recorded", "declined"), or undefined. */
+function statusLine(view, session, sample, card) {
   if (!view || view.blocked) return STATUS_BLOCKED;
-  /* An open proposal has no card on Today until C-UI-3 (today-model.cjs planMove), so the
-     prototype's "One change to review." would point at nothing, and "Nothing to decide."
-     would be false: the line says nothing until the card lands (T-40). This stands ahead
-     of the phase branches (Fable l3 F2, PM ruling round 4), so no line below it, T-15's
-     and T-11's included, can say "Nothing to decide." while a proposal is open. */
-  if (view.nowModel && view.nowModel.decisionsN > 0) return "";
   const phase = session ? session.phase : null;
   const name = statusSessionName(view.workout);
+  /* An open proposal stands ahead of the phase branches (Fable l3 F2, PM ruling round 4),
+     so no line below it, T-15's and T-11's included, can say "Nothing to decide." while a
+     proposal is open. C-UI-3 gives the proposal its card and binds the prototype's lines
+     for it: T-40 "<session> today. One change to review.", T-40b "<session> today. One
+     answer recorded." and T-40d "<session> today. Nothing to decide." (his answer is given).
+     Only where the prototype draws them: ONE open proposal, a session today that has not
+     started, over his own figures; any other open-proposal day has no line. C-UI-3 round 2
+     (R1 consequence): over the sample athlete the prototype's T-02 draws the open card
+     under T-02's own line (app/states-today.js T-02 hides no card), so that line is kept. */
+  if (view.nowModel && view.nowModel.decisionsN > 0) {
+    const plain = view.nowModel.decisionsN === 1 && name && view.workout.exerciseCount !== null
+      && phase !== "unfinished" && phase !== "active" && phase !== "finished" && phase !== "blocked";
+    if (!plain) return "";
+    if (sample) return card === "open" ? name + STATUS_SAMPLE : "";
+    return card === "open" ? name + STATUS_ONE_CHANGE : card === "recorded" ? name + STATUS_ONE_ANSWER
+      : card === "declined" ? name + STATUS_NOTHING_TO_DECIDE : "";
+  }
   if (phase === "unfinished" && session.unfinished) return STATUS_EARLIER_OPEN;
   if (phase === "active") return name ? name + STATUS_UNDER_WAY : "";
   if (phase === "finished") return name ? name + STATUS_LOGGED : "";
@@ -391,6 +405,137 @@ function statusLine(view, session, sample) {
   return name + STATUS_NOTHING_TO_DECIDE;
 }
 /* C-UI-2 STATUS LINE END */
+
+/* C-UI-3 PROPOSAL CARD BEGIN (pack README C-UI-3; the board's app/app.html #card-proposal;
+   proposal() and T-40 to T-40g in app/states-today.js; DECISIONS:817, :820 (2)). ONE card
+   for every proposal kind, as ruled 2026-09-17. Every word below is the prototype's own
+   (its state id beside it); every value is the engine's card as today-model.cjs projects
+   it: the lift it names (else the engine's own card title) in the serif #proposal-lift,
+   the engine's own reason, and the kind's words only where the prototype draws that kind.
+   States:
+   - open (T-40): the eyebrow, the lift, the change line, the reason and the two decisions.
+   - recorded / declined (T-40b, T-40d): an answer, with "Change my answer", which restores
+     the open card. The card stops here (pack README C-UI-3 LOCKED): no local command stores
+     an answer yet (states/TICKET-proposal-response.md), so these are review faces only and
+     the live card never reaches them (R2 below).
+   - applied / withdrawn (T-40c, T-40e) and a stored decline: ONLY from the stored record
+     (today-model.cjs storedProposalAnswers) for the card this page showed; never from a
+     tap. A stored decline has no path back from here, so it draws no "Change my answer".
+   A kind the prototype draws no decision words for (every kind but a one-set add, a diet
+   break and a machine ladder) shows the card with no decisions and no invitation to a yes:
+   an element with no action is never drawn (DECISIONS:820).
+   ROUND 2 (Fable l1 NOT READY; PM rulings, 2026-09-25):
+   - F1: every engine string is cleaned PER FIELD with the page's own plainOrDrop, handed in
+     as `plain` (this block stays self-contained): the engine's reason alone is dropped when
+     it carries a dash plainCopy cannot rewrite, and the pack sentence "Nothing changes until
+     you say yes." (dash-free) is always kept on the review faces (round 3, L2-2: the live
+     card drops it, since no yes can be given there); when the bound lift name (the lift, else the
+     engine's card title) is empty after the drop, there is no card at all. Measured: the
+     engine's spaced dashes and numeric ranges are rewritten (": ", " to "), not dropped.
+   - F7: a card with no decisions takes NO eyebrow. The prototype draws no open card without
+     yes and no (T-40, T-40f, T-40g, T-40h all carry both), so it has no eyebrow for one, and
+     "One call needs you" would invite a call the card cannot take. Recorded departure.
+   - R2 (debt D-CUI3-RECORD): nothing stores his answer yet (the lane B proposal-response
+     ticket, states/TICKET-proposal-response.md), so the LIVE card (liveProposalFace) draws no
+     decision and therefore no eyebrow, and never draws recorded, declined or applied: those
+     states (T-40b, T-40c, T-40d) are drawn by the pack's state registry (app/states-today.js)
+     and by proposalFace for review only, and the live route never says "It applies when your
+     plan is next built." while nothing stores it (the principle of R4 at DECISIONS:820). A
+     withdrawal (T-40e) is the stored record's own and stays live.
+   - F6: T-40h (the bench, "Use 105 / Keep 115") is not drawn because it is
+     DORMANT in the prototype (app/states-today.js:159). The engine does file a weight-change card
+     (writers.cjs:1544 sweepStalls: agentProposals kind "reset" with newW beside ex.w, applied
+     by applyAgentProposal :2352); on this preview no path calls its caller sweepLab (explicit
+     path git grep of writers.cjs, today.cjs, w7-preview), and its reach on the rebuild's full
+     replay is unmeasured. Recorded departure: the prototype's dormancy, not an engine absence.
+   Self-contained (no require, no outer name) so a static cell evaluates this block alone. */
+const PROPOSAL_KIND_OPEN = "One call needs you"; // T-40
+const PROPOSAL_KIND_ANSWERED = "Your call"; // T-40b, T-40d
+const PROPOSAL_KIND_APPLIED = "Applied"; // T-40c
+const PROPOSAL_KIND_WITHDRAWN = "Withdrawn"; // T-40e
+const PROPOSAL_UNTIL_YES = "Nothing changes until you say yes."; // proposal() UNTIL_YOU_SAY_YES
+const PROPOSAL_SAID_YES = "You said yes."; // T-40b, T-40c
+const PROPOSAL_APPLIES_NEXT = "It applies when your plan is next built."; // T-40b
+const PROPOSAL_SAID_NO = "You said no."; // T-40d
+const PROPOSAL_NOTHING_CHANGES = "Nothing changes."; // T-40d
+const PROPOSAL_WITHDRAWN_WORD = "Withdrawn."; // T-40e
+const PROPOSAL_REBUILT = "Your plan was rebuilt and this proposal no longer applies."; // T-40e
+const PROPOSAL_CHANGE_ANSWER = "Change my answer"; // T-40b, T-40d
+const PROPOSAL_WORDS = Object.freeze({
+  sets: Object.freeze({ yes: "Yes, add it", no: "No, keep it as is", change: "Add one set this week" }), // T-40
+  break: Object.freeze({ yes: "Yes, take the break", no: "No, keep cutting", change: "" }), // T-40f
+  ladder: Object.freeze({ yes: "Yes, use them", no: "No, keep the plan’s steps", change: "Use the machine’s own steps" }), // T-40g
+});
+const PROPOSAL_STATE_CLASS = Object.freeze({ recorded: "is-recorded", declined: "is-declined",
+  applied: "is-applied", withdrawn: "is-superseded" });
+function proposalWords(p) {
+  if (!p || p.source !== "proposal") return null;
+  if (p.kind === "sets") return p.delta === 1 ? PROPOSAL_WORDS.sets : null;
+  return p.kind === "break" || p.kind === "ladder" ? PROPOSAL_WORDS[p.kind] : null;
+}
+/* `open` is view.proposal, `stored` view.proposalStored, `answer` an answer to the open card
+   ("yes", "no" or undefined; review faces only, see R2), `shownId` the card this page last
+   showed, `plain` the page's plainOrDrop (F1; absent, text is taken as given). */
+function proposalFace(open, stored, answer, shownId, plain) {
+  const clean = typeof plain === "function" ? plain : (text) => text;
+  const record = shownId && stored && Object.prototype.hasOwnProperty.call(stored, shownId) ? stored[shownId] : null;
+  let state, card, id;
+  /* An open card always wins: the stored outcome of the card this page showed is drawn
+     only while nothing else waits on him. */
+  if (record && !open) { state = record.status; card = record; id = shownId; }
+  else if (open) { state = answer === "yes" ? "recorded" : answer === "no" ? "declined" : "open"; card = open; id = open.id; }
+  else return null;
+  /* F1: the lift name is cleaned on its own; empty after the drop, there is no card. */
+  const lift = clean(card.lift || card.title, "proposal-lift");
+  if (!lift) return null;
+  const words = state === "open" ? proposalWords(open) : null;
+  /* F1: the engine's reason is cleaned ALONE, so a drop takes the reason and never the pack
+     sentence composed after it. */
+  const why = state === "open" && open.why ? (clean(open.why, "proposal-reason") || "") : "";
+  const face = { id, state, className: "tcard proposal" + (PROPOSAL_STATE_CLASS[state] ? " " + PROPOSAL_STATE_CLASS[state] : ""),
+    /* F7: an open card with no decisions takes no eyebrow. */
+    kind: state === "open" ? (words ? PROPOSAL_KIND_OPEN : "") : state === "applied" ? PROPOSAL_KIND_APPLIED
+      : state === "withdrawn" ? PROPOSAL_KIND_WITHDRAWN : PROPOSAL_KIND_ANSWERED,
+    lift, change: words ? words.change : "",
+    reason: state !== "open" ? "" : words ? (why ? why.replace(/\s*$/, " ") : "") + PROPOSAL_UNTIL_YES : why,
+    yes: words ? words.yes : null, no: words ? words.no : null,
+    stateWord: null, stateText: "", undo: null };
+  if (state === "recorded") { face.stateWord = PROPOSAL_SAID_YES; face.stateText = PROPOSAL_APPLIES_NEXT; face.undo = PROPOSAL_CHANGE_ANSWER; }
+  if (state === "declined") { face.stateWord = PROPOSAL_SAID_NO; face.stateText = PROPOSAL_NOTHING_CHANGES; face.undo = card === open ? PROPOSAL_CHANGE_ANSWER : null; }
+  if (state === "applied") face.stateWord = PROPOSAL_SAID_YES;
+  if (state === "withdrawn") { face.stateWord = PROPOSAL_WITHDRAWN_WORD; face.stateText = PROPOSAL_REBUILT; }
+  return face;
+}
+/* R2 (PM ruling 2026-09-25; debt D-CUI3-RECORD, closed only by the lane B proposal-response
+   ticket): the face the LIVE route draws. It takes no answer, because nothing stores one;
+   it draws no decision, so no eyebrow invites a call (F7); and recorded, declined and
+   applied are drawn by the state registry only, never here. */
+const PROPOSAL_REGISTRY_ONLY = Object.freeze(["recorded", "declined", "applied"]);
+function liveProposalFace(open, stored, shownId, plain) {
+  const face = proposalFace(open, stored, undefined, shownId, plain);
+  if (!face || PROPOSAL_REGISTRY_ONLY.includes(face.state)) return null;
+  if (face.state === "open") {
+    face.yes = null; face.no = null; face.kind = "";
+    /* L2-2 (PM ruling round 3): no yes can be given here, so the pack sentence that invites
+       one is dropped from the live card (same principle as R2 and DECISIONS:820 R4); the
+       engine's reason stays. The review faces (proposalFace) keep the sentence. */
+    if (face.reason.endsWith(PROPOSAL_UNTIL_YES)) face.reason = face.reason.slice(0, -PROPOSAL_UNTIL_YES.length).trimEnd();
+  }
+  return face;
+}
+/* C-UI-3 PROPOSAL CARD END */
+
+/* C-UI-3 WEIGH-IN BEGIN (ruling 5: the weigh-in is inline on its card; the board's
+   #weigh-form, states T-42 to T-51). The words are the board's and the prototype's; every
+   refusal is the model's own sentence, placed in the card's note (T-45 to T-49), and the
+   field is flagged only when the refusal names the weight he typed (T-45 out of range,
+   T-46 empty or not a number). Self-contained, like the blocks above. */
+const WEIGH_SAVE = "Save"; // board #save-weight, T-42
+const WEIGH_SAVING = "Saving"; // T-44
+function weighNamesTheField(raw, copy, outOfRange) {
+  return raw === "" || !Number.isFinite(Number(raw)) || (typeof outOfRange === "string" && copy === outOfRange);
+}
+/* C-UI-3 WEIGH-IN END */
 
 /* THE HEADLINE FIT (review D-1). Four of the engine's own instruction titles run to three
    lines and push the primary action out of a 390x844 viewport. This steps the headline
@@ -704,6 +849,75 @@ function mountToday(doc, model, options = {}) {
   }
   function tell(text) { if (status) status.textContent = plainOrDrop(text, "today-status"); }
 
+  /* C-UI-3 BEGIN (binding: the proposal card and the inline weigh-in). R2 (PM ruling,
+     debt D-CUI3-RECORD): nothing stores his answer yet, so the live card draws no decision
+     and holds no answer; it shows the engine's open card (T-40 without its decisions) or
+     the stored withdrawal of the card it showed (T-40e), through liveProposalFace. */
+  let proposalShown = null;
+  function bindProposal(map, view) {
+    const card = map.get("proposal");
+    const face = liveProposalFace(view.proposal || null, view.proposalStored || {}, proposalShown, plainOrDrop);
+    if (!face) { card.remove(); proposalShown = null; return null; }
+    proposalShown = face.id;
+    card.className = face.className;
+    card.hidden = false;
+    const kind = map.get("proposal-kind");
+    /* F7/R2: no eyebrow where no call can be taken; the empty head goes with it. */
+    if (face.kind) kind.textContent = plainOrDrop(face.kind, "proposal-kind");
+    else (kind.parentNode || kind).remove();
+    map.get("proposal-lift").textContent = plainOrDrop(face.lift, "proposal-lift");
+    map.get("proposal-change").textContent = plainOrDrop(face.change, "proposal-change");
+    map.get("proposal-decisions").remove();
+    if (face.state === "open") {
+      map.get("proposal-done").remove();
+      map.get("proposal-reason").textContent = plainOrDrop(face.reason, "proposal-reason");
+      return face;
+    }
+    map.get("proposal-open").remove();
+    map.get("proposal-done").hidden = false;
+    const recorded = map.get("proposal-recorded");
+    const word = doc.createElement("span");
+    word.className = "state-word";
+    word.textContent = plainOrDrop(face.stateWord, "proposal-state-word");
+    recorded.replaceChildren(word);
+    if (face.stateText) recorded.append(doc.createTextNode(" " + plainOrDrop(face.stateText, "proposal-state-text")));
+    map.get("proposal-undo").remove();
+    return face;
+  }
+  function bindWeighIn(map, owed) {
+    const form = map.get("weigh-form");
+    const note = map.get("weigh-note");
+    if (!owed) { form.remove(); note.remove(); return; }
+    const field = map.get("weigh-field");
+    const save = map.get("weigh-save");
+    const input = form.querySelector("#weight");
+    save.textContent = plainOrDrop(WEIGH_SAVE, "weigh-save");
+    hooks.listen(form, "submit", async (event) => {
+      event.preventDefault();
+      /* The same one path as the sheet: the raw entry goes to the model, which refuses in
+         words; the card repaints only from what the store answered (review B2). */
+      if (save.disabled) return;
+      save.disabled = true;
+      save.textContent = plainOrDrop(WEIGH_SAVING, "weigh-save");
+      const raw = input.value.trim();
+      let result;
+      try { result = await model.weighIn(raw === "" ? raw : Number(raw)); }
+      catch (error_) { result = { ok: false, copy: "This weight could not be recorded, and nothing was recorded. " + (error_ && error_.message ? error_.message : "") }; }
+      save.disabled = false;
+      save.textContent = plainOrDrop(WEIGH_SAVE, "weigh-save");
+      if (!result.ok) {
+        note.className = "weigh-note refusal";
+        note.textContent = plainOrDrop(result.copy || "This weight could not be recorded, and nothing was recorded.", "weigh-note");
+        note.hidden = false;
+        field.classList.toggle("is-invalid", weighNamesTheField(raw, result.copy, model.OUT_OF_RANGE));
+        input.focus();
+        return;
+      }
+      render("today", true);
+    });
+  }
+  /* C-UI-3 END */
+
   /* ---------------- Today ---------------- */
   function renderToday(focus) {
     const view = model.read();
@@ -723,6 +937,9 @@ function mountToday(doc, model, options = {}) {
          check-in prompt over a record that could not be trusted. */
       map.get("status-line").textContent = plainOrDrop(statusLine(view, null, false), "status-line");
       map.get("recovery-prompt").hidden = true;
+      /* C-UI-3: no proposal card and no weigh-in over a record that could not be trusted (T-06). */
+      map.get("proposal").remove();
+      bindWeighIn(map, false);
       for (const name of ["kcal", "kcal-unit", "protein", "protein-unit", "kcal-note",
         "workout-title", "workout-count", "morning", "trend", "primary-label"]) put(map, name, null);
       for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
@@ -804,9 +1021,12 @@ function mountToday(doc, model, options = {}) {
     /* C-UI-2 round 3 (DECISIONS:820 (2), the board's header pill): shown only while the
        figures on this screen are the preview's sample athlete (T-02, T-04), never over his own. */
     map.get("example-pill").hidden = !(sample || setupOwed);
-    map.get("status-line").textContent = plainOrDrop(statusLine(view, today, sample), "status-line");
+    /* C-UI-3: the proposal card first, so the status line can say what the card shows (T-40). */
+    const face = bindProposal(map, view);
+    map.get("status-line").textContent = plainOrDrop(statusLine(view, today, sample, face ? face.state : undefined), "status-line");
     problemControl(map);
     put(map, "morning", morningLine(view));
+    bindWeighIn(map, owed); // C-UI-3: the inline weigh-in, only while this morning's weight is owed
     put(map, "trend", trendLine(view));
 
     const primary = map.get("primary");

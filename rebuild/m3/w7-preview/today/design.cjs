@@ -173,6 +173,18 @@ const RUNTIME_COPY = Object.freeze([
   "This device’s record did not verify. Nothing on this screen is a value.",
   /* DECISIONS:820 (2): the weigh-in submits with the board's word (board #save-weight, T-42). */
   "Save",
+  /* C-UI-3 (pack README C-UI-3, DECISIONS:817, :820 (2)): the proposal card's words, each
+     the prototype's own (app/states-today.js proposal() and T-40 to T-40g): the eyebrows,
+     the recorded lines, "Change my answer", the decision and change words of the three
+     kinds the prototype draws (a one-set add T-40, a diet break T-40f, a machine ladder
+     T-40g), the two status lines T-40 and T-40b beside the engine's session name, and the
+     inline weigh-in's in-flight word (T-44). */
+  "One call needs you", "Your call", "Applied", "Withdrawn", "Nothing changes until you say yes.",
+  "You said yes.", "It applies when your plan is next built.", "You said no.", "Nothing changes.",
+  "Withdrawn.", "Your plan was rebuilt and this proposal no longer applies.", "Change my answer",
+  "Yes, add it", "No, keep it as is", "Add one set this week", "Yes, take the break", "No, keep cutting",
+  "Yes, use them", "No, keep the plan’s steps", "Use the machine’s own steps",
+  " today. One change to review.", " today. One answer recorded.", "Saving",
 ]);
 /* A3 — the approved question wording the CHECK-IN composes at runtime, beside a
    stored answer, when it reads today's recorded check-in back. Same rule as A1's and
