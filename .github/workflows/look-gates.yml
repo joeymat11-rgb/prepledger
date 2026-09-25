@@ -1,0 +1,277 @@
+name: look-gates
+
+# M2-S12-LOOK look lane CI (DECISIONS:817; %TEMP%\LOOK-PLAN.md item L5).
+# A NEW file on the look lane only: rebuild.yml is never edited from this lane (S10 and S11 both
+# rewrite it; DECISIONS:817). It reaches the chain only with the S12 fast-forward, declared there.
+# Three jobs, each on ubuntu-latest AND windows-latest, fail-fast off:
+#   look-units      the look's sealed/new unit cells, same argv shape as S10.json children
+#                   (node --test --test-reporter=tap <exact paths>), frozen clock and zone.
+#   gate-prototype  CONTROL: the pinned pack's gate.py + statesheet.py against the pack's own
+#                   prototype (EARNED_APP unset). It must be green: it proves the gates work on
+#                   this runner. No continue-on-error here.
+#   gate-app        the same two gates against the REAL preview build (build.mjs dist) with
+#                   EARNED_APP + EARNED_APP_DIGEST set as STANDARD.md section 13 and
+#                   quality/common.py require. EXPECTED RED today, see the step comments.
+# Environment per OS is the one each committed baseline set was drawn with
+# (quality/baseline/<platform>/ENV.txt and states/<platform>/ENV.txt):
+#   linux: python 3.11.15, playwright 1.56.0 (chromium 141.0.7390.37); the closure and the
+#          `playwright install --with-deps chromium` recipe are the ones hosted runs
+#          35663737457 and 35673922107 (cui-linux-witness.yml, 07f80c4) measured green with,
+#          372 PASS and 418 clean renders (DECISIONS:696, :724).
+#   win32: python 3.14.6, playwright 1.62.0 (chromium 151.0.7922.34); the Python closure is
+#          rebuild.yml's font-transport step (:531) byte for byte.
+# Launch arguments come from quality/common.py LAUNCH_ARGS only; nothing here adds any.
+# Accept flags are never passed. A custody step fails the job if a run writes into the pack
+# outside the ignored quality/run/ folder.
+
+on:
+  push:
+    branches:
+      - rebuild/c-look-s12
+
+permissions:
+  contents: read
+
+concurrency:
+  group: look-gates-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MEASURED_TEST_NOW: '2026-09-03'
+  TZ: America/New_York
+  PYTHONDONTWRITEBYTECODE: '1'
+  PACK: rebuild/m1/approved-2026-09-18
+
+jobs:
+  look-units:
+    name: look units (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Node and the three installs are rebuild.yml's own (:37-68): package.test.cjs and
+      # design.test.cjs build the Today bundle through the W6 esbuild, which resolves
+      # @noble/hashes from W5's lockfile. Frozen lockfiles only.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund --include=dev
+      - name: Install pnpm 9 (the version both W6 and W5 lockfiles were written with)
+        run: npm install -g pnpm@9
+      - name: Install the pinned W6 browser-build dependencies
+        run: pnpm --dir rebuild/m3/w6 install --frozen-lockfile
+      - name: Install the pinned W5 source and reconciliation dependencies
+        id: deps
+        run: pnpm --dir rebuild/m3/w5 install --frozen-lockfile --ignore-scripts --ignore-workspace
+      # One step per cell group, each run whatever the one before it did, so every group
+      # reports its own result. Exact paths, never globbed.
+      - name: C - design binding and scene (design.test.cjs, scene.test.mjs)
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: node --test --test-reporter=tap rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/scene.test.mjs
+      - name: C - the Today package cells (package.test.cjs)
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: node --test --test-reporter=tap rebuild/m3/w7-preview/today/test/package.test.cjs
+      - name: C - copy custody and the no-dash rule (copy.test.mjs)
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: node --test --test-reporter=tap rebuild/m3/w7-preview/today/test/copy.test.mjs
+      # S10.json child "ui-pack-pins", same argv.
+      - name: C - the design pack pin and the approved-reference pin
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: node --test --test-reporter=tap rebuild/lanes/c/ui-port/pack-pin.test.mjs rebuild/lanes/c/ui-port/approved-pin.test.mjs
+
+  gate-prototype:
+    name: look gate control, pack prototype (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            python: '3.11.15'
+            pip: "'numpy==2.3.5' 'Pillow==12.0.0' 'playwright==1.56.0'"
+            browser: --with-deps chromium
+          - os: windows-latest
+            python: '3.14.6'
+            pip: --no-deps numpy==2.5.3 Pillow==12.3.0 playwright==1.62.0 greenlet==3.5.4 pyee==13.0.1 typing-extensions==4.16.0
+            browser: chromium
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Install the pinned gate closure and its Chromium
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir ${{ matrix.pip }}
+          python -m playwright install ${{ matrix.browser }}
+      - name: Custody before (the pack is clean) and versions
+        id: ready
+        run: |
+          test -z "$(git status --porcelain --untracked-files=all -- "$PACK")"
+          python --version
+          python -c "from importlib.metadata import version as v; print('playwright', v('playwright'), 'numpy', v('numpy'), 'Pillow', v('Pillow'))"
+      - name: gate.py against the pack prototype (control, must be green)
+        id: gate
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
+        working-directory: ${{ env.PACK }}
+        run: |
+          unset EARNED_APP EARNED_APP_DIGEST
+          python quality/gate.py
+      - name: statesheet.py against the pack prototype (control, must be green)
+        id: states
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
+        working-directory: ${{ env.PACK }}
+        run: |
+          unset EARNED_APP EARNED_APP_DIGEST
+          python quality/statesheet.py
+      - name: Custody after (no baseline, record or pack file written)
+        if: ${{ always() }}
+        run: test -z "$(git status --porcelain --untracked-files=all -- "$PACK")"
+      - name: Upload the control reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: look-gate-prototype-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ env.PACK }}/quality/run/report.txt
+            ${{ env.PACK }}/quality/run/report.json
+            ${{ env.PACK }}/quality/run/states-report.txt
+            ${{ env.PACK }}/quality/run/statesheet-today.jpg
+            ${{ env.PACK }}/quality/run/statesheet-workout.jpg
+            ${{ env.PACK }}/quality/run/statesheet-coach.jpg
+            ${{ env.PACK }}/quality/run/states/*.png
+
+  gate-app:
+    name: look gate, real preview build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            python: '3.11.15'
+            pip: "'numpy==2.3.5' 'Pillow==12.0.0' 'playwright==1.56.0'"
+            browser: --with-deps chromium
+          - os: windows-latest
+            python: '3.14.6'
+            pip: --no-deps numpy==2.5.3 Pillow==12.3.0 playwright==1.62.0 greenlet==3.5.4 pyee==13.0.1 typing-extensions==4.16.0
+            browser: chromium
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund --include=dev
+      - name: Install pnpm 9 and the pinned W6 and W5 dependencies (as rebuild.yml)
+        run: |
+          npm install -g pnpm@9
+          pnpm --dir rebuild/m3/w6 install --frozen-lockfile
+          pnpm --dir rebuild/m3/w5 install --frozen-lockfile --ignore-scripts --ignore-workspace
+      - name: Build the real Today preview (build.mjs, dist .tmp/w7-today-dist)
+        id: build
+        run: node rebuild/m3/w7-preview/today/build.mjs
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Install the pinned gate closure and its Chromium
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir ${{ matrix.pip }}
+          python -m playwright install ${{ matrix.browser }}
+      # EARNED_APP is the file URI of the built index.html; EARNED_APP_DIGEST is this job's
+      # caller-supplied identity for that build (common.py external_app_digest: 64 hex), in
+      # the form common.py app_digest uses: sha256 of the sorted "<name> <sha256>" lines of the
+      # three files build.mjs ASSETS allows. The reports label it caller-supplied.
+      - name: Name the build under test (EARNED_APP, EARNED_APP_DIGEST)
+        id: ident
+        run: |
+          test -z "$(git status --porcelain --untracked-files=all -- "$PACK")"
+          python - <<'PY'
+          import hashlib, os, pathlib
+          d = pathlib.Path('.tmp/w7-today-dist').resolve()
+          names = sorted(p.name for p in d.iterdir())
+          assert names == ['app.js', 'index.html', 'styles.css'], names
+          rows = sorted(f'{n} {hashlib.sha256((d / n).read_bytes()).hexdigest()}' for n in names)
+          digest = hashlib.sha256('\n'.join(rows).encode()).hexdigest()
+          url = (d / 'index.html').as_uri()
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as f:
+              f.write(f'EARNED_APP={url}\nEARNED_APP_DIGEST={digest}\n')
+          with open(os.path.join(os.environ['RUNNER_TEMP'], 'look-app-build.txt'), 'w', encoding='utf-8') as f:
+              f.write('\n'.join(rows + [f'EARNED_APP={url}', f'EARNED_APP_DIGEST={digest}']) + '\n')
+          print('\n'.join(rows)); print('EARNED_APP', url); print('EARNED_APP_DIGEST', digest)
+          PY
+          python --version
+          python -c "from importlib.metadata import version as v; print('playwright', v('playwright'), 'numpy', v('numpy'), 'Pillow', v('Pillow'))"
+      # EXPECTED RED TODAY, hence continue-on-error (the job still records this step's own
+      # outcome and the report is uploaded): gate.py's KNOWN_FACE and SERIF_SELECTORS need 14
+      # font identities on the real composed screens and 0 of them exist until CUI2/3/4/6 land
+      # (CUI1-BLOCKER-REPAIR-REPORT B2; DECISIONS:817), and the look is not yet composed against
+      # the prototype baselines. Remove continue-on-error at the S12 composition (L12), where
+      # this step must be green on both runners; never lower a check to get there.
+      - name: gate.py against the real preview build (EXPECTED RED until the 14 identities exist)
+        id: gate
+        if: ${{ !cancelled() && steps.ident.outcome == 'success' }}
+        continue-on-error: true
+        working-directory: ${{ env.PACK }}
+        run: python quality/gate.py
+      # EXPECTED RED TODAY for the same reason, and very likely a refusal (exit 2): the sheet
+      # needs window.earnedStates.list() on the page under test and no state driver exists in
+      # the preview build yet. Same removal rule as the step above.
+      - name: statesheet.py against the real preview build (EXPECTED RED until the states exist)
+        id: states
+        if: ${{ !cancelled() && steps.ident.outcome == 'success' }}
+        continue-on-error: true
+        working-directory: ${{ env.PACK }}
+        run: python quality/statesheet.py
+      - name: Record the per-step results
+        if: ${{ always() }}
+        run: |
+          {
+            echo "build=${{ steps.build.outcome }}"
+            echo "gate_app=${{ steps.gate.outcome }}"
+            echo "statesheet_app=${{ steps.states.outcome }}"
+          } | tee -a "$RUNNER_TEMP/look-app-build.txt"
+      - name: Custody after (no baseline, record or pack file written)
+        if: ${{ always() }}
+        run: test -z "$(git status --porcelain --untracked-files=all -- "$PACK")"
+      - name: Upload the real-build reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: look-gate-app-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/look-app-build.txt
+            ${{ env.PACK }}/quality/run/report.txt
+            ${{ env.PACK }}/quality/run/report.json
+            ${{ env.PACK }}/quality/run/states-report.txt
+            ${{ env.PACK }}/quality/run/statesheet-today.jpg
+            ${{ env.PACK }}/quality/run/statesheet-workout.jpg
+            ${{ env.PACK }}/quality/run/statesheet-coach.jpg
+            ${{ env.PACK }}/quality/run/states/*.png
