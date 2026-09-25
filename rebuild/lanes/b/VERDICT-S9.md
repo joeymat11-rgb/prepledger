@@ -77,7 +77,17 @@ step is AVAILABLE. The coach constant moves to `M2-S9-UI-PINS@cb31838ff0db8406` 
    `POSTFIX PACKAGE PASS M2-S9-UI-PINS`, exit 0.
 4. T19, `--full --package S9` at the head that carries the committed receipt, this verdict and the moved coach
    constant (the byte-identity re-verify):
-   PENDING T19
+   at C3 `5beae3f` (C2 `9a7773a` carries this verdict; log `%TEMP%\s9-full3.log`):
+   `POSTFIX M2-S9-UI-PINS AUTHORIZED mode=--full` |
+   `SEAL BASE ON THE TIP; refs/remotes/origin/rebuild/t2-client-core is at 60be3c6 and that commit is an ancestor of this HEAD
+   (DECISIONS:135 (4), rule=ancestor)` |
+   `ENVELOPE AUTHORIZED artifact=f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c reviewed at
+   9c95afa5b840fedbe914652b2f0bd83d1b0800c2; receipt base 60be3c6fb53975f60d4f54922d12ea9f17fbfb33 [cut]` |
+   `AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY (DECISIONS:136 (3)); artifact, runner, spec and all 254 pinned product file(s),
+   plus 2 released and NOT re-verified here, are byte-identical to the sealed run recorded in
+   rebuild/lanes/b/tooling/receipts/S9.json cb31838ff0db840609adfb63476c824f28d0690913f4143f2c47ee5c05154d2e [cut]` |
+   32 CHILD OBSERVED exit 0 | no new SEALED RUN RECORDED (the committed receipt is unchanged) |
+   `POSTFIX PACKAGE PASS M2-S9-UI-PINS`, exit 0. The private census junction was removed after this run.
    Terminal 3 stands as the evidence for the private oracle, the historical audit and the 19 original gates; T19 does
    not re-run them.
 
@@ -85,7 +95,9 @@ step is AVAILABLE. The coach constant moves to `M2-S9-UI-PINS@cb31838ff0db8406` 
 - CI-1 at A `9c95afa`: `rebuild` run 36048172480 success, all four jobs (rebuild-public ubuntu and windows, C font
   transport ubuntu and windows); `pipeline` run 36048172469 success; `shared-preflight` run 36048172482 success.
 - CI-2 at the sealing head:
-  PENDING CI-2
+  named on the `M2-S9-UI-PINS SEALED AND MERGED` ledger line (runbook T23), with its run id and both runners'
+  conclusions, taken at the exact lane head that carries this file. This file is not edited after that run, because a
+  later commit would move the head the run must stand on.
 
 ## Source custody
 Re-pointed at helper `38a9f2f8`, CANDIDATE `b44ec01`, SOURCE_BASE `e8712f48`; the `rebuild/lanes/b/tooling/packages/S9.json`
@@ -148,7 +160,7 @@ could mend, not because anything moved.
 `rebuild/coach/engine-revision.cjs` `ENGINE_REVISION` moves once, from `M2-S8-REAL-SHAPE@3b1b8b91dd5a6ff0` to
 `M2-S9-UI-PINS@cb31838ff0db8406` (the first 16 hex of this receipt's sha256), in commit C3 after this verdict. The
 production pair (production-mapping and production-admission) ran 28/28, exit 0.
-COACH SUITE COUNT PENDING
+The coach suite (`rebuild/coach/test/*.test.cjs`, on the C3 bytes) ran 377/377, exit 0.
 
 ## What this seal carries for the athlete
 The Today preview's UI is pinned to the whole approved 09-18 design pack, with the actual 09-08 runtime references
