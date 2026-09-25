@@ -52,7 +52,8 @@ const { ENGINE_REVISION } = require('../../coach/engine-revision.cjs');
  * basis through the engine digest, and its trip-wire is the coach's. */
 const ENGINE = Object.freeze({
   sha256: 'dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d',
-  treeSha256: 'af5a187e0f55a307b92bfc81098348acf7e485c3f994a1d48d3c17592353f967',
+  /* S10 re-pin: S10 edited engine today.cjs and writers.cjs; value measured by the PM from port.cjs engineDigest() at 92be4e3. */
+  treeSha256: '9c13505441a479cb98a6cc9a25358cec9d983bac0f08b342b0109e3d93f6709a',
   schemaV: 60,
   path: 'rebuild/engine/oracle-shim.cjs' });
 

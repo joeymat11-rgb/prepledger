@@ -179,12 +179,21 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
        route-only set is UNMOVED at 19 (P3-B4's deepEqual below still holds name
        for name). It is pure, imports nothing at all, brings no forbidden name
        and adds no leaf. RE-MEASURED on this tree rather than summed: 143. */
-    assert.equal(withAdmission.inventory.length, 143,
+    /* S10 (the Today split) is the SEVENTH ticket to move it, by THREE:
+       rebuild/m3/w7-preview/today/today-readings.cjs, today-lanes.cjs and
+       gym-settings-lane.mjs, the sealed writer lanes the split cut out of
+       today-model.cjs, today-app.cjs and gym-app.mjs. All three land on the
+       BOOT side (those three modules import them on boot, and build.mjs
+       REQUIRED_INPUTS names them), so the Today boot graph grows by three and
+       the route-only set is UNMOVED at 19. RE-MEASURED on this tree rather
+       than summed (the PM's run at 92be4e3): 146. */
+    assert.equal(withAdmission.inventory.length, 146,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 143 (the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'measured 146 (the brief\'s 133, the F7 family\'s one, the F8 family and '
       + 'the shared-class router\'s two, the route\'s own four, B-LOM\'s '
       + 'order-mapping provider, P3-REAL-SHAPE\'s lift-correspondence '
-      + 'helper, and PASSPHRASE-NORMALIZE\'s shared passphrase form): '
+      + 'helper, PASSPHRASE-NORMALIZE\'s shared passphrase form, and S10\'s '
+      + 'three Today writer lanes): '
       + 're-measure and say so');
     assert.ok(paths.includes('rebuild/m4/workout/legacy-order-mapping.cjs'),
       'B-LOM\'s order-mapping provider is not in this graph at all');
@@ -382,11 +391,20 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
      modules, B-LOM's order mapping and this one. The figure that still means
      "what the Import route costs the page" is the 19 of P3-B4 and the byte
      accounting above it, not this subtraction. */
+  /* RE-MEASURED AGAIN WITH S10 (the Today split), the THIRD ticket to move the
+     Today boot graph rather than the route: today-readings.cjs (imported by
+     today-model.cjs), today-lanes.cjs (by today-app.cjs) and
+     gym-settings-lane.mjs (by gym-app.mjs) all load on boot and are build.mjs
+     REQUIRED_INPUTS. The route-only set is UNMOVED at 19, so the delta is 24:
+     19 route modules plus FIVE boot modules, B-LOM's order mapping, the shared
+     passphrase form and these three. Measured by the PM at 92be4e3, not
+     summed. */
   const BASE_PINNED_INPUTS = 121;
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 21,
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 24,
     'the delta is ' + (today.inventory.length - BASE_PINNED_INPUTS) + ' modules, not the '
-    + 'measured 21 (the route\'s 19 plus the two boot modules, B-LOM\'s order '
-    + 'mapping and the shared passphrase form): re-measure and say so');
+    + 'measured 24 (the route\'s 19 plus the five boot modules, B-LOM\'s order '
+    + 'mapping, the shared passphrase form and S10\'s three Today writer '
+    + 'lanes): re-measure and say so');
   assert.equal(ROUTE_MODULES.length, 19,
     'the ROUTE-ONLY count moved; the delta above is no longer 19 route plus 1 boot');
 });
