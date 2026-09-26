@@ -1814,6 +1814,18 @@ test("S10 P-S9-3 (34) - the Today split writer fence step exists and carries the
 test("S10 P-S9-3 (35) - the S10-REGEN path-boundary step exists and carries the not-cancelled condition", () => {
   assertNotCancelled(YML_LINES(), "rebuild/lanes/b/S10-REGEN.test.cjs");
 });
+/* S11 (the NATIVE-LOAD reseal brief, section 2.1 FC13 and the FENCE paragraph), by the same
+   PM ruling as rows (32)-(35): DECISIONS:792 ("new E steps get the :627 P-S9-3 condition
+   shape"). The FC12 cells - the native evaluator, transition and fold rows of
+   rebuild/m4/spec/native-load-options.test.cjs - got their CI home at the NATIVE-LOAD build
+   with NO condition, so GitHub skips them whenever the standing --ci --package step fails,
+   which it does on every branch that is not the chain tip (DECISIONS:826). A guard skipped
+   where it is needed guards nothing. This row reads the WORKING TREE's rebuild.yml, finds the
+   step by exact path and never globs, as rows (18) and (30)-(35) do. FC12 cannot hold the row
+   itself: it is the NATIVE-LOAD input S11 carries, and its bytes move only under that lane. */
+test("S11 P-S9-3 (36) - the NATIVE-LOAD FC12 step exists and carries the not-cancelled condition", () => {
+  assertNotCancelled(YML_LINES(), "rebuild/m4/spec/native-load-options.test.cjs");
+});
 
 /* P-S9-5, THE TWO RE-HOMED INVARIANTS. ci-second-gate.test.cjs:29 asserted three things
    at once: that .github/workflows/rebuild.yml equals a 2026 baseline object with exactly

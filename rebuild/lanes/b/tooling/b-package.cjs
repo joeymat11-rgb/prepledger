@@ -178,7 +178,13 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // behind S8: DECISIONS:455 makes each reseal child the previous package's own child, and
 // DECISIONS:792 orders this registration (S10-WORKING-BRIEF.md c58b892). Without the id here
 // the argv gate refuses `--package S10` outright, before a byte of its spec is read.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'B1', 'B2', 'B4', 'B3'];
+// S11 ADDS 'S11', directly behind S10 and still ahead of B1, for the same reason S10 sits
+// behind S9: DECISIONS:455 makes each reseal child the previous package's own child, and the
+// S11 NATIVE-LOAD reseal brief (section 4) orders this registration and one more (the entry
+// in NO_REGISTER_IDS below) and NO CHILD_ROOTS hunk: every directory its children run under
+// is already a root. Without the id here the argv gate refuses `--package S11` outright,
+// before a byte of its spec is read.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'B1', 'B2', 'B4', 'B3'];
 // RETIRED IDS, and why this list has to exist at all. Removing an id from IDS and deleting
 // its spec file are ONE act - DECISIONS:487 stop 2 orders both for B-LOM - but TOOLING_FILES
 // below is derived from IDS, so the moment the id goes the deleted path stops being named
@@ -330,7 +336,12 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // riding with it (DECISIONS:662, :765, :780 Q3, :785, :791), slice-plan work under
 // DECISIONS:455 with no register D-id. It is an S- id, so the shape assertion below admits
 // it without a PM by-name ruling.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10']);
+// 'S11' is in for the same reason an eighth time: a reseal whose product delta is the
+// accepted NATIVE-LOAD build composed onto the sealed S10 under the owner's engine grants
+// (DECISIONS:784-785, :796, :803, :804), slice-plan work under DECISIONS:455 with no
+// register D-id. It is an S- id, so the shape assertion below admits it without a PM
+// by-name ruling.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).

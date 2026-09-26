@@ -2370,7 +2370,15 @@ test(':132 (3) - screen 2 uses ONE apostrophe, the curly one, in every sentence'
    about it. S10 releases today-app.cjs and gym-app.mjs with post: null, which the loop
    below already skips. Youngest first, so 'S10' goes last and is consulted first; the
    red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10'];
+/* S11 ADDS 'S11', and the cell is unchanged in every other way. S11 is the NATIVE-LOAD
+   reseal child that composes the accepted NATIVE-LOAD build onto the SEALED S10 parent
+   (DECISIONS:838, seal tip edb8381; the owner's engine grants DECISIONS:784-785, :796, :803,
+   :804): the files it moves - today-entry.mjs, today-bindings.mjs, the two runtimes,
+   writers.cjs and progression.cjs among them - are moved BY THAT PACKAGE, declared in
+   packages/S11.json, so the declaring-spec chain has to know about it. S11 releases nothing
+   and does not declare the two paths S10 released, so their release is still S10's.
+   Youngest first, so 'S11' goes last and is consulted first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11'];
 function declaredPost(file) {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;

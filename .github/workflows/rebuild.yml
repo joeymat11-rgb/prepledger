@@ -170,8 +170,20 @@ jobs:
       # chain branch, its artifact is committed and every declared child carries an
       # observed needle, this step reports the runner's own refusal by name rather than
       # PASS; that is the expected pre-seal state. The step NAME moves with it.
-      - name: Cumulative S10 Today split reseal, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S10
+      # S11 SUCCEEDS M2-S10-TODAY-SPLIT HERE, by the same rule a tenth time, and the flip again
+      # lives INSIDE the package rather than at the fast-forward (ef21153's shape; the cost of
+      # doing it afterwards measured at DECISIONS:498). S11 is the NATIVE-LOAD reseal: it
+      # composes the accepted NATIVE-LOAD build onto the SEALED S10 (DECISIONS:838, seal tip
+      # edb8381) under the owner's engine grants (DECISIONS:784-785, :796, :803, :804). LIKE S10
+      # it DOES move rebuild/engine bytes - the new native-load.cjs, writers.cjs and
+      # progression.cjs - so it retires the byte-identity gates under its OWN reason and its
+      # own token line, with its own s11-* cells. Until its package id, THEME, BRIEF-BY-SHA and
+      # GATE-SUPERSESSION lines stand on the chain branch, its artifact is committed and every
+      # declared child carries an observed needle, this step reports the runner's own refusal
+      # by name rather than PASS; that is the expected pre-seal state. The step NAME moves
+      # with it.
+      - name: Cumulative S11 NATIVE-LOAD reseal, S10 Today split, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S11
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -197,7 +209,13 @@ jobs:
       # common, YES-only and route-B rows of the native evaluator, transition and source fold - get
       # their CI home here, named by exact path. The FA03 DOM rows (A01, A02, B01, B02) are named in
       # the Today step below, which enumerates every file under that test directory.
+      # S11 GIVES THIS STEP THE :627 P-S9-3 CONDITION SHAPE (DECISIONS:792, "new E steps get the
+      # :627 P-S9-3 condition shape"): the standing --ci --package step fails on every branch that
+      # is not the chain tip, GitHub then skips every later step with no condition (DECISIONS:826),
+      # and the FC12 cells are the NATIVE-LOAD guard S11 seals. Row (36) of
+      # rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs reads this line.
       - name: NATIVE-LOAD - the native evaluator, transition and fold cells (FC12)
+        if: ${{ !cancelled() }}
         run: node --test rebuild/m4/spec/native-load-options.test.cjs
       # ENUMERATION COMPLETED BY M2-B-NTC, DECISIONS:109. The line below named
       # five files; two more existed under the same directory with no CI home at
