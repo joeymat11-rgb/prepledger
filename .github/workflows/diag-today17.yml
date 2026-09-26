@@ -1,0 +1,68 @@
+name: diag-today17
+
+# PM diagnostic only (never merged): CI-M1 run 36199898809 at ccc2f63 failed the
+# S10 package child today-17 on both hosted OS with local diagnostics withheld.
+# This runs ONLY the guard-clean today-17 files (today-17 minus adapter, copy and
+# view, which load protected files) on the same hosted images with full TAP, so
+# the failing cells are named. It changes nothing on any rebuild/** branch.
+
+on:
+  push:
+    branches: ['diag/**']
+
+permissions:
+  contents: read
+
+jobs:
+  today17:
+    name: today17-diag (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 50
+    env:
+      MEASURED_TEST_NOW: '2026-09-03'
+      TZ: America/New_York
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund --include=dev
+      - run: npm install -g pnpm@9
+      - run: pnpm --dir rebuild/m3/w6 install --frozen-lockfile
+      - run: pnpm --dir rebuild/m3/w5 install --frozen-lockfile --ignore-scripts --ignore-workspace
+      - name: Host facts
+        shell: bash
+        run: node -e "const o=require('os');console.log('cpus',o.cpus().length,'node',process.version,'mem',Math.round(o.totalmem()/1e9)+'GB')"
+      - name: GSS annex files alone, 3 rounds
+        shell: bash
+        continue-on-error: true
+        run: |
+          D=rebuild/m3/w7-preview/today/test
+          for r in 1 2 3; do
+            echo "=== GSS ROUND $r"
+            node --test --test-reporter=tap $D/gss-annex-g6-g8.test.mjs $D/gss-annex-identity-reentrancy.test.mjs $D/gss-annex-log-timing.test.mjs $D/gss-annex-remount.test.mjs $D/gss-annex-timing.test.mjs > gss-$r.tap 2>&1
+            echo "EXIT=$?"
+            grep -E '^# (tests|pass|fail|duration_ms) ' gss-$r.tap || true
+            grep -E -A 40 '^\s*not ok ' gss-$r.tap | head -400 || true
+          done
+      - name: Guard-clean today-17 subset (19 files), 3 rounds
+        shell: bash
+        continue-on-error: true
+        run: |
+          D=rebuild/m3/w7-preview/today/test
+          M=rebuild/m3/w7-preview/measure/test
+          for r in 1 2 3; do
+            echo "=== SUBSET ROUND $r"
+            node --test --test-reporter=tap $D/catalogue.test.mjs $D/checkin.test.mjs $D/design.test.cjs $D/food.test.mjs $D/gss-annex-g6-g8.test.mjs $D/gss-annex-identity-reentrancy.test.mjs $D/gss-annex-log-timing.test.mjs $D/gss-annex-remount.test.mjs $D/gss-annex-timing.test.mjs $D/gym.test.mjs $D/machine-settings-ui.test.mjs $D/ntc-h6-delta.test.mjs $D/package.test.cjs $D/problem.test.mjs $D/setup.test.mjs $M/journey.test.mjs $M/lane.test.mjs $M/baseline.test.mjs $M/boundary.test.mjs > sub-$r.tap 2>&1
+            echo "EXIT=$?"
+            grep -E '^# (tests|pass|fail|duration_ms) ' sub-$r.tap || true
+            grep -E -A 40 '^\s*not ok ' sub-$r.tap | head -600 || true
+          done
