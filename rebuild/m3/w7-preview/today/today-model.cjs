@@ -87,9 +87,10 @@ function engineClockFor(day) {
 
 /* The basis the durable operations are replayed ONTO: the synthetic athlete with every
    read from the day this device starts owning removed, so a stored operation is the only
-   source of a reading on or after that day. */
+   source of a reading on or after that day. C-UI-3 round 2 (PM ruling R1 (a)): the basis
+   also carries the synthetic athlete's ONE open proposal (withBoardProposal, below). */
 function createBasisState(day) {
-  const state = createSyntheticState(day);
+  const state = withBoardProposal(createSyntheticState(day), day);
   state.reads = state.reads.filter((r) => r.d < day);
   return state;
 }
@@ -129,6 +130,86 @@ function planMove(E, state, nowModel) {
   bare.agentProposals = [];
   return E.nowModel(bare).move;
 }
+
+/* C-UI-3 BEGIN (the proposal card, pack README C-UI-3, states T-40 to T-40e; DECISIONS:817).
+   The card S1 above left C-UI-3 to give an open proposal. Two read-only projections of the
+   SAME replayed state, nothing written and nothing invented:
+   - openProposalCard: the proposal the engine itself puts first (rebuild/engine/today.cjs
+     nowModel `first9`: the first unresolved `proposals` entry, else `agentProposals[0]`),
+     as the engine issued it: its id, its own title, its own reason (the field `first9`
+     reads), its apply kind and delta, and the name of the lift it targets when its apply
+     names one the state holds. No field is derived beyond a lookup.
+   - storedProposalAnswers: for each RESOLVED proposal, what the stored record says became
+     of it. "applied" only where the engine's own writer left an adjustment row for its rid
+     that is neither undone nor a decline (writers.cjs applyProposal); "declined" where the
+     writer marked it dismissed (dismissProposal); "withdrawn" where it was superseded,
+     stood down or closed with a stated reason. The card shows "Applied" from this alone,
+     never from a tap (pack README C-UI-3 LOCKED). */
+function liftNameOf(state, apply) {
+  const exId = apply && apply.exId;
+  if (!exId) return null;
+  const ex = ((state && state.exercises) || []).find((x) => x && x.id === exId);
+  return ex && typeof ex.n === "string" && ex.n.trim() ? ex.n : null;
+}
+function openProposalCard(state) {
+  const p = ((state && state.proposals) || []).find((x) => x && !x.resolved);
+  if (p) {
+    const apply = p.apply || {};
+    return { id: String(p.id), source: "proposal", title: p.title == null ? null : String(p.title),
+      why: String(p.why || p.body || "") || null, kind: apply.kind || null,
+      delta: typeof apply.delta === "number" ? apply.delta : null, lift: liftNameOf(state, apply) };
+  }
+  const ap = ((state && state.agentProposals) || [])[0] || null;
+  if (!ap) return null;
+  return { id: String(ap.id), source: "agent", title: ap.title == null ? null : String(ap.title),
+    why: String(ap.why || ap.body || "") || null, kind: ap.kind || null, delta: null,
+    lift: liftNameOf(state, ap) };
+}
+function storedProposalAnswers(state) {
+  const out = {};
+  const adjustments = (state && state.adjustments) || [];
+  for (const p of (state && state.proposals) || []) {
+    if (!p || !p.resolved || p.id == null) continue;
+    let status = null;
+    if (p.superseded || p.stoodDown || p.resolvedHow) status = "withdrawn";
+    else if (p.dismissed) status = "declined";
+    else if (adjustments.some((a) => a && a.rid === p.rid && !a.undone && !a.dismissed)) status = "applied";
+    if (status) out[String(p.id)] = { status, title: p.title == null ? null : String(p.title),
+      lift: liftNameOf(state, p.apply) };
+  }
+  return out;
+}
+/* R1 (PM ruling 2026-09-25, option (a)): gate.py requires #proposal-lift on the default
+   Today (quality/gate.py :90, :220-224, :293), and the synthetic athlete had no proposal.
+   Option (b), the engine filing its own owner's-call card from fixture data, is not
+   reachable: the producer (rebuild/engine/writers.cjs:1937-1956) runs inside runAdaptive,
+   and no path on this page's replay calls runAdaptive (applyRead, writeDaily, the sleep and
+   food projections, nowModel and genSession do not; explicit-path git grep). So the
+   synthetic athlete carries ONE open proposal in propose()'s exact shape (writers.cjs:1672:
+   rid, id rid_day, d, title, why, apply, resolved false, pg), filed on the day the screen
+   stands on, as the owner's-call producer files it: the volpush rid family of the week's
+   Monday (:1618, :1954), a one-set add with owner true (:1956) on the synthetic chest press,
+   once ever (the producer's own seen guard, :1948-1950). Its title and reason are the
+   prototype's T-40 words (app/states-today.js SET), so nothing new is shown. fixtures.cjs is
+   left byte-identical: its sha256 is pinned by rebuild/m4/spec/acceptance-load-writes.json:97
+   and it feeds the m3/w6 and m4 engine-run tests; this basis feeds Today alone. Data only. */
+function withBoardProposal(state, day) {
+  const exercise = ((state && state.exercises) || []).find((x) => x && x.id === "demo-press");
+  if (!exercise || typeof day !== "string") return state;
+  const volpush = (x) => x && typeof x.rid === "string" && x.rid.indexOf("volpush_chest_") === 0;
+  if ((state.proposals || []).some(volpush) || (state.adjustments || []).some(volpush)) return state;
+  const [y, m, d] = day.split("-").map(Number);
+  const at = new Date(Date.UTC(y, m - 1, d));
+  const monday = new Date(Date.UTC(y, m - 1, d - ((at.getUTCDay() + 6) % 7))).toISOString().slice(0, 10);
+  const rid = "volpush_chest_" + monday;
+  state.proposals = [...(state.proposals || []), { rid, id: rid + "_" + day, d: day,
+    title: "Chest", // app/states-today.js T-40 SET title
+    why: "Your chest lifts are holding while the scale falls. One more set is the smallest move that can show up.", // T-40 SET reason
+    apply: { kind: "sets", exId: exercise.id, delta: 1, mg: "chest", owner: true },
+    resolved: false, pg: state.planGen || 0 }];
+  return state;
+}
+/* C-UI-3 END */
 
 /* S2 (DECISIONS:534 (b); P3-TODAY-COPY-DIAG section S2). rebuild/engine/today.cjs's
    marchingOrder writes FOUR parts meant to be read together: a cue (`ifText`), the action
@@ -350,6 +431,9 @@ function createTodayModel(options = {}) {
         available: session.available, unavailableReason: session.reason },
       ...projection,
     };
+    /* C-UI-3: the proposal card's two read-only projections (see openProposalCard). */
+    view.proposal = openProposalCard(state);
+    view.proposalStored = storedProposalAnswers(state);
     /* P0-B r2/r3 (review findings 2, N3) - gate the fixture's own figures off
        this view while adoption is pending. This is never a fabricated
        placeholder: calorieTarget/proteinTarget/the weight trend use the SAME
@@ -383,6 +467,12 @@ function createTodayModel(options = {}) {
         view.nowModel = { ...view.nowModel, headed: { ...view.nowModel.headed, weight: NaN } };
       }
       view.workout = { ...view.workout, exerciseCount: null };
+      /* C-UI-3: the fixture's proposals are not his either, so no card while adoption is pending,
+         and (round 3, Fable l2 L2-1) no count of them either: the hidden card must not stand in
+         nowModel.decisionsN, or the status line goes empty instead of the recorded F4 line. */
+      view.proposal = null;
+      view.proposalStored = {};
+      if (view.nowModel) view.nowModel = { ...view.nowModel, decisionsN: 0 };
       view.marchingOrder = {};
       const neutral = clone(basis);
       neutral.reads = [];

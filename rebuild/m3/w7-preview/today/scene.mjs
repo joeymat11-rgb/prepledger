@@ -41,6 +41,8 @@ export function startSceneFrames({ reducedMotion, draw, requestFrame, cancelFram
 function scrollFades(el, view) {
   if (!el || el.__earnedFades) return;
   const update = () => {
+    /* C-UI-2: a replaced .body lets go of the window listener it no longer needs. */
+    if (el.isConnected === false) { view.removeEventListener("resize", update); return; }
     const can = el.scrollHeight > el.clientHeight + 1;
     const end = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
     el.classList.toggle("can-scroll", can);
@@ -374,6 +376,11 @@ function installScene(view, doc) {
   const draw = sceneRenderer({ frame, view, hooks: live, assets, counters });
   const update = () => {
     date();
+    /* C-UI-2: a screen built on the pack's chassis scrolls in its own .body, so the
+       ruled fades (32 px under the status bar, 20 px into the stack) follow that
+       region, exactly as the pack's app.js attaches them. */
+    const body = host.querySelector(":scope > .body");
+    if (body) scrollFades(body, view);
     const screen = currentScreen();
     if (screen === live.screen) return;
     frame.classList.remove(`screen-${live.screen}`);
