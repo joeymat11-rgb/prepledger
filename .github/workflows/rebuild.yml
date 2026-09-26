@@ -170,8 +170,20 @@ jobs:
       # chain branch, its artifact is committed and every declared child carries an
       # observed needle, this step reports the runner's own refusal by name rather than
       # PASS; that is the expected pre-seal state. The step NAME moves with it.
-      - name: Cumulative S10 Today split reseal, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S10
+      # S11 SUCCEEDS M2-S10-TODAY-SPLIT HERE, by the same rule a tenth time, and the flip again
+      # lives INSIDE the package rather than at the fast-forward (ef21153's shape; the cost of
+      # doing it afterwards measured at DECISIONS:498). S11 is the NATIVE-LOAD reseal: it
+      # composes the accepted NATIVE-LOAD build onto the SEALED S10 (DECISIONS:838, seal tip
+      # edb8381) under the owner's engine grants (DECISIONS:784-785, :796, :803, :804). LIKE S10
+      # it DOES move rebuild/engine bytes - the new native-load.cjs, writers.cjs and
+      # progression.cjs - so it retires the byte-identity gates under its OWN reason and its
+      # own token line, with its own s11-* cells. Until its package id, THEME, BRIEF-BY-SHA and
+      # GATE-SUPERSESSION lines stand on the chain branch, its artifact is committed and every
+      # declared child carries an observed needle, this step reports the runner's own refusal
+      # by name rather than PASS; that is the expected pre-seal state. The step NAME moves
+      # with it.
+      - name: Cumulative S11 NATIVE-LOAD reseal, S10 Today split, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S11
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -197,7 +209,13 @@ jobs:
       # common, YES-only and route-B rows of the native evaluator, transition and source fold - get
       # their CI home here, named by exact path. The FA03 DOM rows (A01, A02, B01, B02) are named in
       # the Today step below, which enumerates every file under that test directory.
+      # S11 GIVES THIS STEP THE :627 P-S9-3 CONDITION SHAPE (DECISIONS:792, "new E steps get the
+      # :627 P-S9-3 condition shape"): the standing --ci --package step fails on every branch that
+      # is not the chain tip, GitHub then skips every later step with no condition (DECISIONS:826),
+      # and the FC12 cells are the NATIVE-LOAD guard S11 seals. Row (36) of
+      # rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs reads this line.
       - name: NATIVE-LOAD - the native evaluator, transition and fold cells (FC12)
+        if: ${{ !cancelled() }}
         run: node --test rebuild/m4/spec/native-load-options.test.cjs
       # ENUMERATION COMPLETED BY M2-B-NTC, DECISIONS:109. The line below named
       # five files; two more existed under the same directory with no CI home at
@@ -386,6 +404,15 @@ jobs:
       - name: B - S10-REGEN's path boundary and write contract, on synthetic ports
         if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/b/S10-REGEN.test.cjs
+      # S11 GIVES rebuild/lanes/b/S11-REGEN.test.cjs ITS CI HOME (Astra L1 B5 on the S11 brief;
+      # STOP-S11-REGENCI): the refusal rows of the helper that re-measures packages/S11.json at the
+      # S10 seal, compiled on fake git and filesystem ports, reading nothing of the repository. S10's
+      # step above STAYS, unchanged. Same condition shape; row (38) of the sealed-inventory fence cell
+      # reads this line. No declared child mirrors it, for the reason S10's comment gives, and it
+      # runs on both OS because the job matrix does.
+      - name: B - S11-REGEN's path boundary and write contract, on synthetic ports
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/lanes/b/S11-REGEN.test.cjs
       # M2-S7-PORT-ADMISSION ADDS ITS OWN THREE LANE CELLS HERE, under the same
       # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason: they arrived
       # with P3-PORT-FIX and P3-PORT-FIX-2 (DECISIONS:509, :510) and no workflow names
@@ -402,8 +429,26 @@ jobs:
       # same reason. Named by exact path and never globbed.
       - name: D - the real-shape admission and adoption rule, the bar, and the v2 capture layout
         run: node --test rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs
+      # S11 GIVES THE W6 LOCAL-SOURCE STEP THE :627 P-S9-3 CONDITION SHAPE AND THE COMMIT CELLS
+      # THEIR CI HOME (the PM's ruling W6ADM (A); DECISIONS:792, "new E steps get the :627 P-S9-3
+      # condition shape"). With no condition GitHub skipped the admission cells - the three
+      # R913-ALV cells of FC09 among them - whenever the standing --ci --package step failed, which
+      # it does on every branch that is not the chain tip (DECISIONS:826). local-source-commit.test.mjs
+      # ran in no workflow at all; it is appended to this run line by exact path, never globbed, and
+      # pays the commit part of D-L14-CI. Row (37) of the sealed-inventory fence cell reads this step.
       - name: W6 — the local source admission and consumer cells
-        run: node --test rebuild/m3/w6/test/local-source-admission.test.mjs rebuild/m3/w6/test/local-source-consumer.test.mjs
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/m3/w6/test/local-source-admission.test.mjs rebuild/m3/w6/test/local-source-consumer.test.mjs rebuild/m3/w6/test/local-source-commit.test.mjs
+      # S11 GIVES rebuild/m3/w6/test/local-today-journey.test.mjs ITS CI HOME (the PM's ruling C4B (A);
+      # STOP-S11-C4B). The C4 one-store journey - the real Today and gym card code over the local era,
+      # and the C4b pin of today-entry.mjs - ran in no workflow at all and in no declared child. Its
+      # root rebuild/m3/w6/test/ is already a CHILD_ROOT, so S11 also declares it as the child
+      # w6-local-today-journey: named twice on purpose, so it runs whether or not the package step is
+      # the standing one. Same :627 P-S9-3 condition shape (DECISIONS:792, :826); row (39) of the
+      # sealed-inventory fence cell reads this step. Named by exact path, never globbed.
+      - name: W6 - the Today page and gym card over the local era (the C4 one-store journey)
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/m3/w6/test/local-today-journey.test.mjs
       - name: C5 — the voice coach tool contract and text prototype
         run: node --test "rebuild/coach/test/*.test.cjs"
       - name: A5 — the PWA shell's lockfile-only suites

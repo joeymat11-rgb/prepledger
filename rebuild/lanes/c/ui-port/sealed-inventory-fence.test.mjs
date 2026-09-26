@@ -1814,6 +1814,57 @@ test("S10 P-S9-3 (34) - the Today split writer fence step exists and carries the
 test("S10 P-S9-3 (35) - the S10-REGEN path-boundary step exists and carries the not-cancelled condition", () => {
   assertNotCancelled(YML_LINES(), "rebuild/lanes/b/S10-REGEN.test.cjs");
 });
+/* S11 (the NATIVE-LOAD reseal brief, section 2.1 FC13 and the FENCE paragraph), by the same
+   PM ruling as rows (32)-(35): DECISIONS:792 ("new E steps get the :627 P-S9-3 condition
+   shape"). The FC12 cells - the native evaluator, transition and fold rows of
+   rebuild/m4/spec/native-load-options.test.cjs - got their CI home at the NATIVE-LOAD build
+   with NO condition, so GitHub skips them whenever the standing --ci --package step fails,
+   which it does on every branch that is not the chain tip (DECISIONS:826). A guard skipped
+   where it is needed guards nothing. This row reads the WORKING TREE's rebuild.yml, finds the
+   step by exact path and never globs, as rows (18) and (30)-(35) do. FC12 cannot hold the row
+   itself: it is the NATIVE-LOAD input S11 carries, and its bytes move only under that lane. */
+test("S11 P-S9-3 (36) - the NATIVE-LOAD FC12 step exists and carries the not-cancelled condition", () => {
+  assertNotCancelled(YML_LINES(), "rebuild/m4/spec/native-load-options.test.cjs");
+});
+/* S11, BY THE PM'S RULING W6ADM (A) (the NATIVE-LOAD reseal brief, sections 2.1 FC13 and 5.1 W6
+   ADMISSION SUITE; STOP-S11-W6ADM), in the shape of rows (32)-(36) (DECISIONS:792). The W6
+   local-source step carried NO condition, so GitHub skipped the admission cells - the three
+   R913-ALV cells of FC09 among them - whenever the standing --ci --package step failed, which it
+   does on every branch that is not the chain tip (DECISIONS:826). The same ruling appends
+   rebuild/m3/w6/test/local-source-commit.test.mjs, which ran in no workflow at all, to that step's
+   run line (the commit part of D-L14-CI). So the row requires each of the three files to run in
+   exactly one step, named by exact path and never globbed, that step to carry the not-cancelled
+   condition, and the three to share ONE step. The cells cannot hold this row themselves: the
+   admission suite is the NATIVE-LOAD input S11 carries, and its fixture loads a protected engine
+   file, so it runs only in hosted CI and on the PM seat (STOP-R21B-1). */
+test("S11 P-S9-3 (37) - the W6 local-source step exists and carries the not-cancelled condition", () => {
+  const yml = YML_LINES();
+  const cells = ["rebuild/m3/w6/test/local-source-admission.test.mjs",
+    "rebuild/m3/w6/test/local-source-consumer.test.mjs",
+    "rebuild/m3/w6/test/local-source-commit.test.mjs"];
+  for (const file of cells) assertNotCancelled(yml, file);
+  const [admission, ...others] = cells.map((file) => conditionOfStepRunning(yml, file).block.join("\n"));
+  for (const block of others)
+    assert.equal(block, admission, "the W6 local-source cells do not share one step: " + block.split("\n")[0].trim());
+});
+/* S11, Astra L1 B5 on the S11 brief (sections 2.1 FC13 and 5.1 NOT A CHILD; STOP-S11-REGENCI):
+   rebuild/lanes/b/S11-REGEN.test.cjs, the path-boundary cell of the operator helper that
+   re-measures packages/S11.json at the S10 seal, gets its both-OS CI home the way S10-REGEN.test.cjs
+   got one (row (35)), with the same condition shape, placed after S10's step, which stays (row (35)
+   still reads it). It loads nothing protected: the helper runs on fake node:child_process and
+   node:fs ports. No declared child mirrors it, as none mirrors S10's: rebuild/lanes/b/ is not a
+   CHILD_ROOT. */
+test("S11 P-S9-3 (38) - the S11-REGEN path-boundary step exists and carries the not-cancelled condition", () => {
+  assertNotCancelled(YML_LINES(), "rebuild/lanes/b/S11-REGEN.test.cjs");
+});
+/* S11, BY THE PM'S RULING C4B (A) (STOP-S11-C4B): rebuild/m3/w6/test/local-today-journey.test.mjs,
+   the C4 one-store journey that holds the C4b pin of today-entry.mjs (FA02), ran in no workflow at
+   all and in no declared child. S11 declares it as the child w6-local-today-journey (its root is a
+   CHILD_ROOT) AND gives it a step with the same condition shape, so it runs on both OS whether or
+   not the package step is the standing one. This row reads that step, by exact path. */
+test("S11 P-S9-3 (39) - the W6 local Today journey step exists and carries the not-cancelled condition", () => {
+  assertNotCancelled(YML_LINES(), "rebuild/m3/w6/test/local-today-journey.test.mjs");
+});
 
 /* P-S9-5, THE TWO RE-HOMED INVARIANTS. ci-second-gate.test.cjs:29 asserted three things
    at once: that .github/workflows/rebuild.yml equals a 2026 baseline object with exactly
