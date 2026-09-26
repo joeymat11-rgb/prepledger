@@ -1,0 +1,25 @@
+diff --git a/s11-t3g-scratch/s10-exporter.cjs.txt b/earned-s11-t3g/rebuild/lanes/astra/s11-exporter-v1/export-s11-profile-v1.cjs.txt
+index 24efeee..d931441 100644
+--- a/s11-t3g-scratch/s10-exporter.cjs.txt
++++ b/earned-s11-t3g/rebuild/lanes/astra/s11-exporter-v1/export-s11-profile-v1.cjs.txt
+@@ -6 +6 @@
+// v3 successor of v2 (70f2a92b...): closes l2 E1 (config/untracked/index-flag channels). {+S10 v1 (de3aeb76...) = v3 (576fd22e...) with S10 literals; this S11 v1 = S10 v1 with S11 literals, this sentence and the D-S10EXP-2 asserts on :115.+}
+@@ -12 +12 @@ const runnerRel = 'rebuild/lanes/b/tooling/b-package.cjs';
+const specRel = [-'rebuild/lanes/b/tooling/packages/S10.json';-]{+'rebuild/lanes/b/tooling/packages/S11.json';+}
+@@ -33 +33 @@ let savedArgv, savedLog, savedError, savedCompileEnv = [], changedCompileEnv = f
+const scratchRoot = [-'C:/Users/joeym/AppData/Local/Temp/earned-s10-profile-export-results';-]{+'C:/Users/joeym/AppData/Local/Temp/earned-s11-profile-export-results';+}
+@@ -45 +45 @@ try {
+  [-assert(/^s10-[a-z0-9-]{1,80}$/.test(outputName));-]{+assert(/^s11-[a-z0-9-]{1,80}$/.test(outputName));+}
+@@ -104 +104 @@ try {
+  process.argv = [process.execPath, runnerFile, '--ci', '--package', [-'S10'];-]{+'S11'];+}
+@@ -115 +115 @@ try {
+  assert.equal(artifact.lanePackage, [-'S10');-]{+'S11'); assert.equal(artifact.artifact.file, 'rebuild/m4/spec/acceptance-s11-native-load.json'); assert.equal(artifact.artifact.review, 'rebuild/m4/spec/review-s11-native-load.json');+}
+@@ -170 +170 @@ try {
+  const line = [-'S10-]{+'S11+} PROFILE EXPORTED PENDING ' + sha(artifactBytes) + ' ' + sha(reviewBytes)
+@@ -172 +172 @@ try {
+  [-assert(/^S10-]{+assert(/^S11+} PROFILE EXPORTED PENDING [a-f0-9]{64} [a-f0-9]{64} chain=[a-f0-9]{40} node=v24\.\d+\.\d+ git=\d+\.\d+\.\d+(?:\.[0-9A-Za-z]+)*$/.test(line));
+@@ -182,2 +182,2 @@ try {
+  fs.writeFileSync(path.join(destination, [-'acceptance-s10-today-split.json'),-]{+'acceptance-s11-native-load.json'),+} artifactBytes, { flag: 'wx' });
+  fs.writeFileSync(path.join(destination, [-'review-s10-today-split.json'),-]{+'review-s11-native-load.json'),+} reviewBytes, { flag: 'wx' });
+@@ -186 +186 @@ try {
+  [-output('S10-]{+output('S11+} PROFILE EXPORT REFUSED'); process.exitCode = 1;

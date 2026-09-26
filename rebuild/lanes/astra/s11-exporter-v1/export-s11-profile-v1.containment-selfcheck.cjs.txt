@@ -1,0 +1,274 @@
+'use strict';
+// S11 exporter v1 containment SELF-CHECK (T3g builder, 2026-09-26). PARSE-ONLY by construction:
+// it reads the exporter text, the reviewed S10 v1 text, the runner text, the S11 spec text and the
+// eight import texts as STRINGS, compiles the exporter with vm.Script and never runs it, and
+// sha256-hashes the two S10 parent files. It requires nothing from the repository, spawns no
+// process, runs no git, writes nothing, and refuses to open a protected-five, rebuild/conform/
+// private, src/, ledger/, soak or app.js path. Output: one "SELFCHECK <id> <PASS|FAIL|PENDING> ..."
+// line per check, the list of files it opened, and one RESULT line. Exit 1 iff any FAIL.
+// usage: node <this> --port <exporter .cjs.txt> --s10 <S10 v1 text> --root <worktree> --gitline <file
+//        holding `git --version`> [--runner-sha <64 hex expected for the runner at --root>]
+const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto'), vm = require('node:vm');
+const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+const argv = process.argv.slice(2);
+const opt = k => { const i = argv.indexOf('--' + k); return i >= 0 && i + 1 < argv.length ? argv[i + 1] : null; };
+const FORBID = /(^|[\\/])(src|ledger)([\\/]|$)|[\\/]rebuild[\\/]conform[\\/]private([\\/]|$)|soak|[\\/]engine[\\/](seed|migrate|merge|index|oracle-shim)\.cjs$|(^|[\\/])app\.js$/i;
+const opened = [];
+function read(abs) {
+  if (FORBID.test(abs)) throw new Error('SELFCHECK-REFUSED-PATH ' + abs);
+  const b = fs.readFileSync(abs); opened.push(abs + ' ' + sha(b) + ' ' + b.length); return b;
+}
+const tally = { PASS: 0, FAIL: 0, PENDING: 0 };
+const put = (id, state, detail) => { tally[state]++; process.stdout.write('SELFCHECK ' + id + ' ' + state + ' ' + detail + '\n'); };
+const check = (id, ok, detail) => put(id, ok ? 'PASS' : 'FAIL', detail);
+const info = (id, detail) => process.stdout.write('SELFCHECK ' + id + ' INFO ' + detail + '\n');
+const guarded = (id, fn) => { try { fn(); } catch (e) { put(id, 'FAIL', 'threw ' + String(e && e.message).slice(0, 200)); } };
+
+const S10_V1_SHA = 'de3aeb76fc7b81d70829f6a27aa52d7d56eeaadfe30a972158740eca73c93301';
+const RUNNER_REL = 'rebuild/lanes/b/tooling/b-package.cjs', SPEC_REL = 'rebuild/lanes/b/tooling/packages/S11.json';
+const IMPORTED = ['rebuild/conform/v4/postfix/run.cjs', 'rebuild/conform/v4/postfix/legacy-gates.cjs',
+  'rebuild/conform/v4/postfix/strict-json.cjs', 'rebuild/conform/v4/postfix/target.cjs',
+  'rebuild/conform/v4/postfix/trace-v2.cjs', 'rebuild/m4/spec/native-carriers-errors.cjs',
+  'rebuild/m4/spec/load-write-reference.cjs', 'rebuild/m4/spec/load-write-source.cjs'];
+const PROTECTED = ['rebuild/engine/seed.cjs', 'rebuild/engine/migrate.cjs', 'rebuild/engine/merge.cjs',
+  'rebuild/engine/index.cjs', 'rebuild/engine/oracle-shim.cjs'];
+const SCRATCH_ROOT = 'C:/Users/joeym/AppData/Local/Temp/earned-s11-profile-export-results';
+const ART_NAME = 'acceptance-s11-native-load.json', REV_NAME = 'review-s11-native-load.json';
+const PARENT = { 'rebuild/m4/spec/acceptance-s10-today-split.json': '42a3eb020557d312f4e8199eebc79101154ebe4315d2a44fd7a6e5c719450ae8',
+  'rebuild/m4/spec/review-s10-today-split.json': '8d9132787373e9e3e9a3ee1f91be8c403867acd9b8136a6390d1029a1d6a2a0a' };
+const EXPECTED_DIFF = [6, 12, 33, 45, 104, 115, 170, 172, 182, 183, 186];
+const LITERAL_ONLY = [12, 33, 45, 104, 170, 172, 182, 183, 186];
+const L6_SUFFIX = ' S10 v1 (de3aeb76...) = v3 (576fd22e...) with S10 literals; this S11 v1 = S10 v1 with S11 literals, this sentence and the D-S10EXP-2 asserts on :115.';
+const L115_SUFFIX = " assert.equal(artifact.artifact.file, 'rebuild/m4/spec/" + ART_NAME + "'); assert.equal(artifact.artifact.review, 'rebuild/m4/spec/" + REV_NAME + "');";
+const lit = s => s.split('S10').join('S11').split('s10').join('s11').split('today-split').join('native-load');
+const HEX64 = /^[a-f0-9]{64}$/, ROLE = /^[a-z][a-zA-Z-]{0,31}$/;
+const BUILTINS = require('node:module').builtinModules;
+const lines = t => { const a = t.split('\n'); if (a[a.length - 1] === '') a.pop(); return a; };
+const strLits = t => [...t.matchAll(/'((?:[^'\\]|\\.)*)'/g)].map(m => m[1]);
+
+const portPath = opt('port'), s10Path = opt('s10'), root = opt('root'), gitLineFile = opt('gitline'), runnerShaWant = opt('runner-sha');
+if (!portPath || !s10Path || !root || !gitLineFile) { process.stdout.write('SELFCHECK USAGE --port --s10 --root --gitline [--runner-sha]\n'); process.exit(2); }
+const portBuf = read(portPath), s10Buf = read(s10Path);
+const port = portBuf.toString('utf8'), s10 = s10Buf.toString('utf8');
+const pl = lines(port), sl = lines(s10);
+
+// C1 bytes: LF only, ASCII only, trailing LF, same line count as S10 v1; S10 v1 is the reviewed blob.
+guarded('C1-BYTES', () => {
+  const clean = b => !b.includes(13) && b.every(x => x < 128) && b[b.length - 1] === 10;
+  check('C1-BYTES', clean(portBuf) && clean(s10Buf) && pl.length === sl.length && sha(s10Buf) === S10_V1_SHA,
+    'port sha256 ' + sha(portBuf) + ' ' + portBuf.length + ' B ' + pl.length + ' lines LF-only ASCII=' + clean(portBuf) +
+    '; S10 v1 ' + sha(s10Buf).slice(0, 8) + ' ' + s10Buf.length + ' B ' + sl.length + ' lines (reviewed de3aeb76 ' + (sha(s10Buf) === S10_V1_SHA) + ')');
+});
+// C2 parse only: vm.Script compiles the text; nothing is run (no runIn*Context call exists in this file).
+guarded('C2-PARSE', () => { let ok = true, why = 'compiles'; try { new vm.Script(port, { filename: 'export-s11-profile-v1.cjs' }); } catch (e) { ok = false; why = e.message; } check('C2-PARSE', ok, why + ' (vm.Script, not run)'); });
+// C3 the set of lines that differ from S10 v1 is exactly the eleven named lines.
+guarded('C3-DIFF-SET', () => {
+  const d = []; for (let i = 0; i < Math.max(pl.length, sl.length); i++) if (pl[i] !== sl[i]) d.push(i + 1);
+  check('C3-DIFF-SET', JSON.stringify(d) === JSON.stringify(EXPECTED_DIFF), 'differing lines ' + (d.join(',') || '(none)') + '; expected ' + EXPECTED_DIFF.join(','));
+});
+// C4 each differing line is exactly its allowed change: nine pure literal renames, one comment tail, one assert tail.
+guarded('C4-LITERALS', () => {
+  const bad = LITERAL_ONLY.filter(n => pl[n - 1] !== lit(sl[n - 1]) || pl[n - 1] === sl[n - 1]);
+  const l6 = sl[5].startsWith('//') && pl[5] === sl[5] + L6_SUFFIX;
+  const l115 = pl[114] === lit(sl[114]) + L115_SUFFIX && sl[114] === "  assert.equal(artifact.lanePackage, 'S10');";
+  check('C4-LITERALS', !bad.length && l6 && l115, 'renames S10->S11, s10->s11, today-split->native-load on :' + LITERAL_ONLY.join(',:') +
+    (bad.length ? ' BAD :' + bad.join(',:') : ' all exact') + '; :6 comment tail ' + l6 + '; :115 D-S10EXP-2 tail ' + l115);
+});
+// C5 the port requires node builtins only, by literal; no dynamic require, import(), eval or Function.
+guarded('C5-REQUIRES', () => {
+  const req = [...port.matchAll(/require\(\s*'([^']+)'\s*\)/g)].map(m => m[1]).sort();
+  const all = (port.match(/require\(/g) || []).length;
+  const want = ['node:assert/strict', 'node:child_process', 'node:crypto', 'node:fs', 'node:module', 'node:path'];
+  const extra = /\bimport\(|\beval\(|new Function|process\.binding|createRequire|Module\._load/.test(port);
+  check('C5-REQUIRES', JSON.stringify(req) === JSON.stringify(want) && all === req.length && !extra, 'requires ' + req.join(',') + '; dynamic/other loaders ' + extra);
+});
+// C6 explicit paths: every path literal the port acts on, and the scratch root outside the worktree.
+guarded('C6-PATHS', () => {
+  const one = re => { const m = port.match(re); return m ? m[1] : null; };
+  const block = re => { const m = port.match(re); return m ? strLits(m[1]) : []; };
+  const got = { runnerRel: one(/const runnerRel = '([^']+)';/), specRel: one(/const specRel = '([^']+)';/),
+    scratchRoot: one(/const scratchRoot = '([^']+)';/), chainRef: one(/const chainRef = '([^']+)';/),
+    importedRel: block(/const importedRel = \[([\s\S]*?)\];/), protectedRel: block(/const protectedRel = \[([\s\S]*?)\];/),
+    outputName: one(/assert\(\/(\^s1\d-\[a-z0-9-\]\{1,80\}\$)\/\.test\(outputName\)\)/),
+    writes: [...port.matchAll(/fs\.writeFileSync\(path\.join\(destination, '([^']+)'\)/g)].map(m => m[1]) };
+  const ok = got.runnerRel === RUNNER_REL && got.specRel === SPEC_REL && got.scratchRoot === SCRATCH_ROOT &&
+    got.chainRef === 'refs/remotes/origin/rebuild/t2-client-core' && JSON.stringify(got.importedRel) === JSON.stringify(IMPORTED) &&
+    JSON.stringify(got.protectedRel) === JSON.stringify(PROTECTED) && got.outputName === '^s11-[a-z0-9-]{1,80}$' &&
+    JSON.stringify(got.writes) === JSON.stringify([ART_NAME, REV_NAME]);
+  const relOut = path.win32.relative(path.win32.resolve(root), path.win32.resolve(SCRATCH_ROOT));
+  check('C6-PATHS', ok && (relOut.startsWith('..') || path.win32.isAbsolute(relOut)),
+    'runnerRel ' + got.runnerRel + '; specRel ' + got.specRel + '; importedRel ' + got.importedRel.length + ' = the eight; protectedRel ' + got.protectedRel.length +
+    ' = the five; chainRef ' + got.chainRef + '; outputName /' + got.outputName + '/; writes ' + got.writes.join(',') + '; scratchRoot ' + got.scratchRoot + ' (relative to root: ' + relOut + ')');
+  if (fs.existsSync(SCRATCH_ROOT)) put('C6-SCRATCH-ROOT', 'PENDING', 'exists already: the T10 cmd must see it empty and fresh (exporter :40-42, :46)');
+  else put('C6-SCRATCH-ROOT', 'PENDING', 'absent today: the T10 cmd must create it as an empty directory first (exporter :40 realpathSync refuses an absent root)');
+});
+// C7 positively selected callbacks: the compiled prefix is followed by exactly spec(), parent(), proposed(), under --ci --package S11.
+guarded('C7-CALLBACKS', () => {
+  const m = port.match(/const append = '((?:[^'\\]|\\.)*)'\n\s*\+ '((?:[^'\\]|\\.)*)';/);
+  const text = m ? (m[1] + m[2]).split('\\n').join('\n') : '';
+  const want = '\nconst exportSpec = spec(); const exportBound = parent(exportSpec);\nmodule.exports = proposed(exportSpec, exportBound);\n';
+  const calls = [...text.matchAll(/([A-Za-z_$][\w$]*)\(/g)].map(x => x[1]);
+  const argvLine = (port.match(/process\.argv = \[process\.execPath, runnerFile, '--ci', '--package', 'S11'\];/g) || []).length;
+  const compiles = (port.match(/\._compile\(/g) || []).length;
+  check('C7-CALLBACKS', text === want && JSON.stringify(calls) === '["spec","parent","proposed"]' && argvLine === 1 && compiles === 1 && /compiled\._compile\(split\[0\] \+ append, runnerFile\);/.test(port),
+    'append calls ' + calls.join(',') + '; compile argv --ci --package S11 x' + argvLine + '; _compile sites ' + compiles + ' (prefix split[0] + append only)');
+});
+// C13 the port's own writes and processes: two 'wx' writes and one mkdir into destination; git is the only child; no exit().
+guarded('C13-PORT-EFFECTS', () => {
+  const w = [...port.matchAll(/fs\.writeFileSync\(([^\n]*)/g)].map(m => m[1]);
+  const wOk = w.length === 2 && w.every(x => /^path\.join\(destination, '[^']+'\), (artifactBytes|reviewBytes), \{ flag: 'wx' \}\);$/.test(x));
+  const mk = (port.match(/fs\.mkdirSync\(/g) || []).length === 1 && /fs\.mkdirSync\(destination\);/.test(port);
+  const otherW = port.match(/fs\.(appendFileSync|rmSync|rmdirSync|unlinkSync|renameSync|copyFileSync|cpSync|symlinkSync|linkSync|createWriteStream|openSync|writeSync|truncateSync|chmodSync|utimesSync)\b/g) || [];
+  const cpUse = [...port.matchAll(/\bcp\.(\w+)\(([^,\n]*)/g)].map(m => m[1] + '(' + m[2]);
+  const exits = (port.match(/process\.exit\(/g) || []).length;
+  check('C13-PORT-EFFECTS', wOk && mk && !otherW.length && JSON.stringify(cpUse) === '["execFileSync(\'git\'"]' && exits === 0,
+    'writeFileSync x' + w.length + ' wx-into-destination ' + wOk + '; mkdirSync(destination) ' + mk + '; other fs writes ' + otherW.length + '; child processes ' + cpUse.join(';') + '; process.exit calls ' + exits);
+});
+// C11 toolchain: the port's own regexes (extracted as text, not run as port code) admit this node and git.
+guarded('C11-TOOLCHAIN', () => {
+  const gitLine = read(gitLineFile).toString('utf8').trim();
+  const m = port.match(/const n = \/(.+?)\/\.exec\(nodeVersion\), g = \/(.+?)\/\.exec\(gitLine\);/);
+  const n = m && new RegExp(m[1]).exec(process.version), g = m && new RegExp(m[2]).exec(gitLine);
+  const ok = !!(n && g && Number(n[1]) === 24 && (Number(g[1]) > 2 || (Number(g[1]) === 2 && Number(g[2]) >= 44)));
+  const o = port.match(/assert\(\/(\^S11 PROFILE EXPORTED PENDING .+?\$)\/\.test\(line\)\);/);
+  const sample = 'S11 PROFILE EXPORTED PENDING ' + 'a'.repeat(64) + ' ' + 'b'.repeat(64) + ' chain=' + 'c'.repeat(40) + ' node=' + process.version + ' git=' + gitLine.slice('git version '.length);
+  check('C11-TOOLCHAIN', ok && !!o && new RegExp(o[1]).test(sample), 'node ' + process.version + ', "' + gitLine + '" admitted by :31 ' + ok + '; :172 output line regex admits them ' + !!(o && new RegExp(o[1]).test(sample)));
+});
+
+// C8 the runner at --root: marker once, the three callbacks defined once, prefix requires = the eight, ids registered.
+let runnerText = '', prefix = '';
+guarded('C8-RUNNER', () => {
+  const rb = read(path.join(root, RUNNER_REL)); runnerText = rb.toString('utf8');
+  const marker = '// ------------------------------------------------------------------ 8. main sequence';
+  const parts = runnerText.split(marker); prefix = parts[0];
+  const defs = ['function spec() {', 'function parent(s) {', 'function proposed(s, bound) {'].map(d => prefix.split('\n').filter(x => x === d || x.startsWith(d)).length);
+  const clash = /\bexportSpec\b|\bexportBound\b/.test(runnerText);
+  const code = prefix.split('\n').map((x, i) => [i + 1, x]).filter(([, x]) => !x.trim().startsWith('//'));
+  const reqs = []; for (const [n, x] of code) for (const m of x.matchAll(/require\(([^)]*\)?)\)/g)) reqs.push(n + ':' + m[1]);
+  const P = 'rebuild/conform/v4/postfix/';
+  const target = a => { let m = a.match(/^'(node:[^']+)'$/); if (m) return m[1]; m = a.match(/^path\.join\(P, '([^']+)'\)$/); if (m) return P + m[1];
+    m = a.match(/^path\.join\(root, '([^']+)'\)$/); return m ? m[1] : '?' + a; };
+  const tg = reqs.map(r => target(r.slice(r.indexOf(':') + 1)));
+  const inRoot = tg.filter(t => !t.startsWith('node:'));
+  const reqOk = tg.every(t => t.startsWith('node:') || IMPORTED.includes(t)) && reqs.every(r => Number(r.split(':')[0]) < 100);
+  const dyn = code.filter(([, x]) => /\bimport\(|createRequire|Module\._load|\beval\(/.test(x)).map(([n]) => n);
+  const rs = sha(rb);
+  check('C8-RUNNER', parts.length === 2 && defs.every(c => c === 1) && !clash && reqOk && !dyn.length && (!runnerShaWant || rs === runnerShaWant),
+    'runner sha256 ' + rs + (runnerShaWant ? ' (expected ' + runnerShaWant.slice(0, 8) + ' ' + (rs === runnerShaWant) + ')' : '') + ' ' + rb.length + ' B; marker x' + (parts.length - 1) +
+    '; spec/parent/proposed defined x' + defs.join('/') + '; exportSpec/exportBound unused by the runner ' + !clash +
+    '; prefix require sites ' + reqs.map(r => r.split(':')[0]).join(',') + ' -> ' + inRoot.length + ' in-root targets ' + inRoot.map(t => t.split('/').pop()).join(',') + ' (all among the eight ' + reqOk + '); dynamic loaders ' + dyn.length);
+  const ids = (runnerText.match(/IDS = \[([^\]]*)\]/) || [, ''])[1], noReg = (runnerText.match(/const NO_REGISTER_IDS = new Set\(\[([^\]]*)\]\)/) || [, ''])[1];
+  const hasId = strLits(ids).includes('S11'), hasNoReg = strLits(noReg).includes('S11');
+  put('C8-RUNNER-IDS', hasId ? 'PASS' : 'PENDING', "IDS carries 'S11' " + hasId + (hasId ? '' : ': the runner argv gate (b-package.cjs:690 at 9fbfdd2d) would exit(1) inside the compile, so the export refuses; T3e registers it (runner post bdbb8a93, builder-reported)'));
+  put('C8-RUNNER-NOREG', hasNoReg ? 'PASS' : 'PENDING', "NO_REGISTER_IDS carries 'S11' " + hasNoReg + (hasNoReg ? '' : ': spec() :1911 refuses an S11 spec with no D-id until T3e registers it'));
+});
+// C9 closure of the three callbacks over the runner prefix: a regex CALL graph (name followed by "(")
+// over top-level definitions, comment lines, trailing comments and string literals stripped (the
+// method of the S10 containment read); a name handed to an array method as its callback (e.g.
+// .map(option)) is also an edge. Other mentions without a call are listed for a hand follow (locals
+// share names with top-level functions: gates, children, pins).
+guarded('C9-CLOSURE', () => {
+  const L = prefix.split('\n'); const defs = [];
+  L.forEach((x, i) => { const m = x.match(/^(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/); if (m) { defs.push({ name: m[1], start: i }); return; }
+    if (/^(?:const|let|var)\s/.test(x)) for (const a of x.matchAll(/(?:^(?:const|let|var)\s+|,\s*)([A-Za-z_$][\w$]*)\s*=\s*(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>/g)) defs.push({ name: a[1], start: i }); });
+  const topStart = i => /^[A-Za-z}]/.test(L[i]) && !/^}/.test(L[i]);
+  const code = x => x.replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"/g, "''").replace(/\s\/\/ .*$/, '');
+  for (const d of defs) { let e = d.start + 1; while (e < L.length && !topStart(e)) e++; d.end = e;
+    d.body = L.slice(d.start, e).filter(x => !x.trim().startsWith('//')).map(code).join('\n'); }
+  const byName = new Map(defs.map(d => [d.name, d]));
+  const esc = n => n.replace(/\$/g, '\\$');
+  const callRe = n => new RegExp('(^|[^\\w$.])' + esc(n) + '\\s*\\(');
+  const valRe = n => new RegExp('(^|[^\\w$.])' + esc(n) + '(?![\\w$]|\\s*\\(|\\s*:(?!:))');
+  const cbRe = n => new RegExp('\\.(?:map|flatMap|filter|forEach|some|every|find|findIndex|reduce|sort)\\(\\s*' + esc(n) + '\\s*[,)]'); // a name handed to an array method as its callback is a call edge
+  const seen = new Set(), q = ['spec', 'parent', 'proposed'], vals = [];
+  while (q.length) { const f = q.shift(); if (seen.has(f) || !byName.has(f)) continue; seen.add(f);
+    const body = byName.get(f).body.replace(/^(?:async\s+)?function\s+[\w$]+\s*|^const\s+[\w$]+\s*=\s*/, '');
+    for (const d of defs) { if (callRe(d.name).test(body) || cbRe(d.name).test(body)) q.push(d.name); else if (d.name !== f && valRe(d.name).test(body)) vals.push(f + '->' + d.name); } }
+  const W = /\bfs\.(writeFileSync|appendFileSync|mkdirSync|rmSync|rmdirSync|unlinkSync|renameSync|copyFileSync|cpSync|symlinkSync|createWriteStream|openSync|writeSync|truncateSync)\b/;
+  const X = /\bcp\.\w+|\bprocess\.exit\b|(^|[^\w$.])(spawn|spawnSync|exec|execSync|execFile|execFileSync|fork)\s*\(/;
+  const hits = []; for (const f of seen) { const d = byName.get(f); d.body.split('\n').forEach(x => { if (W.test(x) || X.test(x)) hits.push(f + ': ' + x.trim().slice(0, 90)); }); }
+  const ext = new Set(); for (const f of seen) for (const m of byName.get(f).body.matchAll(/\b(R|L|J|Reference|BLOCKED)\.(\w+)/g)) ext.add(m[1] + '.' + m[2]);
+  const named = ['laws', 'children', 'authority', 'historical', 'writeSealedRunReceipt'].filter(n => seen.has(n));
+  check('C9-CLOSURE', !hits.length && !named.length && !ext.has('R.gateRun') && ![...ext].some(e => e.startsWith('Reference.')), 'top-level definitions ' + defs.length + '; CALL closure of spec/parent/proposed ' + seen.size + ' definitions; write/spawn/exit sites in it ' + hits.length +
+    (hits.length ? ' [' + hits.join(' | ') + ']' : '') + '; laws/children/authority/historical/writeSealedRunReceipt called ' + (named.join(',') || 'none') + '; imported-module members used ' + [...ext].sort().join(',') + ' (R.gateRun or Reference.* would FAIL)');
+  info('C9-CLOSURE-NAMES', [...seen].sort().join(','));
+  const vNames = [...new Set(vals.map(v => v.split('->')[1]))].filter(n => !seen.has(n)).sort();
+  const vHits = []; for (const n of vNames) byName.get(n).body.split('\n').forEach(x => { if (W.test(x) || X.test(x)) vHits.push(n + ': ' + x.trim().slice(0, 70)); });
+  info('C9-VALUE-MENTIONS', 'top-level names mentioned in the closure but not called there (a value reference or a same-named local; follow by hand): ' + (vals.join(', ') || 'none') +
+    '; outside the call closure: ' + (vNames.join(',') || 'none') + '; write/spawn/exit sites in those: ' + (vHits.join(' | ') || 'none'));
+  const topW = []; L.forEach((x, i) => { if (!x.trim().startsWith('//') && !defs.some(d => i >= d.start && i < d.end) && (W.test(code(x)) || X.test(code(x)))) topW.push((i + 1) + ': ' + x.trim().slice(0, 90)); });
+  info('C9-TOP-LEVEL-EFFECTS', topW.length + ' write/spawn/exit statement(s) at top level, outside every definition (run at compile): ' + (topW.join(' | ') || 'none'));
+});
+// C10 the eight imports as text: top-level requires are builtins or among the eight; nested requires listed.
+guarded('C10-IMPORTS', () => {
+  const top = [], nested = [], bad = [], inString = [];
+  for (const rel of IMPORTED) {
+    const t = read(path.join(root, rel)).toString('utf8'), dir = path.posix.dirname(rel);
+    t.split('\n').forEach((x, i) => { if (x.trim().startsWith('//')) return;
+      const spans = [...x.matchAll(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\\n]|\\.)*`/g)].map(s => [s.index, s.index + s[0].length]);
+      for (const m of x.matchAll(/require\(([^()]*(?:\([^()]*\))?[^()]*)\)/g)) {
+      if (spans.some(([a0, a1]) => m.index > a0 && m.index < a1)) { inString.push(rel.split('/').pop() + ':' + (i + 1)); continue; }
+      const a = m[1].trim(); let tgt = a; const q = a.match(/^'([^']+)'$/) || a.match(/^"([^"]+)"$/) || a.match(/^path\.(?:join|resolve)\(__dirname, '([^']+)'\)$/);
+      if (q) tgt = q[1].startsWith('.') || q[0].startsWith('path.') ? path.posix.normalize(path.posix.join(dir, q[1])) : q[1];
+      const site = rel.split('/').pop() + ':' + (i + 1) + ' ' + tgt;
+      if (/^\S/.test(x)) { top.push(site); if (!(BUILTINS.includes(tgt.replace(/^node:/, '')) || IMPORTED.includes(tgt))) bad.push(site); } else nested.push(site);
+    } });
+  }
+  check('C10-IMPORTS', !bad.length, 'top-level require sites ' + top.length + ' all builtins or among the eight ' + !bad.length + (bad.length ? ' BAD ' + bad.join(' | ') : ''));
+  info('C10-TOP', top.join(' | '));
+  info('C10-NESTED', nested.length + ' require site(s) inside functions (not run at load): ' + (nested.join(' | ') || 'none') + '; "require(" inside string literals (text, not calls): ' + (inString.join(',') || 'none'));
+});
+// C12 the S11 spec as data: id and artifact names, protected-key leaves, protected mentions, child targets, pins, prose.
+guarded('C12-SPEC', () => {
+  const sb = read(path.join(root, SPEC_REL)); const s = JSON.parse(sb.toString('utf8'));
+  check('C12-LANE', s.lanePackage === 'S11', 'spec sha256 ' + sha(sb) + ' ' + sb.length + ' B; lanePackage ' + s.lanePackage);
+  const idm = typeof s.packageId === 'string' && s.packageId.match(/^M2-[A-Z0-9]+(?:-[A-Z0-9]+)*$/);
+  const prop = typeof s.packageId === 'string' && (s.packageId.match(/PROPOSED (M2-[A-Z0-9]+(?:-[A-Z0-9]+)*)/) || [])[1];
+  const id = idm ? s.packageId : prop, slug = id ? id.replace(/^M2-/, '').toLowerCase() : null;
+  check('C12-NAMES', !!slug && 'acceptance-' + slug + '.json' === ART_NAME && 'review-' + slug + '.json' === REV_NAME,
+    'id ' + (idm ? 'FILLED ' : 'PENDING, PROPOSED ') + id + ' -> slug ' + slug + ' -> ' + ART_NAME + ' / ' + REV_NAME + ' (b-package.cjs:2071-2072 derivation) = the port :115/:182/:183 literals');
+  if (!idm) put('C12-ID', 'PENDING', 'packageId not fixed (STOP-S11-ID): if THEME fixes another id, the port refuses at :115 (D-S10EXP-2) and needs its literals re-ported');
+  const af = s.artifact && s.artifact.file, ar = s.artifact && s.artifact.review;
+  if (typeof af === 'string' && af.startsWith('rebuild/')) check('C12-ARTIFACT', af === 'rebuild/m4/spec/' + ART_NAME && ar === 'rebuild/m4/spec/' + REV_NAME, 'artifact ' + af + ' review ' + ar);
+  else put('C12-ARTIFACT', 'PENDING', 'artifact.file/review still PENDING in the spec (STOP-S11-ID; T3f/T6 fill)');
+  const leaves = []; const walkL = (v, p) => { if (v && typeof v === 'object') { for (const [k, x] of Object.entries(v)) walkL(x, p + '.' + k); } else leaves.push([p, v]); };
+  let pOk = true; const pDet = [];
+  for (const f of PROTECTED) { const e = s.product && s.product[f]; if (!e) { pOk = false; pDet.push(f.split('/').pop() + ' absent'); continue; }
+    leaves.length = 0; walkL(e, ''); const okL = leaves.every(([, v]) => v === null || typeof v === 'boolean' || (typeof v === 'string' && (HEX64.test(v) || ROLE.test(v))));
+    const carried = e.role === 'carried' && e.pre === e.post; if (!okL || !carried) pOk = false; pDet.push(f.split('/').pop() + ' ' + e.role + (e.pre === e.post ? ' pre=post' : ' pre!=post') + ' leaves-ok ' + okL); }
+  check('C12-PROTECTED-KEYS', pOk, 'the five as product keys only: ' + pDet.join('; '));
+  const mentions = []; const PR = /engine\/(seed|migrate|merge|index|oracle-shim)\.cjs/;
+  const walkM = (v, p) => { if (typeof v === 'string') { if (PR.test(v)) mentions.push(p); } else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) {
+    const kp = p + '/' + k; if (PR.test(k) && !(p === '$/product' && PROTECTED.includes(k))) mentions.push(kp + ' (key)'); walkM(x, kp); } };
+  walkM(s, '$');
+  check('C12-PROTECTED-MENTIONS', !mentions.length, 'protected paths named anywhere else in the spec: ' + (mentions.join(', ') || 'none'));
+  const targets = []; let tBad = [];
+  for (const c of s.children || []) { const a = Array.isArray(c.argv) ? c.argv : []; let i = 0; while (i < a.length && String(a[i]).startsWith('-')) i++;
+    for (const f of a.slice(i)) { targets.push(f); if (typeof f !== 'string' || PROTECTED.includes(f) || f.includes('..') || f.includes('\\') || path.posix.isAbsolute(f) || path.win32.isAbsolute(f)) tBad.push(c.name + ' ' + f); } }
+  const eng = targets.filter(f => f.startsWith('rebuild/engine/'));
+  check('C12-CHILD-TARGETS', !tBad.length, (s.children || []).length + ' children, ' + targets.length + ' argv targets, none protected/absolute/..-/backslash ' + !tBad.length + (tBad.length ? ' BAD ' + tBad.join(' | ') : '') + '; under rebuild/engine/: ' + (eng.join(',') || 'none'));
+  const prod = Object.entries(s.product || {}), roles = {}; const unfilled = [];
+  for (const [f, p] of prod) { roles[p.role] = (roles[p.role] || 0) + 1; if (p.role !== 'released' && !(typeof p.post === 'string' && HEX64.test(p.post))) unfilled.push(f); }
+  put('C12-PRODUCT-POSTS', unfilled.length ? 'PENDING' : 'PASS', prod.length + ' product keys ' + JSON.stringify(roles) + '; posts not yet a sha256 ' + unfilled.length +
+    (unfilled.length ? ' (exporter :125 refuses until filled; first: ' + unfilled.slice(0, 4).join(', ') + ')' : ''));
+  const bound = ['packageId', 'sourceBase', 'parent', 'dIds', 'laws', 'carriedAcceptedIds', 'privateLiveTriggered', 'coverage', 'authorizations', 'product', 'carrierSuccessor', 'witnessFlips', 'protectedSurfaces', 'children', 'artifact'];
+  const prose = []; const walkP = (v) => { if (typeof v === 'string') prose.push(v); else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) { prose.push(k); walkP(x); } };
+  for (const k of bound) walkP(s[k]);
+  const tested = prose.filter(x => x.length >= 24 && !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(x) && !/^[\w.@\/-]+$/.test(x));
+  const pend = tested.filter(x => x.includes('PENDING')), codey = tested.filter(x => /require\(|\bfunction\b|=>|[{}`]/.test(x));
+  put('C12-ARTIFACT-PROSE', pend.length ? 'PENDING' : 'PASS', tested.length + ' artifact-bound strings >= 24 chars that the :167 secondary leak check tests (E2 primary control = PM review of these); ' + pend.length + ' still say PENDING (must be 0 at T6)' +
+    '; code-shaped ' + codey.length + (codey.length ? ' [' + codey.map(x => x.slice(0, 60)).join(' | ') + ']' : ''));
+  info('C12-NOT-EXPORTED', 'notes ' + (Array.isArray(s.notes) ? s.notes.length : typeof s.notes) + ' strings, brief, tooling, status: not artifact keys (b-package.cjs:3460-3490), never exported');
+  const opts = s.parent && Array.isArray(s.parent.options) ? s.parent.options : [];
+  const o = opts.find(x => x && x.id === 'S10');
+  if (o && HEX64.test(o.sha256 || '') && HEX64.test(o.reviewSha256 || '')) check('C12-PARENT-OPTION', o.sha256 === PARENT['rebuild/m4/spec/acceptance-s10-today-split.json'] && o.reviewSha256 === PARENT['rebuild/m4/spec/review-s10-today-split.json'], 'S10 option sha256 ' + o.sha256.slice(0, 8) + ' review ' + o.reviewSha256.slice(0, 8));
+  else put('C12-PARENT-OPTION', 'PENDING', 'no filled S10 parent option in the spec yet (STOP-S11-PARENT; T3f)');
+});
+// C14 the S10 parent files on disk equal the sealed values (they become pins the port checks at :133-137 and :145-147).
+guarded('C14-PARENT-FILES', () => {
+  const r = Object.entries(PARENT).map(([f, h]) => { const got = sha(read(path.join(root, f))); return [f.split('/').pop(), got === h, got.slice(0, 8)]; });
+  check('C14-PARENT-FILES', r.every(x => x[1]), r.map(x => x[0] + ' ' + x[2] + ' ' + x[1]).join('; '));
+});
+for (const o of opened) process.stdout.write('SELFCHECK OPENED ' + o + '\n');
+process.stdout.write('SELFCHECK RESULT PASS=' + tally.PASS + ' PENDING=' + tally.PENDING + ' FAIL=' + tally.FAIL + '\n');
+process.exitCode = tally.FAIL ? 1 : 0;
