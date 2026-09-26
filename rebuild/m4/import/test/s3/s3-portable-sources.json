@@ -106,6 +106,10 @@
       "sha256": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41"
     },
     {
+      "path": "rebuild/engine/native-load.cjs",
+      "sha256": "92a4a0b4e693af00dcbfe0bfdf6fa75a9a2026690ff11ff674f58bae4755fdd1"
+    },
+    {
       "path": "rebuild/engine/performed.cjs",
       "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a"
     },
@@ -119,7 +123,7 @@
     },
     {
       "path": "rebuild/engine/progression.cjs",
-      "sha256": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5"
+      "sha256": "84ca3e53f1c7a1023d0807f7bc3d6941a4ec0466a9acc27c7582e391f0498dbc"
     },
     {
       "path": "rebuild/engine/sleep.cjs",
@@ -135,7 +139,7 @@
     },
     {
       "path": "rebuild/engine/writers.cjs",
-      "sha256": "67033f9f06696345dac1358de6026fc3703c96ad2050dff3208ccb88d965fa7b"
+      "sha256": "8ab1387cf7ce5013f5072563da1c106db3ba54a8473ee3cf7e5f0028024d093e"
     },
     {
       "path": "rebuild/m3/w5/package.json",
@@ -247,7 +251,7 @@
     },
     {
       "path": "rebuild/m3/w6/t2-stage.cjs",
-      "sha256": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592"
+      "sha256": "84b06b54ab32aa486bd071b52d45de1bbe6ac0ee033739e0afde7cfbd052a482"
     },
     {
       "path": "rebuild/m3/w6/test/local-source-admission.test.mjs",
@@ -383,7 +387,7 @@
     },
     {
       "path": "rebuild/m4/import/test/s3/run.mjs",
-      "sha256": "cf7d5cb746067a4137a514973bacd0230df02f24045bf139412d39e8bd5adc78"
+      "sha256": "df810e2bb3a79ad3d23d2ed47198b89a0d3f09a638626592f9c048c832e6414d"
     },
     {
       "path": "rebuild/m4/workout/athlete-state.cjs",
@@ -415,7 +419,7 @@
     },
     {
       "path": "rebuild/m4/workout/engine-capture.cjs",
-      "sha256": "ae899082299adfab63540d5735a889a9f99cb37588b05b23b614d6d404436c55"
+      "sha256": "b9f9fabde903e7996f28efdc1879dda37d44eab75e3b2237310d96d01c469834"
     },
     {
       "path": "rebuild/m4/workout/engine-history.cjs",
@@ -427,7 +431,7 @@
     },
     {
       "path": "rebuild/m4/workout/engine-runtime.cjs",
-      "sha256": "95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30"
+      "sha256": "b9a655abd65887d6e5a42f4dc15240a51414dfa12bf16dbf520391a514d86350"
     },
     {
       "path": "rebuild/m4/workout/fonts/SOURCES.json",
@@ -809,7 +813,8 @@
         "rebuild/engine/today.cjs",
         "rebuild/engine/volume.cjs",
         "rebuild/engine/earn.cjs",
-        "rebuild/engine/writers.cjs"
+        "rebuild/engine/writers.cjs",
+        "rebuild/engine/native-load.cjs"
       ]
     },
     "rebuild/m4/import/test/prepare.test.cjs": {

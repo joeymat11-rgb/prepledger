@@ -132,10 +132,11 @@ export function inspectStaticEdges(root,manifest){
     const arg=tokens[i+2],close=tokens[i+3];
     if(arg?.type==='string'&&close?.value===')'){edge(arg.value);continue;}
     const site="require('../../engine/'+name+'.cjs')";
-    const mapped=entry.path==='rebuild/m4/workout/engine-runtime.cjs'&&sha256(source)==='95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30'&&source.slice(token.start,token.start+site.length)===site&&
-      source.includes("const MODULES=Object.freeze(['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers']);");
+    // S11 NATIVE-LOAD (NATIVE-LOAD-SPEC R7, FC04): the reviewed loop is re-bound to the runtime's bytes; it maps thirteen modules, native-load after writers.
+    const mapped=entry.path==='rebuild/m4/workout/engine-runtime.cjs'&&sha256(source)==='b9a655abd65887d6e5a42f4dc15240a51414dfa12bf16dbf520391a514d86350'&&source.slice(token.start,token.start+site.length)===site&&
+      source.includes("const MODULES=Object.freeze(['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers','native-load']);");
     if(!mapped)refusal('S3_UNLISTED_EDGE',entry.path+' computed '+token.value);
-    for(const name of ['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers'])edge('../../engine/'+name+'.cjs');
+    for(const name of ['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers','native-load'])edge('../../engine/'+name+'.cjs');
    }else if(token.value==='import'&&next?.type==='string')edge(next.value);
    else if(token.value==='import'&&next?.value!=='.'||token.value==='export'&&['{','*'].includes(next?.value)){
     for(let j=i+1;j<tokens.length&&tokens[j].value!==';';j++)if(tokens[j].type==='id'&&tokens[j].value==='from'&&tokens[j+1]?.type==='string'){edge(tokens[j+1].value);break;}

@@ -695,8 +695,19 @@ export const PAGE_PINS = Object.freeze({
      must: boot() still opens the local era BY DEFAULT (the `hosts` branch is
      byte-unchanged - the new line READS `hosts`, it does not open one), NO wrapper
      opens a store of its own, an INJECTED installation is still never closed by
-     this page, and a declared-day caller still gets no watcher at all. */
-  'today-entry.mjs': '8b1697582d7d9f21bda4668f590187e612d3d554b8be32a31cfc6fb82ab91276',
+     this page, and a declared-day caller still gets no watcher at all.
+     S11 NATIVE-LOAD re-pin (NATIVE-LOAD-SPEC R7 FA02; owner grant DECISIONS:784-785).
+     today-entry.mjs gains the native-load check region (createNativeLoadController)
+     and its wiring in createWorkoutEntry, and boot()'s teardown closes the
+     native-load handle with the others. Re-read against today-bindings.mjs at this
+     re-pin, as every re-pin must: the controller exists only when the installation
+     already supplies hosts.createNativeLoadHost (today-bindings.mjs), so it READS
+     `hosts` and opens no store of its own; boot()'s one hunk is that teardown list,
+     so the `hosts` branch is byte-unchanged; an INJECTED installation is still never
+     closed by this page (the teardown closes the native-load handle, never `hosts`);
+     and a declared-day caller still gets no watcher at all. gym-host.mjs,
+     reading-host.mjs and checkin-host.mjs did not move. */
+  'today-entry.mjs': '169d56585edc9cfd1b1ef43ea0fb82f93179b2c3b131a96de7f5861e2e747ef6',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',
