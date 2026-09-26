@@ -469,6 +469,21 @@ test('A2/C4d — a prior NATIVE session prints "Last time" with the engine\'s ow
   });
 });
 
+/* TODAY17-HARDEN (R4). Log -> logSet runs over the encrypted store (crypto and IndexedDB), and
+   the saved-set screen is painted only after it; the model can already read 'saved' while the
+   screen is still the active set. A fixed 60 ms sleep is therefore no bound on the paint.
+   reached() waits on the exact condition the next oracles assert (the saved-set screen: its
+   'logged' title, its facts and its Undo), against a wall-clock deadline. It never asserts: at
+   the deadline it says so on stderr and returns, and the unchanged oracles fail with their own
+   messages. Once the condition holds it sleeps the original 60 ms again, so a screen wiped
+   right after it appears is still caught by those oracles. */
+async function reached(check, what, milliseconds = 10000) {
+  const deadline = performance.now() + milliseconds;
+  while (!check() && performance.now() < deadline) await new Promise(resolve => setTimeout(resolve, 0));
+  if (!check()) console.error('TODAY17-HARDEN-DEADLINE ' + milliseconds + ' ms: ' + what);
+  await new Promise(resolve => setTimeout(resolve, 60));
+}
+
 test('A2 — the gym screens render the capture, with nothing preselected', async t => {
   const dom = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
     { url: 'http://127.0.0.1:4178/' });
@@ -505,6 +520,9 @@ test('A2 — the gym screens render the capture, with nothing preselected', asyn
     [...doc.querySelectorAll('.choice')].find(c => c.textContent === '2').click();
     doc.querySelector('[data-slot="log"]').click();
     await new Promise(resolve => setTimeout(resolve, 60));
+    await reached(() => /logged/.test(doc.querySelector('[data-slot="saved-title"]')?.textContent || '')
+      && !!doc.querySelector('[data-slot="saved-facts"]') && !!doc.querySelector('[data-action="undo"]'),
+    'the saved-set screen after Log');
     const view = await kit.model.read();
     assert.equal(view.phase, 'saved');
     assert.equal(doc.querySelector('[data-slot="saved-facts"]').textContent, view.saved.facts);

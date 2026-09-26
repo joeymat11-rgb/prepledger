@@ -1444,6 +1444,20 @@ test('A4 - the named refusal on screen 6 is tappable back to the screen that own
   assert.equal(model.screen(), 1, 'and it goes back to the screen that owns it');
 });
 
+/* TODAY17-HARDEN (R5). The tap on "Start using Earned" is answered by today-entry.mjs's onDone:
+   the durable first-run write, then refresh(), then done(), which renders Today. That chain runs
+   over the encrypted store, so a fixed 50 ms sleep is no bound on it. reached() waits on the
+   exact condition the chain ends in (the page has landed on Today, which done() does only after
+   the write resolved), against a wall-clock deadline. It never asserts: at the deadline it says
+   so on stderr and returns, and the unchanged oracles fail with their own messages. Once the
+   condition holds it sleeps the original 50 ms again, so nothing the old window saw is lost. */
+async function reached(check, what, milliseconds = 10000) {
+  const deadline = performance.now() + milliseconds;
+  while (!check() && performance.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 0));
+  if (!check()) console.error('TODAY17-HARDEN-DEADLINE ' + milliseconds + ' ms: ' + what);
+  await new Promise((resolve) => setTimeout(resolve, 50));
+}
+
 test('A4 - "Start using Earned" writes ONCE through the durable lane and lands on Today', async () => {
   const fault = faultDatabase();
   const lane = { indexedDB: fault.indexedDB, crypto: webcrypto };
@@ -1470,6 +1484,7 @@ test('A4 - "Start using Earned" writes ONCE through the durable lane and lands o
   assert.equal(primary.disabled, false);
   primary.click();
   await new Promise((resolve) => setTimeout(resolve, 50));
+  await reached(() => api.screen() === 'today', 'the setup tap to land on Today');
   assert.equal(await entry.host.enrolled(), true, 'the record holds the first run');
   assert.equal((await opsOf(entry.host.repository)).length, 1, 'exactly one operation');
   assert.equal(api.screen(), 'today', 'and he lands on Today');

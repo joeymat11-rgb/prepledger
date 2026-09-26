@@ -121,6 +121,7 @@ export async function typeWaist(view, row) {
      changing: the page has taken this reading when what it renders is no longer what
      it rendered before the click. */
   const before = renderedTableText(view);
+  const screenBefore = view.doc.getElementById('measure-screen');
   view.pick('measure-waist-save').click();
   await settle(() => renderedTableText(view) !== before,
     'the trial table to repaint with the waist row for ' + row.date);
@@ -133,6 +134,27 @@ export async function typeWaist(view, row) {
      first sign of movement. */
   await quiet(() => renderedTableText(view),
     'the trial table to stop repainting after the waist row for ' + row.date);
+  /* TODAY17-HARDEN (R1). AND THEN UNTIL THE REPAINT THIS SAVE ASKED FOR HAS PAINTED ITS TABLE,
+     which neither wait above names. The first change can be an OLDER paint landing: the repaint
+     the previous row (or the markers pick) asked for is still reading the store when this click
+     happens, and it puts up a table read before this row was written. "Stopped changing" is then
+     true in two gaps: while that stale table stands, and while the save's own repaint has taken
+     the table down to re-read. Measured (today17-hunt3 HUNT-REPORT section 5): in 4 of 18 typed
+     rows quiet() returned with the STALE table on screen, and waitForTrialTable() only checks
+     that a table is present, so cell (a) read 'Not enough data yet' in week 12's two waist
+     columns. What the save does is exact: measure-screen.mjs saveWaist() asks for its repaint
+     only after lane.save() has resolved, and every measure repaint is today-app.cjs
+     renderMeasure() putting a NEW #measure-screen section on the phone before its first await
+     and painting the trial table into it last, after every read. So the table on the phone is
+     this row's answer exactly when it sits in a #measure-screen other than the one that was
+     there at the click (every earlier repaint request has already put its section up by then:
+     the previous typeWaist waited for its own, and pickMarkersOnScreen for the pick to go). No
+     count and no stillness: the wait is on that fact, bounded by settle()'s loud deadline. */
+  await settle(() => {
+    const screen = view.doc.getElementById('measure-screen');
+    return !!screen && screen !== screenBefore
+      && !!screen.querySelector('[data-slot="measure-trial-table"]');
+  }, 'the trial table painted by the repaint the waist save for ' + row.date + ' asked for');
 }
 
 /* The sets, one session per training date, through the accepted workout stack:
@@ -254,6 +276,15 @@ export async function page(fault, { basis, today = FIXTURE.today, measure = null
   const setup = await createSetupEntry({ today }, { indexedDB: fault.indexedDB, crypto: webcrypto });
   const lane = measure || await createMeasureHost({ day: today,
     indexedDB: fault.indexedDB, crypto: webcrypto });
+  /* TODAY17-HARDEN (R2). EVERY MEASURE PAINT THIS PAGE STARTS, recorded as it starts, for close()
+     below: renderMeasure() puts each paint's own #measure-screen section on #phone before its
+     first await, and a section that a later repaint replaced goes on being painted off screen. */
+  const measureScreens = [];
+  const watcher = new dom.window.MutationObserver((records) => {
+    for (const record of records) for (const node of record.addedNodes)
+      if (node.id === 'measure-screen') measureScreens.push(node);
+  });
+  watcher.observe(doc.getElementById('phone'), { childList: true });
   const api = mountToday(doc, model, { setup, measure: lane });
   const pick = (slot) => doc.querySelector('#phone [data-slot="' + slot + '"]');
   const all = (selector) => [...doc.querySelectorAll('#phone ' + selector)];
@@ -307,6 +338,17 @@ export async function page(fault, { basis, today = FIXTURE.today, measure = null
        the view is asked to be quiet before its stores are closed, on the same
        condition-with-a-deadline every other wait here uses. */
     async close() {
+      /* TODAY17-HARDEN (R2). THE STILLNESS BELOW SEES ONLY THE SECTION ON THE PHONE, and only
+         whether it is moving. A paint can be still and unfinished (its table taken down while it
+         reads the store), and a paint whose section a later repaint replaced runs on off screen.
+         Either one that reaches its next lane read after lane.close() is the LOCAL_CLIENT_CLOSED
+         rejection (measure-host.mjs all(), from measure-screen.mjs paint()) that surfaced in
+         cell (e) (hunt2: d5 and a10p, 1 in 3 each). So close() first waits until EVERY measure
+         section this page put up has reached one of paint()'s own end states, after which that
+         paint reads no lane; loud at settle()'s deadline. */
+      await settle(() => measureScreens.every(measurePaintEnded),
+        'every measure paint this page started to finish before the stores are closed');
+      watcher.disconnect();
       try { await quiet(phone, 'the screen to be still before the stores are closed'); }
       catch (_) { /* a page that never settles is the caller's failure, not the close's */ }
       try { reading.close(); food.close(); sleep.close(); lane.close(); } catch (_) { /* detached */ }
@@ -345,6 +387,15 @@ export async function pickMarkersOnScreen(view, names = FIXTURE.markers) {
    painted first. This is the condition the old 24-turn drain was standing in for. */
 export const measureScreenReady = (view) => () =>
   !!(view.pick('measure-marker-pick') || view.pick('measure-trial-table'));
+
+/* TODAY17-HARDEN (R2). The end states of ONE measure-screen.mjs paint(), each the last thing it
+   writes before it returns: the comparison (after every lane read), the markers pick, the
+   no-trial line, or the store-state line. A section holding one of them belongs to a paint that
+   reads no lane again. (A paint cut short by the athlete leaving Measure ends in none of them,
+   and close() would then fail at its deadline; no cell here leaves Measure mid-paint.) */
+const MEASURE_PAINT_ENDS = ['measure-comparison', 'measure-marker-pick', 'measure-no-trial', 'measure-state'];
+const measurePaintEnded = (section) =>
+  MEASURE_PAINT_ENDS.some((slot) => section.querySelector('[data-slot="' + slot + '"]'));
 
 /* The rendered table as one comparable string, for the waits that need to know
    whether the page has REPAINTED rather than merely whether a table is present.

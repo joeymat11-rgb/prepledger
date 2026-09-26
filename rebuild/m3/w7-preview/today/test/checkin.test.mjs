@@ -404,6 +404,21 @@ const text = doc => doc.getElementById('phone').textContent;
 const options = doc => [...doc.querySelectorAll('#phone .option')];
 const byLabel = (doc, label) => options(doc).find(b => b.textContent.trim() === label);
 async function settle() { for (let i = 0; i < 50; i++) await new Promise(r => setTimeout(r, 2)); }
+/* TODAY17-HARDEN (R3). settle() is a fixed COUNT of 50 timer turns, not a time: about 650 ms
+   while the event loop idles on this PC's ~15 ms tick, but about 100 ms once the loop is kept
+   busy (pending setImmediate work keeps it from sleeping, so each setTimeout(2) fires every
+   ~2 ms), and the same on a 1 ms-tick host. The gym card behind render('workout') is painted
+   only after the gym host's own read over the encrypted store, so a count is no bound on it.
+   reached() waits on the exact condition the next oracle asserts, against a wall-clock
+   deadline. It never asserts: at the deadline it says so on stderr and returns, and that
+   unchanged oracle fails with its own message. Once the condition holds it runs settle()
+   again, so a card that is wiped right after it appears is still caught by that oracle. */
+async function reached(check, what, milliseconds = 10000) {
+  const deadline = performance.now() + milliseconds;
+  while (!check() && performance.now() < deadline) await new Promise(r => setTimeout(r, 0));
+  if (!check()) console.error('TODAY17-HARDEN-DEADLINE ' + milliseconds + ' ms: ' + what);
+  await settle();
+}
 
 test('A3 — the screen shows the approved questions, all blank, and records what is tapped', async () => {
   const kit = await device();
@@ -544,6 +559,7 @@ test('A3 — back from the check-in returns to where the athlete came from', asy
      same set with the typed value intact. */
   api.render('workout', true);
   await settle();
+  await reached(() => doc.querySelector('#gym-weight'), 'the gym card after render(workout)');
   const weight = doc.querySelector('#gym-weight');
   assert(weight, 'the gym card is on screen');
   const before = await opsOf(workout.gymHost.repository);

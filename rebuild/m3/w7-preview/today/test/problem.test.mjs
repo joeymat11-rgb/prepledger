@@ -966,6 +966,22 @@ test('P0B.12 - the enrolled first frame paints no fixture verdict, figure or nam
    sheet opens. Item (c) is a PWA-shell dash fix, its cells live in rebuild/slice/pwa's
    own suites (P0C.3).
    ========================================================================== */
+/* TODAY17-HARDEN (R6: P0C.1, S6C.3, S6C.4). "Start using Earned" is answered by
+   today-entry.mjs's onDone: the durable first-run write, refresh(), then done(), which arms a NEW
+   adoption chain (api.ready is reassigned) and renders Today. That chain runs over the encrypted
+   store, so a fixed 50 ms sleep is no bound on it; and until it has run, `await api.ready` awaits
+   the OLD, already settled boot chain. reached() waits on the exact condition the transition
+   ends in (api.ready is no longer the promise it was before the tap), against a wall-clock
+   deadline. It never asserts: at the deadline it says so on stderr and returns, and the
+   unchanged oracles fail with their own messages. Once the condition holds it sleeps the
+   original 50 ms again, so nothing the old window saw is lost. */
+async function reached(check, what, milliseconds = 10000) {
+  const deadline = performance.now() + milliseconds;
+  while (!check() && performance.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 0));
+  if (!check()) console.error('TODAY17-HARDEN-DEADLINE ' + milliseconds + ' ms: ' + what);
+  await new Promise((resolve) => setTimeout(resolve, 50));
+}
+
 test('P0C.1 - completing setup adopts his own state in place, exactly as a fresh mount does', async () => {
   const fault = faultDatabase();
   const dom = new JSDOM(shell());
@@ -987,6 +1003,7 @@ test('P0C.1 - completing setup adopts his own state in place, exactly as a fresh
   const beforeReady = booted.api.ready;
   primary.click();
   await new Promise((resolve) => setTimeout(resolve, 50));
+  await reached(() => booted.api.ready !== beforeReady, 'P0C.1 the setup tap to arm its adoption chain');
   assert.notEqual(booted.api.ready, beforeReady, 'the transition armed a NEW adoption chain');
   await booted.api.ready;
   assert.equal(booted.api.screen(), 'today', 'landed on Today, in page, with no reload');
@@ -3239,8 +3256,10 @@ test('S6C.3 - completing setup lands on Today with HIS own empty records and no 
   booted.api.render('setup');
   const primary = doc.querySelector('#phone [data-slot="primary"]');
   assert.equal(primary.textContent.trim(), 'Start using Earned');
+  const beforeReady = booted.api.ready;
   primary.click();
   await new Promise((resolve) => setTimeout(resolve, 50));
+  await reached(() => booted.api.ready !== beforeReady, 'S6C.3 the setup tap to arm its adoption chain');
   await booted.api.ready;
   assert.equal(booted.api.screen(), 'today', 'the existing setup-to-Today transition, unchanged');
   const firstFrame = s6Phone(dom);
@@ -3268,8 +3287,10 @@ test('S6C.4 - a RELOAD after setup boots to Today, off the same store, on the li
   model.setExerciseField(press.key, 'first', '20');
   model.goto(6);
   first.booted.api.render('setup');
+  const beforeReady = first.booted.api.ready;
   first.doc.querySelector('#phone [data-slot="primary"]').click();
   await new Promise((resolve) => setTimeout(resolve, 50));
+  await reached(() => first.booted.api.ready !== beforeReady, 'S6C.4 the setup tap to arm its adoption chain');
   await first.booted.api.ready;
   assert.equal(first.booted.api.screen(), 'today', 'the first load ended on Today');
   first.booted.teardown();
