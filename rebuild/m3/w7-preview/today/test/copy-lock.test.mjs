@@ -1,8 +1,9 @@
 /* THE COPY LOCK (S10; S10-WORKING-BRIEF section 8; answers in rebuild/lanes/c/COPY-LOCK.md).
  *
  * A sealed cell over released and unsealed copy, in the shape of A.4 law 7 (a sealed cell
- * asserting what the product carries, against a pinned corpus). It needs no browser and no
- * engine module, so it runs unchanged on windows-latest and ubuntu-latest (answers 7, 8).
+ * asserting what the product carries, against a pinned corpus). It needs no browser, and only
+ * the two S11 T3m cells below load engine code (pure public factories, no protected module), so
+ * it runs unchanged on windows-latest and ubuntu-latest (answers 7, 8).
  *
  *   CL-PIN        the corpus bytes are the sealed ones
  *   CL-HOLDS      the tree carries exactly the pinned pieces, owners, counts and declarations
@@ -26,7 +27,16 @@
  *                 rest serializing back to the S10 corpus bytes
  *   CL-ENGINE-COPY the approved native-load explanation templates (rebuild/engine, outside
  *                 SCAN_ROOTS, which stay unwidened) pinned byte for byte (D-S11R6-3; DECISIONS:804,
- *                 :842, :843); CL-ENGINE-COPY-TEETH shows a reworded or duplicated one is refused */
+ *                 :842, :843); CL-ENGINE-COPY-TEETH shows a reworded or duplicated one is refused
+ *
+ * Added by S11 step T3m (Astra L1 B1 of job 146: a source pin counts a template once, so a changed
+ * live literal plus the old block pasted into a comment stayed green):
+ *   CL-ENGINE-OUTPUT the explanations the engine RETURNS, through FC01's public evaluateNativeLoad,
+ *                 equal the approved words exactly for every brief rev7 2.3 F case (F1 with each F2
+ *                 reason, F3a/F3b/F3c, F4, each F5 form); the only cells here that load engine code: the
+ *                 twelve public factories plus native-load.cjs, under a loader guard that refuses the
+ *                 protected five and every other engine file; CL-ENGINE-OUTPUT-TEETH shows the comment
+ *                 decoy and a one-character change in each template literal are each refused */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -34,6 +44,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
+import vm from 'node:vm';
 import { JSDOM } from 'jsdom';
 import { driveGymStates, harvest, STATE_IDS, FIXTURE_VALUES, GymApp } from './copy-lock-states.mjs';
 
@@ -393,4 +405,221 @@ test('CL-ENGINE-COPY-TEETH: a reworded or duplicated template is refused by name
   });
   judge('CRLF checkout', original.replace(/\r?\n/g, '\r\n'), []);
   assert.deepEqual(failed, [], 'CL-ENGINE-COPY-TEETH');
+});
+
+/* ---------------- S11 T3m (Astra L1 B1 of job 146; brief rev7 2.3 F; D-S11R6-3) ----------------
+   CL-ENGINE-COPY counts each approved template block once in SOURCE, so a changed live literal plus the old block
+   pasted into a comment stays green (Astra L1 B1). These cells pin what the page is actually given: the offer
+   explanations FC01 RETURNS through its public evaluateNativeLoad, compared as whole strings with the approved words
+   of brief rev7 2.3 F (approved as written at DECISIONS:842 (2); the missed-Close parenthetical at DECISIONS:804),
+   written out below by hand from those templates, never computed from the engine. The engine is composed the way
+   FC12 (rebuild/m4/spec/native-load-options.test.cjs engineAt) composes it: the twelve public factories in the
+   engine-runtime MODULES order, then native-load.cjs (FC12 N20 shows that composition returns Evaluations
+   byte-equal to both host runtimes'). Engine files are compiled from their text by a private allow-list loader,
+   never require: only the twelve, entered-load.cjs (performed.cjs's one relative require) and native-load.cjs can
+   be read; the protected five (seed, migrate, merge, index, oracle-shim) and every other name are refused before
+   any read. Every fixture value is invented. The source pins above stay as a supplementary check. */
+const ENGINE_PUBLIC = Object.freeze(['dates', 'constants', 'plan', 'performed', 'progression', 'sleep', 'energy', 'policy', 'today', 'volume', 'earn', 'writers']);
+const ENGINE_ALLOWED = new Set([...ENGINE_PUBLIC, 'entered-load'].map((n) => 'rebuild/engine/' + n + '.cjs').concat(NATIVE_LOAD));
+const PROTECTED_ENGINE = /(^|\/)rebuild\/engine\/(seed|migrate|merge|index|oracle-shim)\.cjs$/;
+const ENGINE_LOADED = new Set();
+const ENGINE_PUBLIC_CACHE = new Map();
+function engineLoader(nativeText) {
+  const own = new Map();
+  const load = (rel) => {
+    if (PROTECTED_ENGINE.test(rel)) throw new Error('CL-ENGINE-OUTPUT-PROTECTED-REFUSED ' + rel);
+    if (!ENGINE_ALLOWED.has(rel)) throw new Error('CL-ENGINE-OUTPUT-UNLISTED-REFUSED ' + rel);
+    const cache = rel === NATIVE_LOAD ? own : ENGINE_PUBLIC_CACHE;
+    if (cache.has(rel)) return cache.get(rel).exports;
+    ENGINE_LOADED.add(rel);
+    const code = rel === NATIVE_LOAD ? nativeText : fs.readFileSync(path.join(ROOT, rel), 'utf8');
+    const module = { exports: {} };
+    cache.set(rel, module);
+    const fn = vm.compileFunction(code, ['require', 'module', 'exports'], { filename: path.join(ROOT, rel) });
+    fn((id) => {
+      if (typeof id !== 'string' || !id.startsWith('./')) throw new Error('CL-ENGINE-OUTPUT-REQUIRE-REFUSED ' + id + ' from ' + rel);
+      return load(path.posix.join(path.posix.dirname(rel), id));
+    }, module, module.exports);
+    return module.exports;
+  };
+  return load;
+}
+const engineRefusing = (name) => {
+  const fail = () => { const e = new Error('ENGINE_RUNTIME_' + name + '_PROVIDER_REQUIRED'); e.code = e.message; throw e; };
+  const trap = {};
+  for (const k of ['filter', 'map', 'forEach', 'slice', 'find', 'some', 'every', 'reduce', 'flatMap', 'concat', 'entries', 'values', 'keys', 'at', 'includes']) trap[k] = fail;
+  Object.defineProperty(trap, Symbol.iterator, { value: fail });
+  Object.defineProperty(trap, 'length', { get: fail });
+  return Object.freeze(trap);
+};
+// FC12's engineAt, restated: a fixed clock, no id minting, no drafts, the two history providers absent.
+function composeEngine(nativeText, day) {
+  const load = engineLoader(nativeText);
+  const mint = () => { const e = new Error('ENGINE_RUNTIME_IDS_UNAVAILABLE'); e.code = e.message; throw e; };
+  const clock = { today: () => day, nowISO: () => day + 'T12:00:00.000Z', nowMs: () => Date.parse(day + 'T12:00:00.000Z'), hour: () => 12, dow: () => new Date(day + 'T00:00:00Z').getUTCDay() };
+  const deps = { clock, ids: Object.freeze({ next: mint, fresh: mint }), drafts: Object.freeze({ length: 0, key: () => null }) };
+  const E = { HISTORY: engineRefusing('HISTORY'), ROLLUPS: engineRefusing('ROLLUPS'), exById: (s, id) => s.exercises.find((e) => e.id === id) };
+  for (const name of ENGINE_PUBLIC) {
+    const factory = load('rebuild/engine/' + name + '.cjs');
+    Object.assign(E, name === 'performed' ? factory(E, { nativeTrendContext: (r) => ({ ...r, hard: false, rushed: false, debt: false }) }) : factory(E, deps));
+  }
+  Object.assign(E, load(NATIVE_LOAD)(E, deps));
+  return E;
+}
+
+// The fixture (FC12's F0/C/withFacts/basisFor shapes, restated; every value invented).
+const FX = require(path.join(ROOT, 'rebuild/m3/w7-preview/fixtures.cjs'));
+const FX_LIFT = 'fx-press', FX_D0 = '2026-10-01', FX_CARD_DAY = '2026-10-12', FX_TOP = [10, 9, 8];
+const fxLb = (value) => ({ value, unit: 'lb' });
+const FX_AT_LEAST_3 = Object.freeze({ tag: 'at_least', value: 3, unit: 'rep' });
+const fxE = (...xs) => xs.map((x) => (typeof x === 'number' ? { tag: 'exact', value: x, unit: 'rep' } : structuredClone(x)));
+const fxRef = (id) => ({ op_id: id, commitment: 'sha256:' + createHash('sha256').update('fx-commitment|' + id).digest('hex') });
+const fxDay = (i) => FX.dayOffset(FX_D0, i);
+function fxState(patch = {}) {
+  const s = FX.createSyntheticState(FX_CARD_DAY);
+  s.sessionLog = {};
+  const ex = { id: FX_LIFT, n: 'Fx Press', mg: 'chest', day: 'U', w: 100, inc: 5, sets: 3, hi: 10, holdFlag: false, topAt: null, topRun: 0, setup: 'SYNTHETIC', note: 'SYNTHETIC', forks: [] };
+  for (const [k, v] of Object.entries(patch)) { if (v === undefined) delete ex[k]; else ex[k] = structuredClone(v); }
+  s.exercises.push(ex);
+  return s;
+}
+function fxC(n, { date = fxDay(n - 1), reps, loads = 100, effort, prescribed = 100 }) {
+  const start = 'fx-start-' + n, close = 'fx-close-' + n, ops = [start];
+  const L = Array.isArray(loads) ? loads : reps.map(() => loads), P = Array.isArray(prescribed) ? prescribed : reps.map(() => prescribed);
+  const slots = reps.map((r, k) => {
+    const position = k + 1, logical_set_slot = JSON.stringify([FX_LIFT, position]), id = 'fx-set-' + n + '-' + position;
+    ops.push(id);
+    const current = { load: fxLb(L[k]), reps: { value: r, unit: 'rep' }, reserve: structuredClone(effort[k]) };
+    return { position, logical_set_slot, prescribed_load: P[k] == null ? { state: 'not_prescribed' } : { state: 'specified', source: fxLb(P[k]) }, state: 'performed',
+      fact: { source_op_id: id, source_status: 'stored-on-this-device', included: true, current, current_status: 'stored-on-this-device', edit_op_ids: [], issues: [],
+        original: structuredClone(current), logical_set_slot, lift_lineage_id: FX_LIFT } };
+  });
+  ops.push(close);
+  return { start, close, date, ops, session: { start_op_id: start, effective: { local_date: date, local_time: '10:00', utc_offset: '+00:00' },
+    record: { entries: [{ profile: 'earned/performed-lift/v2', start_op_id: start, lift_lineage_id: FX_LIFT, completion: { op_id: close, kind: 'normal', status: 'stored-on-this-device' }, slots }] } } };
+}
+function fxFacts(state, comps) {
+  const s = structuredClone(state);
+  s.workoutFacts = { profile: 'earned/workout-facts/v1', source_revision: 1,
+    order: { profile: 'earned/workout-order/v1', frontier: comps.reduce((a, c) => a + c.ops.length, 0), start_ids: comps.map((c) => c.start) },
+    sessions: comps.map((c) => structuredClone(c.session)) };
+  return s;
+}
+function fxRequest(state, comps, c, { frontier = [], authority = [], intent = 'check' } = {}) {
+  const ex = state.exercises.find((x) => x.id === FX_LIFT), opt = (k) => (Object.hasOwn(ex, k) ? { present: true, value: structuredClone(ex[k]) } : { present: false, value: null });
+  const ops = [...new Set([...comps.flatMap((x) => x.ops), ...authority, ...frontier.flatMap((f) => f.response_refs.map((r) => r.op_id))])].sort();
+  return { lift_lineage_id: FX_LIFT, completion_op_id: c.close, intent, basis: { athlete_id: 'ath-fx', source: { W: 0, log_digest: 'fx-empty-prefix', selection_id: null },
+    coverage: ops.map((op_id) => ({ op_id, commitment: fxRef(op_id).commitment, disposition: 'stored-on-this-device', source_member: null })),
+    order: { start_ids: comps.map((x) => x.start), frontier: state.workoutFacts.order.frontier },
+    plan: { plan_basis: 'fx-plan', input_basis: 'fx-input', programme_sha256: 'fx-programme', capture_sha256: 'fx-capture', structural_queue_sha256: 'fx-queue' },
+    technique: { forks: structuredClone(ex.forks || []), fork_refs: [] },
+    load_basis: { authority_refs: authority.map(fxRef), tenure_start: null, sets: ex.sets, prefix: ex.sets, hi: ex.hi, steps: opt('steps'), inc: opt('inc'), w: opt('w'), wSets: opt('wSets') },
+    effect_frontier: structuredClone(frontier) } };
+}
+// A yes through the public transition (FC12 applyAccept's context), then the Undo check of that yes.
+function fxUndo(E, state, comps, ev) {
+  const offer = ev.offers[0], body = offer.body;
+  const t = E.applyNativeLoadDecision(state, body, { event: 'accept', basis: ev.basis, spent: [], completion: null,
+    authority: { response_refs: [fxRef('fx-resp-1')], issuance: { producer: 'earned/native-load/v1', body, reason: offer.reason, revision: 'fx-revision-1', source: ev.basis.source, moment: '2026-10-20T12:00:00.000Z' }, source_cut: ev.basis.source } });
+  if (t.status !== 'applied') return { status: 'refused', offers: [], refusal: t.refusal };
+  const frontier = [{ spend_id: body.spend_id, response_refs: [fxRef('fx-resp-1')], close_ref: null }];
+  return E.evaluateNativeLoad(t.state, fxRequest(t.state, comps, comps.at(-1), { frontier, intent: { compensate: body.spend_id } }));
+}
+
+/* The required cases, brief rev7 2.3 F (F6, the unit, is inside every F5 form). Each `want` is the approved template
+   filled in BY HAND with this case's invented values (lift name 'Fx Press', dates, loads, reserve words); a case is
+   one check and `want` lists every returned offer's reason, in order. F3a's state carries the fold's MISSED mark
+   (native-load.cjs :236-241: done, state 'MISSED', native_load_missed_by the Close) written directly, and its
+   request claims that Close in load_basis.authority_refs, exactly as FC12 N29 reaches it through FC03. */
+const FX_NOTHING = ' Nothing changes unless you say yes; it then applies on a later Fx Press workout.';
+const FX_ADOPT_TAIL = '. Offer: make that your working weight. This sets your working weight; it is not an earned increase. Nothing changes unless you say yes.';
+const FX_UNDO = (loads) => 'Fx Press: undo the choice you agreed to before any workout used it. Your working weight goes back to ' + loads + '. The workouts it came from stay recorded and are not counted again.';
+const FX_N11 = { w: 100, wSets: [100, 95], sets: 2, hi: 10, steps: [100, 105, 110, 115] };
+const FX_SPEND_MISSED = JSON.stringify(['native-load', FX_LIFT, null, null, ['fx-root-missed']]);
+function fxCase(patch, comps, opts = {}) { return { state: fxFacts(fxState(patch), comps), comps, opts }; }
+const ENGINE_OUTPUT_CASES = Object.freeze([
+  { id: 'F1+F2 one-step (earn.cjs:88), F5 every set', build: () => fxCase({}, [fxC(1, { reps: FX_TOP, effort: fxE(2, 1, 1) }), fxC(2, { reps: FX_TOP, effort: fxE(2, 1, 1) })]),
+    want: ['Fx Press: you topped the rep window at 100 lb on every set (workouts on 2026-10-01, 2026-10-02). Offer: 105 lb on every set, a one-step increase after topping the rep window.' + FX_NOTHING] },
+  { id: 'F1+F2 early (earn.cjs:97)', build: () => fxCase({}, [fxC(1, { reps: FX_TOP, effort: fxE(2, 2, 2) })]),
+    want: ['Fx Press: you topped the rep window at 100 lb on every set (workouts on 2026-10-01). Offer: 105 lb on every set, an early increase from one top of the window, with 2 reps left on your last set.' + FX_NOTHING] },
+  { id: 'F1+F2 early after a hard opener (earn.cjs:63)', build: () => fxCase({}, [fxC(1, { reps: FX_TOP, effort: fxE(0, 1, 1) }), fxC(2, { reps: FX_TOP, effort: fxE(0, 1, 2) })]),
+    want: ['Fx Press: you topped the rep window at 100 lb on every set (workouts on 2026-10-01, 2026-10-02). Offer: 105 lb on every set, an early increase from one top of the window: your opening set was hard, your last set had 2 reps left.' + FX_NOTHING] },
+  { id: 'F1+F2 two-step (earn.cjs:80) then one-step, F5 per-set list', build: () => fxCase(FX_N11, [1, 2].map((n) => fxC(n, { reps: [10, 9], loads: [100, 95], prescribed: [100, 95], effort: fxE(2, FX_AT_LEAST_3) }))),
+    want: ['Fx Press: you topped the rep window at 100 lb, 95 lb (workouts on 2026-10-01, 2026-10-02). Offer: 110 lb, 105 lb, a two-step increase, because your last set had at least 3 reps left.' + FX_NOTHING,
+      'Fx Press: you topped the rep window at 100 lb, 95 lb (workouts on 2026-10-01, 2026-10-02). Offer: 105 lb, 100 lb, a one-step increase after topping the rep window.' + FX_NOTHING] },
+  { id: 'F3b adopt, the card said', build: () => fxCase({}, [fxC(1, { reps: FX_TOP, loads: 105, effort: fxE(2, 1, 1) })]),
+    want: ['Fx Press: on 2026-10-01 you completed every set at 105 lb on every set (the card said 100 lb on every set)' + FX_ADOPT_TAIL] },
+  { id: 'F3c adopt, no working weight on file', build: () => fxCase({ w: null }, [fxC(1, { reps: FX_TOP, loads: 60, prescribed: null, effort: fxE(2, 1, 1) })]),
+    want: ['Fx Press: on 2026-10-01 you completed every set at 60 lb on every set, and no working weight was on file' + FX_ADOPT_TAIL] },
+  { id: 'F3a adopt on a missed debut Close (DECISIONS:804)', build: () => {
+    const c = fxC(1, { date: '2026-10-12', reps: [8, 7, 6], loads: 95, prescribed: 105, effort: fxE(2, 1, 1) }), x = fxCase({}, [c], { authority: [c.close] });
+    x.state.queue.push({ id: FX_SPEND_MISSED, kind: 'debut', exId: FX_LIFT, newW: 105, state: 'MISSED', done: true, t: 'fixture', gate: 'fixture', rule: 'fixture', native_load_spend: FX_SPEND_MISSED, native_load_missed_by: c.close });
+    return x; },
+    want: ['Fx Press: on 2026-10-12 you completed every set at 95 lb on every set (the card said 105 lb on every set, your first workout at the new weight you agreed; your working weight stayed 100 lb on every set)' + FX_ADOPT_TAIL] },
+  { id: 'F4 undo of an adoption', build: () => fxCase({}, [fxC(1, { reps: FX_TOP, loads: 105, effort: fxE(2, 1, 1) })], { undo: true }), want: [FX_UNDO('100 lb on every set')] },
+  { id: 'F4 undo of a first adoption, F5 no load', build: () => fxCase({ w: null }, [fxC(1, { reps: FX_TOP, loads: 60, prescribed: null, effort: fxE(2, 1, 1) })], { undo: true }), want: [FX_UNDO('no load on every set')] },
+  { id: 'F4 undo of a queued earn', build: () => fxCase({}, [fxC(1, { reps: FX_TOP, effort: fxE(2, 1, 1) }), fxC(2, { reps: FX_TOP, effort: fxE(2, 1, 1) })], { undo: true }), want: [FX_UNDO('100 lb on every set')] },
+]);
+const FX_BUILT = ENGINE_OUTPUT_CASES.map((c) => ({ ...c, ...c.build() }));
+// What FC01 returns for one case: every offer's reason in order, or the refusal code.
+function engineOutput(E, x) {
+  const said = (ev) => (ev.status === 'offer' ? ev.offers.map((o) => o.reason) : ['REFUSED ' + (ev.refusal && ev.refusal.code)]);
+  const c = x.comps.at(-1), first = E.evaluateNativeLoad(structuredClone(x.state), fxRequest(x.state, x.comps, c, { authority: x.opts.authority || [] }));
+  if (!x.opts.undo) return said(first);
+  if (first.status !== 'offer') return ['NO OFFER TO UNDO ' + said(first)[0]];
+  return said(fxUndo(E, structuredClone(x.state), x.comps, first));
+}
+function engineOutputRefusals(nativeText) {
+  const out = [];
+  for (const x of FX_BUILT) {
+    let got;
+    try { got = engineOutput(composeEngine(nativeText, x.comps.at(-1).date), x); } catch (error) { got = ['THREW ' + String(error && error.message)]; }
+    if (JSON.stringify(got) !== JSON.stringify(x.want)) out.push('ENGINE-OUTPUT CHANGED ' + x.id + ': ' + JSON.stringify(got));
+  }
+  return out;
+}
+
+test('CL-ENGINE-OUTPUT: every approved native-load explanation FC01 returns is the approved text, word for word', () => {
+  assert.deepEqual(engineOutputRefusals(fs.readFileSync(path.join(ROOT, NATIVE_LOAD), 'utf8')), [], 'CL-ENGINE-OUTPUT');
+  // exactly the fourteen allowed engine files were compiled: the twelve, entered-load.cjs and native-load.cjs
+  assert.deepEqual([...ENGINE_LOADED].sort(), [...ENGINE_ALLOWED].sort(), 'CL-ENGINE-OUTPUT-LOADED-EXACTLY-ALLOWED');
+  assert.throws(() => engineLoader('')('rebuild/engine/index.cjs'), /CL-ENGINE-OUTPUT-PROTECTED-REFUSED/, 'CL-ENGINE-OUTPUT-GUARD');
+});
+
+// Every single-quoted literal inside the approved template blocks, each changed by one character in place (the first
+// letter's case flipped, else its first character swapped), one mutant per literal occurrence.
+function literalMutants(original) {
+  const out = [];
+  const swap = { ',': ';', ')': ']', '.': '!', ' ': '_' };
+  for (const t of ENGINE_TEMPLATES) {
+    assert.equal(original.split(t.source).length - 1, 1, 'CL-ENGINE-OUTPUT-TEETH-BLOCK ' + t.id);
+    for (const m of t.source.matchAll(/'(?:[^'\\\n]|\\.)*'/g)) {
+      const body = m[0].slice(1, -1), k = body.search(/[A-Za-z]/);
+      const next = k >= 0 ? body.slice(0, k) + (body[k] === body[k].toUpperCase() ? body[k].toLowerCase() : body[k].toUpperCase()) + body.slice(k + 1)
+        : (swap[body[0]] || '#') + body.slice(1);
+      assert.notEqual(next, body, 'CL-ENGINE-OUTPUT-TEETH-NOOP ' + t.id + ' ' + m[0]);
+      const block = t.source.slice(0, m.index) + "'" + next + "'" + t.source.slice(m.index + m[0].length);
+      out.push({ label: t.id + ' @' + m.index + ' ' + m[0] + ' -> ' + JSON.stringify(next), text: original.split(t.source).join(block) });
+    }
+  }
+  return out;
+}
+// Astra L1 B1's counterexample (astra-s11-l1-146 copy-probe.cjs), rebuilt byte for byte: the live NL-LOADS literal
+// ' on every set' -> ' on Every set', and the original NL-LOADS block appended inside a comment.
+const commentDecoy = (original) => original.replace(' on every set', ' on Every set')
+  + '\n/* approved template retained for documentation\n' + ENGINE_TEMPLATES.find((t) => t.id === 'NL-LOADS').source + '\n*/\n';
+
+test('CL-ENGINE-OUTPUT-TEETH: the comment decoy and a one-character change in each template literal are refused; a CRLF checkout is not', () => {
+  const original = fs.readFileSync(path.join(ROOT, NATIVE_LOAD), 'utf8').replace(/\r\n?/g, '\n');
+  const failed = [];
+  // Astra L1 B1: CL-ENGINE-COPY's source count alone passes this decoy; the returned explanation refuses it.
+  assert.equal(original.split(' on every set').length - 1, 1, 'CL-ENGINE-OUTPUT-TEETH-DECOY-ANCHOR');
+  if (!engineOutputRefusals(commentDecoy(original)).length) failed.push('CL-ENGINE-OUTPUT-TEETH comment decoy (Astra L1 B1) passed');
+  const mutants = literalMutants(original);
+  // 30 literals at 9288adf: NL-LOADS 5, NL-EARN 14, NL-ADOPT 9, NL-UNDO 2
+  assert.equal(mutants.length, 30, 'CL-ENGINE-OUTPUT-TEETH-LITERAL-COUNT');
+  for (const m of mutants) if (!engineOutputRefusals(m.text).length) failed.push('CL-ENGINE-OUTPUT-TEETH ' + m.label + ' passed');
+  const crlf = engineOutputRefusals(original.replace(/\r?\n/g, '\r\n'));
+  if (crlf.length) failed.push('CL-ENGINE-OUTPUT-TEETH CRLF checkout refused ' + JSON.stringify(crlf));
+  assert.deepEqual(failed, [], 'CL-ENGINE-OUTPUT-TEETH');
 });
