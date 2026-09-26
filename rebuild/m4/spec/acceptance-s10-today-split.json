@@ -2,18 +2,24 @@
   "version": 1,
   "lanePackage": "S10",
   "packageId": "M2-S10-TODAY-SPLIT",
-  "status": "BRIEF-ACCEPTED",
-  "brief": {
-    "file": "rebuild/lanes/b/S10-TODAY-SPLIT-BRIEF.md",
-    "sha256": "e5aabac9809f70dc5dcc105892a4f4ff468193d713c6e6d99a044bf40e5b74c8",
-    "acceptedLedgerLine": {
-      "ledgerLine": 831,
-      "role": "cowork",
-      "line": "- 2026-09-25 · cowork · BRIEF ACCEPTED BY SHA for M2-S10-TODAY-SPLIT: rebuild/lanes/b/S10-TODAY-SPLIT-BRIEF.md, sha256 e5aabac9809f70dc5dcc105892a4f4ff468193d713c6e6d99a044bf40e5b74c8 (81810 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
-      "lineSha256": "1fa5309c2d70eaa39873439e85e689c43083a720eb857d8102667dd640e3bea0"
-    }
-  },
   "sourceBase": "d7f654017962d35661adea8cf3688251ad686b9e",
+  "parent": {
+    "id": "S9",
+    "artifact": "rebuild/m4/spec/acceptance-s9-ui-pins.json",
+    "sha256": "f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c",
+    "review": "rebuild/m4/spec/review-s9-ui-pins.json",
+    "reviewSha256": "7f372d97170cbc4f58025a84ba4c705488aae6a7ff11c61e0e97b1b2b4eddcb4",
+    "receiptLedgerLine": 809,
+    "reviewedCommit": "9c95afa5b840fedbe914652b2f0bd83d1b0800c2"
+  },
+  "spec": {
+    "file": "rebuild/lanes/b/tooling/packages/S10.json",
+    "sha256": "0f55a704968f89b984c976e3ab07d105f1b1461296c13b7ddf2382ae4fdb7308"
+  },
+  "runner": {
+    "file": "rebuild/lanes/b/tooling/b-package.cjs",
+    "sha256": "9fbfdd2d9b09fe2aa8f8bd93090220b302414d32efba78e52a83309a61a7ec7c"
+  },
   "dIds": [],
   "laws": {},
   "carriedAcceptedIds": [
@@ -25,24 +31,171 @@
     "D43"
   ],
   "privateLiveTriggered": [],
-  "parent": {
-    "decided": true,
-    "chosen": "S9",
-    "options": [
-      {
-        "id": "S9",
-        "artifact": "rebuild/m4/spec/acceptance-s9-ui-pins.json",
-        "sha256": "f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c",
-        "review": "rebuild/m4/spec/review-s9-ui-pins.json",
-        "reviewSha256": "7f372d97170cbc4f58025a84ba4c705488aae6a7ff11c61e0e97b1b2b4eddcb4",
-        "receiptLedgerLine": 809,
-        "note": "Accepted S9 parent artifact and review; receipt DECISIONS:809 (POSTFIX-ACCEPTANCE M2-S9-UI-PINS, reviewed commit 9c95afa, receipt base 60be3c6); sealed and merged at DECISIONS:810, seal tip (fast-forward) d7f6540 (this spec's sourceBase)."
+  "gates": [
+    "conformance",
+    "merge-differential",
+    "merge-laws",
+    "merge-source",
+    "migrate-differential",
+    "migrate-full",
+    "migrate-source",
+    "second-gate",
+    "selftest",
+    "strict",
+    "witnesses-1",
+    "witnesses-2",
+    "witnesses-3",
+    "witnesses-4",
+    "witnesses-5",
+    "witnesses-6",
+    "witnesses-7",
+    "writers-differential",
+    "writers-source"
+  ],
+  "coverage": {
+    "covered": [],
+    "superseded": [
+      "merge-source",
+      "migrate-differential",
+      "migrate-source",
+      "second-gate",
+      "witnesses-2",
+      "witnesses-5",
+      "witnesses-7",
+      "writers-differential",
+      "writers-source"
+    ],
+    "supersededByCarrier": {
+      "defect-witnesses": [
+        "witnesses-7"
+      ],
+      "inherited-carriers": [
+        "migrate-differential",
+        "witnesses-2",
+        "witnesses-5"
+      ],
+      "second-gate": [
+        "second-gate"
+      ],
+      "source-carriers": [
+        "merge-source",
+        "migrate-source",
+        "writers-source"
+      ],
+      "writers-differential": [
+        "writers-differential"
+      ]
+    },
+    "run": [
+      "conformance",
+      "merge-differential",
+      "merge-laws",
+      "migrate-full",
+      "selftest",
+      "strict",
+      "witnesses-1",
+      "witnesses-3",
+      "witnesses-4",
+      "witnesses-6"
+    ],
+    "moves": {},
+    "successors": null,
+    "supersessions": {
+      "rulingLineSha256": "d8884ec6f13e0df0ff078bc2c0d2d90ffc1c06d1820c15fdcf5e3ddcaa550c92",
+      "gates": {
+        "source-carriers": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the carrier RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers pinned by CHANGES_SHA. UNLIKE S9, S10 MOVES engine bytes: today.cjs and writers.cjs, each the parent post plus exactly one owner-worded clause (DECISIONS:631 O-1a; D-EPP-3). Both files had already left the reconstruction at the parent (M2-S3-COMPANION, M2-H3-CLEAN-INIT), so S10 moves them further from it and cannot mend it - executed and measured in s10-sup-source-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s10-sup-source-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s10-engine-files-differential"
+          }
+        },
+        "inherited-carriers": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: priorModule re-reads every prior engine module against the same sha-pinned list, so today.cjs and writers.cjs are refused there; at S10 each is the parent post plus one declared EPP clause, every other module stands at the parent post - executed and measured in s10-sup-inherited-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s10-sup-inherited-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s10-engine-files-differential"
+          }
+        },
+        "defect-witnesses": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the FROZEN side of every comparison is built through the same reconstruction, which refuses on this tree; S10's complete comparison is taken against the accepted engine read from Git at this package's own sourceBase, and any difference would have to be D-EPP-3's declared departure - executed and measured in s10-sup-defect-witnesses",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s10-sup-defect-witnesses"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s10-engine-files-differential"
+          }
+        },
+        "writers-differential": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the gate's subject writers.cjs is the parent post plus the one owner-worded clause at :227, neither the reconstruction's pre- nor post-image - executed and measured in s10-sup-writers-differential",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s10-sup-writers-differential"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s10-engine-files-differential"
+          }
+        },
+        "second-gate": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the second reading pins fe516c1 and goes through the reconstruction, so it refuses this tree; S10's second reading is taken from Git at its own sourceBase against the disk composition - executed and measured in s10-sup-second-gate",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s10-sup-second-gate"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "s10-engine-files-differential"
+          }
+        }
       }
-    ]
+    },
+    "byChild": {}
   },
-  "tooling": {
-    "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "9fbfdd2d9b09fe2aa8f8bd93090220b302414d32efba78e52a83309a61a7ec7c"
+  "authorizations": {
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": "- 2026-09-06 · owner · M2-RULE — the owner's disposition of the M2 audit, given on rebuild/m2/OWNER-RULING-PACK-M2.md v3 (5,579 bytes, sha256 2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9, committed at 4e561e5): owner, exact words received in the Codex coordinator task 01a06e0c-39ea-7591-9666-eead44de251c — a user-role annotation selecting \"Approve Batch A and all seven recommended choices\", then user-role \"Continue\" — relayed verbatim by Astra with that provenance on 2026-09-06 14:40 UTC; cowork independently verified the pack correspondence (pack bytes/sha and the register's 38 FIX + 7 OWNER RULING split match the relay) and did NOT directly observe the Codex UI; the Message-35 route governs transport only and did not originate this ruling; recorded as the owner's ruling in his own words, not a recommendation and not an inference from the integration Go — the owner may correct it at any time by an appended line. BATCH A APPROVED as one batch — every FIX recommendation of rebuild/m2/AUDIT-REGISTER.md becomes an approved repair direction: D1 APPROVED-FIX · D2 APPROVED-FIX · D3 APPROVED-FIX · D4 APPROVED-FIX · D5 APPROVED-FIX · D6 APPROVED-FIX · D7 APPROVED-FIX · D9 APPROVED-FIX · D11 APPROVED-FIX · D12 APPROVED-FIX · D13 APPROVED-FIX · D14 APPROVED-FIX · D15 APPROVED-FIX · D17 APPROVED-FIX · D18 APPROVED-FIX · D19 APPROVED-FIX · D20 APPROVED-FIX · D21 APPROVED-FIX · D22 APPROVED-FIX · D23 APPROVED-FIX · D24 APPROVED-FIX · D26 APPROVED-FIX · D27 APPROVED-FIX · D28 APPROVED-FIX · D29 APPROVED-FIX · D30 APPROVED-FIX · D31 APPROVED-FIX · D33 APPROVED-FIX · D34 APPROVED-FIX · D35 APPROVED-FIX · D36 APPROVED-FIX · D38 APPROVED-FIX · D39 APPROVED-FIX · D41 APPROVED-FIX · D42 APPROVED-FIX · D43 APPROVED-FIX · D44 APPROVED-FIX · D45 APPROVED-FIX (38). BATCH B — all seven RECOMMENDED answers chosen, each now an approved repair direction with its exact rule: D8 APPROVED-FIX — when last night's sleep is missing, recovery is UNKNOWN and no sleep restriction is applied today; every other recovery check still applies (not carry-forward of the last logged night). D10 APPROVED-FIX — date-only week counts mean 7 CALENDAR days, not 168 elapsed hours. D16 APPROVED-FIX — a 7-day forecast hit requires an eligible weigh-in on the due day or, failing that, the next day (one grace date); with no such reading the forecast is UNGRADED, not a miss; the day arithmetic follows D10. D25 APPROVED-FIX — \"protein: good\" requires at least one successful day within the current seven-logged-days window before the one-miss allowance applies; a first missed day cannot read \"good\". D32 APPROVED-FIX — \"benefit replicated\" counts only sessions from the CURRENT technique; all other replication thresholds stay as they are. D37 APPROVED-FIX — a merged earned receipt keeps the assessment as of the day it was earned, accepting that this can change whether a single-sighting increase counts as earned and the numbers printed on past earned receipts. D40 APPROVED-FIX — when two phones disagree on a day's calories with equal detail, ONE deterministic shared winner is chosen with the conflict kept visible and BOTH original entries retained; the exact tie-break rule and how the conflict is shown are NOT decided here and must be specified in the reviewed fix brief before anything is built. Totals: 45/45 dispositions recorded, 45 APPROVED-FIX, 0 KEEP, 0 DEFER, 0 UNRULED. What this does NOT do: it approves directions, not code — each theme still needs its accepted behaviour/delta brief, its red-first laws turning GREEN on the candidate and RED on the frozen engine, the post-fix gate's PACKAGE run and cowork's execution acceptance; the frozen app and its goldens stay untouched; no private release, spending, phone gate, remote gate or M2 closure is waived; no owner-specific interval or value is set. Transport: the route ruling at line 42 applies; no additional Go was requested or given · rebuild/m2/OWNER-RULING-PACK-M2.md · M2-RULE DONE; M2-FIX unblocked for briefs (D33–D35 first, per the accepted PR #34 contract)",
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
+    },
+    "theme": {
+      "ledgerLine": 830,
+      "role": "cowork",
+      "line": "- 2026-09-25 · cowork · THEME M2-S10-TODAY-SPLIT - the reseal child that places the accepted writers-out Today split (b35a48e3), the accepted gym-settings writer change (66d32530) and the owner-granted EPP engine repair (0d38b8e, with D-EPP-2 at rebuild/m4/workout/engine-capture.cjs, DECISIONS:785) on the sealed S9 parent, hands rebuild/m3/w7-preview/today/today-app.cjs and rebuild/m3/w7-preview/today/gym-app.mjs out of the seal and seals their writer siblings; its behaviour/delta contract is rebuild/lanes/b/S10-TODAY-SPLIT-BRIEF.md; its parent is M2-S9-UI-PINS, rebuild/m4/spec/acceptance-s9-ui-pins.json sha256 f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c (receipt DECISIONS:809); it moves rebuild/engine/today.cjs and writers.cjs by the two owner-worded clauses of DECISIONS:631 and retires the nine byte-identity gates again under its own token line. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "c497e941acaf414c9dfa9a2c2a562af27d02149065cee4e0b3780df141c1c17b"
+    },
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-S10-TODAY-SPLIT",
+      "terminal": "ACCEPTED"
+    }
   },
   "product": {
     ".github/workflows/rebuild.yml": {
@@ -800,11 +953,6 @@
       "post": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
       "role": "carried"
     },
-    "rebuild/m3/w7-preview/today/gym-app.mjs": {
-      "pre": "4c8ba0c93f48b1b38be34d08ee23d274841c55680e51a61954754d17bcf8ec53",
-      "post": null,
-      "role": "released"
-    },
     "rebuild/m3/w7-preview/today/gym-host.mjs": {
       "pre": "70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85",
       "post": "70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85",
@@ -954,11 +1102,6 @@
       "pre": "3736dfa218ebb1b5b635a02e27aba6dd84af32c319606968bf300b20ac854ad6",
       "post": "3736dfa218ebb1b5b635a02e27aba6dd84af32c319606968bf300b20ac854ad6",
       "role": "carried"
-    },
-    "rebuild/m3/w7-preview/today/today-app.cjs": {
-      "pre": "efaf6c0dbb871730788d8953ed470f2650d739b5de7c52fa7f779f2c125df933",
-      "post": null,
-      "role": "released"
     },
     "rebuild/m3/w7-preview/today/today-entry.mjs": {
       "pre": "8b1697582d7d9f21bda4668f590187e612d3d554b8be32a31cfc6fb82ab91276",
@@ -1556,83 +1699,19 @@
       "role": "carried"
     }
   },
-  "coverage": {
-    "inherited": {},
-    "moves": {},
-    "successors": null,
-    "superseded": {
-      "rulingLineSha256": "d8884ec6f13e0df0ff078bc2c0d2d90ffc1c06d1820c15fdcf5e3ddcaa550c92",
-      "gates": {
-        "source-carriers": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the carrier RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers pinned by CHANGES_SHA. UNLIKE S9, S10 MOVES engine bytes: today.cjs and writers.cjs, each the parent post plus exactly one owner-worded clause (DECISIONS:631 O-1a; D-EPP-3). Both files had already left the reconstruction at the parent (M2-S3-COMPANION, M2-H3-CLEAN-INIT), so S10 moves them further from it and cannot mend it - executed and measured in s10-sup-source-carriers",
-          "evidence": {
-            "laws": null,
-            "redFirst": [
-              "s10-sup-source-carriers"
-            ],
-            "census": "runner-live-triggered-line",
-            "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-17",
-            "engineFilesDifferential": "s10-engine-files-differential"
-          }
-        },
-        "inherited-carriers": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: priorModule re-reads every prior engine module against the same sha-pinned list, so today.cjs and writers.cjs are refused there; at S10 each is the parent post plus one declared EPP clause, every other module stands at the parent post - executed and measured in s10-sup-inherited-carriers",
-          "evidence": {
-            "laws": null,
-            "redFirst": [
-              "s10-sup-inherited-carriers"
-            ],
-            "census": "runner-live-triggered-line",
-            "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-17",
-            "engineFilesDifferential": "s10-engine-files-differential"
-          }
-        },
-        "defect-witnesses": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the FROZEN side of every comparison is built through the same reconstruction, which refuses on this tree; S10's complete comparison is taken against the accepted engine read from Git at this package's own sourceBase, and any difference would have to be D-EPP-3's declared departure - executed and measured in s10-sup-defect-witnesses",
-          "evidence": {
-            "laws": null,
-            "redFirst": [
-              "s10-sup-defect-witnesses"
-            ],
-            "census": "runner-live-triggered-line",
-            "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-17",
-            "engineFilesDifferential": "s10-engine-files-differential"
-          }
-        },
-        "writers-differential": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the gate's subject writers.cjs is the parent post plus the one owner-worded clause at :227, neither the reconstruction's pre- nor post-image - executed and measured in s10-sup-writers-differential",
-          "evidence": {
-            "laws": null,
-            "redFirst": [
-              "s10-sup-writers-differential"
-            ],
-            "census": "runner-live-triggered-line",
-            "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-17",
-            "engineFilesDifferential": "s10-engine-files-differential"
-          }
-        },
-        "second-gate": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:829 (RULED) for M2-S10-TODAY-SPLIT, located by its own sha256 d8884ec6f13e...: the second reading pins fe516c1 and goes through the reconstruction, so it refuses this tree; S10's second reading is taken from Git at its own sourceBase against the disk composition - executed and measured in s10-sup-second-gate",
-          "evidence": {
-            "laws": null,
-            "redFirst": [
-              "s10-sup-second-gate"
-            ],
-            "census": "runner-live-triggered-line",
-            "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-17",
-            "engineFilesDifferential": "s10-engine-files-differential"
-          }
-        }
-      }
+  "released": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": {
+      "role": "released",
+      "lastSealedSha256": "4c8ba0c93f48b1b38be34d08ee23d274841c55680e51a61954754d17bcf8ec53",
+      "sealedBy": "M2-S9-UI-PINS",
+      "rulingLineSha256": "6f6b5410071eab452cfa0a9f46748ea08c1db8533345f46361ea91626106c525"
+    },
+    "rebuild/m3/w7-preview/today/today-app.cjs": {
+      "role": "released",
+      "lastSealedSha256": "efaf6c0dbb871730788d8953ed470f2650d739b5de7c52fa7f779f2c125df933",
+      "sealedBy": "M2-S9-UI-PINS",
+      "rulingLineSha256": "6f6b5410071eab452cfa0a9f46748ea08c1db8533345f46361ea91626106c525"
     }
-  },
-  "release": {
-    "rulingLineSha256": "6f6b5410071eab452cfa0a9f46748ea08c1db8533345f46361ea91626106c525"
   },
   "carrierSuccessor": null,
   "witnessFlips": [],
@@ -1640,35 +1719,6 @@
     "rebuild/conform/goldens (public census and frozen goldens)",
     "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
   ],
-  "authorizations": {
-    "owner": {
-      "ledgerLine": 60,
-      "role": "owner",
-      "line": "- 2026-09-06 · owner · M2-RULE — the owner's disposition of the M2 audit, given on rebuild/m2/OWNER-RULING-PACK-M2.md v3 (5,579 bytes, sha256 2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9, committed at 4e561e5): owner, exact words received in the Codex coordinator task 01a06e0c-39ea-7591-9666-eead44de251c — a user-role annotation selecting \"Approve Batch A and all seven recommended choices\", then user-role \"Continue\" — relayed verbatim by Astra with that provenance on 2026-09-06 14:40 UTC; cowork independently verified the pack correspondence (pack bytes/sha and the register's 38 FIX + 7 OWNER RULING split match the relay) and did NOT directly observe the Codex UI; the Message-35 route governs transport only and did not originate this ruling; recorded as the owner's ruling in his own words, not a recommendation and not an inference from the integration Go — the owner may correct it at any time by an appended line. BATCH A APPROVED as one batch — every FIX recommendation of rebuild/m2/AUDIT-REGISTER.md becomes an approved repair direction: D1 APPROVED-FIX · D2 APPROVED-FIX · D3 APPROVED-FIX · D4 APPROVED-FIX · D5 APPROVED-FIX · D6 APPROVED-FIX · D7 APPROVED-FIX · D9 APPROVED-FIX · D11 APPROVED-FIX · D12 APPROVED-FIX · D13 APPROVED-FIX · D14 APPROVED-FIX · D15 APPROVED-FIX · D17 APPROVED-FIX · D18 APPROVED-FIX · D19 APPROVED-FIX · D20 APPROVED-FIX · D21 APPROVED-FIX · D22 APPROVED-FIX · D23 APPROVED-FIX · D24 APPROVED-FIX · D26 APPROVED-FIX · D27 APPROVED-FIX · D28 APPROVED-FIX · D29 APPROVED-FIX · D30 APPROVED-FIX · D31 APPROVED-FIX · D33 APPROVED-FIX · D34 APPROVED-FIX · D35 APPROVED-FIX · D36 APPROVED-FIX · D38 APPROVED-FIX · D39 APPROVED-FIX · D41 APPROVED-FIX · D42 APPROVED-FIX · D43 APPROVED-FIX · D44 APPROVED-FIX · D45 APPROVED-FIX (38). BATCH B — all seven RECOMMENDED answers chosen, each now an approved repair direction with its exact rule: D8 APPROVED-FIX — when last night's sleep is missing, recovery is UNKNOWN and no sleep restriction is applied today; every other recovery check still applies (not carry-forward of the last logged night). D10 APPROVED-FIX — date-only week counts mean 7 CALENDAR days, not 168 elapsed hours. D16 APPROVED-FIX — a 7-day forecast hit requires an eligible weigh-in on the due day or, failing that, the next day (one grace date); with no such reading the forecast is UNGRADED, not a miss; the day arithmetic follows D10. D25 APPROVED-FIX — \"protein: good\" requires at least one successful day within the current seven-logged-days window before the one-miss allowance applies; a first missed day cannot read \"good\". D32 APPROVED-FIX — \"benefit replicated\" counts only sessions from the CURRENT technique; all other replication thresholds stay as they are. D37 APPROVED-FIX — a merged earned receipt keeps the assessment as of the day it was earned, accepting that this can change whether a single-sighting increase counts as earned and the numbers printed on past earned receipts. D40 APPROVED-FIX — when two phones disagree on a day's calories with equal detail, ONE deterministic shared winner is chosen with the conflict kept visible and BOTH original entries retained; the exact tie-break rule and how the conflict is shown are NOT decided here and must be specified in the reviewed fix brief before anything is built. Totals: 45/45 dispositions recorded, 45 APPROVED-FIX, 0 KEEP, 0 DEFER, 0 UNRULED. What this does NOT do: it approves directions, not code — each theme still needs its accepted behaviour/delta brief, its red-first laws turning GREEN on the candidate and RED on the frozen engine, the post-fix gate's PACKAGE run and cowork's execution acceptance; the frozen app and its goldens stay untouched; no private release, spending, phone gate, remote gate or M2 closure is waived; no owner-specific interval or value is set. Transport: the route ruling at line 42 applies; no additional Go was requested or given · rebuild/m2/OWNER-RULING-PACK-M2.md · M2-RULE DONE; M2-FIX unblocked for briefs (D33–D35 first, per the accepted PR #34 contract)",
-      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
-    },
-    "contract": {
-      "ledgerLine": 49,
-      "role": "cowork",
-      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
-      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
-    },
-    "theme": {
-      "ledgerLine": 830,
-      "role": "cowork",
-      "line": "- 2026-09-25 · cowork · THEME M2-S10-TODAY-SPLIT - the reseal child that places the accepted writers-out Today split (b35a48e3), the accepted gym-settings writer change (66d32530) and the owner-granted EPP engine repair (0d38b8e, with D-EPP-2 at rebuild/m4/workout/engine-capture.cjs, DECISIONS:785) on the sealed S9 parent, hands rebuild/m3/w7-preview/today/today-app.cjs and rebuild/m3/w7-preview/today/gym-app.mjs out of the seal and seals their writer siblings; its behaviour/delta contract is rebuild/lanes/b/S10-TODAY-SPLIT-BRIEF.md; its parent is M2-S9-UI-PINS, rebuild/m4/spec/acceptance-s9-ui-pins.json sha256 f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c (receipt DECISIONS:809); it moves rebuild/engine/today.cjs and writers.cjs by the two owner-worded clauses of DECISIONS:631 and retires the nine byte-identity gates again under its own token line. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
-      "lineSha256": "c497e941acaf414c9dfa9a2c2a562af27d02149065cee4e0b3780df141c1c17b"
-    },
-    "review": {
-      "role": "cowork",
-      "prefix": "POSTFIX-ACCEPTANCE M2-S10-TODAY-SPLIT",
-      "terminal": "ACCEPTED"
-    }
-  },
-  "artifact": {
-    "file": "rebuild/m4/spec/acceptance-s10-today-split.json",
-    "review": "rebuild/m4/spec/review-s10-today-split.json"
-  },
   "children": [
     {
       "name": "today-17",
@@ -2048,16 +2098,104 @@
       "needle": "# pass 6"
     }
   ],
-  "notes": [
-    "M2-S10-TODAY-SPLIT is the reseal child of M2-S9-UI-PINS (package id and brief of record PM RULED at DECISIONS:816), briefed at rebuild/lanes/b/S10-TODAY-SPLIT-BRIEF.md, the brief of record by sha256 e5aabac9809f70dc5dcc105892a4f4ff468193d713c6e6d99a044bf40e5b74c8 at DECISIONS:831; its THEME stands at DECISIONS:830, its GATE-SUPERSESSION token line at DECISIONS:829 and its RELEASE-FROM-SEAL token line at DECISIONS:828, each cited here by its own sha256 on rebuild/t2-client-core. Composed by the S10 builder (claude-opus-5-5) on rebuild/b-s10-integration and merge-forwarded (never rebased) onto the SEALED S9 parent: seal tip (fast-forward) d7f654017962d35661adea8cf3688251ad686b9e (DECISIONS:810) is sourceBase; parent artifact rebuild/m4/spec/acceptance-s9-ui-pins.json sha256 f24476220ec9fe187aded6d708c2371a3f604c3f2a41bb94a9594e351d8b8b1c, review rebuild/m4/spec/review-s9-ui-pins.json sha256 7f372d97170cbc4f58025a84ba4c705488aae6a7ff11c61e0e97b1b2b4eddcb4, receipt DECISIONS:809; the parent b-lom child is dropped (DECISIONS:799, debt D-BLOM, note below). Child needles: all 36 are the counts the PM seat re-observed under grant (g) DECISIONS:816 at e9ff2ca (the GSS settle fix, DECISIONS:832, :833) with these product pins, recorded at DECISIONS:834 (needle table sha256 064ff80ed2cd...; s10-engine-files-differential by its terminal line; ui-pack-pins and release-object keep the S9 precedent's '# tests N' needle, their test counts 121 and 14 from the same table, because a pass count can differ by OS: hosted ubuntu run 36214720524 skips 3 of the 121, DECISIONS:835); every count equals the earlier observation (f4125cd, DECISIONS:827, whose today-17 green :832 found load-sensitive; m4-import-production \"# pass 28\" re-observed with status BRIEF-ACCEPTED, DECISIONS:826, :827).",
-    "PRODUCT MAP (regenerated by rebuild/lanes/b/S10-REGEN.cjs at parent d7f654017962d35661adea8cf3688251ad686b9e). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s9-ui-pins.json f24476220ec9); post is sha256 of the bytes at HEAD e9ff2ca24e6e3a7632fb1e1724928d8db0fb4945. Parent-released paths are not declared: rebuild/m3/w7-preview/today/build.mjs, rebuild/m3/w7-preview/today/preview.css. New paths are every path HEAD changed since the parent, inside the S10 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself; tracked Markdown under rebuild/engine/ is declared because the engine-inventory cells walk every tracked file there. Roles: {\"edited\":22,\"carried\":230,\"new\":47,\"superseded-by-child\":1,\"released\":2}.",
-    "CHILD today-17 KEEPS ITS HISTORICAL NAME (D-S10I-3): at S10 it runs 22 test files (S9's 17 plus the five gss-annex files), so the 17 in the name is not a count. Its needle stays the runner's grammar: one string of at least 8 characters, no line break, matched at the start of a line of the child's own TAP output (b-package.cjs CHILD-NEEDLE-EMPTY and CHILD-NEEDLE-NOT-A-TERMINAL-LINE), i.e. '# pass N' with N observed at the composed candidate; observed as '# pass 726' by the PM seat under grant (g) at e9ff2ca, after the GSS settle fix (DECISIONS:816, :832, :833, :834); the f4125cd observation (:827) was load-sensitive (:832).",
-    "INPUTS, in merge order: Track A TODAY-SPLIT b35a48e35a1f3e3c278c377934794a32b632535b (:662); Track B GSS 66d325308bc584950163c1c177799ce4953fa298 (:765); EPP 0d38b8e2633ee46b033f8386670bf6e25ef10862 with D-EPP-2 5a953d59a1fce5f27ff368b4997350a655f94f69 riding with it (:780 Q3, :785, :791), as its own engine-tier input. NATIVE-LOAD is excluded (:791).",
-    "D-EPP-3, DECLARED DEPARTURE (f0a5eb1a; payer the S10 seal chain by :780 Q3): rebuild/engine/today.cjs and rebuild/engine/writers.cjs are sealed S8 product keys and are declared edited here with their composed posts. For an untapped PROPOSED entry the repaired engine deliberately departs from the frozen app's behaviour although no golden row moves; the file headers still say they were copied from frozen. Owed and NOT run: the port oracle on the synthetic fixture, the sensitivity pass, the private gate, exact-head CI on both systems.",
-    "PARENT-UNPINNED PATHS (regenerated at d7f654017962d35661adea8cf3688251ad686b9e): 7 path(s) existed at the parent pinned by neither its product map nor its execution pins and change here, so they are declared role new with pre null (DECISIONS:792): rebuild/m3/w7-preview/today/machine-settings-view.mjs, rebuild/m3/w7-preview/today/today-model.cjs, rebuild/m4/import/test/s3/s3-portable-sources.json, rebuild/m4/spec/configured-history-candidate/run.cjs, rebuild/m4/workout/engine-capture.cjs, rebuild/m4/workout/test/configuration-capture.test.cjs, rebuild/m4/workout/test/engine-capture.test.cjs.",
-    "EXECUTION PIN SUPERSEDED (regenerated at d7f654017962d35661adea8cf3688251ad686b9e): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: rebuild/lanes/b/tooling/packages/S9.json pre bb169a67847d10963fcaa0d69c14d5e157ad0a81525e22352ef116d6071ac86c post a66530aaccbd7fc463ab27e32cabfc729045ec97d900de1b45320673ec3d29b8.",
-    "S10's OWN GATE SUPERSESSION. coverage.superseded retires the parent's five carriers (nine gates) again under S10's OWN reason, the token clause DECISIONS:829 (RULED), located by its own sha256 d8884ec6f13e...: S10 moves today.cjs and writers.cjs by one owner-worded clause each (DECISIONS:631 O-1a), so S9's reason ('changes NO engine byte', DECISIONS:787) is not carried. Evidence is S10's own s10-sup-* cells and s10-engine-files-differential. The released pair today-app.cjs and gym-app.mjs leaves the seal under the RELEASE-FROM-SEAL token line DECISIONS:828 (RULED), located by its own sha256 6f6b5410071e... (release.rulingLineSha256).",
-    "DECISIONS:792 CARRIERS. rebuild/m4/import/local-source-profile.cjs SOURCE_PINS today.cjs is re-pinned to the EPP bytes (declared edited), and s3-portable-sources.json re-pins local-source-profile.cjs with it. rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs takes a minimal import-path fix (fake-indexeddb from rebuild/m3/w6). D-REGEN-NOTES reconciled at the re-bind: D-EPP-4 (self-sensitivity guard for proposed-pick) is paid in bytes at 12be4ea (row EPP-R9); the real cell's GREEN half is measured on hosted CI, run 36158401022 at f97924a, step 'E - EPP proposed-pick' success on ubuntu-latest and windows-latest (a step conclusion, not a row count); its four-deletion RED half on the real engine is still owed (D-S10I-8). The writer fence's RECORDED RESIDUE row was re-anchored at 9642243 (not an S-R30 row, PM ruling); the full writer fence was green locally at 47983ba (404/404, round 4) and its CI step 'C - the Today split writer fence over the released view files' succeeded on both systems in the same run. Reconciled in S10 round 11 (D-REGEN-NOTES, Astra L6 :146).",
-    "D-BLOM, CARRIED FROM THE PARENT (DECISIONS:798, :799). The b-lom child (argv rebuild/lanes/d/b-lom/legacy-order.test.mjs and rebuild/m4/workout/test/legacy-order-mapping.test.cjs) is not declared here, exactly as the sealed parent M2-S9-UI-PINS does not declare it (its S9.json notes[4]): :799 binds the same narrowing on S10 when it re-binds to the sealed S9. Its LOM-S6 walk reads every code file under rebuild/m3 and rebuild/m4, the protected soak app included, which stays protected until 2026-10-05. Both cell files keep whatever role the product map gives them, and CI keeps running the test in its rebuild.yml step. The last sealed evidence is S8's \"# pass 30\"; it does not prove this tree. Debt D-BLOM is re-measured after 2026-10-05 by the hosted-blom NO-path packet once that packet is re-pointed and reviewed."
-  ]
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-s10-today-split.json",
+    "review": "rebuild/m4/spec/review-s10-today-split.json"
+  },
+  "executionPins": {
+    "rebuild/lanes/b/tooling/b-package.cjs": "9fbfdd2d9b09fe2aa8f8bd93090220b302414d32efba78e52a83309a61a7ec7c",
+    "rebuild/lanes/b/tooling/packages/S10.json": "0f55a704968f89b984c976e3ab07d105f1b1461296c13b7ddf2382ae4fdb7308",
+    "rebuild/lanes/b/S10-TODAY-SPLIT-BRIEF.md": "e5aabac9809f70dc5dcc105892a4f4ff468193d713c6e6d99a044bf40e5b74c8",
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "5cf387de05c836ba8a36d5e7dd3dcd295d3af5bbac112d46c34ca09924d7eeda",
+    "rebuild/m3/w7-preview/today/test/catalogue.test.mjs": "a586e3eb4917302864d86937294b1eb824f32931ddaf552c5deb4f97e067322f",
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+    "rebuild/m3/w7-preview/today/test/copy.test.mjs": "290a90ab6d79c5558a01067b9755192655cd1fe465581bdb8cc358e24fd9f9e5",
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+    "rebuild/m3/w7-preview/today/test/food.test.mjs": "a7ed0609c345f722cf50706db4699980e5a33b820c502157716a1c905871af01",
+    "rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs": "64b0875225bcd7f64009f1ab67a10c88c542821f3b794794fee36c9cbb4718fd",
+    "rebuild/m3/w7-preview/today/test/gss-annex-identity-reentrancy.test.mjs": "7f70ba836d8cae63f25c3cd0f469a8624d760244bb88ab3f49f33b00243a945b",
+    "rebuild/m3/w7-preview/today/test/gss-annex-log-timing.test.mjs": "ae42d717897e00d2b532ba8fd420abe7c9fdc3d631c5fbea685766441b26a7c0",
+    "rebuild/m3/w7-preview/today/test/gss-annex-remount.test.mjs": "20bf8172c24b495c47a9bdeab9711a3687606e7f29adcedc731df7bd61a1658c",
+    "rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs": "377149ac7be816f03ed7b255e8386cc27a623c29d0f645cfd63faebadc695212",
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": "79aa531e5483f532736f2a387bc8839e7ac94395bcaaf67737c9e6869c12d508",
+    "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs": "e45bce7c44b42cc00f961530fe660858dba7849f9a8bb1d3d74fa21e24bf69e7",
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": "2980fa5142db88c4847e86ca5ea7353f3f45044227de08fdf6bc8321ada8a927",
+    "rebuild/m3/w7-preview/today/test/problem.test.mjs": "5fe767e02937745f22700316f8950af932977d05085ba09fe78fd068f2b1cbd8",
+    "rebuild/m3/w7-preview/today/test/setup.test.mjs": "e43ed642e8f3dc3ce6606a5b256064938ed3fc6d2b278f7b11a4b01ed26fdc32",
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": "3736dfa218ebb1b5b635a02e27aba6dd84af32c319606968bf300b20ac854ad6",
+    "rebuild/m3/w7-preview/measure/test/journey.test.mjs": "2520a774e8de269af2a032b2ac7c444753a4d87698e0ac68286ac26c2290306a",
+    "rebuild/m3/w7-preview/measure/test/lane.test.mjs": "e077f07e04c14944023e1f35357397d4ac44b9f3aa45e3b6019cc2a5c01d1155",
+    "rebuild/m3/w7-preview/measure/test/baseline.test.mjs": "04c81447e373bc2764e298416899139fee1e5c7801ffd2e39e64a98b6e26cd0a",
+    "rebuild/m3/w7-preview/measure/test/boundary.test.mjs": "c649d0cfc44eaf9b7ac9d127542f7592507233995f7c6c708fe9ef4bf2ee3313",
+    "rebuild/m3/w7-preview/measure/test/model.test.mjs": "ff2a531fd74afe98cc9acbcfd875dc175ae3686661eda5e34e8b5d61529b566e",
+    "rebuild/m3/w7-preview/measure/test/adherence.test.mjs": "219ad91f1e83ff97e1a61e2d1d609a28d4416e3a1e40768502789f3c4cda7446",
+    "rebuild/m3/w6/host/test/local-real-day.test.mjs": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
+    "rebuild/m3/w6/host/test/journey.test.mjs": "2ac6a7f23bcc079406a1493fe01629b61abc66984c04289dc40fbbec60c20af9",
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+    "rebuild/lanes/d/plan-edit/model.test.cjs": "afb88e790020cc1140914c1a16eeda009b38cab7cf6dda9561cc5eaf8ea9a275",
+    "rebuild/lanes/d/plan-edit/durable-host.test.mjs": "e986c046bb675309eabef894706353979c5ee9e51d58bf67b5829593ea068b63",
+    "rebuild/lanes/d/plan-edit/browser-build.test.mjs": "20480bef0ebf788b1a4b5a9eb138fa68f4c1d0c22936d56620a1c7ec50149f1a",
+    "rebuild/lanes/d/plan-edit/client-p6.test.cjs": "b31a25e43dc318ee9ddc900b44244edf5a02adf490a9df86e40b1c44e8102d7c",
+    "rebuild/m4/import/test/prepare.test.cjs": "8c9511d8e32ba2d52754288de301054e1a2b17111cc1c352b83f89ea1df7015c",
+    "rebuild/m4/import/test/reading-replay.test.cjs": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca",
+    "rebuild/m4/import/test/engine-provider.test.cjs": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
+    "rebuild/m4/import/test/local-source-order.test.cjs": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
+    "rebuild/m4/import/test/browser-parity.test.mjs": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
+    "rebuild/m4/import/test/engine-pins-unprotected.test.cjs": "44cb5da22608f45679dbf04918f85792357ca2d9f23f57152ee11ad7547daa03",
+    "rebuild/m4/import/test/production-mapping.test.cjs": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
+    "rebuild/m4/import/test/production-admission.test.mjs": "142eb51849ba50e3b47e7480f0d23a4cd1f82624151446fa521b3e23bf556994",
+    "rebuild/lanes/d/import-retract/retract.test.mjs": "1f1f3feb6a7d6cb4c14ffeafb19c22b49a2692cf6e4d4584364886bbd188612e",
+    "rebuild/lanes/d/p3-followons/admission-swap.test.mjs": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
+    "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs": "448193e0216cabd3eedc4a50e8b1719c0ca493c9385ec291e0fc35f5143ece2d",
+    "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs": "ab94da99c18e7c27f283d51b2a561688d313490eb76e3569681ba9a8cbd58748",
+    "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs": "5c8f04e31f7e07af0313b326bcc7dbffadc5115fc509618e0232fe3e46264a88",
+    "rebuild/m3/w6/host/test/food-live-save.test.mjs": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
+    "rebuild/m3/w7-preview/import/test/route.test.mjs": "4726474ef8931f937c7a18a79f6bb024a7dda50d25fcabdfaf8d47f21d887133",
+    "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs": "5edb49e3d853d946ea9695cb9e9a04166f5137368e700572d185607565007579",
+    "rebuild/m3/w7-preview/import/test/live-clock.test.mjs": "618471e725d4efbff2a16d9fa3e201db665444c55a162617be129434fe01b32e",
+    "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs": "bedb5c8e37186bff6221e0749a9e3896c4e1e575d4684a96aaf7807ff9eba9a9",
+    "rebuild/m3/w7-preview/import/test/refusals.test.mjs": "5d12a328d09b42a8a5525f4f18e31161f0826e236efe4f583af9059fa5a220e3",
+    "rebuild/m3/w6/host/test/host-seams.test.mjs": "bdd0b83b17c75c8b3d5158feb7ab3b10566fd45cc3180fa85dbd2294fdf175c9",
+    "rebuild/m3/w6/test/local-source-admission.test.mjs": "6144c7863991654da3b47215ce6d2ce04f9f335c77ceb643706a3603e9ce9491",
+    "rebuild/m3/w6/test/local-source-consumer.test.mjs": "856b3627665b016e33d6a196e232c99981397c266ae2bab90ba4b64bc3e51af6",
+    "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
+    "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
+    "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
+    "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
+    "rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs": "ae5c3c7853960885df175e46a697e817befa58fc038ab79044de9787c80ced83",
+    "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs": "08f9a5fbcb4d83d70c807422578986b751b74bdce849eb046b84157e641bb383",
+    "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs": "45b435343a7b74a7db977bbbfc792db4af3d3d25b3f81d08954ca9280731830f",
+    "rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs": "ee82c8045c9e453b89e9acfdedb9224fb513505f9e12910389d488d7853013cb",
+    "rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs": "ade7312b59412bf2532e565bf8c17de721ff9c49cea9fd8336aa512c54ec47c7",
+    "rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs": "3145ebbcec86822c747a4492e43417e2a9fbc21714c6b04f0018ab6d388c9e82",
+    "rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs": "f0268238eb0116d266f402be08f79f3acbc2249866a120a4b8c4879777a1a8a1",
+    "rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs": "6ab4bd3598050463f6e929efcb844f2b1ea6016e2b0f641de537ed5dbf993c97",
+    "rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs": "9e5d647e5fc02cdb6b319867f4ecb98984058f0a3b91f9a4717d60cf3ed6c8c4",
+    "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs": "1833df024af7a2fd593e0b7c63fa3bac7b7b9c3e7e38b5869acc76cc8a9b1c46",
+    "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs": "2222ca121b5ff6814b02627b1164b65f81edee3e26e01fb0f5e8cd311c20b66a",
+    "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs": "b1afad55b231210357da6cdcc5ada91f90ad7ceba719fc6ebab5a346f6d8769a",
+    "rebuild/lanes/c/ui-port/pack-pin.test.mjs": "027127fc2f9d6ea77ae4600673a352b3f22ddf6914bcbc6d83fd015786f0a2e1",
+    "rebuild/lanes/c/ui-port/approved-pin.test.mjs": "3bfda6486f3b56a80c2162e977bed9ea9f0c3830b41e52a5e1016ecf96a454ad",
+    "rebuild/lanes/c/ui-port/reference-closure.test.mjs": "0ac19325f0969270037f4e9c778a1e126793767442c455ad856dc4c4b607f48b",
+    "rebuild/lanes/c/ui-port/release-object.test.mjs": "a5fd5d431ebc4eaa93895ae8d80b8b29b4a2e23a04753864644741ac28d6c3ab",
+    "rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs": "d587ebb5fa1c7e4feebef33bd82d1694125bf513342eaa84d71077f4ddb754ff",
+    "rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs": "95746485d577919f56162e5bc5cda0852c9b6ec8cfc0a2ca439458b70870ec79",
+    "rebuild/lanes/c/passphrase-normalize/helper.test.mjs": "3f817f0a31db102d881fbeaee5a9ecbb3c0c6ab1e471d690e979a5c240196f68",
+    "rebuild/lanes/c/passphrase-normalize/route.test.mjs": "0a9a4dde7a59d9b46f6267313d29c8f630d73509610b553864b9ed92691033dc",
+    "rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs": "1d109886b26c7dd52a452a1b0ff7e2e508f29bd47d690cf4f691d9f75a0340f8",
+    "rebuild/m3/w6/test/local-import.test.mjs": "f7ea519ac46b19a4b58792ac69515f076f3ceeb20365b7bccd28ebb36ab2ac95",
+    "rebuild/lanes/d/f2/projector.test.mjs": "f74bbe5f40624237a4d24536b3ead036a75ed3bc705a52d6e55032d28bdf8dd6",
+    "rebuild/lanes/d/f2/guard-coverage.test.mjs": "78d1d73c02b115981006ab38dd0a16bfcd9fddbee8afa40c872964155281b9e7",
+    "rebuild/engine/test/proposed-pick.test.cjs": "3a1f00a160d3e8e33363b01d1f9483f3158048d04455588fe6c9fc899f82b1ce",
+    "rebuild/m4/workout/test/engine-capture-proposed.test.cjs": "fb0a6a4f44aba3cfbc6c04cef56223d3cef9284cac83648125b1ccf285322c97",
+    "rebuild/lanes/c/today-split/writer-fence.test.mjs": "34ea959186d326dbd274296fdb879ea0ebb98ce172c9cc9916ccd0be58d97d5a",
+    "rebuild/m4/workout/test/s10-supersede-source-carriers.test.cjs": "67d3237f919800c735ecb4e8dcc08fa3f8b43ea0d668e05c1ce4bccd189b3fb8",
+    "rebuild/m4/workout/test/s10-supersede-inherited-carriers.test.cjs": "d47da1a6db8bf029f034e9a172a5b1cf3c0f3ac75d5fce0d8667a81a68fad20b",
+    "rebuild/m4/workout/test/s10-supersede-defect-witnesses.test.cjs": "c0ec07a949a0d1df8408a7c61a870f0775252627f76db15d0b616d3f1c21256b",
+    "rebuild/m4/workout/test/s10-supersede-writers-differential.test.cjs": "6f6d4eb498bf57454e2af7b94feae736f75cf194418debdf1ea50022de2a7757",
+    "rebuild/m4/workout/test/s10-supersede-second-gate.test.cjs": "d6b0506a2af18a7782ab785cce5c770528b114f1e40e467f74318bd800e0e77c",
+    "rebuild/m4/workout/test/s10-engine-files-differential.cjs": "e057a540528a28307d368b37c13cf4d7841fee4f0189c6bf6ce416b4ca63ed5b",
+    "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs": "55ceef754cdfa091e0eb810f61fd1551c7999920102acf3938ec61be484d6cfa"
+  }
 }
