@@ -1307,3 +1307,215 @@ test('R913-LEGACY-OVER-NULL-HOST [Y] (spec R9.13 (v); red on 40eb702: gym.read b
     h.close(); era.close();
   }
 });
+
+// ROUND 22 (Astra L14 B1; spec R9.13 (v) LEGACY-OVER-NULL, "null or ABSENT"): mutant L14-M01 (FC03 heldProjection
+// "x.w == null -> x.w === null") survived all 47 host cells, which use a PRESENT null w. The same admitted basis as
+// R913-LEGACY-OVER-NULL-HOST with demo-press's w field DELETED (ABSENT), beside that present-null row.
+test('L14-B1-ABSENT-W-HOST [Y] (spec R9.13 (v), "null or ABSENT"; Astra L14 B1, mutant L14-M01): a never-held demo-press with NO w field and a pending legacy DEBUT 60 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has no numeric w, no visible unfinished demo-press debut and no active issue', async () => {
+  const legacyBasis = day => { const s = basisFor(day); delete s.exercises.find(e => e.id === 'demo-press').w; s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    assert.equal(Object.hasOwn(legacyBasis(day).exercises.find(e => e.id === 'demo-press'), 'w'), false, day + ' the basis has no w field (ABSENT, not a present null)');
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), day + ' demo-press: the baseline ask');
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w == null, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [true, 0, []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+
+// ROUND 22c (Fable R22 l2 B-R22L2-1 and D-R22L2-2; spec R9.13 (v) LEGACY-OVER-NULL): mutant X6 (FC03 heldProjection's hide
+// predicate "HIDDEN_LEGACY_KINDS.has(q.kind) -> q.kind === 'debut'") and mutant E1 ("!q.done -> q.done === false") survived all
+// 48 host cells, whose every legacy entry over a null or ABSENT w is a kind 'debut' with done:false. The UNLOCK twin of
+// R913-LEGACY-OVER-NULL-HOST (w null) and the no-done-key twin of L14-B1-ABSENT-W-HOST (w ABSENT); each changes one key only.
+test('R22L2-UNLOCK-OVER-NULL-HOST [Y] (spec R9.13 (v) RULE "every unfinished LEGACY debut/unlock entry ... of EVERY lift whose projected w is null or ABSENT" and INVARIANT; Fable R22 l2 B-R22L2-1, mutant X6): the UNLOCK twin of R913-LEGACY-OVER-NULL-HOST: a never-held demo-press with w null and a pending legacy UNLOCK 60 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has w null, no visible unfinished demo-press debut/unlock and no active issue. Under X6 the unlock is shown and gym.read is blocked ENGINE_CAPTURE_BASELINE_UNPROVEN', async () => {
+  const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind: 'unlock', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy unlock' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), day + ' demo-press: the baseline ask');
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, 0, []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+test('R22L2-ABSENT-DONE-HOST [Y] (spec R9.13 (v) RULE "hides every unfinished LEGACY debut/unlock entry (... not done ...)": an entry with NO done key is unfinished; "null or ABSENT"; Fable R22 l2 D-R22L2-2, mutant E1 "!q.done -> q.done === false"): the no-done-key twin of L14-B1-ABSENT-W-HOST: a never-held demo-press with NO w field and a pending legacy DEBUT 60 that carries NO done key in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has no numeric w, no visible unfinished demo-press debut/unlock and no active issue. Under E1 the entry is shown and gym.read is blocked ENGINE_CAPTURE_BASELINE_UNPROVEN', async () => {
+  const legacyBasis = day => { const s = basisFor(day); delete s.exercises.find(e => e.id === 'demo-press').w; s.queue.push({ exId: 'demo-press', kind: 'debut', state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const b = legacyBasis(day), q = b.queue.find(x => x && x.t === 'SYNTHETIC legacy debut');
+    assert.deepEqual([Object.hasOwn(b.exercises.find(e => e.id === 'demo-press'), 'w'), Object.hasOwn(q, 'done')], [false, false], day + ' the basis has no w field and the entry no done key (both ABSENT)');
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), day + ' demo-press: the baseline ask');
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w == null, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [true, 0, []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+
+// ROUND 22d (Fable R22 l3 B-R22L3-1; spec R9.13 (v) LEGACY-OVER-NULL RULE "of EVERY lift" and INVARIANT): mutant z09 (FC03
+// heldProjection hides only the FIRST hideable entry) survived all 50 host cells, each of which carries one hideable entry at a
+// time. The two-lift form of R913-LEGACY-OVER-NULL-HOST: demo-press AND demo-row never held at w null, each with its own entry.
+test('R22L3-EVERY-LIFT-OVER-NULL-HOST [Y] (spec R9.13 (v) RULE "hides every unfinished LEGACY debut/unlock entry ... of EVERY lift whose projected w is null or ABSENT" and INVARIANT "no registered projection carries an unfinished debut/unlock entry, native or legacy, of a lift whose w is null or ABSENT"; Fable R22 l3 B-R22L3-1, mutant z09): the two-lift form of R913-LEGACY-OVER-NULL-HOST: demo-press and demo-row both never held at w null, each with its own pending legacy DEBUT 60 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready and demo-press and demo-row are both the baseline ask (load not_prescribed on every slot); the host projection has w null for both, no visible unfinished debut/unlock of either and no active issue on either. Under z09 demo-row\'s debut is shown and gym.read is blocked ENGINE_CAPTURE_BASELINE_UNPROVEN', async () => {
+  const legacyBasis = day => { const s = withPress(day, { w: null }); s.exercises.find(e => e.id === 'demo-row').w = null; s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut press' }, { exId: 'demo-row', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut row' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    for (const lift of ['demo-press', 'demo-row']) assert.ok(slots.some(s => s.lift_lineage_id === lift) && slots.filter(s => s.lift_lineage_id === lift).every(s => s.load.state === 'not_prescribed'), day + ' ' + lift + ': the baseline ask');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    const liftOf = id => p.state.exercises.find(e => e.id === id), shown = id => p.state.queue.filter(q => q && q.exId === id && !q.done && ['debut', 'unlock'].includes(q.kind)).length, active = id => p.issues.filter(i => i.lift === id && !i.superseded_by).map(i => i.code);
+    assert.deepEqual([liftOf('demo-press').w, liftOf('demo-row').w, shown('demo-press'), shown('demo-row'), active('demo-press'), active('demo-row')], [null, null, 0, 0, [], []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+
+// ROUND 22e (Fable R22 l4 D-R22L4-3; spec R9.13 (v) LEGACY-OVER-NULL): the FC03 mutants z04 (a falsy w hides like a null w),
+// z06 (the hide set widened to FC01's STRUCTURAL), w04 (only a lift's FIRST unfinished entry hidden) and w05 (hidden only when the
+// lift has ONE unfinished entry) survived all 51 host cells, whose every legacy entry sits alone on a null or ABSENT w lift and is
+// a debut or an unlock. Three cells beside R913-LEGACY-OVER-NULL-HOST: a w 0 lift, an other-kind entry, two entries on one lift.
+test('R22L4-ZERO-W-HOST [Y] (spec R9.13 (v) RULE "of EVERY lift whose projected w is null or ABSENT": w 0 is neither; R913-LEGACY-OVER-NULL-CONTROL "the same entry on a lift with numeric w ... stays visible, and the card prescribes ... as today (E/today.cjs:98)"; Fable R22 l4 D-R22L4-3, mutant z04 "x && x.w == null -> x && !x.w"): the host form of FC12 R22L3-ZERO-W-VISIBLE: demo-press at w 0 with a pending legacy DEBUT newW 5 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is prescribed 5 lb on every slot and demo-row is unaffected; the host projection keeps w 0 and the entry visible ([debut, DEBUT, 5]) with no active issue. Under z04 the entry is hidden and the card falls back to the w 0 scalar', async () => {
+  const legacyBasis = day => { const s = withPress(day, { w: 0 }); s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 5, t: 'SYNTHETIC legacy debut' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day), press = slots.filter(s => s.lift_lineage_id === 'demo-press');
+    assert.ok(press.length > 0 && press.every(s => s.load.state === 'specified' && /^5 lb/.test(s.load.display)), day + ' demo-press: the card prescribes the entry\'s 5 on every slot ' + JSON.stringify(press.map(s => s.load.display)));
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done).map(q => [q.kind, q.state, q.newW]), p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [0, [['debut', 'DEBUT', 5]], []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+test('R22L4-OTHER-KINDS-HOST [Y] (spec R9.13 (v) RULE "kind in HIDDEN_LEGACY_KINDS, :250" (debut and unlock only) and "Only the registered projection changes"; Fable R22 l4 D-R22L4-3, mutant z06 "new Set([\'debut\', \'unlock\']) -> new Set([\'debut\', \'unlock\', \'own\', \'reclaim\', \'ladder\'])"): the host form of FC12 R22L3-OTHER-KINDS-KEPT: a never-held demo-press with w null, a pending legacy entry of kind own (and, the same, reclaim and ladder; state DEBUT, newW 60) and a pending legacy DEBUT 60 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has w null, hides the debut only and keeps the own/reclaim/ladder entry, with no active issue. Under z06 that entry is hidden too', async () => {
+  for (const kind of ['own', 'reclaim', 'ladder']) {
+    const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind, done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy ' + kind }, { exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut' }); return s; };
+    const fault = faultDatabase();
+    for (const day of [D1, D3]) {
+      const era = await reopenAt(fault, day);
+      hostGate(era);
+      const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+      assert.equal(view.phase, 'ready', kind + ' ' + day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+      const slots = await slotsOf(one.entry, day);
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), kind + ' ' + day + ' demo-press: the baseline ask');
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), kind + ' ' + day + ' demo-row normal');
+      one.entry.gymHost.close();
+      const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+      assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done).map(q => [q.kind, q.state, q.newW]), p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, [[kind, 'DEBUT', 60]], []], kind + ' ' + day + ' the host projection');
+      h.close(); era.close();
+    }
+  }
+});
+test('R22L4-EVERY-ENTRY-HOST [Y] (spec R9.13 (v) RULE "hides every unfinished LEGACY debut/unlock entry ... of EVERY lift whose projected w is null or ABSENT" and INVARIANT "no registered projection carries an unfinished debut/unlock entry, native or legacy, of a lift whose w is null or ABSENT"; Fable R22 l4 D-R22L4-3, mutants w04 (only the lift\'s FIRST unfinished entry hidden) and w05 (hidden only when the lift has ONE unfinished entry)): the host form of FC12 R22L3-EVERY-ENTRY-OVER-NULL: a never-held demo-press with w null carrying a pending legacy DEBUT 60 AND a pending legacy UNLOCK 65 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has w null, no visible unfinished demo-press debut/unlock and no active issue. Under w04 the unlock is shown, under w05 both are, and gym.read is blocked ENGINE_CAPTURE_BASELINE_UNPROVEN', async () => {
+  const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut' }, { exId: 'demo-press', kind: 'unlock', done: false, state: 'DEBUT', newW: 65, t: 'SYNTHETIC legacy unlock' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), day + ' demo-press: the baseline ask');
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, 0, []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+
+// ROUND 23 (Astra L15 B5 and B6; spec R9.13 (v) LEGACY-OVER-NULL): the FC03 mutants N13 (a legacy entry must carry NO
+// native_load_spend key) and N14 (an entry is hidden unless its done is exactly true) survived all 51 host cells Astra ran (and all
+// 54 of round 22e), whose every legacy entry carries no marker and a boolean done. Two cells beside R913-LEGACY-OVER-NULL-HOST: a
+// present non-string marker, and a finished entry whose done is a truthy non-boolean.
+test('L15-B5-NONSTRING-MARKER-HOST [Y] (spec R9.13 (v) RULE "hides every unfinished LEGACY debut/unlock entry (typeof native_load_spend !== \'string\', not done, kind in HIDDEN_LEGACY_KINDS) of EVERY lift whose projected w is null or ABSENT": a present non-string marker is legacy; Astra L15 B5, mutant N13 "typeof q.native_load_spend !== \'string\' -> q.native_load_spend === undefined"): the host form of FC12 L15-B5-NONSTRING-MARKER-HIDDEN: a never-held demo-press with w null and a pending legacy DEBUT 60 whose native_load_spend is PRESENT and null (and, the same, 0 and false) in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has w null, no visible unfinished demo-press debut/unlock and no active issue. Under N13 the entry is shown and gym.read is blocked ENGINE_CAPTURE_BASELINE_UNPROVEN', async () => {
+  for (const marker of [null, 0, false]) {
+    const M = 'native_load_spend ' + JSON.stringify(marker) + ' ';
+    const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, native_load_spend: marker, t: 'SYNTHETIC legacy debut' }); return s; };
+    const fault = faultDatabase();
+    for (const day of [D1, D3]) {
+      const era = await reopenAt(fault, day);
+      hostGate(era);
+      const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+      assert.equal(view.phase, 'ready', M + day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+      const slots = await slotsOf(one.entry, day);
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), M + day + ' demo-press: the baseline ask');
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), M + day + ' demo-row normal');
+      one.entry.gymHost.close();
+      const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+      assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, 0, []], M + day + ' the host projection');
+      h.close(); era.close();
+    }
+  }
+});
+test('L15-B6-FINISHED-ENTRY-HOST [Y] (spec R9.13 (v) RULE "hides every unfinished LEGACY debut/unlock entry (... not done ...)": a finished entry is not hidden; "Only the registered projection changes"; (iv) DEFINITIONS "q.done falsy": a truthy done is done; Astra L15 B6, mutant N14 "!q.done -> q.done !== true"): the host form of FC12 L15-B6-FINISHED-ENTRY-SHOWN: a never-held demo-press with w null and a FINISHED legacy DEBUT 60, state ESTABLISH, done 1 (and, the same, the string \'yes\') in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (no unfinished entry) and demo-row is unaffected; the host projection has w null, KEEPS the finished entry ([debut, 1, ESTABLISH, 60]) and has no active issue. Under N14 the finished entry is missing from the host projection', async () => {
+  for (const done of [1, 'yes']) {
+    const M = 'done ' + JSON.stringify(done) + ' ';
+    const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind: 'debut', done, state: 'ESTABLISH', newW: 60, t: 'SYNTHETIC finished legacy' }); return s; };
+    const fault = faultDatabase();
+    for (const day of [D1, D3]) {
+      const era = await reopenAt(fault, day);
+      hostGate(era);
+      const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+      assert.equal(view.phase, 'ready', M + day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+      const slots = await slotsOf(one.entry, day);
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), M + day + ' demo-press: the baseline ask');
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), M + day + ' demo-row normal');
+      one.entry.gymHost.close();
+      const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+      assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.t === 'SYNTHETIC finished legacy').map(q => [q.kind, q.done, q.state, q.newW]), p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, [['debut', done, 'ESTABLISH', 60]], []], M + day + ' the host projection keeps the finished entry');
+      h.close(); era.close();
+    }
+  }
+});
+
+// ROUND 24 (Astra L16 B6; FC08 L/today-bindings.mjs:623-626 and spec :164-165): the host's default projection reads the CURRENT
+// basis. Every earlier cell opened its host on one immutable basis, so a project() that kept the basis captured when the host opened
+// (Astra's mutant: `first` for baseNow() at :674) agreed with every cell. FA02 passes a function and calls project() with no base.
+test('L16-B6-HOST-CURRENT-BASIS [Y] (FC08 L/today-bindings.mjs:623-626 "engineState is the page\'s immutable basis, or a function returning the CURRENT one ...: check, project and the pre-commit re-evaluation all read it anew"; spec :164 "No new persisted topRun, effect receipt collection or plan cache is authoritative" and :165; Astra L16 B6, mutant "project(base === undefined ? baseNow() : base) -> project(base === undefined ? first : base)" at :674, which survived 267/267 and 56/56): the durable host opened with engineState a function returning the page\'s current immutable basis (demo-press w 40) -> project() gives w 40; the page then replaces that basis with a new immutable one (w 55) and project() with no base gives w 55 and the same registered state as a host opened on the w-55 basis; after a cold reopen on the next U day, a host opened while the basis was w 40 and projected after the page moved it to w 55 gives w 55. Under the mutant the later projections still give 40', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  let current = withPress(D1, { w: 40 });
+  const host = await era.createNativeLoadHost({ day: D1, engineState: () => current });
+  const p1 = await host.project();
+  assert.deepEqual([p1.ok, pressOf(p1).w], [true, 40], 'D1 the first projection reads the basis current at that call');
+  current = withPress(D1, { w: 55 });
+  const p2 = await host.project();
+  assert.deepEqual([p2.ok, pressOf(p2).w], [true, 55], 'D1 project() after the page adopted a new basis reads the CURRENT basis');
+  const fresh = await era.createNativeLoadHost({ day: D1, engineState: withPress(D1, { w: 55 }) }), pf = await fresh.project();
+  assert.deepEqual(p2.state, pf.state, 'D1 the same registered state as a host opened on the current basis');
+  fresh.close(); host.close(); era.close();
+  const again = await reopenAt(fault, D3);
+  let cold = withPress(D3, { w: 40 });
+  const h3 = await again.createNativeLoadHost({ day: D3, engineState: () => cold });
+  cold = withPress(D3, { w: 55 });
+  const p3 = await h3.project();
+  assert.deepEqual([p3.ok, pressOf(p3).w], [true, 55], 'D3 after a cold reopen the host reads the current basis');
+  h3.close(); again.close();
+});
