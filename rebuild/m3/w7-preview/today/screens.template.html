@@ -388,16 +388,53 @@
 </article>
 </template>
 
+<!-- ==== C-UI-6 COACH (begin) ====
+     The Coach screen: the pinned pack's #screen-coach .ui (app/app.html), element for
+     element and class for class, as the chassis ruling 4 draws it: a scrolling .body and
+     a fixed .stack, which coach-app.mjs mounts as the two children of the live .ui host.
+     Left out on purpose: the two sub lines the pack keeps hidden (coach-sub, coach-sub2;
+     the boards draw them, and the pack's comparison page app/compare.html records the owner
+     ruling of 2026-09-17, "Coach header, two lines", that took them off), the prompts' data-answer keys (the prototype's scripted answers; this
+     build has no live coach and answers every ask with the pack's own C-61 refusal) and
+     the tap link's jump to the workout (tap mode is the drawn state C-07 on this screen).
+     Every word here is the pack's; nothing here carries a figure. -->
 <template id="t-coach">
-<article class="page">
-  <button class="back" type="button" data-go="today"><span aria-hidden="true">←</span> Today</button>
-  <header class="detail-head">
-    <h1>Ask your coach.</h1>
-    <p>Make sense of your plan and the progress behind it.</p>
-  </header>
-  <p class="note" data-own data-slot="stub-note"></p>
-</article>
+<div class="body">
+<header class="header">
+  <div class="brand">
+    <button class="back" type="button" data-go="today" aria-label="Back to Today"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 1L2 10l8 9"/></svg></button>
+    <span class="wordmark">Earned</span>
+  </div>
+  <div class="right">
+    <span class="pill" id="coach-state" hidden><span class="dot" aria-hidden="true"></span><span id="coach-state-text">Idle</span></span>
+    <span class="pill" title="Example numbers, not your data">example</span>
+  </div>
+</header>
+<div class="hairline"></div>
+
+<div class="orb-wrap" aria-hidden="true"><span class="orb-ring r3"></span><span class="orb-ring r2"></span><span class="orb-level"></span><span class="orb"></span></div>
+<h1 class="coach-title">Coach.</h1>
+<p class="coach-line">Talk through today’s plan.</p>
+
+<div class="prompts" id="prompts">
+  <button class="prompt" type="button"><span class="icon-square" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"/></svg></span><span>What am I hitting today?</span><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+  <button class="prompt" type="button"><span class="icon-square" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h9M16 7h5M3 12h3M10 12h11M3 17h11M18 17h3"/><circle cx="14" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="17" r="2"/></svg></span><span>What’s my seat on the chest press?</span><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+  <button class="prompt" type="button"><span class="icon-square" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg></span><span>Why is today lighter than last week?</span><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+</div>
+<div class="coach-answer" id="coach-answer" hidden><div id="coach-answer-text"></div><div class="from">From the engine’s stored plan. Example numbers.</div></div>
+</div>
+<div class="stack">
+<div class="text-mode" id="coach-text" hidden><input type="text" placeholder="Type to Earned" aria-label="Type to Earned"><button type="button">Send</button></div>
+
+<div class="coach-links"><button class="link" type="button" id="coach-text-mode">Use text mode</button><button class="link" type="button" id="coach-tap">I’ll tap instead</button></div>
+
+<div class="mic-wrap">
+  <button class="mic-button" type="button" id="mic" aria-pressed="false" aria-label="Tap to speak"><svg viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mic-glyph)"><rect x="5.5" y="1" width="7" height="12" rx="3.5"/><path d="M1.5 10.5a7.5 7.5 0 0 0 15 0M9 18v4M5.5 22h7"/></svg></button>
+  <div class="mic-label" id="mic-label">Tap to speak</div>
+</div>
+</div>
 </template>
+<!-- ==== C-UI-6 COACH (end) ==== -->
 
 <template id="t-workout">
 <article class="page">
