@@ -5137,3 +5137,554 @@ test('R913-TYPED-C2-CARRIED CARRIED LIMIT D-L13-TYPED-C2 (spec R9.13 (iii); PM r
   assert.deepEqual([ex.w,Object.hasOwn(ex,'wSets'),b2Issues(f)],[60,false,[['EFFECT_CONFLICT','load_basis',['l12-y1'],'sup']]],rev+' (c) the yes applies as exit (b) '+JSON.stringify(f.issues));
  }
 });
+
+// ======================================================================
+// ROUND 22 (test bytes only; Astra L14 REJECT of bd7654a on four TEST-COVERAGE blockers B1-B4; the head product is unchanged:
+// FC03 b25d2e61, L/source-admission.mjs 10bd5cfb, FC01 92a4a0b4). Each row pins a boundary spec R9.13 states that one of
+// Astra's single-clause mutants (P/own-manifest.json: L14-M01 in FC03 heldProjection; L14-M02, -M03 and -M10 in the
+// A-LEGACY-VECTOR conversion) crossed while all 235 FC12 rows stayed green. Every value is invented.
+// ======================================================================
+// L14-B1: R9.13 (v) hides the legacy entry of every lift whose projected w is "null or ABSENT". Every earlier row used a
+// PRESENT null (F0({w:null}); FA03 withPress {w:null}); F0({w:undefined}) deletes the field, so these rows use the ABSENT form.
+const absentW=(...qs)=>{const b=F0({w:undefined});b.queue.push(...qs.map(q=>structuredClone(q)));return b;};
+const wField=f=>Object.hasOwn(exOf(f.state),'w')?exOf(f.state).w:'ABSENT';
+const l14c1=v1=>{const c=C(1,{reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)});return v1?v1Of(c):c;};
+const l14at=v1=>(extra,base,r,cs)=>{const a=foldArgs(cs,extra,r,base);if(v1)for(const c of cs)captureOn(a.generation,c,[null,null,null]);return a;};
+test('L14-B1-ABSENT-W-PROJECTION R9.13 (v) LEGACY-OVER-NULL ("every lift whose projected w is null or ABSENT"; EXPECTED CARD; THE CHECK) (Astra L14 B1, mutant L14-M01 "x.w == null -> x.w === null" in FC03 heldProjection, which survived 235/235): a never-held fx-press with NO w field and a pending legacy DEBUT 60 in the admitted base -> the fold keeps w ABSENT and the entry pending, the registered projection hides it, the card is the baseline ask and the day prepares (under M01 the entry is shown and the capture refuses ENGINE_CAPTURE_BASELINE_UNPROVEN); the check on its baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue, and after it w stays ABSENT with no authority and no adoption receipt; typed v2 and host v1, R1 and R2',()=>{
+ effectsGate();
+ for(const v1 of [false,true])for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev;
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,absentW(LEGQ({newW:60})))),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([wField(f),b2Issues(f),legacyPending(f)],['ABSENT',[],[['DEBUT',60]]],L+' the fold keeps w ABSENT and the legacy DEBUT 60 pending; never held');
+  assert.deepEqual([hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).length,b39Card(hp)],[0,[null,null,null]],L+' R9.13 (v): the registered projection hides the entry; the card is the baseline ask and the day prepares');
+  const c1=l14c1(v1),a1=l14at(v1)([],absentW(LEGQ({newW:60})),rev,[c1]),ev1=checkOf(a1,LIFT,c1);
+  assert.deepEqual([ev1.status,ev1.refusal&&ev1.refusal.code,ev1.refusal&&ev1.refusal.refs,ev1.refusal&&ev1.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'queue'],L+' the check on the baseline-ask completion '+JSON.stringify(ev1.refusal||ev1.offers));
+  const f1=EFFECTS.m.foldNativeLoad(a1);
+  assert.deepEqual([wField(f1),exOf(f1.state).native_load_authority===undefined,JSON.stringify(f1.state).includes('adopt:'+LIFT),legacyPending(f1)],['ABSENT',true,false,[['DEBUT',60]]],L+' after that completion: w ABSENT, no authority, no adoption receipt, the entry pending');
+ }
+});
+test('L14-B1-ABSENT-W-UNDO R9.13 (v) LEGACY-OVER-NULL ("null or ABSENT"), the reachable RECORDED variant of Astra L14 B1 (mutant L14-M01; the ABSENT-w form of R20-RESTORE-OVER-LEGACY): C1 at 60 on the ABSENT-w baseline ask, its [adopt-baseline 60] yes, its RESTORE Undo recorded while applied, then the base re-admitted at w 100 carrying a pending legacy DEBUT 105 -> the Undo restores the ABSENT w under the pending DEBUT 105, the registered projection hides it and the next card is the baseline ask and the day prepares (under M01 the capture refuses the day ENGINE_CAPTURE_BASELINE_UNPROVEN); control: not re-admitted, the Undo leaves w ABSENT and the baseline ask; the check on a later baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue and after it w stays ABSENT, the authority unchanged, no adoption receipt; typed v2 and host v1, R1 and R2',()=>{
+ effectsGate();
+ const readmitted=()=>{const b=F0({w:100});b.queue.push(LEGQ());return b;};
+ for(const v1 of [false,true])for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev;
+  const c1=l14c1(v1),at=(extra,base,r,cs=[c1])=>l14at(v1)(extra,base,r,cs);
+  const ev=checkOf(at([],absentW(),R1),LIFT,c1);
+  assert.deepEqual(ev.offers.map(o=>[decisionOf(o).kind,decisionOf(o).target_load.scalar.value]),[['adopt-baseline',60]],L+' control: C1 on the ABSENT-w baseline ask is offered [adopt-baseline 60] '+JSON.stringify(ev.refusal));
+  const d=decisionOf(ev.offers[0]),y=acceptOp(ev.offers[0],{op_id:'l14-absent-adopt',after:1});
+  assert.equal(exOf(EFFECTS.m.foldNativeLoad(at([y],absentW(),rev)).state).w,60,L+' control: the yes applies 60');
+  const u=checkOf(at([y],absentW(),R1),LIFT,c1,{compensate:d.spend_id});assert.equal(u.status,'offer',L+' control: the Undo while applied '+JSON.stringify(u.refusal));
+  const ud=decisionOf(u.offers[0]);assert.deepEqual([ud.base_load.scalar,ud.target_load.scalar],[lb(60),null],L+' control: a RESTORE (base 60, target null)');
+  const z=acceptOp(u.offers[0],{op_id:'l14-absent-undo',after:1});
+  const c0=EFFECTS.m.foldNativeLoad(at([y,z],absentW(),rev));
+  assert.deepEqual([wField(c0),b2Active(c0),b39Card(EFFECTS.m.heldProjection(c0).state)],['ABSENT',[],[null,null,null]],L+' control: not re-admitted, the Undo restores w ABSENT and the baseline ask '+JSON.stringify(c0.issues));
+  const fr=EFFECTS.m.foldNativeLoad(at([y,z],readmitted(),rev)),hr=EFFECTS.m.heldProjection(fr).state;
+  assert.deepEqual([wField(fr),legacyPending(fr)],['ABSENT',[['DEBUT',105]]],L+' the Undo restores the ABSENT w under the pending legacy DEBUT 105 '+JSON.stringify(fr.issues));
+  assert.deepEqual([hr.queue.filter(q=>q&&q.exId===LIFT&&!q.done).length,b39Card(hr)],[0,[null,null,null]],L+' R9.13 (v): the registered projection hides it; the next card is the baseline ask and the day prepares');
+  const c2t=C(2,{date:'2026-10-08',reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),c2=v1?v1Of(c2t):c2t;
+  const a2=at([y,z],readmitted(),rev,[c1,c2]),ev2=checkOf(a2,LIFT,c2);
+  assert.deepEqual([ev2.status,ev2.refusal&&ev2.refusal.code,ev2.refusal&&ev2.refusal.refs,ev2.refusal&&ev2.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c2.close)],'queue'],L+' the check on a later baseline-ask completion '+JSON.stringify(ev2.refusal||ev2.offers));
+  const f2=EFFECTS.m.foldNativeLoad(a2);
+  assert.deepEqual([wField(f2),JSON.stringify(exOf(f2.state).native_load_authority),JSON.stringify(f2.state).includes('adopt:'+LIFT)],['ABSENT',JSON.stringify(exOf(fr.state).native_load_authority),false],L+' after it: w ABSENT, the authority unchanged, no adoption receipt');
+ }
+});
+// L14-B2: R9.13 (iv) DEFINITIONS take "q.newWSets === undefined" (the test W/engine-capture.cjs makes before its :83 refusal);
+// a PRESENT null newWSets is an existing present-null legacy load-vector shape (D-L14-LEGACY-NULL), never read as absent.
+test('L14-B2-EXPLICIT-NULL-NEWWSETS R9.13 (iv) DEFINITIONS ("q.newWSets === undefined") and UNCHANGED BY THE RULE ("entries that already carry newWSets"; "a legacy present-null wSets with a numeric w ... refuses at W/engine-capture.cjs:83 as today") (Astra L14 B2 and D-L14-LEGACY-NULL, mutant L14-M02 "q.newWSets!==undefined -> q.newWSets!=null", which survived 235/235): fx-press w 100 wSets [100,100,95] with a pending legacy DEBUT newW 105 whose own newWSets is PRESENT null -> not a legacy scalar structural entry: nothing named, every byte unchanged (newWSets stays null), and the day still refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED (the carried present-null limit; nothing raised; M02 writes [105,105,100] and the day captures it); the present-null wSets shape (w 100, wSets null, a scalar DEBUT 105) is likewise untouched and refuses as today; control: the same entry with newWSets ABSENT converts to [105,105,100]',()=>{
+ effectsGate();alvGate();
+ const s=alvState([LEGQ({newWSets:null})]),before=JSON.stringify(s),named=ALV.fn(s);
+ assert.deepEqual([named,JSON.stringify(s)===before,s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut').newWSets],[[],true,null],'present-null newWSets: nothing named, byte-identical, still null');
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','present-null newWSets: the day refuses as before admission');
+ const n=alvState([LEGQ()],{w:100,wSets:null}),nb=JSON.stringify(n);
+ assert.deepEqual([ALV.fn(n),JSON.stringify(n)===nb],[[],true],'present-null wSets: nothing named, byte-identical');
+ assert.equal(alvCard(n),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','present-null wSets: the day refuses as today');
+ const c=alvState([LEGQ()]);
+ assert.deepEqual([ALV.fn(c),c.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut').newWSets],[[],[105,105,100]],'control: an ABSENT newWSets converts (R913-ALV-CONVERT)');
+});
+// L14-B3 and L14-B4: the CONVERSION is exactly ex.wSets.map((x) => x + (q.newW - ex.w)), a uniform shift by newW - w of the
+// imported vector as it stands (Fable R21 l1 F4), with no rounding; every earlier ALV input had its first set equal to w and
+// integer loads, so neither the anchor (ex.w) nor the exact value was pinned.
+const alvRow=(s,newWSets,label)=>{const before=structuredClone(s),named=ALV.fn(s),q=s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut');
+ assert.deepEqual([named,q.newWSets],[[],newWSets],label+': the shifted vector');
+ const back=structuredClone(s);delete back.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut').newWSets;
+ assert.deepEqual(back,before,label+': nothing else is written (newW, w, wSets and every other byte unchanged)');
+ assert.ok(q.newWSets.every(x=>x<=q.newW),label+': no set above the old card newW '+q.newW+' '+JSON.stringify(q.newWSets));
+ assert.deepEqual(alvCard(s),newWSets,label+': the card captures the converted vector through the real capture');};
+test('L14-B3-SHIFT-ANCHOR-FIRST-BELOW-W R9.13 (iv) CONVERSION ("q.newWSets = ex.wSets.map((x) => x + (q.newW - ex.w))"; PROPERTIES: a uniform shift that keeps the shape of ex.wSets exactly, non-monotone vectors included, Fable R21 l1 F4) (Astra L14 B3, mutant L14-M03 "the shift anchored on ex.wSets[0] instead of ex.w", which survived 235/235): fx-press w 100 with wSets [95,100,97.5] (first set below w, non-monotone; P holds) and a pending legacy DEBUT newW 107.5 -> newWSets [102.5,107.5,105] (every set + 7.5), nothing named, w 100 and wSets [95,100,97.5] unchanged, no set above 107.5; the card captures [102.5,107.5,105]; unconverted, the same day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED. M03 shifts by 12.5 and writes [107.5,112.5,110], a set above the old card',()=>{
+ effectsGate();alvGate();
+ const s=alvState([LEGQ({newW:107.5})],{w:100,wSets:[95,100,97.5]});
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','control: unconverted, the day refuses (W/engine-capture.cjs:83)');
+ alvRow(s,[102.5,107.5,105],'first set below w');
+});
+test('L14-B4-FRACTIONAL-ALV R9.13 (iv) CONVERSION (the exact shifted value, "nothing else is written"; PROPERTIES "every element is <= q.newW") (Astra L14 B4, mutant L14-M10 "Math.round around the shifted load", which survived 235/235): fx-press w 100, inc 2.5, wSets [100,100,95] with a pending legacy DEBUT at the fractional newW 102.5 -> newWSets [102.5,102.5,97.5], nothing named, w 100 and newW 102.5 unchanged, no set above 102.5; the card captures [102.5,102.5,97.5]; unconverted, the same day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED. M10 writes [103,103,98], two sets above newW without a yes',()=>{
+ effectsGate();alvGate();
+ const s=alvState([LEGQ({newW:102.5})],{w:100,wSets:[100,100,95],inc:2.5});
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','control: unconverted, the day refuses (W/engine-capture.cjs:83)');
+ alvRow(s,[102.5,102.5,97.5],'fractional newW');
+});
+
+// ======================================================================
+// ROUND 22b (test bytes only; Fable R22 l1 REJECT of the round-22 working tree on blocker B-R22-1, with named debt D-R22-1,
+// both paid here by PM ruling; the head product is unchanged: FC03 b25d2e61, L/source-admission.mjs 10bd5cfb, FC01 92a4a0b4,
+// W/engine-capture.cjs fa68a748). Every value is invented.
+// ======================================================================
+// B-R22-1: R9.13 (iv) CONVERSION anchors the shift on the lift's own scalar ex.w. Every earlier ALV input had max(wSets) = w
+// (alvState's [100,100,95], L14-B3's [95,100,97.5], the walk's [w,w,w-5]), so a shift anchored on Math.max(...ex.wSets)
+// (Fable's mutant N5) agreed with ex.w on all of them; these two inputs have EVERY set strictly below w (P still holds).
+test('L14-B3b-SHIFT-ANCHOR-ALL-BELOW-W R9.13 (iv) CONVERSION ("q.newWSets = ex.wSets.map((x) => x + (q.newW - ex.w))": the anchor is the lift\'s own scalar ex.w, never a member of ex.wSets; PROPERTIES "every element is <= q.newW") (Fable R22 l1 B-R22-1, mutant N5 "the shift anchored on Math.max(...ex.wSets) instead of ex.w", which survived 240/240 because every earlier ALV input had max(wSets) = w): fx-press w 100 with wSets [95,95,90] (every set strictly below w; P holds) and a pending legacy DEBUT newW 105 -> newWSets exactly [100,100,95] (every set + 5), nothing named, w 100, wSets [95,95,90] and newW 105 unchanged and nothing else written, no set above 105; the card captures [100,100,95] through the real capture; unconverted, the same day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED. N5 shifts by 10 and writes [105,105,100], 5 lb heavier on every set than the approved conversion (every set still <= 105, so only the formula tells them apart); L14-M03 (the ex.wSets[0] anchor) writes the same',()=>{
+ effectsGate();alvGate();
+ const s=alvState([LEGQ()],{w:100,wSets:[95,95,90]});
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','control: unconverted, the day refuses (W/engine-capture.cjs:83)');
+ alvRow(s,[100,100,95],'every set below w');
+ assert.deepEqual([exOf(s).w,exOf(s).wSets,s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut').newW],[100,[95,95,90],105],'every set below w: w, wSets and newW unchanged');
+});
+test('L14-B3b-SHIFT-ANCHOR-ALL-BELOW-W-FRACTIONAL R9.13 (iv) CONVERSION (the fractional twin of L14-B3b-SHIFT-ANCHOR-ALL-BELOW-W: the anchor is ex.w and the shifted value is exact; PROPERTIES "every element is <= q.newW") (Fable R22 l1 B-R22-1, mutant N5): fx-press w 100, inc 2.5, wSets [97.5,97.5,92.5] (every set strictly below w; P holds) and a pending legacy DEBUT at the fractional newW 102.5 -> newWSets exactly [100,100,95] (every set + 2.5), nothing named, w 100, wSets [97.5,97.5,92.5] and newW 102.5 unchanged and nothing else written, no set above 102.5; the card captures [100,100,95]; unconverted, the same day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED. N5 (and L14-M03) shift by 5 and write [102.5,102.5,97.5]',()=>{
+ effectsGate();alvGate();
+ const s=alvState([LEGQ({newW:102.5})],{w:100,wSets:[97.5,97.5,92.5],inc:2.5});
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','control: unconverted, the day refuses (W/engine-capture.cjs:83)');
+ alvRow(s,[100,100,95],'every set below w, fractional');
+ assert.deepEqual([exOf(s).w,exOf(s).wSets,s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut').newW],[100,[97.5,97.5,92.5],102.5],'every set below w, fractional: w, wSets and newW unchanged');
+});
+// D-R22-1: R9.13 (iv) DEFINITIONS take a queue item with "q.done falsy" and (v) RULE hides an entry that is "not done"; an
+// old-app entry that carries NO done key is inside both. Every earlier fixture wrote done:false, so a predicate on done === false
+// (Fable's mutant N4 in the conversion, E1 in FC03 heldProjection's hide predicate) agreed with the spec on all of them.
+test('R22-ABSENT-DONE-ALV R9.13 (iv) DEFINITIONS ("a LEGACY SCALAR STRUCTURAL ENTRY is a queue item q of S with q.done falsy": an entry with NO done key is one) and CONVERSION (Fable R22 l1 D-R22-1, mutant N4 "q.done|| -> q.done!==false||" in the A-LEGACY-VECTOR conversion, which survived 240/240 because every fixture wrote done:false): fx-press w 100 wSets [100,100,95] with a pending legacy DEBUT newW 105 whose done key is ABSENT -> converted exactly like its done:false twin: newWSets [105,105,100], nothing named, the done key still absent and nothing else written, no set above 105; the card captures [105,105,100]; unconverted, the same day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED; the done:false twin names the same (nothing) and ends in the same state apart from its own done:false key. N4 skips the entry: no newWSets, so the state stays the unconverted control whose day refuses',()=>{
+ effectsGate();alvGate();
+ const noDone=()=>{const q=LEGQ();delete q.done;return alvState([q]);},legacy=s=>s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut');
+ const s=noDone();
+ assert.equal(Object.hasOwn(legacy(s),'done'),false,'the fixture: the entry carries no done key');
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','control: unconverted, the day refuses (W/engine-capture.cjs:83)');
+ alvRow(s,[105,105,100],'no done key');
+ assert.equal(Object.hasOwn(legacy(s),'done'),false,'no done key: the key is still absent after the conversion');
+ const twin=alvState([LEGQ()]);
+ assert.deepEqual(ALV.fn(twin),[],'the done:false twin: nothing named');
+ delete legacy(twin).done;
+ assert.deepEqual(twin,s,'converted exactly like the done:false twin (the same state apart from the twin\'s own done:false key)');
+});
+test('R22-ABSENT-DONE-HIDDEN R9.13 (v) LEGACY-OVER-NULL RULE ("hides every unfinished LEGACY debut/unlock entry (typeof native_load_spend !== \'string\', not done, kind in HIDDEN_LEGACY_KINDS)": an entry with NO done key is unfinished), EXPECTED CARD and THE CHECK (Fable R22 l1 D-R22-1, mutant E1 "!q.done -> q.done === false" in FC03 heldProjection\'s hide predicate, which survived 240/240 and FA03 48/48 because every fixture wrote done:false): the R913-LEGACY-OVER-NULL-UNHELD base (fx-press never held at w null, fx-row at w 55, each with a pending legacy DEBUT 60) with fx-press\'s entry carrying NO done key -> the fold state keeps both entries pending, fx-press\'s key still absent; the registered projection hides fx-press\'s entry and keeps fx-row\'s, exactly like the done:false twin (the same registered projection); fx-press\'s card is the baseline ask and the day prepares, fx-row\'s debut takes the structural slot; the check on fx-press\'s baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue, and after it w stays null, no authority, no adoption receipt, the entry pending with no done key; typed v2 and host v1, R1 and R2. Under E1 the entry is shown and the capture refuses the day ENGINE_CAPTURE_BASELINE_UNPROVEN',()=>{
+ effectsGate();
+ const pressQ=s=>s.queue.find(q=>q&&q.t==='SYNTHETIC legacy debut press'),noDone=()=>{const b=legacyOverNullBase();delete pressQ(b).done;return b;};
+ for(const v1 of [false,true])for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev,b=noDone();
+  assert.equal(Object.hasOwn(pressQ(b),'done'),false,L+' the fixture: fx-press\'s legacy entry carries no done key');
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,b)),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([b2Issues(f),legacyPending(f),legacyPending(f,ROW),Object.hasOwn(pressQ(f.state),'done')],[[],[['DEBUT',60]],[['DEBUT',60]],false],L+' the fold state keeps both legacy entries pending, fx-press\'s with no done key; fx-press is never held');
+  assert.deepEqual([hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).length,hp.queue.filter(q=>q&&q.exId===ROW&&!q.done).length,b39Card(hp)],[0,1,[null,null,null]],L+' R9.13 (v): the registered projection hides the w-null lift\'s entry with no done key, and only it; its card is the baseline ask');
+  const twin=EFFECTS.m.heldProjection(EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,legacyOverNullBase()))).state;
+  assert.deepEqual(hp,twin,L+' exactly like the done:false twin: the same registered projection');
+  let row;try{row=cardLoads(hp,{lift:ROW});}catch(err){row=String(err&&err.code||err);}
+  assert.deepEqual([b39Card(hp),row],[[null,null,null],[60,60,60]],L+' EXPECTED CARD: fx-press is the baseline ask and the day prepares; fx-row\'s debut takes the structural slot');
+  const c1t=C(1,{reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),c1=v1?v1Of(c1t):c1t;
+  const a=foldArgs([c1],[],rev,noDone());if(v1)captureOn(a.generation,c1,[null,null,null]);
+  const ev=checkOf(a,LIFT,c1);
+  assert.deepEqual([ev.status,ev.refusal&&ev.refusal.code,ev.refusal&&ev.refusal.refs,ev.refusal&&ev.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'queue'],L+' THE CHECK on the baseline-ask completion '+JSON.stringify(ev.refusal||ev.offers));
+  const f1=EFFECTS.m.foldNativeLoad(a),ex1=exOf(f1.state);
+  assert.deepEqual([ex1.w,ex1.native_load_authority===undefined,JSON.stringify(f1.state).includes('adopt:'+LIFT),legacyPending(f1),Object.hasOwn(pressQ(f1.state),'done')],[null,true,false,[['DEBUT',60]],false],L+' after that completion: w null, no authority, no adoption receipt, the entry pending with no done key');
+ }
+});
+
+// ======================================================================
+// ROUND 22c (test bytes only; Fable R22 l2 REJECT of the round-22b working tree on blocker B-R22L2-1, with named debts
+// D-R22L2-1 and D-R22L2-2, all three paid here by PM ruling; the head product is unchanged: FC03 b25d2e61,
+// L/source-admission.mjs 10bd5cfb, FC01 92a4a0b4, W/engine-capture.cjs fa68a748). Every value is invented.
+// ======================================================================
+// B-R22L2-1: R9.13 (v) RULE hides "every unfinished LEGACY debut/unlock entry (... kind in HIDDEN_LEGACY_KINDS) of EVERY lift
+// whose projected w is null or ABSENT", and its INVARIANT reads "no registered projection carries an unfinished debut/unlock
+// entry, native or legacy, of a lift whose w is null or ABSENT". Every earlier legacy entry over a null or ABSENT w was kind
+// 'debut', so a hide predicate narrowed to q.kind === 'debut' (Fable's mutant X6 in FC03 heldProjection) agreed with the spec
+// on all of them. These two rows are the UNLOCK twins of R913-LEGACY-OVER-NULL-UNHELD (w null) and
+// L14-B1-ABSENT-W-PROJECTION (w ABSENT): the same entry with kind 'unlock' and nothing else changed but its label (state
+// 'DEBUT' as R913-ALV-KINDS's unlock; no rebuild writer mints kind 'unlock', so every such entry is an admitted old-app entry).
+const r22cUnlockQ=(p={})=>({exId:LIFT,kind:'unlock',done:false,state:'DEBUT',newW:60,t:'SYNTHETIC legacy unlock press',...p});
+function r22cNullBase(){const b=legacyOverNullBase(),i=b.queue.findIndex(q=>q&&q.t==='SYNTHETIC legacy debut press');b.queue[i]=r22cUnlockQ();return b;}
+const r22cKinds=(f,lift=LIFT)=>f.state.queue.filter(q=>q&&q.exId===lift&&!q.done&&typeof q.native_load_spend!=='string').map(q=>[q.kind,q.state,q.newW]);
+test('R22L2-UNLOCK-OVER-NULL-UNHELD R9.13 (v) LEGACY-OVER-NULL RULE ("hides every unfinished LEGACY debut/unlock entry (typeof native_load_spend !== \'string\', not done, kind in HIDDEN_LEGACY_KINDS) of EVERY lift whose projected w is null or ABSENT"), INVARIANT ("no registered projection carries an unfinished debut/unlock entry, native or legacy, of a lift whose w is null or ABSENT"), EXPECTED CARD and THE CHECK (Fable R22 l2 B-R22L2-1, mutant X6 "HIDDEN_LEGACY_KINDS.has(q.kind) -> q.kind === \'debut\'" in FC03 heldProjection\'s hide predicate, which survived 244/244 and FA03 48/48 because every legacy entry over a null or ABSENT w was kind debut): the UNLOCK twin of R913-LEGACY-OVER-NULL-UNHELD: fx-press never held at w null with a pending legacy UNLOCK newW 60, beside fx-row at w 55 with its own pending legacy DEBUT 60 -> the fold state keeps both entries pending (fx-press\'s still kind unlock), no issue; the registered projection hides fx-press\'s unlock and keeps fx-row\'s debut, exactly like the debut twin (the same registered projection); fx-press\'s card is the baseline ask and the day prepares, fx-row\'s debut takes the structural slot; the check on fx-press\'s baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue as the debut row does (E/native-load.cjs:222; STRUCTURAL at :20 includes unlock), and nothing is written: after it w stays null, no authority, no adoption receipt, the unlock pending; typed v2 and host v1, R1 and R2. Under X6 the unlock is shown and the capture refuses the day ENGINE_CAPTURE_BASELINE_UNPROVEN',()=>{
+ effectsGate();
+ for(const v1 of [false,true])for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev,b=r22cNullBase();
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,b)),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([b2Issues(f),r22cKinds(f),r22cKinds(f,ROW)],[[],[['unlock','DEBUT',60]],[['debut','DEBUT',60]]],L+' the fold state keeps both legacy entries pending, fx-press\'s an unlock; fx-press is never held');
+  assert.deepEqual([hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).length,hp.queue.filter(q=>q&&q.exId===ROW&&!q.done).length,b39Card(hp)],[0,1,[null,null,null]],L+' R9.13 (v): the registered projection hides the w-null lift\'s legacy UNLOCK, and only it; its card is the baseline ask');
+  const twin=EFFECTS.m.heldProjection(EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,legacyOverNullBase()))).state;
+  assert.deepEqual(hp,twin,L+' exactly like the debut twin (R913-LEGACY-OVER-NULL-UNHELD): the same registered projection');
+  let row;try{row=cardLoads(hp,{lift:ROW});}catch(err){row=String(err&&err.code||err);}
+  assert.deepEqual([b39Card(hp),row],[[null,null,null],[60,60,60]],L+' EXPECTED CARD: fx-press is the baseline ask and the day prepares; fx-row\'s debut takes the structural slot');
+  const c1=l14c1(v1),a=l14at(v1)([],r22cNullBase(),rev,[c1]),ev=checkOf(a,LIFT,c1);
+  assert.deepEqual([ev.status,ev.refusal&&ev.refusal.code,ev.refusal&&ev.refusal.refs,ev.refusal&&ev.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'queue'],L+' THE CHECK on the baseline-ask completion, as the debut row '+JSON.stringify(ev.refusal||ev.offers));
+  const f1=EFFECTS.m.foldNativeLoad(a),ex1=exOf(f1.state);
+  assert.deepEqual([ex1.w,ex1.native_load_authority===undefined,JSON.stringify(f1.state).includes('adopt:'+LIFT),r22cKinds(f1)],[null,true,false,[['unlock','DEBUT',60]]],L+' nothing is written: after that completion w null, no authority, no adoption receipt, the unlock pending');
+ }
+});
+test('R22L2-UNLOCK-OVER-ABSENT-W R9.13 (v) LEGACY-OVER-NULL RULE ("hides every unfinished LEGACY debut/unlock entry ... of EVERY lift whose projected w is null or ABSENT"), INVARIANT ("no registered projection carries an unfinished debut/unlock entry, native or legacy, of a lift whose w is null or ABSENT"), EXPECTED CARD and THE CHECK (Fable R22 l2 B-R22L2-1, mutant X6 "HIDDEN_LEGACY_KINDS.has(q.kind) -> q.kind === \'debut\'" in FC03 heldProjection): the UNLOCK twin of L14-B1-ABSENT-W-PROJECTION: a never-held fx-press with NO w field and a pending legacy UNLOCK newW 60 in the admitted base -> the fold keeps w ABSENT and the unlock pending, no issue; the registered projection hides it, exactly like the debut twin (the same registered projection); the card is the baseline ask and the day prepares; the check on its baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue as the debut row does (E/native-load.cjs:222; STRUCTURAL at :20 includes unlock), and nothing is written: after it w stays ABSENT, no authority, no adoption receipt, the unlock pending; typed v2 and host v1, R1 and R2. Under X6 the unlock is shown and the capture refuses the day ENGINE_CAPTURE_BASELINE_UNPROVEN',()=>{
+ effectsGate();
+ for(const v1 of [false,true])for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev;
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,absentW(r22cUnlockQ()))),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([wField(f),b2Issues(f),r22cKinds(f)],['ABSENT',[],[['unlock','DEBUT',60]]],L+' the fold keeps w ABSENT and the legacy UNLOCK 60 pending; never held');
+  assert.deepEqual([hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).length,b39Card(hp)],[0,[null,null,null]],L+' R9.13 (v): the registered projection hides the legacy UNLOCK; the card is the baseline ask and the day prepares');
+  const twin=EFFECTS.m.heldProjection(EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,absentW(LEGQ({newW:60}))))).state;
+  assert.deepEqual(hp,twin,L+' exactly like the debut twin (L14-B1-ABSENT-W-PROJECTION): the same registered projection');
+  const c1=l14c1(v1),a1=l14at(v1)([],absentW(r22cUnlockQ()),rev,[c1]),ev1=checkOf(a1,LIFT,c1);
+  assert.deepEqual([ev1.status,ev1.refusal&&ev1.refusal.code,ev1.refusal&&ev1.refusal.refs,ev1.refusal&&ev1.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'queue'],L+' THE CHECK on the baseline-ask completion, as the debut row '+JSON.stringify(ev1.refusal||ev1.offers));
+  const f1=EFFECTS.m.foldNativeLoad(a1);
+  assert.deepEqual([wField(f1),exOf(f1.state).native_load_authority===undefined,JSON.stringify(f1.state).includes('adopt:'+LIFT),r22cKinds(f1)],['ABSENT',true,false,[['unlock','DEBUT',60]]],L+' nothing is written: after that completion w ABSENT, no authority, no adoption receipt, the unlock pending');
+ }
+});
+// D-R22L2-1: R9.13 (iv) DEFINITIONS take a queue item with "q.done falsy", and UNCHANGED BY THE RULE lists "done entries".
+// Every earlier fixture's done was a boolean, so a conversion that treats only done === true as done (Fable's mutant X4) agreed
+// with the spec on all of them. A truthy non-boolean done (1, a string) is done: the conversion must leave its entry alone.
+test('R22L2-TRUTHY-DONE-ALV R9.13 (iv) DEFINITIONS ("a LEGACY SCALAR STRUCTURAL ENTRY is a queue item q of S with q.done falsy": an entry whose done is a truthy non-boolean is NOT one) and UNCHANGED BY THE RULE ("done entries") (Fable R22 l2 D-R22L2-1, mutant X4 "q.done|| -> q.done===true||" in the A-LEGACY-VECTOR conversion, which survived 244/244 because every fixture wrote a boolean done): fx-press w 100 wSets [100,100,95] with a finished legacy DEBUT newW 105 whose done is 1 (and, the same, the string \'yes\') -> nothing named and every byte unchanged: no newWSets written, done still 1; its done:true twin (R913-ALV-KINDS\'s done entry) is likewise untouched, and the two states deep-equal once the entry\'s done is read as true. X4 converts the done:1 entry: newWSets [105,105,100] written onto a finished entry',()=>{
+ alvGate();
+ const legacy=s=>s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut');
+ const twin=alvState([LEGQ({done:true,state:'ESTABLISH'})]),tb=JSON.stringify(twin);
+ assert.deepEqual([ALV.fn(twin),JSON.stringify(twin)===tb],[[],true],'the done:true twin: nothing named, byte-identical');
+ for(const done of [1,'yes']){const s=alvState([LEGQ({done,state:'ESTABLISH'})]),before=JSON.stringify(s),named=ALV.fn(s);
+  assert.deepEqual([named,JSON.stringify(s)===before,Object.hasOwn(legacy(s),'newWSets'),legacy(s).done],[[],true,false,done],'done '+JSON.stringify(done)+': nothing named, byte-identical, no newWSets, done unchanged '+JSON.stringify(legacy(s).newWSets));
+  const t=structuredClone(s);legacy(t).done=true;
+  assert.deepEqual(t,twin,'done '+JSON.stringify(done)+': the same state as the done:true twin apart from its own done value');
+ }
+});
+
+// ======================================================================
+// ROUND 22d (test bytes only; Fable R22 l3 REJECT of the round-22c working tree on blocker B-R22L3-1, with named debts
+// D-R22L3-1..5, all six paid here by PM ruling (DECISIONS:834); the head product is unchanged: FC03 b25d2e61,
+// L/source-admission.mjs 10bd5cfb, FC01 92a4a0b4, W/engine-capture.cjs fa68a748). Every value is invented.
+// ======================================================================
+// B-R22L3-1: R9.13 (v) RULE hides "every unfinished LEGACY debut/unlock entry ... of EVERY lift whose projected w is null or
+// ABSENT", and its INVARIANT reads "no registered projection carries an unfinished debut/unlock entry, native or legacy, of a
+// lift whose w is null or ABSENT". Every earlier fixture carried exactly one hideable entry at a time, so a registered
+// projection that hides only the FIRST hideable entry (Fable's mutant z09 in FC03 heldProjection) agreed with the spec on all
+// of them. These two rows carry two at once: two w-null lifts, and one w-null (or ABSENT-w) lift with a debut and an unlock.
+function r22dTwoNullBase(){const b=legacyOverNullBase();b.exercises.find(x=>x.id===ROW).w=null;return b;}
+const r22dInvariant=hp=>hp.queue.filter(q=>q&&!q.done&&(q.kind==='debut'||q.kind==='unlock')&&hp.exercises.some(x=>x&&x.id===q.exId&&x.w==null)).map(q=>[q.exId,q.kind,q.newW]);
+const r22dPair=()=>[LEGQ({newW:60,t:'SYNTHETIC legacy debut press'}),r22cUnlockQ({newW:65})];
+function r22dPairBase(form){if(form==='ABSENT')return absentW(...r22dPair());const b=F0({w:null});b.queue.push(...r22dPair());return b;}
+test('R22L3-EVERY-LIFT-OVER-NULL R9.13 (v) LEGACY-OVER-NULL RULE ("hides every unfinished LEGACY debut/unlock entry (typeof native_load_spend !== \'string\', not done, kind in HIDDEN_LEGACY_KINDS) of EVERY lift whose projected w is null or ABSENT"), INVARIANT ("no registered projection carries an unfinished debut/unlock entry, native or legacy, of a lift whose w is null or ABSENT"), EXPECTED CARD and THE CHECK (Fable R22 l3 B-R22L3-1, mutant z09 "state.queue.filter((q) => !hide(q)) -> state.queue.filter((q, i) => !hide(q) || i !== state.queue.findIndex(hide))" in FC03 heldProjection, which hides only the first hideable entry and survived 247/247 and FA03 50/50 because every fixture carried one hideable entry at a time): the R913-LEGACY-OVER-NULL-UNHELD base with fx-row ALSO never held at w null (two w-null lifts, each with its own pending legacy DEBUT 60) -> the fold state keeps both entries pending and both w null, no issue on either lift; the registered projection hides BOTH entries (0 visible for each lift; the INVARIANT holds); both cards are the baseline ask and the day prepares; the check on each lift\'s baseline-ask completion (one shared Close) refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue (E/native-load.cjs:222), and nothing is written: after it both w stay null, no authority, no adoption receipt, both entries pending; typed v2 and host v1, R1 and R2. Under z09 fx-row\'s debut is shown and the capture refuses the day ENGINE_CAPTURE_BASELINE_UNPROVEN',()=>{
+ effectsGate();
+ const rowOf=s=>s.exercises.find(x=>x.id===ROW);
+ for(const v1 of [false,true])for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev,b=r22dTwoNullBase();
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,b)),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([exOf(f.state).w,rowOf(f.state).w,b2Issues(f),b2Issues(f,ROW),legacyPending(f),legacyPending(f,ROW)],[null,null,[],[],[['DEBUT',60]],[['DEBUT',60]]],L+' the fold state keeps both legacy entries pending over two w-null lifts; neither lift is held');
+  let row;try{row=cardLoads(hp,{lift:ROW});}catch(err){row=String(err&&err.code||err);}
+  assert.deepEqual([hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).length,hp.queue.filter(q=>q&&q.exId===ROW&&!q.done).length,r22dInvariant(hp),b39Card(hp),row],[0,0,[],[null,null,null],[null,null,null]],L+' R9.13 (v): the registered projection hides BOTH lifts\' legacy entries (EVERY lift; the INVARIANT holds); both cards are the baseline ask and the day prepares');
+  const c1t=twoLift(1,{reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),c1=v1?v1Of(c1t):c1t;
+  const a=foldArgs([c1],[],rev,r22dTwoNullBase());if(v1)captureOn(a.generation,c1,[null,null,null]);
+  for(const lift of [LIFT,ROW]){const ev=checkOf(a,lift,c1);
+   assert.deepEqual([ev.status,ev.refusal&&ev.refusal.code,ev.refusal&&ev.refusal.refs,ev.refusal&&ev.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'queue'],L+' THE CHECK on '+lift+'\'s baseline-ask completion '+JSON.stringify(ev.refusal||ev.offers));}
+  const f1=EFFECTS.m.foldNativeLoad(a),j1=JSON.stringify(f1.state);
+  assert.deepEqual([exOf(f1.state).w,rowOf(f1.state).w,exOf(f1.state).native_load_authority===undefined,rowOf(f1.state).native_load_authority===undefined,j1.includes('adopt:'+LIFT),j1.includes('adopt:'+ROW),legacyPending(f1),legacyPending(f1,ROW)],[null,null,true,true,false,false,[['DEBUT',60]],[['DEBUT',60]]],L+' nothing is written: after that completion both w null, no authority, no adoption receipt, both entries pending');
+ }
+});
+test('R22L3-EVERY-ENTRY-OVER-NULL R9.13 (v) LEGACY-OVER-NULL RULE ("hides every unfinished LEGACY debut/unlock entry ... of EVERY lift whose projected w is null or ABSENT"), INVARIANT ("no registered projection carries an unfinished debut/unlock entry, native or legacy, of a lift whose w is null or ABSENT"), EXPECTED CARD and THE CHECK (Fable R22 l3 B-R22L3-1, mutant z09 "state.queue.filter((q) => !hide(q)) -> state.queue.filter((q, i) => !hide(q) || i !== state.queue.findIndex(hide))" in FC03 heldProjection): one never-held fx-press carrying a pending legacy DEBUT 60 AND a pending legacy UNLOCK 65 at once, with w null and again with NO w field -> the fold keeps both entries pending and w as admitted, no issue; the registered projection hides BOTH entries (0 visible; the INVARIANT holds); the card is the baseline ask and the day prepares; the check on the baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue (E/native-load.cjs:222), and nothing is written: after it w as admitted, no authority, no adoption receipt, both entries pending; typed v2 and host v1, R1 and R2. Under z09 the unlock is shown and the capture refuses the day ENGINE_CAPTURE_BASELINE_UNPROVEN',()=>{
+ effectsGate();
+ const both=[['debut','DEBUT',60],['unlock','DEBUT',65]];
+ for(const form of ['null','ABSENT'])for(const v1 of [false,true])for(const rev of [R1,R2]){const L=form+'-w '+(v1?'v1 ':'v2 ')+rev,wAs=form==='null'?null:'ABSENT';
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,r22dPairBase(form))),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([wField(f),b2Issues(f),r22cKinds(f)],[wAs,[],both],L+' the fold keeps both legacy entries pending and w as admitted; never held');
+  assert.deepEqual([hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).length,r22dInvariant(hp),b39Card(hp)],[0,[],[null,null,null]],L+' R9.13 (v): the registered projection hides BOTH entries (EVERY entry; the INVARIANT holds); the card is the baseline ask and the day prepares');
+  const c1=l14c1(v1),a=l14at(v1)([],r22dPairBase(form),rev,[c1]),ev=checkOf(a,LIFT,c1);
+  assert.deepEqual([ev.status,ev.refusal&&ev.refusal.code,ev.refusal&&ev.refusal.refs,ev.refusal&&ev.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'queue'],L+' THE CHECK on the baseline-ask completion '+JSON.stringify(ev.refusal||ev.offers));
+  const f1=EFFECTS.m.foldNativeLoad(a);
+  assert.deepEqual([wField(f1),exOf(f1.state).native_load_authority===undefined,JSON.stringify(f1.state).includes('adopt:'+LIFT),r22cKinds(f1)],[wAs,true,false,both],L+' nothing is written: after that completion w as admitted, no authority, no adoption receipt, both entries pending');
+ }
+});
+// D-R22L3-1: R9.13 (v) hides for a w that is "null or ABSENT" only; a lift at w 0 is a numeric-w lift, whose pending legacy
+// debut stays visible and whose card prescribes newW (E/today.cjs:98). Every earlier w was null, ABSENT or positive, so a hide on
+// a falsy w (Fable's mutant z04) agreed with the spec on all of them.
+test('R22L3-ZERO-W-VISIBLE R9.13 (v) LEGACY-OVER-NULL RULE ("of EVERY lift whose projected w is null or ABSENT": w 0 is neither) and its numeric-w side ("the same entry on a lift with numeric w ... stays visible, and the card prescribes ... as today (E/today.cjs:98)", R913-LEGACY-OVER-NULL-CONTROL) (Fable R22 l3 D-R22L3-1, mutant z04 "x && x.w == null -> x && !x.w" in FC03 heldProjection, which survived 247/247 and FA03 50/50): fx-press at w 0 (no wSets) with a pending legacy DEBUT newW 5 -> the fold keeps w 0 and the entry pending, no issue; the registered projection keeps w 0 and the entry visible, and the card prescribes 5 on every set through the real capture; R1 and R2. Under z04 the entry is hidden and the card falls back to the w 0 scalar',()=>{
+ effectsGate();
+ for(const rev of [R1,R2]){const b=F0({w:0});b.queue.push(LEGQ({newW:5}));
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,b)),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([exOf(f.state).w,b2Issues(f),legacyPending(f)],[0,[],[['DEBUT',5]]],rev+' the fold keeps w 0 and the legacy DEBUT 5 pending');
+  assert.deepEqual([exOf(hp).w,hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).map(q=>[q.kind,q.state,q.newW]),b39Card(hp)],[0,[['debut','DEBUT',5]],[5,5,5]],rev+' R9.13 (v): w 0 is not null or ABSENT: the entry stays visible and the card prescribes 5 on every set');
+ }
+});
+// D-R22L3-2: R9.13 (v) hides kind in HIDDEN_LEGACY_KINDS (FC03:250: debut and unlock) only. FC01's STRUCTURAL
+// (E/native-load.cjs:20) also lists own, reclaim and ladder, which THE CHECK reads, but the registered projection keeps them.
+// No earlier fixture carried a pending own/reclaim/ladder entry, so widening the hide set to STRUCTURAL (z06) agreed with all.
+test('R22L3-OTHER-KINDS-KEPT R9.13 (v) LEGACY-OVER-NULL RULE ("kind in HIDDEN_LEGACY_KINDS, :250", the set {debut, unlock}; "only the registered projection changes ... nothing durable is written") (Fable R22 l3 D-R22L3-2, mutant z06 "new Set([\'debut\', \'unlock\']) -> new Set([\'debut\', \'unlock\', \'own\', \'reclaim\', \'ladder\'])" in FC03, FC01\'s STRUCTURAL set, which survived 247/247 and FA03 50/50): a never-held fx-press at w null with a pending legacy entry of kind own (and, the same, reclaim and ladder) beside a pending legacy DEBUT 60 -> the fold keeps both pending, no issue; the registered projection hides the debut only and keeps the own/reclaim/ladder entry; the card is the baseline ask and the day prepares (E/today.cjs:55 picks debut/unlock only); R1 and R2. Under z06 the own/reclaim/ladder entry is hidden too',()=>{
+ effectsGate();
+ for(const kind of ['own','reclaim','ladder'])for(const rev of [R1,R2]){const L=kind+' '+rev,b=F0({w:null});
+  b.queue.push({exId:LIFT,kind,done:false,state:'DEBUT',newW:60,t:'SYNTHETIC legacy '+kind+' press'},LEGQ({newW:60}));
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,b)),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([exOf(f.state).w,b2Issues(f),r22cKinds(f)],[null,[],[[kind,'DEBUT',60],['debut','DEBUT',60]]],L+' the fold keeps both legacy entries pending; never held');
+  assert.deepEqual([r22cKinds({state:hp}),b39Card(hp)],[[[kind,'DEBUT',60]],[null,null,null]],L+' R9.13 (v): the registered projection hides the debut only and keeps the '+kind+' entry; the card is the baseline ask and the day prepares');
+ }
+});
+// D-R22L3-3: R9.13 (iv) DEFINITIONS take "q.kind 'debut' or 'unlock'" only, and the CONVERSION writes nothing else ("every
+// other entry ... unchanged"). No earlier ALV fixture carried another kind with a finite newW on a vector lift, so dropping the
+// kind clause (Fable's mutant y02) agreed with the spec on all of them.
+test('R22L3-OTHER-KINDS-ALV R9.13 (iv) DEFINITIONS ("q.kind \'debut\' or \'unlock\'") and CONVERSION ("Nothing else is written: q.newW, q.state, q.t, every other entry, ex.w and ex.wSets are unchanged") (Fable R22 l3 D-R22L3-3, mutant y02 "||(q.kind!==\'debut\'&&q.kind!==\'unlock\')|| -> ||" in the A-LEGACY-VECTOR conversion, which survived 247/247): fx-press w 100 wSets [100,100,95] with a pending legacy entry of kind own (and, the same, reclaim, ladder and info) carrying newW 105 and no newWSets -> nothing named and every byte unchanged (no newWSets); beside R913-ALV-KINDS\'s pending legacy DEBUT newW 105 in the same state the debut converts to [105,105,100] and the other entry stays byte-identical. y02 writes newWSets [105,105,100] onto the own entry',()=>{
+ alvGate();
+ const other=s=>s.queue.find(x=>x&&x.t==='SYNTHETIC legacy other');
+ for(const kind of ['own','reclaim','ladder','info']){
+  const s=alvState([LEGQ({kind,t:'SYNTHETIC legacy other'})]),before=JSON.stringify(s),named=ALV.fn(s);
+  assert.deepEqual([named,JSON.stringify(s)===before,Object.hasOwn(other(s),'newWSets')],[[],true,false],kind+' alone: nothing named, byte-identical, no newWSets '+JSON.stringify(other(s).newWSets));
+  const m=alvState([LEGQ(),LEGQ({kind,t:'SYNTHETIC legacy other'})]),ob=JSON.stringify(other(m)),mn=ALV.fn(m);
+  assert.deepEqual([mn,m.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut').newWSets,JSON.stringify(other(m))===ob],[[],[105,105,100],true],kind+' beside a debut: the debut converts and the '+kind+' entry is byte-identical '+JSON.stringify(other(m).newWSets));
+ }
+});
+// D-R22L3-4: R9.13 (iv) DEFINITIONS take "q.state !== 'PROPOSED'": an entry in any other state, or with no state key, is a
+// legacy scalar structural entry. Every converted fixture had state DEBUT, so a clause narrowed to q.state === 'DEBUT' (Fable's
+// mutant y05) agreed with the spec on all of them.
+test('R22L3-STATE-NOT-PROPOSED-ALV R9.13 (iv) DEFINITIONS ("q.state !== \'PROPOSED\'": any other state, or none, is in) and CONVERSION (Fable R22 l3 D-R22L3-4, mutant y05 "q.state===\'PROPOSED\' -> q.state!==\'DEBUT\'" in the A-LEGACY-VECTOR conversion, which survived 247/247 because every converted fixture had state DEBUT): fx-press w 100 wSets [100,100,95] with a pending legacy DEBUT newW 105 whose state is QUEUED, and again one with NO state key -> each converts exactly like the DEBUT-state entry: newWSets [105,105,100], nothing named, nothing else written (the state, or its absence, kept), no set above 105; the card captures [105,105,100]; unconverted, the same day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED (E/today.cjs:55 picks any non-PROPOSED entry). y05 leaves both unconverted, so their day refuses',()=>{
+ effectsGate();alvGate();
+ const legacy=s=>s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut'),twin=alvState([LEGQ()]);ALV.fn(twin);
+ for(const [name,mk,kept] of [['state QUEUED',()=>alvState([LEGQ({state:'QUEUED'})]),['QUEUED',true]],['no state key',()=>{const q=LEGQ();delete q.state;return alvState([q]);},[undefined,false]]]){
+  const s=mk();
+  assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED',name+' control: unconverted, the day refuses (W/engine-capture.cjs:83)');
+  alvRow(s,[105,105,100],name);
+  assert.deepEqual([legacy(s).state,Object.hasOwn(legacy(s),'state')],kept,name+': the state kept as admitted');
+  assert.deepEqual(legacy(s).newWSets,legacy(twin).newWSets,name+': converted exactly like the DEBUT-state twin (R913-ALV-CONVERT)');
+ }
+});
+// D-R22L3-5: R9.13 (iv) PRECONDITION P takes "typeof ex.w === 'number' and finite". R913-ALV-P's non-numeric w was 'BW', which
+// fails P under a w-type clause and under a bare null test alike (NaN comparisons), so replacing the clause by ex.w==null
+// (Fable's mutant y16) agreed with the spec there; a numeric STRING w is coerced by that mutant and converted.
+test('R22L3-STRING-W-ALV R9.13 (iv) PRECONDITION P ("typeof ex.w === \'number\' and finite") and OUT OF PRECONDITION ("w not a finite number ... is left unconverted and named ...; its day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED (:83) as today, and nothing is raised") (Fable R22 l3 D-R22L3-5, mutant y16 "typeof ex.w!==\'number\'||!Number.isFinite(ex.w)|| -> ex.w==null||" in the A-LEGACY-VECTOR conversion, which survived 247/247): fx-press with the numeric STRING w \'100\', wSets [100,100,95] and a pending legacy DEBUT newW 105 -> named exactly [{exId fx-press, kind debut, newW 105, w \'100\', wSets [100,100,95]}] and every byte unchanged (no newWSets); the day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED. y16 coerces \'100\' and writes [105,105,100]',()=>{
+ effectsGate();alvGate();
+ const s=alvState([LEGQ()],{w:'100',wSets:[100,100,95]}),before=JSON.stringify(s),named=ALV.fn(s),q=s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut');
+ assert.deepEqual(named,[{exId:LIFT,kind:'debut',newW:105,w:'100',wSets:[100,100,95]}],'a numeric-string w fails P: named '+JSON.stringify(q.newWSets));
+ assert.deepEqual([JSON.stringify(s)===before,Object.hasOwn(q,'newWSets')],[true,false],'unconverted: byte-identical, no newWSets');
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','the day refuses as today (W/engine-capture.cjs:83)');
+});
+
+// ======================================================================
+// ROUND 22e (test bytes only; Fable R22 l4 REJECT of the round-22d working tree on blockers B-R22L4-1 and B-R22L4-2, with named
+// debts D-R22L4-1..3, all five paid here by PM ruling; the head product is unchanged: FC03 b25d2e61, L/source-admission.mjs
+// 10bd5cfb, FC01 92a4a0b4, W/engine-capture.cjs fa68a748). Every value is invented.
+// ======================================================================
+// B-R22L4-1: R9.13 (v) EXPECTED CARD says "The day's other lifts are unaffected", THE CHECK is stated "on that baseline-ask
+// completion" (the w-null lift's), and "FC01's LEGACY_PENDING rules (E/native-load.cjs:221-222 in evaluation ...) are unchanged";
+// spec B returns LEGACY_PENDING for a legacy branch "for the lift". Every earlier two-lift legacy fixture gave BOTH lifts an
+// entry, so a check that refuses on ANY lift's pending legacy structural entry (Fable's mutant k05, FC01 :222 "q.exId === lift
+// -> true") agreed with the spec on all of them. This row gives fx-row NO entry beside fx-press's.
+function r22eOtherLiftBase(withPressEntry){const b=legacyOverNullBase();b.queue=b.queue.filter(q=>!(q&&(q.exId===ROW||(!withPressEntry&&q.exId===LIFT))));return b;}
+// The completion of one lift of a shared Close, performed on that lift's numeric card (slot prescribed_load and loads set).
+function r22eAtCard(c,lift,load){const en=c.session.record.entries.find(x=>x.lift_lineage_id===lift);
+ for(const slot of en.slots){slot.prescribed_load={state:'specified',source:lb(load)};if(slot.fact){slot.fact.original.load=lb(load);slot.fact.current.load=lb(load);}}return c;}
+// The immutable Start capture of a shared Close, per lift (captureOn writes one load list for every entry), in fc16Capture's
+// shape: a load cell per slot and, on a numeric card, a reps cell whose window_hi is the base plan's hi.
+function r22eCaptureBy(gen,c,byLift,hi){
+ gen.collections.ops[c.start].prescription_capture={slots:c.session.record.entries.flatMap(en=>en.slots.map((slot,i)=>{const l=byLift[en.lift_lineage_id][i];
+  return {logical_set_slot:slot.logical_set_slot,lift_lineage_id:en.lift_lineage_id,load:l==null?{state:'not_prescribed',display:'Find a working load',source_json:null}:{state:'specified',display:l+' lb',source_json:JSON.stringify({value:l,unit:'lb'})},
+   reps:l==null?{state:'not_prescribed',display:'Record the reps performed',source_json:null}:{state:'specified',display:String(hi),source_json:JSON.stringify({value:hi,unit:'rep',window_hi:hi})}};}))};
+ return gen;
+}
+test('R22L4-CHECK-OTHER-LIFT-UNAFFECTED R9.13 (v) EXPECTED CARD ("The day\'s other lifts are unaffected") and THE CHECK ("THE CHECK on that baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING, refs [its Close Ref], field \'queue\' (E/native-load.cjs:222)"; "FC01\'s LEGACY_PENDING rules (E/native-load.cjs:221-222 in evaluation ...) are unchanged"; spec B: a legacy branch "for the lift" returns LEGACY_PENDING) (Fable R22 l4 B-R22L4-1, mutant k05 "q.exId === lift -> true" at FC01 :222, which survived 254/254 and FA03 51/51 because every two-lift legacy fixture gave both lifts an entry): the R913-LEGACY-OVER-NULL-UNHELD base minus fx-row\'s entry (fx-press never held at w null with a pending legacy DEBUT 60; fx-row at w 55 with NO entry) -> the fold keeps fx-press\'s entry pending and fx-row entry-free, no issue on either lift; the registered projection hides fx-press\'s entry, fx-press\'s card is the baseline ask and fx-row\'s is 55 on every set; on one shared Close (fx-press on the baseline ask, fx-row on its 55 card) THE CHECK on fx-press refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue, and the check on fx-row is NOT LEGACY_PENDING: it equals fx-row\'s check on the same Close over the same base without fx-press\'s entry (status, refusal, offers and every basis field but the digest of the whole day\'s queue; the other lift unaffected), the ordinary first top NATIVE_LOAD_PROVISIONAL [its Close Ref]; typed v2 and host v1, R1 and R2. Under k05 fx-row\'s check refuses NATIVE_LOAD_LEGACY_PENDING too',()=>{
+ effectsGate();
+ const rowOf=s=>s.exercises.find(x=>x.id===ROW),brief=ev=>[ev.status,ev.refusal&&ev.refusal.code,ev.refusal&&ev.refusal.field];
+ // basis.plan.structural_queue_sha256 hashes the whole day's queue (FC03 basisOf), fx-press's entry included, so it is the one
+ // byte that may differ; the outcome (status, refusal, offers) and every other basis field must not.
+ const outcome=ev=>({status:ev.status,refusal:ev.refusal,offers:ev.offers,basis:ev.basis&&{...ev.basis,plan:{...ev.basis.plan,structural_queue_sha256:'(the whole day queue)'}}});
+ for(const v1 of [false,true])for(const rev of [R1,R2]){const L=(v1?'v1 ':'v2 ')+rev;
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,r22eOtherLiftBase(true))),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([exOf(f.state).w,rowOf(f.state).w,b2Issues(f),b2Issues(f,ROW),legacyPending(f),legacyPending(f,ROW)],[null,55,[],[],[['DEBUT',60]],[]],L+' the fold keeps fx-press\'s legacy entry pending and fx-row entry-free; neither lift is held');
+  let row;try{row=cardLoads(hp,{lift:ROW});}catch(err){row=String(err&&err.code||err);}
+  assert.deepEqual([hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).length,b39Card(hp),row],[0,[null,null,null],[55,55,55]],L+' R9.13 (v): fx-press\'s entry hidden, its card the baseline ask; fx-row\'s card 55 on every set');
+  const t=r22eAtCard(twoLift(1,{reps:TOP,loads:60,prescribed:null,effort:e(2,1,1)}),ROW,55),c1=v1?v1Of(t):t;
+  const at=base=>{const a=foldArgs([c1],[],rev,base);if(v1)r22eCaptureBy(a.generation,c1,{[LIFT]:[null,null,null],[ROW]:[55,55,55]},exOf(base).hi);return a;};
+  const a=at(r22eOtherLiftBase(true)),twin=at(r22eOtherLiftBase(false));
+  const press=checkOf(a,LIFT,c1),rowEv=checkOf(a,ROW,c1),rowTwin=checkOf(twin,ROW,c1);
+  assert.deepEqual([press.status,press.refusal&&press.refusal.code,press.refusal&&press.refusal.refs,press.refusal&&press.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'queue'],L+' THE CHECK on fx-press\'s baseline-ask completion '+JSON.stringify(press.refusal||press.offers));
+  assert.notEqual(rowEv.refusal&&rowEv.refusal.code,'NATIVE_LOAD_LEGACY_PENDING',L+' fx-row carries no legacy entry: its check is not LEGACY_PENDING '+JSON.stringify(brief(rowEv)));
+  assert.deepEqual(outcome(rowEv),outcome(rowTwin),L+' R9.13 (v) "the day\'s other lifts are unaffected": fx-row\'s check equals its check without fx-press\'s entry (only the basis digest of the whole day\'s queue differs) '+JSON.stringify([brief(rowEv),brief(rowTwin)]));
+  assert.deepEqual([rowEv.status,rowEv.refusal&&rowEv.refusal.code,rowEv.refusal&&rowEv.refusal.refs,rowEv.refusal&&rowEv.refusal.field],['refused','NATIVE_LOAD_PROVISIONAL',[ref(c1.close)],null],L+' measured: fx-row\'s one top completion reaches the earn readers and is the ordinary first top, PROVISIONAL [its Close Ref] (N03a)');
+ }
+});
+// B-R22L4-2: R9.13 (v) RULE "Only the registered projection changes" and "the entry, its history and the fold state are
+// unchanged" (it hides; it does not reorder), and EXPECTED CARD "The day's other lifts are unaffected". E/today.cjs:55 picks the
+// FIRST unfinished non-PROPOSED debut/unlock in QUEUE ORDER and :97-98 prescribes that lift's first such entry's newW, so the
+// order of the kept entries is the other lift's card. Every earlier fixture kept at most one structural entry per lift beside a
+// hidden one, so a projection that reverses the kept entries whenever it hides (Fable's mutant w07) agreed with all of them.
+// Measured on the head: the real capture refuses a day whose debut-now lift carries MORE than one unfinished debut/unlock entry
+// (W/engine-capture.cjs:76-77, "Multiple matching moves do not prove which load vector won": ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED),
+// with or without the hide, so fx-row's two-entry card is read at E/today.cjs genSession (the engine's own card), and the day's
+// capture outcome is compared with the same base without fx-press's entry. The structural-slot form (one entry per lift beside a
+// third lift fx-curl) shows the kept order at the real capture: the first remaining debut in queue order takes the slot.
+const R22E_CURL='fx-curl';
+function r22eOrderBase(withPressEntry){const b=legacyOverNullBase();if(!withPressEntry)b.queue=b.queue.filter(q=>!(q&&q.exId===LIFT));
+ b.queue.push({exId:ROW,kind:'unlock',done:false,state:'DEBUT',newW:65,t:'SYNTHETIC legacy unlock row'});return b;}
+function r22eSlotBase(withPressEntry){const b=legacyOverNullBase();if(!withPressEntry)b.queue=b.queue.filter(q=>!(q&&q.exId===LIFT));
+ b.exercises.push({...structuredClone(exOf(b)),id:R22E_CURL,n:'Fx Curl',w:45});b.queue.push({exId:R22E_CURL,kind:'debut',done:false,state:'DEBUT',newW:50,t:'SYNTHETIC legacy debut curl'});return b;}
+test('R22L4-KEPT-ORDER-OVER-NULL R9.13 (v) LEGACY-OVER-NULL RULE ("Only the registered projection changes"; "the entry, its history and the fold state are unchanged": the projection hides and keeps every other entry as it is) and EXPECTED CARD ("The day\'s other lifts are unaffected"; E/today.cjs:55 and :97-98 read the queue in order) (Fable R22 l4 B-R22L4-2, mutant w07 "state.queue.filter((q) => !hide(q)) -> state.queue.filter((q) => !hide(q)).reverse()" in FC03 heldProjection, which survived 254/254 and FA03 51/51 because every fixture kept at most one structural entry per lift beside a hidden one): the R913-LEGACY-OVER-NULL-UNHELD base (fx-press never held at w null with a pending legacy DEBUT 60; fx-row at w 55 with a pending legacy DEBUT 60) plus a pending legacy UNLOCK 65 on fx-row after its debut -> the fold keeps the three entries pending in the order admitted; the registered projection is the fold queue minus fx-press\'s entry, every kept entry in fold order (fx-row: [debut 60, unlock 65]); fx-row\'s engine card (E/today.cjs genSession) takes its first entry in queue order, w 60, exactly as over the same base without fx-press\'s entry, and the day\'s capture outcome equals that base\'s (ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED: two matching moves on one lift, W/engine-capture.cjs:76-77, not an R9.13 rule). Structural-slot form: the same base with fx-row\'s debut 60 alone before a third lift fx-curl (w 45) with its own pending legacy DEBUT 50 -> the projection keeps fold order, fx-press is the baseline ask, the first remaining debut in queue order (fx-row\'s) takes the structural slot: fx-row 60 and fx-curl 45 on every set through the real capture, as without fx-press\'s entry; R1 and R2. Under w07 fx-row\'s unlock comes first (engine card 65), and in the slot form fx-curl\'s debut takes the slot (fx-curl 50, fx-row 55)',()=>{
+ effectsGate();
+ const hidden=q=>!!q&&q.exId===LIFT&&q.t==='SYNTHETIC legacy debut press';
+ const reg=(rev,b)=>{const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,b));return {f,hp:EFFECTS.m.heldProjection(f).state};};
+ const genCard=(state,lift)=>{const c=engineAt(CARD_DAY).genSession(structuredClone(state),CARD_DAY,{}).ex.find(x=>x.id===lift);return c?[c.w,c.isDebutNow===true]:'ABSENT';};
+ const day=(hp,lift)=>{try{return cardLoads(hp,{lift});}catch(err){return String(err&&err.code||err);}};
+ for(const rev of [R1,R2]){
+  const {f,hp}=reg(rev,r22eOrderBase(true)),twin=reg(rev,r22eOrderBase(false)).hp;
+  assert.deepEqual([b2Issues(f),b2Issues(f,ROW),r22cKinds(f),r22cKinds(f,ROW)],[[],[],[['debut','DEBUT',60]],[['debut','DEBUT',60],['unlock','DEBUT',65]]],rev+' the fold keeps the three legacy entries pending, fx-row\'s in the order admitted');
+  assert.deepEqual(hp.queue,f.state.queue.filter(q=>!hidden(q)),rev+' R9.13 (v): the registered projection only hides fx-press\'s entry and keeps every other entry in fold order');
+  assert.deepEqual([r22cKinds({state:hp},ROW),genCard(hp,ROW),genCard(twin,ROW)],[[['debut','DEBUT',60],['unlock','DEBUT',65]],[60,true],[60,true]],rev+' fx-row\'s kept entries in fold order; its engine card (E/today.cjs:55, :97-98) takes the first, the DEBUT 60, as over the same base without fx-press\'s entry');
+  assert.deepEqual([day(hp,ROW),day(twin,ROW)],['ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'],rev+' the day\'s capture outcome is the one over the same base without fx-press\'s entry (two matching moves on fx-row, W/engine-capture.cjs:76-77)');
+  const s=reg(rev,r22eSlotBase(true)),st=reg(rev,r22eSlotBase(false)).hp;
+  assert.deepEqual([r22cKinds(s.f),r22cKinds(s.f,ROW),r22cKinds(s.f,R22E_CURL)],[[['debut','DEBUT',60]],[['debut','DEBUT',60]],[['debut','DEBUT',50]]],rev+' slot form: the fold keeps the three legacy entries pending');
+  assert.deepEqual(s.hp.queue,s.f.state.queue.filter(q=>!hidden(q)),rev+' slot form R9.13 (v): only fx-press\'s entry hidden, fold order kept');
+  assert.deepEqual([b39Card(s.hp),day(s.hp,ROW),day(s.hp,R22E_CURL)],[[null,null,null],[60,60,60],[45,45,45]],rev+' slot form R9.13 (v) EXPECTED CARD: fx-press is the baseline ask; the first remaining debut in queue order (fx-row\'s) takes the structural slot (E/today.cjs:55): fx-row 60, fx-curl at its w 45');
+  assert.deepEqual([day(st,ROW),day(st,R22E_CURL)],[[60,60,60],[45,45,45]],rev+' slot form: the same cards over the base without fx-press\'s entry (the other lifts unaffected)');
+ }
+});
+// D-R22L4-1: FC01 :222 refuses a pending legacy entry of any STRUCTURAL kind (E/native-load.cjs:20: debut, unlock, own, reclaim,
+// ladder), spec B "Existing active legacy debut/unlock/own/reclaim/ladder/pendingThird branches ... return LEGACY_PENDING with the
+// named queue/branch reference", unchanged by R9.13 (v). R22L3-OTHER-KINDS-KEPT built the own/reclaim/ladder fixture beside a
+// debut and never ran the check, so narrowing :222 to debut/unlock (Fable's mutant k03) agreed with every row.
+test('R22L4-OTHER-KINDS-CHECK R9.13 (v) ("FC01\'s LEGACY_PENDING rules (E/native-load.cjs:221-222 in evaluation, :544 in transition) are unchanged"; "kind in HIDDEN_LEGACY_KINDS, :250": the registered projection keeps the entry) and spec B ("Existing active legacy debut/unlock/own/reclaim/ladder/pendingThird branches ... return LEGACY_PENDING with the named queue/branch reference") (Fable R22 l4 D-R22L4-1, mutant k03 "STRUCTURAL.includes(q.kind) -> [\'debut\', \'unlock\'].includes(q.kind)" at FC01 :222, which survived 254/254 and FA03 51/51): R22L3-OTHER-KINDS-KEPT\'s fixture with the debut removed: a never-held fx-press at w null with a pending legacy entry of kind own (and, the same, reclaim and ladder; state DEBUT, newW 60) alone -> the fold keeps it pending, no issue; the registered projection keeps it and the card is the baseline ask; THE CHECK on the baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue, and nothing is written: after it w null, no authority, no adoption receipt, the entry pending; typed v2 and host v1, R1 and R2. Under k03 the check passes :222 and no longer refuses LEGACY_PENDING',()=>{
+ effectsGate();
+ for(const kind of ['own','reclaim','ladder'])for(const v1 of [false,true])for(const rev of [R1,R2]){const L=kind+' '+(v1?'v1 ':'v2 ')+rev;
+  const base=()=>{const b=F0({w:null});b.queue.push({exId:LIFT,kind,done:false,state:'DEBUT',newW:60,t:'SYNTHETIC legacy '+kind+' press'});return b;};
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,base())),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([exOf(f.state).w,b2Issues(f),r22cKinds(f)],[null,[],[[kind,'DEBUT',60]]],L+' the fold keeps the legacy '+kind+' entry pending; never held');
+  assert.deepEqual([r22cKinds({state:hp}),b39Card(hp)],[[[kind,'DEBUT',60]],[null,null,null]],L+' the registered projection keeps the '+kind+' entry; the card is the baseline ask');
+  const c1=l14c1(v1),a=l14at(v1)([],base(),rev,[c1]),ev=checkOf(a,LIFT,c1);
+  assert.deepEqual([ev.status,ev.refusal&&ev.refusal.code,ev.refusal&&ev.refusal.refs,ev.refusal&&ev.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'queue'],L+' THE CHECK on the baseline-ask completion (E/native-load.cjs:222) '+JSON.stringify(ev.refusal||ev.offers));
+  const f1=EFFECTS.m.foldNativeLoad(a);
+  assert.deepEqual([exOf(f1.state).w,exOf(f1.state).native_load_authority===undefined,JSON.stringify(f1.state).includes('adopt:'+LIFT),r22cKinds(f1)],[null,true,false,[[kind,'DEBUT',60]]],L+' nothing is written: after that completion w null, no authority, no adoption receipt, the entry pending');
+ }
+});
+// D-R22L4-2: FC01 :223 refuses a legacy EXERCISE branch ((ex.std && ex.own) || ex.reclaim || ex.ladder || ex.pendingThird) with
+// field 'exercise' (spec B "the named queue/branch reference": the branch, not a queue entry). No row named field 'exercise', so
+// that branch's field changed to 'queue' (Fable's mutant k06) agreed with every row. Invented branch values in the old app's
+// shapes (E/writers.cjs:263-325: std and reclaim arrays, own a boolean, ladder an object with a set index).
+test('R22L4-EXERCISE-BRANCH-FIELD R9.13 (v) ("FC01\'s LEGACY_PENDING rules (E/native-load.cjs:221-222 in evaluation, :544 in transition) are unchanged") and spec B ("Existing active legacy debut/unlock/own/reclaim/ladder/pendingThird branches ... return LEGACY_PENDING with the named queue/branch reference") (Fable R22 l4 D-R22L4-2, mutant k06 "refuse(\'LEGACY_PENDING\', [closeRef], \'exercise\') -> ... \'queue\'" at FC01 :223, which survived 254/254 and FA03 51/51): fx-press at w 100 with no queue entry and a legacy exercise branch (std [100,100,95] with own true; reclaim [90,90,90]; ladder {set 1}; pendingThird true), one normal completion on the 100 card -> THE CHECK refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] with field exercise (the branch, not the queue); typed v2 and host v1, R1 and R2. Under k06 the field is queue',()=>{
+ effectsGate();
+ for(const [name,patch] of [['std and own',{std:[100,100,95],own:true}],['reclaim',{reclaim:[90,90,90]}],['ladder',{ladder:{set:1}}],['pendingThird',{pendingThird:true}]])for(const v1 of [false,true])for(const rev of [R1,R2]){
+  const L=name+' '+(v1?'v1 ':'v2 ')+rev,t=C(1,{reps:TOP,effort:e(2,1,1)}),c1=v1?v1Of(t):t,a=foldArgs([c1],[],rev,F0(patch));if(v1)captureOn(a.generation,c1,[100,100,100]);
+  const ev=checkOf(a,LIFT,c1);
+  assert.deepEqual([ev.status,ev.refusal&&ev.refusal.code,ev.refusal&&ev.refusal.refs,ev.refusal&&ev.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'exercise'],L+' THE CHECK on a legacy exercise branch (E/native-load.cjs:223) '+JSON.stringify(ev.refusal||ev.offers));
+ }
+});
+
+// ======================================================================
+// ROUND 23 (test bytes only; Astra L15 REJECT of bd7654a (the round-22d bytes) on six TEST-COVERAGE blockers B1-B6, all six paid
+// here by PM ruling; the head product is unchanged: FC03 b25d2e61, L/source-admission.mjs 10bd5cfb, FC01 92a4a0b4,
+// W/engine-capture.cjs fa68a748). Each row pins a boundary spec R9.13 (iv) or (v) states that one of Astra's single-clause
+// mutants (P/new-manifest.json: L15-N02, -N09, -N10 and -N12 in the A-LEGACY-VECTOR conversion; L15-N13 and -N14 in FC03
+// heldProjection's hide predicate) crossed while every earlier row stayed green (measured again on the round-22e bytes: 258/258
+// and FA03 54/54 under each). Every value is invented.
+// ======================================================================
+// L15-B1: R9.13 (iv) CONVERSION is the SIGNED shift x + (q.newW - ex.w); nothing in (iv) excludes q.newW < ex.w (D-R13L1-3 names
+// that case). Every earlier ALV input had q.newW >= ex.w, so a shift by the absolute difference (Astra's mutant N02) agreed with the
+// spec on all of them. This input shifts downward and keeps every element >= 0.
+test('L15-B1-SIGNED-DELTA-ALV R9.13 (iv) CONVERSION ("q.newWSets = ex.wSets.map((x) => x + (q.newW - ex.w))": a signed shift, newW below w included; PROPERTIES "every element is <= q.newW") (Astra L15 B1, mutant N02 "x+(q.newW-ex.w) -> x+Math.abs(q.newW-ex.w)" at L/source-admission.mjs:859, which survived 254/254 and FA03 51/51 because every earlier ALV input had newW >= w): fx-press w 100, wSets [100,95,90] and a pending legacy DEBUT newW 95 (below w) -> newWSets exactly [95,90,85] (every set - 5), nothing named, w 100, wSets [100,95,90] and newW 95 unchanged and nothing else written, no set above 95; the card captures [95,90,85] through the real capture; unconverted, the same day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED. N02 shifts up by 5 and writes [105,100,95], sets above the old card 95',()=>{
+ effectsGate();alvGate();
+ const s=alvState([LEGQ({newW:95})],{w:100,wSets:[100,95,90]});
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','control: unconverted, the day refuses (W/engine-capture.cjs:83)');
+ alvRow(s,[95,90,85],'newW below w');
+ assert.deepEqual([exOf(s).w,exOf(s).wSets,s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut').newW],[100,[100,95,90],95],'newW below w: w, wSets and newW unchanged');
+});
+// L15-B2: D-R13L1-3 is CARRIED by name with P unchanged: "P has no lower bound, so an entry with q.newW < ex.w can shift a trailing
+// set below zero; that negative case refuses the day at W/engine-capture.cjs:85 (ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED), and nothing
+// is raised" (Astra L15: "do not silently clamp or change P"). No earlier row wrote a negative element, so clamping the shifted
+// load at 0 (Astra's mutant N09) agreed with every row.
+test('L15-B2-NEGATIVE-SHIFT-NOT-CLAMPED R9.13 (iv) CONVERSION (the exact signed shift, no clamp) and PRECONDITION P (no lower bound) with D-R13L1-3 CARRIED ("an entry with q.newW < ex.w can shift a trailing set below zero; that negative case refuses the day at W/engine-capture.cjs:85 (ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED), and nothing is raised") (Astra L15 B2, mutant N09 "x+(q.newW-ex.w) -> Math.max(0,x+(q.newW-ex.w))" at L/source-admission.mjs:859, which survived 254/254 and FA03 51/51): fx-press w 100, wSets [100,0,95] (P holds: every element a finite number <= w) and a pending legacy DEBUT newW 95 -> newWSets exactly [95,-5,90] (every set - 5; the second set below zero, not clamped), nothing named, w, wSets and newW unchanged and nothing else written; the day still refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED (the carried negative case, :85), as it did unconverted (:83). N09 writes [95,0,90] and the day captures that card',()=>{
+ effectsGate();alvGate();
+ const s=alvState([LEGQ({newW:95})],{w:100,wSets:[100,0,95]}),legacy=x=>x.queue.find(q=>q&&q.t==='SYNTHETIC legacy debut');
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','control: unconverted, the day refuses (W/engine-capture.cjs:83)');
+ const before=structuredClone(s),named=ALV.fn(s);
+ assert.deepEqual([named,legacy(s).newWSets],[[],[95,-5,90]],'the signed shift, not clamped: the second set below zero');
+ const back=structuredClone(s);delete legacy(back).newWSets;
+ assert.deepEqual(back,before,'nothing else is written (newW, w, wSets and every other byte unchanged)');
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','D-R13L1-3: the negative case refuses the day (W/engine-capture.cjs:85)');
+});
+// L15-B3: R9.13 (iv) PRECONDITION P requires "every element of ex.wSets a finite number <= ex.w" and OUT OF PRECONDITION names "a
+// non-number element". R913-ALV-P's non-number element was 'x' (not numeric), which a coercing test (Number(x), Astra's mutant N10)
+// also rejects; a numeric STRING element is coerced by that mutant and its entry written.
+test('L15-B3-ELEMENT-TYPE-ALV R9.13 (iv) PRECONDITION P ("every element of ex.wSets a finite number <= ex.w") and OUT OF PRECONDITION ("a non-number element ... is left unconverted and named ...; its day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED (:83) as today, and nothing is raised") (Astra L15 B3, mutant N10 "typeof x===\'number\'&&Number.isFinite(x)&&x<=ex.w -> Number.isFinite(Number(x))&&Number(x)<=ex.w" at L/source-admission.mjs:857, which survived 254/254 and FA03 51/51 because R913-ALV-P\'s non-number element \'x\' is not numeric): fx-press w 100 with wSets [100,\'95\',90] (the numeric STRING \'95\') and a pending legacy DEBUT newW 105 -> named exactly [{exId fx-press, kind debut, newW 105, w 100, wSets [100,\'95\',90]}], every byte unchanged, no newWSets; the day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED. N10 names nothing and writes [105,\'955\',95] (a string concatenation) onto the entry',()=>{
+ effectsGate();alvGate();
+ const s=alvState([LEGQ()],{w:100,wSets:[100,'95',90]}),before=JSON.stringify(s),named=ALV.fn(s),q=s.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut');
+ assert.deepEqual(named,[{exId:LIFT,kind:'debut',newW:105,w:100,wSets:[100,'95',90]}],'a numeric-string element fails P: named '+JSON.stringify(q.newWSets));
+ assert.deepEqual([JSON.stringify(s)===before,Object.hasOwn(q,'newWSets')],[true,false],'unconverted: byte-identical, no newWSets');
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','the day refuses as today (W/engine-capture.cjs:83)');
+});
+// L15-B4: R9.13 (iv) CONVERSION applies "for each such q": every legacy scalar structural entry, whatever precedes it in the queue.
+// Every earlier converted input carried one convertible entry per lift that came first for its lift (R913-ALV-IDEMPOTENT's second
+// same-lift unlock is converted by the first run, and under the mutant it simply stays scalar on both runs, byte-identical), so
+// converting only the FIRST queue entry of each lift (Astra's mutant N12) agreed with every row. Two inputs: finished history
+// before a pending entry on one lift, and two pending entries on one lift beside another lift.
+test('L15-B4-HISTORY-THEN-PENDING-ALV R9.13 (iv) DEFINITIONS ("q.done falsy") and CONVERSION ("for each such q"; "Nothing else is written: ... every other entry ... unchanged"; UNCHANGED BY THE RULE "done entries") (Astra L15 B4, mutant N12 "for(const q of queue){ -> for(const q of queue.filter(the first entry of each exId)){" at L/source-admission.mjs:852, which survived 254/254 and FA03 51/51): fx-press w 100, wSets [100,100,95] with a FINISHED legacy DEBUT newW 95 (done true, state ESTABLISH: its history) before a pending legacy DEBUT newW 105 -> the pending entry converts to [105,105,100], nothing named, the finished entry byte-identical (no newWSets) and nothing else written, no set above 105; the card captures [105,105,100]; unconverted, the same day refuses ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED. N12 reaches the finished entry only: the pending entry stays scalar and its day refuses',()=>{
+ effectsGate();alvGate();
+ const hist=LEGQ({newW:95,done:true,state:'ESTABLISH',t:'SYNTHETIC finished history'}),s=alvState([hist,LEGQ()]);
+ assert.equal(alvCard(s),'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED','control: unconverted, the day refuses (W/engine-capture.cjs:83)');
+ alvRow(s,[105,105,100],'finished history before the pending entry');
+ assert.deepEqual(s.queue.find(x=>x&&x.t==='SYNTHETIC finished history'),hist,'the finished entry is byte-identical: no newWSets, done and state kept');
+});
+test('L15-B4-EVERY-ENTRY-ALV R9.13 (iv) CONVERSION ("for each such q whose lift has Array.isArray(ex.wSets) and meets PRECONDITION P") and INVARIANT ("after admission, no legacy scalar structural entry sits on a lift whose ex.wSets is an array") (Astra L15 B4, mutant N12): fx-press w 100, wSets [100,100,95] with a pending legacy DEBUT newW 105 AND a pending legacy UNLOCK newW 107.5, beside fx-row w 40, wSets [40,35,35] with its own pending legacy DEBUT newW 45 -> each entry converts on its own lift\'s vector: fx-press debut [105,105,100], fx-press unlock [107.5,107.5,102.5], fx-row debut [45,40,40]; nothing named, nothing else written, no set above its own entry\'s newW, and the INVARIANT holds (no legacy scalar structural entry left on an array-wSets lift). N12 converts fx-press\'s first entry and fx-row\'s but leaves fx-press\'s unlock scalar',()=>{
+ alvGate();
+ const s=alvState([LEGQ(),LEGQ({kind:'unlock',newW:107.5,t:'SYNTHETIC legacy unlock'}),LEGQ({exId:ROW,newW:45,t:'SYNTHETIC legacy debut row'})]);
+ s.exercises.push({...structuredClone(exOf(s)),id:ROW,n:'Fx Row',w:40,wSets:[40,35,35]});
+ const before=structuredClone(s),named=ALV.fn(s);
+ assert.deepEqual([named,s.queue.map(q=>[q.exId,q.kind,q.newWSets===undefined?'SCALAR':q.newWSets])],[[],[[LIFT,'debut',[105,105,100]],[LIFT,'unlock',[107.5,107.5,102.5]],[ROW,'debut',[45,40,40]]]],'every entry converts on its own lift\'s vector');
+ const back=structuredClone(s);for(const q of back.queue)delete q.newWSets;
+ assert.deepEqual(back,before,'nothing else is written (newW, state, t, w, wSets and every other byte unchanged)');
+ assert.ok(s.queue.every(q=>Array.isArray(q.newWSets)&&q.newWSets.every(x=>x<=q.newW)),'no set above its own entry\'s newW');
+ const scalarOnVector=s.queue.filter(q=>q&&!q.done&&q.state!=='PROPOSED'&&(q.kind==='debut'||q.kind==='unlock')&&typeof q.native_load_spend!=='string'&&typeof q.newW==='number'&&q.newWSets===undefined&&Array.isArray((s.exercises.find(x=>x&&x.id===q.exId)||{}).wSets));
+ assert.deepEqual(scalarOnVector,[],'the INVARIANT: no legacy scalar structural entry left on an array-wSets lift');
+});
+// L15-B5: R9.13 (v) RULE classifies an entry as LEGACY by "typeof native_load_spend !== 'string'" (FC03 :271). Every earlier
+// hidden entry carried NO native_load_spend key, so a predicate that requires the key to be absent (Astra's mutant N13,
+// "q.native_load_spend === undefined") agreed with every row. A PRESENT non-string marker (null and, the same, 0 and false) is legacy.
+test('L15-B5-NONSTRING-MARKER-HIDDEN R9.13 (v) LEGACY-OVER-NULL RULE ("hides every unfinished LEGACY debut/unlock entry (typeof native_load_spend !== \'string\', not done, kind in HIDDEN_LEGACY_KINDS) of EVERY lift whose projected w is null or ABSENT"; "Nothing durable is written"), INVARIANT, EXPECTED CARD and THE CHECK (Astra L15 B5, mutant N13 "typeof q.native_load_spend !== \'string\' -> q.native_load_spend === undefined" at FC03 :271, which survived 254/254 and FA03 51/51 because every earlier hidden entry carried no native_load_spend key): a never-held fx-press with w null and a pending legacy DEBUT 60 whose native_load_spend is PRESENT and null (and, the same, 0 and false) -> the fold keeps the entry pending with its marker, no issue; the registered projection hides it (the INVARIANT holds) and the fold state is unchanged by the projection; the card is the baseline ask and the day prepares; THE CHECK on its baseline-ask completion refuses NATIVE_LOAD_LEGACY_PENDING [its Close Ref] field queue (E/native-load.cjs:222 reads the same typeof), and nothing is written: after it w null, no authority, no adoption receipt, the entry pending with its marker; typed v2 and host v1, R1 and R2. Under N13 the entry is shown and the capture refuses the day ENGINE_CAPTURE_BASELINE_UNPROVEN',()=>{
+ effectsGate();
+ const base=marker=>{const b=F0({w:null});b.queue.push(LEGQ({newW:60,native_load_spend:marker,t:'SYNTHETIC legacy debut press'}));return b;};
+ const markerOf=f=>{const q=f.state.queue.find(x=>x&&x.t==='SYNTHETIC legacy debut press');return q&&Object.hasOwn(q,'native_load_spend')?q.native_load_spend:'ABSENT';};
+ for(const marker of [null,0,false])for(const v1 of [false,true])for(const rev of [R1,R2]){const L='native_load_spend '+JSON.stringify(marker)+' '+(v1?'v1 ':'v2 ')+rev;
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,base(marker))),fb=JSON.stringify(f),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([exOf(f.state).w,b2Issues(f),r22cKinds(f),markerOf(f)],[null,[],[['debut','DEBUT',60]],marker],L+' the fold keeps the legacy entry pending with its present non-string marker; never held');
+  assert.deepEqual([hp.queue.filter(q=>q&&q.exId===LIFT&&!q.done).length,r22dInvariant(hp),b39Card(hp),JSON.stringify(f)===fb],[0,[],[null,null,null],true],L+' R9.13 (v): the registered projection hides it (the INVARIANT holds); the card is the baseline ask and the day prepares; the fold state is unchanged');
+  const c1=l14c1(v1),a=l14at(v1)([],base(marker),rev,[c1]),ev=checkOf(a,LIFT,c1);
+  assert.deepEqual([ev.status,ev.refusal&&ev.refusal.code,ev.refusal&&ev.refusal.refs,ev.refusal&&ev.refusal.field],['refused','NATIVE_LOAD_LEGACY_PENDING',[ref(c1.close)],'queue'],L+' THE CHECK on the baseline-ask completion (E/native-load.cjs:222) '+JSON.stringify(ev.refusal||ev.offers));
+  const f1=EFFECTS.m.foldNativeLoad(a);
+  assert.deepEqual([exOf(f1.state).w,exOf(f1.state).native_load_authority===undefined,JSON.stringify(f1.state).includes('adopt:'+LIFT),r22cKinds(f1),markerOf(f1)],[null,true,false,[['debut','DEBUT',60]],marker],L+' nothing is written: after that completion w null, no authority, no adoption receipt, the entry pending with its marker');
+ }
+});
+// L15-B6: R9.13 (v) RULE hides only an entry that is "not done" (FC03 :271 "!q.done"). R22L2-TRUTHY-DONE-ALV pinned that a truthy
+// non-boolean done (1, 'yes') is done for the conversion ((iv)), but no row read the registered projection over such an entry, so
+// hiding every entry whose done is not exactly true (Astra's mutant N14) agreed with every row. A finished entry stays.
+test('L15-B6-FINISHED-ENTRY-SHOWN R9.13 (v) LEGACY-OVER-NULL RULE ("hides every unfinished LEGACY debut/unlock entry (typeof native_load_spend !== \'string\', not done, kind in HIDDEN_LEGACY_KINDS)": a finished entry is not hidden; "Only the registered projection changes") read with (iv) DEFINITIONS ("q.done falsy": a truthy done is done) (Astra L15 B6, mutant N14 "!q.done -> q.done !== true" at FC03 :271, which survived 254/254 and FA03 51/51 because R22L2-TRUTHY-DONE-ALV reads the conversion, never the projection): a never-held fx-press with w null and a FINISHED legacy DEBUT newW 60, state ESTABLISH, done 1 (and, the same, the string \'yes\') -> the fold keeps the entry as admitted, no issue; the registered projection KEEPS it ([[debut, 1, ESTABLISH]]) and equals its done:true twin\'s once the entry\'s done is read as true; the fold state is unchanged by the projection; the card is the baseline ask (no unfinished entry; E/today.cjs:103) and the day prepares; R1 and R2. Under N14 the finished entry is missing from the registered projection (the card and the fold queue unchanged)',()=>{
+ effectsGate();
+ const base=done=>{const b=F0({w:null});b.queue.push(LEGQ({newW:60,done,state:'ESTABLISH',t:'SYNTHETIC finished legacy debut'}));return b;};
+ const shown=st=>st.queue.filter(q=>q&&q.exId===LIFT).map(q=>[q.kind,q.done,q.state]);
+ for(const done of [1,'yes'])for(const rev of [R1,R2]){const L='done '+JSON.stringify(done)+' '+rev;
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,base(done))),fb=JSON.stringify(f),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([exOf(f.state).w,b2Issues(f),shown(f.state)],[null,[],[['debut',done,'ESTABLISH']]],L+' the fold keeps the finished legacy entry as admitted; never held');
+  assert.deepEqual([shown(hp),b39Card(hp),JSON.stringify(f)===fb],[[['debut',done,'ESTABLISH']],[null,null,null],true],L+' R9.13 (v): the registered projection keeps the finished entry (not hidden); the card is the baseline ask and the day prepares; the fold state is unchanged');
+  const twin=EFFECTS.m.heldProjection(EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,base(true)))).state,t=structuredClone(hp);
+  for(const q of t.queue)if(q&&q.t==='SYNTHETIC finished legacy debut')q.done=true;
+  assert.deepEqual(t,twin,L+' the same registered projection as the done:true twin apart from the entry\'s own done value');
+ }
+});
+
+// ======================================================================
+// ROUND 23b (test bytes only; Fable R22 l5 ACCEPT WITH NAMED DEBTS on round 22e: D-R22L5-1 paid here by PM ruling as a NEW row,
+// R22L4-EXERCISE-BRANCH-FIELD not edited; plus the INFO row Fable l5 named for mutant w16. The head product is unchanged: FC03
+// b25d2e61, L/source-admission.mjs 10bd5cfb, FC01 92a4a0b4, W/engine-capture.cjs fa68a748). Every value is invented.
+// ======================================================================
+// R22L5-1: spec B's ACTIVE own branch is the conjunction std && own: FC01 :223 reads `(ex.std && ex.own)`, the old app's own test at
+// E/writers.cjs:279 reads the same predicate, and every rebuild-side clearing site clears both together. R22L4-EXERCISE-BRANCH-FIELD
+// fed std and own only together, so halving the conjunct (Fable l5 mutant k08, `ex.own`; its mirror `ex.std`) agreed with every row.
+// Own alone and std alone are not an active own branch: the check reaches the ordinary readers, as with no branch at all.
+test('R22L5-EXERCISE-OWN-STD-CONJUNCT spec B ("Existing active legacy debut/unlock/own/reclaim/ladder/pendingThird branches ... return LEGACY_PENDING with the named queue/branch reference": the own branch is active iff ex.std && ex.own, E/writers.cjs:279 and FC01 E/native-load.cjs:223) and R9.13 (v) ("FC01\'s LEGACY_PENDING rules ... are unchanged") (Fable R22 l5 D-R22L5-1, mutant k08 "(ex.std && ex.own) -> ex.own" at FC01 :223, which survived 258/258 and FA03 54/54): fx-press at w 100 with no queue entry and own true WITHOUT std (and, the same, std [100,100,95] WITHOUT own), one normal completion on the 100 card -> THE CHECK is not LEGACY_PENDING: it refuses NATIVE_LOAD_PROVISIONAL [its Close Ref] field null (the ordinary first top, N03a); typed v2 and host v1, R1 and R2. Under k08 own alone refuses LEGACY_PENDING field exercise',()=>{
+ effectsGate();
+ for(const [name,patch] of [['own alone',{own:true}],['std alone',{std:[100,100,95]}]])for(const v1 of [false,true])for(const rev of [R1,R2]){
+  // v1: the Start's immutable capture carries the 100 card's load and reps cells (r22eCaptureBy, fc16Capture's shape).
+  const L=name+' '+(v1?'v1 ':'v2 ')+rev,t=C(1,{reps:TOP,effort:e(2,1,1)}),c1=v1?v1Of(t):t;
+  const at=base=>{const a=foldArgs([c1],[],rev,base);if(v1)r22eCaptureBy(a.generation,c1,{[LIFT]:[100,100,100]},exOf(base).hi);return a;};
+  const brief=ev=>[ev.status,ev.refusal&&ev.refusal.code,ev.refusal&&ev.refusal.refs,ev.refusal&&ev.refusal.field];
+  const ev=checkOf(at(F0(patch)),LIFT,c1),got=brief(ev),none=brief(checkOf(at(F0()),LIFT,c1));
+  assert.notEqual(got[1],'NATIVE_LOAD_LEGACY_PENDING',L+' not an active own branch: THE CHECK is not LEGACY_PENDING (E/native-load.cjs:223) '+JSON.stringify(ev.refusal||ev.offers));
+  assert.deepEqual(got,none,L+' the same outcome as with no branch at all '+JSON.stringify([got,none]));
+  assert.deepEqual(got,['refused','NATIVE_LOAD_PROVISIONAL',[ref(c1.close)],null],L+' measured: the ordinary first top, PROVISIONAL [its Close Ref] (N03a) '+JSON.stringify(ev.refusal||ev.offers));
+ }
+});
+// R22L5-INFO: R9.13 (v) hides only UNFINISHED legacy debut/unlock entries ("not done", FC03 :271 `!q.done`). R15-LEGACY-ON-HELD pins
+// the done side on a HELD lift and L15-B6-FINISHED-ENTRY-SHOWN pins truthy non-boolean done values (1, 'yes') on a never-held w-null
+// lift; this row pins a plain done:true entry, debut and unlock, at the UNHELD w-null quantifier Fable l5 named (mutant w16 drops
+// `!q.done && ` from the hide predicate).
+test('R22L5-DONE-LEGACY-OVER-NULL-SHOWN R9.13 (v) LEGACY-OVER-NULL RULE ("hides every unfinished LEGACY debut/unlock entry (typeof native_load_spend !== \'string\', not done, kind in HIDDEN_LEGACY_KINDS) of EVERY lift whose projected w is null or ABSENT"; "Only the registered projection changes") (Fable R22 l5 INFO, mutant w16 "!q.done && " dropped from FC03 :271 hide, killed at l5 only by the HELD row R15-LEGACY-ON-HELD): a never-held fx-press with w null and a DONE legacy DEBUT 60 (done true, state ESTABLISH) (and, the same, a DONE legacy UNLOCK 65) -> the fold keeps it as admitted, no issue; the registered projection keeps it and its queue deep-equals the fold queue (nothing hidden); the fold state is unchanged by the projection; the card is the baseline ask and the day prepares; R1 and R2. Under w16 the done entry is missing from the registered projection',()=>{
+ effectsGate();
+ const mine=st=>st.queue.filter(q=>q&&q.exId===LIFT).map(q=>[q.kind,q.done,q.state,q.newW]);
+ for(const [kind,newW] of [['debut',60],['unlock',65]])for(const rev of [R1,R2]){const L='done '+kind+' '+rev;
+  const b=F0({w:null});b.queue.push(LEGQ({kind,newW,done:true,state:'ESTABLISH',t:'SYNTHETIC done legacy '+kind}));
+  const f=EFFECTS.m.foldNativeLoad(foldArgs([],[],rev,b)),fb=JSON.stringify(f),hp=EFFECTS.m.heldProjection(f).state;
+  assert.deepEqual([exOf(f.state).w,b2Issues(f),mine(f.state)],[null,[],[[kind,true,'ESTABLISH',newW]]],L+' the fold keeps the done legacy entry as admitted; never held');
+  assert.deepEqual([mine(hp),b39Card(hp),JSON.stringify(f)===fb],[[[kind,true,'ESTABLISH',newW]],[null,null,null],true],L+' R9.13 (v): the registered projection keeps the done entry (not hidden); the card is the baseline ask and the day prepares; the fold state is unchanged');
+  assert.deepEqual(hp.queue,f.state.queue,L+' nothing hidden: the registered queue is the fold queue');
+ }
+});
