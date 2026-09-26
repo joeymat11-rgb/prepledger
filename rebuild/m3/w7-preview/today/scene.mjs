@@ -364,6 +364,9 @@ function installScene(view, doc) {
   };
   const currentScreen = () => {
     if (host.querySelector('[data-slot="workout-detail"]')) return "workout";
+    /* C-UI-4 (S12): the gym card's set and rest screens carry the pack's #log, which no
+       other screen draws, so a card opened from Today's Start is dressed as Workout. */
+    if (host.querySelector(":scope > .stack #log")) return "workout";
     /* ==== C-UI-6 COACH (begin) ==== the coach screen is the pack's own markup now, so it
        is known by the pack's headline element, not by the stub's old h1 words. */
     if (host.querySelector(".coach-title")) return "coach";
@@ -380,7 +383,11 @@ function installScene(view, doc) {
     date();
     /* C-UI-2: a screen built on the pack's chassis scrolls in its own .body, so the
        ruled fades (32 px under the status bar, 20 px into the stack) follow that
-       region, exactly as the pack's app.js attaches them. */
+       region, exactly as the pack's app.js attaches them.
+       C-UI-4 (S12): a chassis screen's scrolling body fades only while there is more to
+       see (ruling 4, app.css ".screen .ui > .body.can-scroll"), as app.js's scrollFades
+       does for every .body; scrollFades installs once per element.
+       S12 composition: both tickets added these same two lines; they are kept once. */
     const body = host.querySelector(":scope > .body");
     if (body) scrollFades(body, view);
     const screen = currentScreen();

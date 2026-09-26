@@ -227,3 +227,66 @@
   background: var(--decision); border: 1px solid var(--decision-line); color: var(--text);
   font-size: 15px; display: inline-flex; align-items: center; justify-content: center; } /* .decision */
 /* C-UI-3 END */
+
+/* S12 composition note (Today, Coach and Workout blocks side by side). The Today block's
+   chassis rule above matches every host that has a direct .stack child, so on the composed
+   head it also reaches the Coach and Workout hosts. Its values there are the pack's own
+   (app.css `.ui` position absolute, inset 0, the column flex, the inset, no scroll of its
+   own). The Workout block below keeps its place after it, so at the same specificity its
+   own chassis values still decide the workout host; they are the same values, and the
+   position and inset come from the Today rule. Nothing here is a new value. */
+
+/* ===== C-UI-4 (look lane, S12) · INSIDE THE WORKOUT: BEGIN =====
+   Scoped to the workout screen only (scene.mjs dresses the frame .screen-workout), so no
+   other screen's composition moves. It adds no colour, no type size and no class: each
+   rule restates the pinned pack's own value where CUI1's host geometry or a 2026-09-08
+   legacy rule (laid down first, and still loaded for the other screens) would otherwise
+   change the pack's render, or dresses the two entry boxes inside the numerals in the
+   numeral's own face.
+   1. THE CHASSIS (ruling 4). The pack's workout screen is a flex column with the page
+      inset, NO bottom padding (app.css:862 `.screen-workout .ui { padding-bottom: 0 }`)
+      and no overflow of its own (app.css:852 `.screen .ui { overflow: hidden }`): the
+      .body scrolls, and the .stack's own padding (app.css:863) holds Log at its thumb
+      edge. CUI1's host rule sets the live host to block with no padding for the screens
+      not yet ported; the workout screen takes the pack's WORKOUT values back, not the
+      base .ui ones. */
+.scene-frame.screen-workout > .view.ui { display: flex; flex-direction: column;
+  padding: 0 var(--inset) 0; overflow: hidden; }
+/* 2. LEGACY LEAKS, restored to the pack's computed values: Additions C's bare `h1`
+      letter-spacing on the serif title; the 2026-09-08 `.back` padding and muted colour on
+      the header chevron (the pack's button is unpadded and inherits the text colour);
+      Refinement A's `.bottom` top padding on the stack's bottom link row; and Refinement
+      A's `.choice:last-child` size on the Unsure chip (`.choice` is kept on the chips only
+      as the card's existing hook; the pack's `.chip` is 14 px). */
+.scene-frame.screen-workout .screen-title { letter-spacing: normal; }
+.scene-frame.screen-workout .header .back { padding: 0; color: inherit; }
+.scene-frame.screen-workout .links.bottom { padding-top: 0; }
+.scene-frame.screen-workout #rir .chip.choice { font-size: 14px; }
+/* 2b. THE REST OF THE LEAKS (fix round 2, F6), each at the specificity of the legacy rule
+      it answers (`:where()` adds none), so every pack rule that sets the same property
+      still wins. The 3 px green `button/input:focus-visible` outline of Refinement A and
+      Additions C goes back to the user agent's ring, which is what the pack (no focus
+      rule of its own) draws; Additions C's `button { min-height: 44px }` goes back to the
+      initial value the pack's buttons have; Additions C's `.link { padding: 8px 0 }` goes
+      back to the pack's `button { padding: 0 }`. The settings editor (C-UI-5's, not this
+      ticket's) keeps what it has. Two more of the same kind: this file's own
+      settings-open 44 px floor would undercut the pack's 60 px machine row (app.css
+      `.machine.rowcard`), and Refinement A's `.slot` padding would stretch the set dots,
+      which keep `slot` as the card's hook (ruling R2). */
+:where(.scene-frame.screen-workout) :is(button, input):where(:not([data-slot="settings-editor"] *)):focus-visible { outline: revert; outline-offset: revert; }
+:where(.scene-frame.screen-workout) button:where(:not([data-slot="settings-editor"] *)) { min-height: auto; }
+:where(.scene-frame.screen-workout) .link { padding: 0; }
+.scene-frame.screen-workout #machine { min-height: 60px; }
+.scene-frame.screen-workout .set-dots i { padding: 0; }
+/* 3. THE ENTRY IN THE NUMERALS. #w-value and #r-value each hold the real text box the set
+      is logged from; the box draws in the numeral's own face and size (inherited), sized
+      to its figure, never narrower than the 44 px target. An empty box is not underlined:
+      the pack's blank underline (`.value.w-blank`) is W-19's mark alone. */
+.scene-frame.screen-workout .numerals .value input { display: block; box-sizing: content-box;
+  min-width: var(--hit); height: 1em; margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: transparent; font: inherit; color: inherit; text-align: center;
+  -webkit-appearance: none; appearance: none; }
+@supports (field-sizing: content) {
+  .scene-frame.screen-workout .numerals .value input { field-sizing: content; }
+}
+/* ===== C-UI-4 (look lane, S12) · INSIDE THE WORKOUT: END ===== */

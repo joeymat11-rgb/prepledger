@@ -115,7 +115,13 @@ const PREVIEW_COPY = Object.freeze([
 const APPROVED_COPY = Object.freeze([
   "Earned", "Your plan for today", "Eat about", "Your full nutrition plan",
   "How are you feeling today?",
-  "Ask your coach", "Your plan, progress and the reasons behind it.", "Weight (lb)",
+  /* S12 composition: "Ask your coach" left this list. C-UI-2 (DECISIONS:820 (2)) gave
+     Today's coach entry the board's Talk row words (below), and C-UI-6 retired the coach
+     stub whose "Ask your coach." was the other place the template said it, so no shipped
+     template says it now. A declaration the screen no longer says would fail the binding
+     (as C-UI-4 wrote for "Exercise "); the C-02 drawn state still says "Ask your coach."
+     and is bound by assertCoachBinding. */
+  "Your plan, progress and the reasons behind it.", "Weight (lb)",
   /* C-UI-2 round 3, DECISIONS:820 (2): the approved board's words win on Today where the
      app named the same thing differently. Each is on the board (app/app.html) and in the
      shipped template: the Recovery row (board #recovery, state T-26), the Talk row (board
@@ -151,6 +157,14 @@ const APPROVED_COPY = Object.freeze([
   "About how many days away from training?", "What was the reason?",
   "Add a note, if useful", "Anything the answers missed?",
   "Add today’s context", "Your answers belong alongside your training data.",
+  /* C-UI-4 round 3 (S12), DECISIONS:820 (2): where the approved board and the app use
+     different words, the board's win. Each is the board's own, verbatim in app/app.html
+     #screen-workout: the header pill "example" (W-06), the set card's eyebrow "Today’s set"
+     and state word "Unlogged" (W-06) and "Logged" (W-22, drawn by the board's renderSet),
+     the effort row's head "RIR (clean reps left)" (W-06), the coach pill's "Earned is here"
+     (W-06 #talk-workout); and W-18's hint, verbatim in app/states-workout.js. */
+  "example", "Today’s set", "Unlogged", "Logged", "RIR (clean reps left)", "Earned is here",
+  "No load step is on file for this machine. Type the load you used.",
 ]);
 /* Approved copy the VIEW composes at runtime rather than carrying in the template,
    because it sits beside a bound value ("Weight trend 180.1 lb"). Each string is checked
@@ -160,11 +174,21 @@ const RUNTIME_COPY = Object.freeze([
   "This morning", "Weight trend", "Why this plan?", "Your set targets are ready",
   /* A2 — the gym card composes these beside bound values, exactly as A1's four are
      composed. Each occurs verbatim in Refinement A, the reviewed workout/rest
-     prototype, and each is checked against the view sources as well. */
-  "Exercise ", " of ", "What you did · Set ", "Last time: ", "Log set ", " logged",
+     prototype, and each is checked against the view sources as well.
+     C-UI-4 (S12): "Exercise N of M" is no longer on the card (the 2026-09-18 board draws
+     the session, the set dots and "Set N of M" instead), so its fragment is no longer
+     declared here: a declaration the screen no longer says would fail the binding.
+     The card composes "Set N of M" and the Log label "Log L × R" (the pack's own
+     "Set 1 of 4" and "Log 50 × 8"), so their fragments "Set " and "Log " are declared.
+     C-UI-4 round 3, DECISIONS:820 (2): the rest screen's primary is the board's "Start set N"
+     (W-22, app/states-workout.js), and a set the layer refused is said as W-21 draws it: its
+     lead sentence and the tail fragment "The layer’s own reason: ", both verbatim there. */
+  " of ", "Set ", "Log ", "What you did · Set ", "Last time: ", "Log set ", " logged",
   " reps", "Aim to finish with ", " clean reps left", "Effort unknown",
-  "Ready for set ", "Next · Set ", "Next · ", "Resume ", "Workout in progress", " complete",
+  "Start set ", "Next · Set ", "Next · ", "Resume ", "Workout in progress", " complete",
   " recorded",
+  "This set could not be recorded on this device, and no part of it was recorded.",
+  "The layer’s own reason: ",
   /* C-UI-2 round 3, DECISIONS:820 (1): Today's status line, the prototype's own words per
      state (app/states-today.js T-32 the owner's pattern, T-02, T-19, T-14, T-15, T-16, T-17,
      T-12, T-13, T-11, T-06), composed beside the engine's session name. */

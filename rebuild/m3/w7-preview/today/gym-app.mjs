@@ -21,6 +21,9 @@ import MachineSettingsView from './machine-settings-view.mjs';
 /* THE SPLIT (spec B.9). The settings lane, its read cache and the two functions that
    open and read it are sealed in this module; what comes back is three frozen objects. */
 import { createGymSettingsLane } from './gym-settings-lane.mjs';
+/* C-UI-4. The two form refusals the model owns, so the card can anchor each to the thing
+   it names (W-19 under the numerals, W-20 on the effort row) without rewording either. */
+import { CHOOSE_EFFORT, ENTER_PERFORMED } from './gym-model.mjs';
 
 const { plainOrDrop } = PlainCopy;
 /* REVIEW R1 FINDING 2 - the two headings the stub screen falls back to when the card
@@ -50,6 +53,12 @@ export const CLEAN_REP_HELP = [
   'A rep you could complete with the same range of motion and control, without changing your technique to finish it.',
   'Estimate how many more you could have done at the end of the set. If you can’t tell, choose Unsure.',
 ];
+/* C-UI-4 round 3, W-21 (DECISIONS:820 (2): the board's words win). A set the layer refused
+   is said as the board draws it: this lead sentence, then the layer's own reason (its copy
+   and its code, each once, as review B1 requires) in the refusal's tail. Both are verbatim
+   in app/states-workout.js and declared in design.cjs RUNTIME_COPY. */
+export const SET_NOT_RECORDED = 'This set could not be recorded on this device, and no part of it was recorded.';
+export const LAYER_REASON = 'The layer’s own reason: ';
 
 /* MACHINE SETTINGS, wave one (DECISIONS:154 (2), :140). Every sentence the block and
    its editor can put on the screen, declared here and nowhere else, so design.cjs binds
@@ -100,7 +109,7 @@ export function newGymDraft() { return { effort: null, entry: { load: null, reps
    durable payload and never with its old token or control authority. */
 const SETTINGS_DRAFT_CARRY = new WeakMap();
 
-export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draft, settings } = {}) {
+export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, onCoach, draft, settings } = {}) {
   if (!phone) throw new Error('Gym card: no host element');
   /* D2 round 2, R2-1 - see `show`. True while THIS mount is the screen on the phone. */
   let owns = true;
@@ -111,12 +120,16 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   function leaveCard(go) {
     owns = false;
     hooks.leave();
+    phone.classList.remove('w-rest');
     return go();
   }
   const held = draft && typeof draft === 'object' ? draft : newGymDraft();
   if (!Object.hasOwn(held, 'effort')) held.effort = null;   // NOTHING is preselected
   if (!held.entry || typeof held.entry !== 'object') held.entry = { load: null, reps: null };
   let showSetup = false, showWhy = false, showHelp = false;
+  /* W-21: the code of the last set the layer refused on this mount, so a repaint that
+     carries the same remembered refusal keeps the board's dress. */
+  let setRefusedCode = null;
 
   /* ---------------- MACHINE SETTINGS (DECISIONS:154 (2)) ----------------
      WHY THIS FILE OPENS THE LANE. The other four lanes are opened by boot() in
@@ -159,6 +172,17 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     if (!node) throw new Error('Gym card: missing approved template ' + id);
     return node.content.firstElementChild.cloneNode(true);
   };
+  /* C-UI-4 - the set and rest screens are the pack's chassis: a scrolling .body and a
+     fixed .stack that must be the two DIRECT children of the live .ui host (app.css
+     ".screen .ui > .body" / "> .stack"), so these two templates are mounted whole, as a
+     fragment, rather than as one wrapping element. Everything that must be reached
+     after the mount is taken as an element reference before it: a fragment is empty
+     once its children have moved onto the phone. */
+  const chassis = id => {
+    const node = doc.getElementById(id);
+    if (!node) throw new Error('Gym card: missing approved template ' + id);
+    return node.content.cloneNode(true);
+  };
   const slots = root => {
     const map = new Map();
     for (const el of root.querySelectorAll('[data-slot]')) if (!map.has(el.dataset.slot)) map.set(el.dataset.slot, el);
@@ -175,6 +199,18 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     for (const el of root.querySelectorAll('[data-arrow]')) el.innerHTML = ARROW;
     for (const el of root.querySelectorAll('[data-check]')) el.innerHTML = CHECK;
   }
+  /* C-UI-4 round 3 (DECISIONS:820 (2), (3); W-06 #talk-workout) - the board's coach pill.
+     The coach is not live, so the pill does the one honest thing it can: it opens the Coach
+     screen, which says so (C-61). It is drawn only when the page gives the card that route,
+     exactly as the check-in row is; with no route there is nothing on the screen to tap. */
+  function coachPill(root) {
+    const voice = root.querySelector('#workout-voice');
+    if (!voice) return;
+    voice.hidden = typeof onCoach !== 'function';
+    if (typeof onCoach === 'function') {
+      hooks.listen(root.querySelector('#talk-workout'), 'click', () => leaveCard(() => onCoach()));
+    }
+  }
   /* D2 ROUND 2, R2-1 - MOUNT OWNERSHIP. `phone` is the page's ONE surface and every
      screen shares it. This mount owns it from the moment it is created until the
      athlete navigates away, and after that it owns nothing: a background read that
@@ -182,10 +218,14 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
      check-in he is now filling in. `owns` is that ownership, `leaveCard` hands it over
      BEFORE the caller's navigation runs, and every write to the shared element goes
      through `show`, which refuses once ownership is gone. */
-  function show(root) {
+  function show(root, rest = false) {
     if (!owns) return;
+    /* C-UI-4: taken before the mount, because a chassis fragment is empty after it. */
+    const heading = root.querySelector('h1') || root.firstElementChild || root;
     phone.replaceChildren(root);
-    const heading = root.querySelector('h1') || root;
+    /* The pack's rest-screen rule (states-workout.css ".ui.w-rest .log") sits on the
+       host itself; every other screen of the card clears it. */
+    phone.classList.toggle('w-rest', rest === true);
     heading.tabIndex = -1;
     heading.focus();
   }
@@ -237,7 +277,32 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const entry = facade.entryFor(liftId);
     const state = entry ? entry.state : 'reading';
     const latest = entry ? entry.latest : null;
-    MachineSettingsView.renderBlock(doc, map, { copy: SETTINGS_COPY, latest, state, put });
+    /* C-UI-4 (F3): on the set screen the block is the pack's machine row. The view module
+       (C-UI-5's, unchanged) still reads the store's answer into its own shape, but its list
+       markup (a div per pair, a p for a sentence) and its open label are handed to
+       detached holders, so none of it lands inside the button; the row is composed below
+       from the same answer, as states-workout.js machine() draws it. */
+    const blockSlots = new Map(map);
+    for (const name of ['settings-list', 'settings-open-label']) blockSlots.set(name, doc.createElement('span'));
+    MachineSettingsView.renderBlock(doc, blockSlots, { copy: SETTINGS_COPY, latest, state, put });
+    /* The block's heading is the settings panel's title (W-35, C-UI-5), so the row does
+       not repeat it; the view module still fills it, unchanged. */
+    const blockHead = map.get('settings-head');
+    if (blockHead) blockHead.hidden = true;
+    /* W-06: the serif title is the stored setting itself ("Seat 4." on the board: each
+       stored name and value, verbatim and in the stored order) and the sub line is the
+       open label. W-33 / W-34 / W-36: the title is the open label and the sub line the
+       reading, empty or unreadable sentence; W-36's action half is the note block under
+       the row. A stored cue keeps its own sub line (the view module's settings-cues). */
+    const stored = state === 'known' && latest && latest.machine ? latest.machine : null;
+    const storedPairs = stored && Array.isArray(stored.settings) ? stored.settings : [];
+    const shown = storedPairs.map((pair) => plainOrDrop(pair.name, 'settings-name') + ' '
+      + plainOrDrop(pair.value, 'settings-value') + '.').join(' ');
+    const when = state === 'failed' ? SETTINGS_UNREAD : state !== 'known' ? SETTINGS_READING
+      : (!stored || (storedPairs.length === 0 && !stored.cues)) ? SETTINGS_NONE : '';
+    put(map, 'machine-setting', shown ? shown : SETTINGS_OPEN);
+    put(map, 'machine-when', shown ? SETTINGS_OPEN : when);
+    put(map, 'machine-note', state === 'failed' ? SETTINGS_UNREAD_ACTION : '');
     const openControl = root.querySelector('[data-action="settings-open"]');
     /* UNTIL THE READ ANSWERS, THERE IS NOTHING TO CORRECT (finding 2). Offering the
        editor here would seed it from a null the athlete never chose. */
@@ -342,86 +407,180 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       });
   }
 
-  /* ---------------- the active set ---------------- */
+  /* ---------------- the active set (C-UI-4: W-05 to W-21, W-32, W-42) ----------------
+     The pack's board, bound to the capture. Nothing is added to it and nothing taken
+     away except where a drawn state names the one thing it changes. */
   function renderActive(view) {
-    const root = template('t-gym');
+    const root = chassis('t-gym');
     const map = slots(root);
     put(map, 'session-title', view.title || view.session.instruction.display);
-    put(map, 'exercise-position', 'Exercise ' + view.lift.index + ' of ' + view.lift.count);
     put(map, 'lift', view.lift.label);
+    /* The set strip is the pack's set dots: one per set of this lift, the recorded
+       ones filled, the current one ringed, a skipped one faded (W-29's own class). */
+    const dots = map.get('strip');
+    dots.replaceChildren();
+    for (const entryOf of view.strip) {
+      const dot = doc.createElement('i');
+      /* `slot` stays as the card's existing hook for its checks (ruling R2), beside the
+         pack's own dot classes, exactly as `.choice` stays on the chips. */
+      dot.className = 'slot' + (entryOf.done ? (entryOf.text === 'skipped' ? ' skip' : ' done') : entryOf.current ? ' now' : '');
+      dots.append(dot);
+    }
+    put(map, 'set-count', 'Set ' + view.set.position + ' of ' + view.set.count);
 
-    const reasonHost = map.get('reason');
+    /* W-07 to W-13: the engine's own sentence under the lift name, the first line only,
+       and a "Why?" that reveals the rest (W-13). */
     const all = view.prescription.reason;
-    lines(reasonHost, showWhy ? all : all.slice(0, 1), 'change');
+    root.querySelector('.w-reasons').hidden = all.length === 0;
+    put(map, 'reason', all.length ? all[0] : '');
     const why = root.querySelector('[data-action="why"]');
-    why.closest('.change').hidden = all.length < 2;
+    why.hidden = all.length < 2;
+    lines(map.get('reason-more'), showWhy ? all.slice(1) : [], 'w-reason w-more');
     hooks.listen(why, 'click', () => { showWhy = !showWhy; paint(); });
 
+    /* The set card. The numerals are the entry itself: the prescribed figures, or what
+       the athlete has typed over them, in the two real boxes the set is logged from. */
+    /* W-06 (DECISIONS:820 (2)): the eyebrow is the board's static "Today’s set" and the
+       state word "Unlogged" (template); the set's position is #set-count. */
+    const load = root.querySelector('#gym-weight');
+    const reps = root.querySelector('#gym-reps');
+    const loadBox = root.querySelector('#w-value');
+    const repsBox = root.querySelector('#r-value');
+    load.value = held.entry.load === null ? (view.entry.load === null ? '' : String(view.entry.load)) : held.entry.load;
+    reps.value = held.entry.reps === null ? (view.entry.reps === null ? '' : String(view.entry.reps)) : held.entry.reps;
+    /* W-08 / W-09: a cell the engine did not specify has no figure to set in numerals,
+       so the prescription is said as its own line, in the cell's own words, as the pack's
+       prescLine draws it: each cell in its own span either side of the gold .w-presc-x.
+       The line is the model's own (prescriptionLine joins the two cells with ' × '); a
+       line in any other shape is said whole, never re-cut. */
+    const plan = map.get('plan');
+    const planLine = view.prescription.line;
+    const planCells = planLine ? planLine.split(' × ') : [];
+    plan.replaceChildren();
+    if (planCells.length === 2) {
+      const [left, times, right] = [doc.createElement('span'), doc.createElement('span'), doc.createElement('span')];
+      left.textContent = plainOrDrop(planCells[0], 'plan');
+      times.className = 'w-presc-x';
+      times.textContent = '×';
+      right.textContent = plainOrDrop(planCells[1], 'plan');
+      plan.append(left, times, right);
+    } else plan.textContent = plainOrDrop(planLine || '', 'plan');
+    plan.hidden = !planLine || (view.entry.load !== null && view.entry.reps !== null);
+    /* W-18 (DECISIONS:820 (2), (4)): with no load step on file the board's hint says so
+       under the numerals; there are no +/- steps, so the box always takes typed entry. */
+    map.get('step-hint').hidden = view.entry.step !== null;
+    put(map, 'effort-target', view.prescription.effort);
+    /* W-16 / W-17: the qualified comparison, or nothing at all (no guess, no empty row). */
+    put(map, 'previous', view.previous);
+    if (!view.previous) {
+      root.querySelector('#last-time').hidden = true;
+      root.querySelector('#setcard .divider').hidden = true;
+    }
+
+    const logLabel = map.get('log-label');
+    /* The Log button carries the set it will record, with the multiplication sign
+       (the pack's "Log 50 × 8"); with a box still empty it names the set instead. */
+    const syncEntry = () => {
+      /* An empty box is not dressed: the blank underline is W-19's mark alone (F4). */
+      for (const input of [load, reps]) input.size = Math.max(1, input.value.length);
+      const both = load.value.trim() !== '' && reps.value.trim() !== '';
+      logLabel.textContent = plainOrDrop(both ? 'Log ' + load.value.trim() + ' × ' + reps.value.trim()
+        : 'Log set ' + view.set.position, 'log-label');
+    };
+    syncEntry();
+
+    const bindSettings = settingsPaint(root, map, view);
+    /* W-14: the capture's own setup sentence, behind its link. */
     const setupNote = map.get('setup-note');
     const setupLink = root.querySelector('[data-action="setup"]');
     if (view.prescription.setup) {
-      lines(setupNote, showSetup ? [view.prescription.setup] : [], 'small quiet');
+      setupLink.hidden = false;
+      setupNote.textContent = showSetup ? plainOrDrop(view.prescription.setup, 'setup-note') : '';
+      setupNote.hidden = !showSetup;
       hooks.listen(setupLink, 'click', () => { showSetup = !showSetup; paint(); });
     } else { setupLink.hidden = true; setupNote.hidden = true; }
 
-    const strip = map.get('strip');
-    strip.replaceChildren();
-    for (const entryOf of view.strip) {
-      const cell = doc.createElement('div');
-      cell.className = 'slot' + (entryOf.done ? ' done' : entryOf.current ? ' current' : '');
-      if (entryOf.current) cell.setAttribute('aria-current', 'step');
-      cell.append(doc.createTextNode(plainOrDrop(entryOf.label, 'strip-label')));
-      const strong = doc.createElement('strong');
-      strong.textContent = plainOrDrop(entryOf.text, 'strip-text');
-      cell.append(strong);
-      strip.append(cell);
-    }
+    /* Refusals, each anchored to the thing it names (states-workout.css): an entry the
+       athlete left empty under the numerals, with the empty box marked (W-19); a missing
+       effort answer on the effort row, which wears the mark (W-20); anything the layer
+       refused in the stack above the Log it refused (W-21). ONE alert element carries
+       them all, moved to its anchor, so a live refusal is the drawn state's element and
+       the stack only grows upward: the Log button does not move. */
+    const errorBox = root.querySelector('#gym-error');
+    const rir = root.querySelector('#rir');
+    const numerals = root.querySelector('#numerals');
+    const logRow = root.querySelector('.stack .log-row');
+    /* Which refusal is on the screen: 'entry' is W-19's, the one that names the boxes. */
+    let refused = null;
+    const clearRefusal = () => {
+      refused = null;
+      errorBox.textContent = '';
+      errorBox.hidden = true;
+      rir.classList.remove('is-invalid');
+      loadBox.classList.remove('w-blank', 'is-invalid');
+      repsBox.classList.remove('w-blank', 'is-invalid');
+    };
+    const refuse = (result, setRefused = false) => {
+      clearRefusal();
+      const text = result ? refusalText(result) : '';
+      if (!text) return;
+      const own = result && !result.code;
+      if (own && result.copy === ENTER_PERFORMED) {
+        refused = 'entry';
+        errorBox.className = 'refusal note-block w-refusal w-card-refusal';
+        numerals.insertAdjacentElement('afterend', errorBox);
+        /* W-19: the empty box carries the mark, the pack's `value w-blank is-invalid`. */
+        for (const [box, input] of [[loadBox, load], [repsBox, reps]]) {
+          if (input.value.trim() === '') box.classList.add('w-blank', 'is-invalid');
+        }
+      } else {
+        errorBox.className = 'refusal note-block w-refusal' + (own && result.copy === CHOOSE_EFFORT ? ' rir-refusal' : '');
+        logRow.parentNode.insertBefore(errorBox, logRow);
+        if (own && result.copy === CHOOSE_EFFORT) rir.classList.add('is-invalid');
+      }
+      if (setRefused && !own) {
+        /* W-21 (DECISIONS:820 (2)): the board's lead, then the layer's own reason, its copy
+           and its code each once (review B1), in the refusal's tail. */
+        const lead = doc.createElement('span');
+        lead.className = 'refusal-text';
+        lead.textContent = SET_NOT_RECORDED;
+        const tail = doc.createElement('span');
+        tail.className = 'refusal-tail';
+        tail.textContent = plainOrDrop(LAYER_REASON + text + (text.endsWith('.') ? '' : '.'), 'gym-error');
+        errorBox.replaceChildren(lead, tail);
+      } else errorBox.textContent = plainOrDrop(text, 'gym-error');
+      errorBox.hidden = false;
+    };
+    /* Typing into the boxes answers W-19's refusal, so its sentence and its mark go
+       (F7); a refusal about the effort answer or from the layer stays until answered. */
+    const typed = () => { if (refused === 'entry') clearRefusal(); syncEntry(); };
+    hooks.listen(load, 'input', () => { held.entry.load = load.value; typed(); });
+    hooks.listen(reps, 'input', () => { held.entry.reps = reps.value; typed(); });
 
-    put(map, 'plan', view.prescription.line);
-    put(map, 'effort-target', view.prescription.effort);
-    const bindSettings = settingsPaint(root, map, view);
-    put(map, 'entry-title', 'What you did · Set ' + view.set.position);
-    put(map, 'previous', view.previous);
-
-    const load = root.querySelector('#gym-weight');
-    const reps = root.querySelector('#gym-reps');
-    load.value = held.entry.load === null ? (view.entry.load === null ? '' : String(view.entry.load)) : held.entry.load;
-    reps.value = held.entry.reps === null ? (view.entry.reps === null ? '' : String(view.entry.reps)) : held.entry.reps;
-    hooks.listen(load, 'input', () => { held.entry.load = load.value; });
-    hooks.listen(reps, 'input', () => { held.entry.reps = reps.value; });
-    for (const button of root.querySelectorAll('[data-step]')) {
-      const [field, direction] = button.dataset.step.split(':');
-      const size = field === 'load' ? (view.entry.step === null ? null : view.entry.step) : 1;
-      if (size === null) { button.disabled = true; continue; }
-      hooks.listen(button, 'click', () => {
-        const box = field === 'load' ? load : reps;
-        const current = Number(box.value);
-        const next = (Number.isFinite(current) ? current : 0) + Number(direction) * size;
-        box.value = String(Math.max(0, Math.round(next * 100) / 100));
-        held.entry[field] = box.value;
-      });
-    }
-
+    /* The five locked RIR chips (BRIEF-RIR-DISPLAY), nothing preselected. `.choice`
+       stays beside the pack's `.chip` as the card's own hook for its existing checks. */
     const choices = map.get('choices');
     choices.replaceChildren();
     for (const choice of model.effortChoices()) {
+      const unsure = !!choice.reserve && choice.reserve.tag === 'unknown';
       const button = doc.createElement('button');
-      button.className = 'choice';
+      button.className = 'chip choice' + (unsure ? ' unsure' : '');
       button.type = 'button';
+      button.setAttribute('data-rir', unsure ? 'unsure' : choice.label);
       button.textContent = plainOrDrop(choice.label, 'effort-choice');
       // NOTHING is preselected: every answer starts aria-pressed="false".
       button.setAttribute('aria-pressed', String(!!held.effort && held.effort.label === choice.label));
       hooks.listen(button, 'click', () => {
         held.effort = choice;
-        for (const other of choices.querySelectorAll('.choice')) other.setAttribute('aria-pressed', String(other === button));
-        root.querySelector('#gym-error').textContent = '';
+        for (const other of choices.querySelectorAll('.chip')) other.setAttribute('aria-pressed', String(other === button));
+        clearRefusal();
       });
       choices.append(button);
     }
 
-    /* A3 — the approved design's own route to the check-in, from inside the workout
-       flow. It is shown only when the page actually gave the card that route; the
-       card itself knows nothing about check-ins. */
+    /* A3 / W-42 - the approved design's own route to the check-in, from inside the
+       workout flow. It is shown only when the page actually gave the card that route;
+       the card itself knows nothing about check-ins. */
     const toCheckIn = root.querySelector('[data-action="checkin"]');
     if (toCheckIn) {
       toCheckIn.hidden = typeof onCheckIn !== 'function';
@@ -430,31 +589,26 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       }
     }
 
+    /* W-15: the clean rep help opens under the chips, in the stack, which grows upward. */
     const help = root.querySelector('[data-action="clean-rep"]');
     const helpNote = map.get('clean-rep-note');
-    lines(helpNote, showHelp ? CLEAN_REP_HELP : [], 'small quiet');
+    lines(helpNote, showHelp ? CLEAN_REP_HELP : [], '');
     hooks.listen(help, 'click', () => { showHelp = !showHelp; paint(); });
 
-    put(map, 'log-label', 'Log set ' + view.set.position);
     const logOutcome = async (outcome) => {
       if (!outcome || outcome.kind !== 'gym-result' || outcome.action !== 'logSet') return;
       const result = outcome.result;
-      if (!result.ok) {
-        root.querySelector('#gym-error').textContent = plainOrDrop(refusalText(result), 'gym-error');
-        return;
-      }
+      if (!result.ok) { setRefusedCode = result.code || null; refuse(result, !!result.code); return; }
+      setRefusedCode = null;
       held.entry = { load: null, reps: null };
       held.effort = null; showWhy = false; showSetup = false; showHelp = false;
       await paint();
       if (onChanged) onChanged();
     };
 
-    const upNext = view.upNext;
-    put(map, 'up-next', upNext ? upNext.label : '');
-    if (!upNext) root.querySelector('.next-lift').hidden = true;
-
     hooks.listen(root.querySelector('[data-action="back"]'), 'click', () => leaveCard(() => onBack()));
-    if (view.message) root.querySelector('#gym-error').textContent = plainOrDrop(refusalText(view.message), 'gym-error');
+    if (view.message) refuse(view.message, !!view.message.code && view.message.code === setRefusedCode);
+    coachPill(root);
     icons(root);
     show(root);
     if (bindSettings) bindSettings();
@@ -470,50 +624,70 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   }
 
   /* Every slot is recorded but this device has no saved set to show on the rest
-     screen — reachable once a skip is wired (A3/A4), and before this branch existed
+     screen, reachable once a skip is wired (A3/A4), and before this branch existed
      it fell through to renderActive and read `.lift` off a null active slot. The
-     athlete gets the rest screen with the finish action and no invented saved fact. */
+     athlete gets the rest screen with the finish action and no invented saved fact.
+     C-UI-4 / W-28: the rest chassis with the set card hidden, no next set, no Undo. */
   function renderComplete(view) {
-    const root = template('t-rest');
+    const root = chassis('t-rest');
     const map = slots(root);
     put(map, 'session-title', view.title || view.session.instruction.display);
-    put(map, 'exercise-position', '');
-    put(map, 'lift', view.session.instruction.display);
-    lines(map.get('reason'), [], 'change');
-    root.querySelector('.saved-block').hidden = true;
+    put(map, 'saved-title', view.session.instruction.display);
+    root.querySelector('.w-reasons').hidden = true;
+    put(map, 'reason', '');
+    map.get('saved-block').hidden = true;
+    put(map, 'entry-title', '');
+    put(map, 'saved-facts', '');
     put(map, 'rest-note', NO_REST_PRESCRIBED);
     put(map, 'next-label', '');
     put(map, 'next-plan', '');
     put(map, 'next-effort', '');
+    map.get('next-block').hidden = true;
+    root.querySelector('[data-action="undo"]').hidden = true;
     put(map, 'primary-label', FINISH_WORKOUT);
     for (const el of root.querySelectorAll('[data-action="back"]')) {
       hooks.listen(el, 'click', () => leaveCard(() => onBack()));
     }
+    coachPill(root);
     icons(root);
-    show(root);
+    show(root, true);
     hooks.bindGymAction('finish', () => undefined, (outcome) => finishOutcome(view, outcome));
   }
 
-  /* ---------------- the saved set and the rest ---------------- */
+  /* ---------------- the saved set and the rest (C-UI-4: W-22 to W-26, W-43) ----------------
+     The same screen repainted: the title says what happened, the set card carries the
+     stored facts, the rest line is always said and there is no timer, the next set is
+     named with its prescription, and Undo takes the Edit button's place beside Log. */
   function renderSaved(view) {
-    const root = template('t-rest');
+    const root = chassis('t-rest');
     const map = slots(root);
-    put(map, 'session-title', view.title || view.session.instruction.display);
-    put(map, 'exercise-position', 'Exercise ' + view.lift.index + ' of ' + view.lift.count);
-    put(map, 'lift', view.lift.label);
-    lines(map.get('reason'), view.reasonLines.slice(0, 1), 'change');
-    put(map, 'saved-title', 'Set ' + view.saved.position + ' logged');
-    put(map, 'saved-facts', view.saved.facts);
-    put(map, 'rest-note', NO_REST_PRESCRIBED);
-
     const next = view.next;
+    put(map, 'session-title', view.title || view.session.instruction.display);
+    put(map, 'saved-title', next ? 'Set ' + view.saved.position + ' logged' : view.lift.label + ' complete');
+    const reasonLines = view.reasonLines.slice(0, 1);
+    root.querySelector('.w-reasons').hidden = reasonLines.length === 0;
+    put(map, 'reason', reasonLines.length ? reasonLines[0] : '');
+    put(map, 'entry-title', 'What you did · Set ' + view.saved.position);
+    put(map, 'saved-facts', view.saved.facts);
+    /* F2: the same set card, repainted (states-workout.js rest()): the numerals keep the
+       stored set's own figures, read back out of the facts line the model composed from
+       the stored operation ("<load> lb × <reps> reps · ..."); a line in any other
+       shape draws no figures rather than a guessed one. */
+    const logged = /^(.+?) lb × (.+?) reps · /.exec(view.saved.facts || '');
+    put(map, 'rest-load', logged ? logged[1] : '');
+    put(map, 'rest-reps', logged ? logged[2] : '');
+    root.querySelector('#numerals').hidden = !logged;
+    const restNote = put(map, 'rest-note', NO_REST_PRESCRIBED);
+
     put(map, 'next-label', next
       ? (next.sameLift ? 'Next · Set ' + next.position + ' of ' + next.count : 'Next · ' + next.label)
-      : view.lift.label + ' complete');
+      : '');
     put(map, 'next-plan', next ? next.line : '');
     put(map, 'next-effort', next ? next.effort : '');
+    map.get('next-block').hidden = !next;
 
-    put(map, 'primary-label', next ? 'Ready for set ' + next.position : FINISH_WORKOUT);
+    /* W-22 (DECISIONS:820 (2)): the board's own "Start set N". */
+    put(map, 'primary-label', next ? 'Start set ' + next.position : FINISH_WORKOUT);
     const primaryOutcome = async (outcome) => {
       if (next) { await paint(); return; }
       await finishOutcome(view, outcome);
@@ -521,15 +695,21 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const undoOutcome = async (outcome) => {
       if (!outcome || outcome.kind !== 'gym-result' || outcome.action !== 'undo') return;
       const result = outcome.result;
-      if (!result.ok) { put(map, 'rest-note', refusalText(result)); return; }
+      /* W-26: the rest line is replaced by the layer's own refusal, in the refusal's dress. */
+      if (!result.ok) {
+        put(map, 'rest-note', refusalText(result));
+        restNote.className = 'refusal note-block w-refusal';
+        return;
+      }
       await paint();
       if (onChanged) onChanged();
     };
     for (const el of root.querySelectorAll('[data-action="back"]')) {
       hooks.listen(el, 'click', () => leaveCard(() => onBack()));
     }
+    coachPill(root);
     icons(root);
-    show(root);
+    show(root, true);
     hooks.bindGymAction(next ? 'forget' : 'finish', () => undefined, primaryOutcome);
     hooks.bindGymAction('undo', () => undefined, undoOutcome);
   }

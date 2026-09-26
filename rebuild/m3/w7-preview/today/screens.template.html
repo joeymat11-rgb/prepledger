@@ -447,42 +447,72 @@
 </article>
 </template>
 
-<!-- A2 · the gym card. These two screens are REFINEMENT A's reviewed workout and
-     saved-set/rest screens (Refinement-Workout.png, Refinement-Rest.png), structure
-     for structure, in A's own classes. Every value is bound at runtime from the
-     accepted capture layer or from a stored operation; as everywhere in this page,
-     no element here carries a figure. Two elements of A's rest screen are absent
-     and the report says why: the countdown timer and its +30s/Pause controls price
-     a rest length the accepted engine does not prescribe. -->
+<!-- C-UI-4 (look lane, S12) · INSIDE THE WORKOUT: the active set and the rest screen,
+     ported to the pinned 2026-09-18 pack (app/app.html #screen-workout, the W states in
+     app/states-workout.js). BEGIN C-UI-4 BLOCK.
+     Each template is the pack's chassis (ruling 4): a scrolling .body and a fixed .stack,
+     mounted by gym-app.mjs as the two direct children of the live .ui host, so the Log
+     button sits at the stack's bottom edge and the rest screen repaints with it in place.
+     Every class is a selector in the pinned stylesheets, every static word occurs in the
+     approved references, and no element here carries a figure: every value is bound at
+     runtime from the accepted capture layer or a stored operation (gym-app.mjs).
+     The numerals ARE the entry: #w-value and #r-value each hold the real text box the set is
+     logged from, drawn in the serif the pack gives .numerals .value.
+     Round 3 (DECISIONS:820 (2) to (4)): the board's words win where the two differ, so the
+     "example" pill, "Today’s set", the set state word, "RIR (clean reps left)" and the W-18
+     hint are the board's own, and the coach pill (#talk-workout) opens the Coach screen,
+     which says the coach is not live (C-61); it is drawn only when the page gives the card
+     that route. Left out, each a recorded departure: the Edit button on the set (gym-model
+     has no edit of an unlogged set, and the numerals are already the entry), the pill's two
+     links (the card has no text or voice lane to switch), the +/- steps and "Exercise N of M"
+     (DECISIONS:820 (4)); no rest timer and no skip (ruling 6). -->
 <template id="t-gym">
-<article class="page">
-  <div class="gym-nav">
-    <button class="back" type="button" data-action="back"><span aria-hidden="true">←</span> <span data-slot="session-title"></span></button>
-    <span data-slot="exercise-position"></span>
+<div class="body">
+  <header class="header">
+    <div class="brand">
+      <button class="back" type="button" data-action="back" aria-label="Back to Today"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 1L2 10l8 9"/></svg></button>
+      <span class="wordmark">Earned</span>
+    </div>
+    <div class="right"><span class="pill" title="Example numbers, not your data">example</span></div>
+  </header>
+  <div class="hairline"></div>
+  <div class="session-row"><span class="kind" data-slot="session-title"></span><span class="count"><span class="set-dots" id="set-dots" aria-hidden="true" data-slot="strip"></span><span id="set-count" data-slot="set-count"></span></span></div>
+  <h1 class="screen-title" data-slot="lift"></h1>
+  <div class="w-reasons" hidden>
+    <div class="w-reason-row"><span class="w-reason" data-slot="reason"></span><button class="link w-why" type="button" data-action="why" hidden>Why?</button></div>
+    <div data-slot="reason-more" hidden></div>
   </div>
-  <div class="gym-head">
-    <h1 data-slot="lift"></h1>
-    <button class="text-link" type="button" data-action="setup">Setup <span data-arrow></span></button>
+  <div class="setcard" id="setcard">
+    <div class="top"><span class="eyebrow" data-slot="entry-title">Today’s set</span><span class="state" id="set-state"><span class="ring" aria-hidden="true"></span><span id="set-state-text">Unlogged</span></span></div>
+    <div class="numerals" id="numerals">
+      <div class="num"><label class="visually-hidden" for="gym-weight">Weight (lb)</label><div class="value" id="w-value"><input id="gym-weight" type="text" inputmode="decimal" autocomplete="off" aria-describedby="gym-error"></div><div class="unit">lb</div></div>
+      <div class="times" aria-hidden="true">×</div>
+      <div class="num"><label class="visually-hidden" for="gym-reps">Reps</label><div class="value" id="r-value"><input id="gym-reps" type="text" inputmode="numeric" autocomplete="off" aria-describedby="gym-error"></div><div class="unit">reps</div></div>
+    </div>
+    <div class="w-hint" data-slot="step-hint" hidden>No load step is on file for this machine. Type the load you used.</div>
+    <div class="w-presc" data-slot="plan" hidden></div>
+    <div class="divider"></div>
+    <!-- F5 / ruling R4: the last-time line opens nothing on this device, so it is drawn
+         without the board's chevron (a recorded departure from W-06/W-16). -->
+    <div class="last" id="last-time"><span data-slot="previous"></span></div>
   </div>
-  <div data-slot="reason"></div>
-  <p class="change"><button class="why-inline" type="button" data-action="why">Why?</button></p>
-  <div class="small quiet" data-slot="setup-note" hidden></div>
-  <div class="set-strip" aria-label="Set progress" data-slot="strip"></div>
-  <section class="prescription">
-    <div class="small quiet">This set’s plan</div>
-    <h2 data-slot="plan"></h2>
-    <p class="effort-target" data-slot="effort-target"></p>
-  </section>
-  <!-- DECISIONS:154 (2) / :140 wave one - THE MACHINE SETTINGS FOR THIS LIFT, under the
-       prescription and above the performed inputs. Every visible string is a slot: the
-       words live in gym-app.mjs, which design.cjs binds, and no figure is written here.
+  <!-- DECISIONS:154 (2) / :140 wave one - THE MACHINE SETTINGS FOR THIS LIFT, now the
+       pack's machine row (#machine, W-33 to W-36): the row IS the control that opens the
+       capture editor. W-06: its serif title is the stored setting itself and its sub line
+       the open label; W-33 / W-34 / W-36: the title is the open label and the sub line the
+       honest reading, empty or unreadable sentence, with W-36's action half in the note
+       block under the row. The view module's own list markup never reaches the button
+       (gym-app.mjs hands it a detached holder). Every visible string is a slot:
+       the words live in gym-app.mjs, which design.cjs binds, and no figure is written here.
        Both blocks start hidden; the card shows them only when this device has a lane. -->
-  <section class="prescription" data-own data-slot="settings-block" hidden>
-    <div class="small quiet" data-slot="settings-head"></div>
-    <div data-slot="settings-list"></div>
-    <p class="small quiet" data-slot="settings-cues" hidden></p>
-    <p class="change"><button class="text-link" type="button" data-action="settings-open" data-slot="settings-open-label"></button></p>
-  </section>
+  <button class="machine rowcard" type="button" id="machine" data-action="settings-open" data-slot="settings-block" hidden>
+    <span class="icon-square" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h9M16 7h5M3 12h3M10 12h11M3 17h11M18 17h3"/><circle cx="14" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="17" r="2"/></svg></span>
+    <span class="text"><span class="title setting" data-slot="machine-setting"></span><span class="sub when" data-slot="machine-when"></span><span class="sub" data-slot="settings-cues" hidden></span><span class="sub" data-slot="settings-head" hidden></span></span>
+    <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
+  </button>
+  <div class="note-block" data-slot="machine-note" hidden></div>
+  <button class="link w-setup" type="button" data-action="setup" hidden>Setup</button>
+  <div class="note-block" data-slot="setup-note" hidden></div>
   <section class="entry" data-own data-slot="settings-editor" hidden>
     <div class="entry-header"><h2 data-slot="settings-editor-title"></h2></div>
     <div class="fields" data-slot="settings-rows"></div>
@@ -495,80 +525,74 @@
     <button class="primary" type="button" data-slot="settings-save"><span data-slot="settings-save-label"></span></button>
     <div class="secondary-row"><button class="text-link" type="button" data-action="settings-cancel" data-slot="settings-cancel-label"></button></div>
   </section>
-  <section class="entry">
-    <div class="entry-header">
-      <h2 data-slot="entry-title"></h2>
-      <span data-slot="previous"></span>
-    </div>
-    <div class="fields">
-      <div class="field">
-        <label for="gym-weight">Weight (lb)</label>
-        <div class="number-control">
-          <button class="step" type="button" data-step="load:-1" aria-label="Decrease weight">−</button>
-          <input id="gym-weight" type="number" inputmode="decimal" min="0" step="any" aria-label="Actual weight in pounds" aria-describedby="gym-error">
-          <button class="step" type="button" data-step="load:1" aria-label="Increase weight">+</button>
-        </div>
-      </div>
-      <div class="field">
-        <label for="gym-reps">Reps</label>
-        <div class="number-control">
-          <button class="step" type="button" data-step="reps:-1" aria-label="Decrease reps">−</button>
-          <input id="gym-reps" type="number" inputmode="numeric" min="0" step="1" aria-label="Actual reps" aria-describedby="gym-error">
-          <button class="step" type="button" data-step="reps:1" aria-label="Increase reps">+</button>
-        </div>
-      </div>
-    </div>
-    <fieldset class="effort">
-      <legend>Clean reps left <span class="quiet">at the end</span></legend>
-      <div class="choices" data-slot="choices"></div>
-    </fieldset>
-    <p class="error" id="gym-error" role="alert"></p>
-  </section>
-  <div class="gym-actions">
-    <button class="cta" type="button" data-slot="log"><span data-slot="log-label"></span><span data-check></span></button>
-    <!-- A3 · the check-in is reachable from the workout flow too, in the approved
-         design's own sentence. Hidden unless the page supplies the check-in entry. -->
-    <div class="secondary-row"><button class="text-link" type="button" data-action="clean-rep">What counts as a clean rep?</button><button class="text-link" type="button" data-action="checkin" hidden>How are you feeling today?</button></div>
-    <div class="small quiet" data-slot="clean-rep-note" hidden></div>
+  <!-- A3 · the check-in is reachable from the workout flow too (W-42: the same row
+       component Today draws), in the approved design's own sentence. Hidden unless the
+       page supplies the check-in entry. -->
+  <button class="rowcard" type="button" data-action="checkin" hidden>
+    <span class="icon-square" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span>
+    <span class="text"><span class="title">How are you feeling today?</span></span>
+    <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
+  </button>
+  <div id="workout-voice" hidden>
+    <button class="talk" type="button" id="talk-workout" data-action="coach"><span class="orb" aria-hidden="true"></span><span class="label" id="talk-workout-label">Earned is here</span><span class="mic" aria-hidden="true"><svg viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="1" width="7" height="12" rx="3.5"/><path d="M1.5 10.5a7.5 7.5 0 0 0 15 0M9 18v4M5.5 22h7"/></svg></span></button>
   </div>
-  <div class="next-lift">
-    <div><div class="quiet">Up next</div><div class="name" data-slot="up-next"></div></div>
-  </div>
-</article>
+</div>
+<div class="stack">
+  <div class="rir-head"><span class="h" id="gym-rir-head">RIR (clean reps left)</span><span class="opt" data-slot="effort-target"></span></div>
+  <div class="chips" role="group" aria-labelledby="gym-rir-head" id="rir" data-slot="choices"></div>
+  <div class="note-block" data-slot="clean-rep-note" hidden></div>
+  <div class="refusal note-block w-refusal" id="gym-error" role="alert" hidden></div>
+  <div class="log-row"><button class="log" type="button" id="log" data-slot="log"><span id="log-label" data-slot="log-label"></span><span class="arrow" aria-hidden="true"><svg viewBox="0 0 20 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9h17M12 3l6 6-6 6"/></svg></span></button></div>
+  <div class="links bottom"><button class="link" type="button" data-action="clean-rep">What counts as a clean rep?</button></div>
+</div>
 </template>
 
+<!-- C-UI-4 · the rest screen after a log (W-22 to W-24, W-26, W-28, W-43): the same
+     chassis repainted. The effort row goes, so the Log button keeps its edge on its own;
+     the set card keeps its numerals (the stored set) and the saved set's facts replace
+     the last-time line under the divider; "Your plan does not set a rest
+     length." is always said and there is no timer; Undo takes the Edit button's place. -->
 <template id="t-rest">
-<article class="page">
-  <div class="gym-nav">
-    <button class="back" type="button" data-action="back"><span aria-hidden="true">←</span> <span data-slot="session-title"></span></button>
-    <span data-slot="exercise-position"></span>
-  </div>
-  <div class="gym-head">
-    <h1 data-slot="lift"></h1>
-  </div>
-  <div data-slot="reason"></div>
-  <section class="saved-block" aria-live="polite">
-    <div>
-      <div class="saved-title"><span data-check></span><span data-slot="saved-title"></span></div>
-      <p class="saved-facts" data-slot="saved-facts"></p>
+<div class="body">
+  <header class="header">
+    <div class="brand">
+      <button class="back" type="button" data-action="back" aria-label="Back to Today"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 1L2 10l8 9"/></svg></button>
+      <span class="wordmark">Earned</span>
     </div>
-    <button class="text-link" type="button" data-action="undo">Undo</button>
-  </section>
-  <section class="rest">
-    <div class="rest-heading"><h2>Take your rest.</h2></div>
-    <div class="small quiet" data-own data-slot="rest-note"></div>
-  </section>
-  <section class="next-set">
-    <p class="small" data-slot="next-label"></p>
-    <h2 data-slot="next-plan"></h2>
-    <p data-slot="next-effort"></p>
-  </section>
-  <div class="bottom">
-    <button class="cta" type="button" data-slot="primary"><span data-slot="primary-label"></span><span data-arrow></span></button>
-    <button class="text-link" type="button" data-action="back">Back to Today</button>
+    <div class="right"><span class="pill" title="Example numbers, not your data">example</span></div>
+  </header>
+  <div class="hairline"></div>
+  <div class="session-row"><span class="kind" data-slot="session-title"></span></div>
+  <h1 class="screen-title" data-slot="saved-title"></h1>
+  <div class="w-reasons" hidden>
+    <div class="w-reason-row"><span class="w-reason" data-slot="reason"></span></div>
   </div>
-</article>
+  <div class="setcard" id="setcard" data-slot="saved-block">
+    <div class="top"><span class="eyebrow" data-slot="entry-title"></span><span class="state logged" id="set-state"><span class="ring" aria-hidden="true"></span><span id="set-state-text">Logged</span></span></div>
+    <div class="numerals" id="numerals">
+      <div class="num"><div class="value" id="w-value" data-slot="rest-load"></div><div class="unit">lb</div></div>
+      <div class="times" aria-hidden="true">×</div>
+      <div class="num"><div class="value" id="r-value" data-slot="rest-reps"></div><div class="unit">reps</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="w-facts" data-slot="saved-facts"></div>
+  </div>
+  <p class="w-rest-line" data-slot="rest-note"></p>
+  <div class="w-next" data-slot="next-block">
+    <div class="eyebrow" data-slot="next-label"></div>
+    <div class="w-next-presc" data-slot="next-plan"></div>
+    <div class="w-next-aim" data-slot="next-effort"></div>
+  </div>
+  <div id="workout-voice" hidden>
+    <button class="talk" type="button" id="talk-workout" data-action="coach"><span class="orb" aria-hidden="true"></span><span class="label" id="talk-workout-label">Earned is here</span><span class="mic" aria-hidden="true"><svg viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="1" width="7" height="12" rx="3.5"/><path d="M1.5 10.5a7.5 7.5 0 0 0 15 0M9 18v4M5.5 22h7"/></svg></span></button>
+  </div>
+</div>
+<div class="stack">
+  <div class="log-row"><button class="log" type="button" id="log" data-slot="primary"><span id="log-label" data-slot="primary-label"></span><span class="arrow" aria-hidden="true"><svg viewBox="0 0 20 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9h17M12 3l6 6-6 6"/></svg></span></button><button class="edit" type="button" id="edit" data-action="undo">Undo</button></div>
+  <div class="links bottom"><button class="link" type="button" data-action="back">Back to Today</button></div>
+</div>
 </template>
+<!-- END C-UI-4 BLOCK -->
 
 <!-- A4 · Dad's first run (?screen=setup). SIX screens in ONE frame: a masthead
      carrying the brand and a quiet "n of 6", a back control on every screen but
