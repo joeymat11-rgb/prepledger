@@ -14,7 +14,7 @@ const SOURCE_PINS=Object.freeze({
  // byte here so that a mutated engine byte cannot qualify a producer mapping.
  'rebuild/engine/merge.cjs':'01e9d6e6000fd625b9f50c336c3440fb8f84e61f3e77bce4a9bf93fb8fb63b00',
  'rebuild/engine/today.cjs':'b4ebee3c32ccc8042b4373c1bc84337a1b2db1e6525f7bce0c009377a6bc4c6c',
- 'rebuild/m4/workout/engine-runtime.cjs':'95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30',
+ 'rebuild/m4/workout/engine-runtime.cjs':'b9a655abd65887d6e5a42f4dc15240a51414dfa12bf16dbf520391a514d86350',
  'tools/_fixed-now.mjs':'ab939a356467d095f357d796f87a6567b9bcb9e0171b17fe4fb0f447916cf5a7'});
 // The real native implementation, captured at module load before any caller
 // can install a substitute. Every reviewed vector below is checked against it.

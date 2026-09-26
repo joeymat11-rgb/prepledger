@@ -61,7 +61,10 @@ test("the approved design is pinned by sha256 and a changed byte fails the build
 test("the bundle carries the real engine and the real client and nothing forbidden", () => {
   const inputs = result.inputs;
   for (const required of ["rebuild/engine/today.cjs", "rebuild/engine/energy.cjs", "rebuild/engine/writers.cjs",
-    "rebuild/client/index.cjs", "rebuild/client/ops.cjs", "rebuild/client/store.cjs"]) {
+    "rebuild/client/index.cjs", "rebuild/client/ops.cjs", "rebuild/client/store.cjs",
+    /* S11 (NATIVE-LOAD): the two native modules the Today boot graph now carries, each
+       named so that a bundle which lost one goes red HERE, not only in a count below. */
+    "rebuild/engine/native-load.cjs", "rebuild/m4/workout/native-load-effects.cjs"]) {
     assert(inputs.includes(required), required);
   }
   /* P3-IMPORT-UI-2 (DECISIONS:475 (1) and (4)) - THIRTEEN BECAME FIFTEEN, AND
@@ -73,7 +76,18 @@ test("the bundle carries the real engine and the real client and nothing forbidd
      by literal path. They are in the bundle and are reachable ONLY through
      build.mjs IMPORT_ENTRY; the cell below runs the law that says so. seed.cjs
      and index.cjs keep their outright ban, and so does everything after them. */
-  assert.equal(inputs.filter((p) => p.startsWith("rebuild/engine/")).length, 15);
+  /* S11 (NATIVE-LOAD) - FIFTEEN BECAME SIXTEEN, AND THE RULE THAT ADMITTED THE ONE IS
+     STATED HERE AS THE TWO WERE ABOVE. rebuild/m3/w6/host/engine-runtime-host.cjs:72 (the
+     page-safe mirror of the engine runtime, FC05) requires rebuild/engine/native-load.cjs
+     (FC01), the pure native-load evaluator the Today panel runs on boot; it imports nothing
+     of its own. It is the ONE engine name S11 adds and it is required by name above.
+     migrate.cjs and merge.cjs are still admitted only through the Import route, seed.cjs
+     and index.cjs keep their ban, and the client count is unmoved at 12. S11's other new
+     boot module, rebuild/m4/workout/native-load-effects.cjs (FC03, imported by
+     rebuild/m3/w6/local/today-bindings.mjs:77), sits outside both counted roots, so it is
+     held by the required list instead. MEASURED on the composed S11 candidate (S11 T3c),
+     not summed. */
+  assert.equal(inputs.filter((p) => p.startsWith("rebuild/engine/")).length, 16);
   assert.equal(inputs.filter((p) => p.startsWith("rebuild/client/")).length, 12);
   for (const admitted of ["rebuild/engine/migrate.cjs", "rebuild/engine/merge.cjs"])
     assert(inputs.includes(admitted), admitted + " left the page: the Import route cannot reproduce the walk");

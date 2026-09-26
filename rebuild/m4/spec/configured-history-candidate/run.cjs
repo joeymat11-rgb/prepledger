@@ -21,7 +21,7 @@ else{
   'context-values.cjs':'8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b',
   'source-control-values.cjs':'635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560',
   'engine-history.cjs':'7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89',
-  'engine-capture.cjs':'ae899082299adfab63540d5735a889a9f99cb37588b05b23b614d6d404436c55',
+  'engine-capture.cjs':'b9f9fabde903e7996f28efdc1879dda37d44eab75e3b2237310d96d01c469834',
   'engine-order.cjs':'1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a'};
  for(const [file,pin]of Object.entries(fixed))copy(m4,'rebuild/m4/workout/'+file,pin);
  const target=path.join(output,'rebuild/m4/workout');

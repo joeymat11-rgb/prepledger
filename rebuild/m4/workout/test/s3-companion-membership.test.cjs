@@ -183,7 +183,9 @@ test('S3/SM-8 - the reader reads no sleep, calls no structural picker, mutates n
 });
 
 test('S3/SM-9 - the runtime facades expose sessionMembership as the fifth name, both runtimes, forwarding to the engine\'s own reader', () => {
-  const five = ['genSession', 'rirPlan', 'dayWeather', 'cleanAtDate', 'sessionMembership'];
+  // NATIVE-LOAD-SPEC R7 D inventory (s3-companion-membership.test.cjs:186-187, FC04/FC05): sessionMembership
+  // stays the fifth name; the two pure native-load names follow it on both runtimes.
+  const five = ['genSession', 'rirPlan', 'dayWeather', 'cleanAtDate', 'sessionMembership', 'evaluateNativeLoad', 'applyNativeLoadDecision'];
   assert.deepEqual(Runtime.COMPOSITION.exposed.slice(), five);
   assert.deepEqual(HostRuntime.EXPOSED.slice(), five);
   assert.deepEqual(HostRuntime.COMPOSITION.exposed.slice(), five);

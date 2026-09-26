@@ -56,7 +56,10 @@ const { createEngineRuntime } = AcceptedRuntime;
 // see step 14 for the reason and for the parent refusal it does not restate.
 // Re-pinned a second time with M2-S3-COMPANION (the fifth exposed name,
 // sessionMembership); the mirror still never leads.
-const HOST_RUNTIME_SHA256 = '836a369db3a94f340348fd2db02d6e8cd3ad636a851725518d583cfcbe07f334';
+// Re-pinned a third time with the S11 NATIVE-LOAD reseal (NATIVE-LOAD-SPEC R7,
+// FC05): the mirror composes native-load.cjs after writers.cjs and exposes the
+// two pure native-load names, exactly as the accepted runtime (FC04) does.
+const HOST_RUNTIME_SHA256 = '06bce58cd7ffdb2459801e79092013b2e0d71a8ab8aca572eecbc6414af55976';
 const emptyPrefix = () => Source.basis({ W: 0, log_digest: Source.createPrefixHasher().digest(), selection_id: null });
 
 // One live host over one repository handle. Providers are named here and only
@@ -410,16 +413,23 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
        of a training day, null on a rest day; no sleep, no structural picker),
        which an import admission asks instead of inventing a night. Same
        mechanic as the first move: the child profile re-pins this file and the
-       H3 parent's own pin refuses, which is the child's to supersede. */
+       H3 parent's own pin refuses, which is the child's to supersede.
+       MOVED A THIRD TIME by the S11 NATIVE-LOAD reseal (NATIVE-LOAD-SPEC R7,
+       FC04; owner grant DECISIONS:784-785): the runtime composes native-load.cjs
+       after writers.cjs (thirteen modules) and exposes the two pure native-load
+       names, evaluateNativeLoad and applyNativeLoadDecision, after
+       sessionMembership. Same mechanic again: the S11 child re-pins this file
+       and the S10 parent's own pin refuses, which is the child's to supersede. */
     assert.equal(sha('../../../../m4/workout/engine-runtime.cjs'),
-      '95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30',
-      'accepted engine-runtime.cjs is at the M2-S3-COMPANION re-pinned bytes');
+      'b9a655abd65887d6e5a42f4dc15240a51414dfa12bf16dbf520391a514d86350',
+      'accepted engine-runtime.cjs is at the S11 NATIVE-LOAD re-pinned bytes');
     assert.equal(sha('../engine-runtime-host.cjs'), HOST_RUNTIME_SHA256, 'host runtime is at its pinned bytes');
     // The runtime the journey actually ran is the accepted one.
     assert.deepEqual(AcceptedRuntime.COMPOSITION.modules, HostRuntime.MODULES);
-    assert.equal(AcceptedRuntime.COMPOSITION.modules.length, 12);
+    // NATIVE-LOAD-SPEC R7 D inventory (journey.test.mjs:419-422, FC04): 13 modules and the two pure native-load names.
+    assert.equal(AcceptedRuntime.COMPOSITION.modules.length, 13);
     assert.deepEqual(AcceptedRuntime.COMPOSITION.exposed.slice().sort(),
-      ['cleanAtDate', 'dayWeather', 'genSession', 'rirPlan', 'sessionMembership'], 'the re-pinned EXPOSED surface');
+      ['applyNativeLoadDecision', 'cleanAtDate', 'dayWeather', 'evaluateNativeLoad', 'genSession', 'rirPlan', 'sessionMembership'], 'the re-pinned EXPOSED surface');
     for (const forbidden of ['seed.cjs', 'migrate.cjs', 'merge.cjs'])
       assert(AcceptedRuntime.COMPOSITION.forbiddenImports.includes(forbidden), forbidden);
   });

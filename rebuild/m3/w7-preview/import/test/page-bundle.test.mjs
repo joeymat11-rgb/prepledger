@@ -187,16 +187,29 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
        REQUIRED_INPUTS names them), so the Today boot graph grows by three and
        the route-only set is UNMOVED at 19. RE-MEASURED on this tree rather
        than summed (the PM's run at 92be4e3): 146. */
-    assert.equal(withAdmission.inventory.length, 146,
+    /* S11 (NATIVE-LOAD) is the EIGHTH ticket to move it, by TWO:
+       rebuild/engine/native-load.cjs (FC01), required by
+       rebuild/m3/w6/host/engine-runtime-host.cjs:72, and
+       rebuild/m4/workout/native-load-effects.cjs (FC03), imported by
+       rebuild/m3/w6/local/today-bindings.mjs:77. Both land on the BOOT side
+       (the Today native-load panel runs on boot), both import nothing at all,
+       and the route-only set is UNMOVED at 19 (P3-B4's deepEqual below still
+       holds name for name). RE-MEASURED on the composed S11 candidate rather
+       than summed (S11 T3c): 148. */
+    assert.equal(withAdmission.inventory.length, 148,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 146 (the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'measured 148 (the brief\'s 133, the F7 family\'s one, the F8 family and '
       + 'the shared-class router\'s two, the route\'s own four, B-LOM\'s '
       + 'order-mapping provider, P3-REAL-SHAPE\'s lift-correspondence '
-      + 'helper, PASSPHRASE-NORMALIZE\'s shared passphrase form, and S10\'s '
-      + 'three Today writer lanes): '
+      + 'helper, PASSPHRASE-NORMALIZE\'s shared passphrase form, S10\'s '
+      + 'three Today writer lanes, and S11\'s two native-load modules): '
       + 're-measure and say so');
     assert.ok(paths.includes('rebuild/m4/workout/legacy-order-mapping.cjs'),
       'B-LOM\'s order-mapping provider is not in this graph at all');
+    /* S11: the two modules the figure above moved by, named, so that a graph
+       which lost either goes red here and not only in the sum. */
+    for (const native of ['rebuild/engine/native-load.cjs', 'rebuild/m4/workout/native-load-effects.cjs'])
+      assert.ok(paths.includes(native), native + ' is not in this graph at all: the Today native-load panel has no module to boot');
     /* AND THE DELTA, which P3-REPLAY-MEASURE-FAMILY asserted (at 13) in its own
        P3-B4 over these same two inventories, and which MEANS SOMETHING ELSE ON
        THIS BRANCH - so it is re-measured and the change of meaning is written
@@ -399,12 +412,21 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
      19 route modules plus FIVE boot modules, B-LOM's order mapping, the shared
      passphrase form and these three. Measured by the PM at 92be4e3, not
      summed. */
+  /* RE-MEASURED AGAIN WITH S11 (NATIVE-LOAD), the FOURTH ticket to move the
+     Today boot graph rather than the route: rebuild/engine/native-load.cjs
+     (through engine-runtime-host.cjs) and rebuild/m4/workout/native-load-effects.cjs
+     (through today-bindings.mjs) both load on boot. The route-only set is
+     UNMOVED at 19, so the delta is 26: 19 route modules plus SEVEN boot
+     modules, B-LOM's order mapping, the shared passphrase form, S10's three
+     writer lanes and these two. BASE_PINNED_INPUTS stays the frozen 121 of the
+     base commit it names. Measured on the composed S11 candidate (S11 T3c),
+     not summed. */
   const BASE_PINNED_INPUTS = 121;
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 24,
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 26,
     'the delta is ' + (today.inventory.length - BASE_PINNED_INPUTS) + ' modules, not the '
-    + 'measured 24 (the route\'s 19 plus the five boot modules, B-LOM\'s order '
-    + 'mapping, the shared passphrase form and S10\'s three Today writer '
-    + 'lanes): re-measure and say so');
+    + 'measured 26 (the route\'s 19 plus the seven boot modules, B-LOM\'s order '
+    + 'mapping, the shared passphrase form, S10\'s three Today writer '
+    + 'lanes and S11\'s two native-load modules): re-measure and say so');
   assert.equal(ROUTE_MODULES.length, 19,
     'the ROUTE-ONLY count moved; the delta above is no longer 19 route plus 1 boot');
 });

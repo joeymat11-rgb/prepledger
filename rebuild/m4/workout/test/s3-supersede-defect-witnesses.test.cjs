@@ -149,7 +149,8 @@ test('S3/SUP-13 - defect-witnesses: the runtime facade, both sides - four names 
   const parentRuntimeSrc = blob('rebuild/m4/workout/engine-runtime.cjs');
   assert(parentRuntimeSrc.includes("const EXPOSED=Object.freeze(['genSession','rirPlan','dayWeather','cleanAtDate']);"), 'WITNESS: the parent facade exposes four names');
   assert(!parentRuntimeSrc.includes('sessionMembership'), 'WITNESS: and knows no membership');
-  assert.deepEqual(Runtime.COMPOSITION.exposed.slice(), ['genSession', 'rirPlan', 'dayWeather', 'cleanAtDate', 'sessionMembership'], 'S3: five');
+  // NATIVE-LOAD-SPEC R7 D inventory (s3-supersede-defect-witnesses.test.cjs:152, FC04): five S3 names, then the two native-load names.
+  assert.deepEqual(Runtime.COMPOSITION.exposed.slice(), ['genSession', 'rirPlan', 'dayWeather', 'cleanAtDate', 'sessionMembership', 'evaluateNativeLoad', 'applyNativeLoadDecision'], 'S3: five, then NATIVE-LOAD: seven');
   const s = pendingHackDebut();
   const r = Runtime.createEngineRuntime({ clock });
   const E = table();

@@ -43,7 +43,7 @@ const { ENGINE_REVISION } = require('../../coach/engine-revision.cjs');
 /* THE SEALED ENGINE IDENTITY, byte for byte. sha256 is the same byte
  * local-source-profile.cjs pins as SOURCE_PINS['rebuild/engine/oracle-shim.cjs']
  * and qualify() re-checks it against that map; treeSha256 is port.cjs
- * engineDigest()'s sha over the 18 engine modules and has no other pin in the
+ * engineDigest()'s sha over the 19 engine modules and has no other pin in the
  * tree, so production-mapping.test.cjs recomputes BOTH from the real files.
  * qualify() compares this object to the bundle's own engine block by encoded
  * identity, so the field set must match port.cjs:714 exactly - four fields, no
@@ -52,8 +52,11 @@ const { ENGINE_REVISION } = require('../../coach/engine-revision.cjs');
  * basis through the engine digest, and its trip-wire is the coach's. */
 const ENGINE = Object.freeze({
   sha256: 'dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d',
-  /* S10 re-pin: S10 edited engine today.cjs and writers.cjs; value measured by the PM from port.cjs engineDigest() at 92be4e3. */
-  treeSha256: '9c13505441a479cb98a6cc9a25358cec9d983bac0f08b342b0109e3d93f6709a',
+  /* S11 re-pin (S10's value was 9c135054, measured by the PM from port.cjs engineDigest() at 92be4e3): S11 edits engine
+     writers.cjs and progression.cjs and adds native-load.cjs, 18 -> 19 modules. Value computed from port.cjs engineDigest()'s
+     own definition over the 19 public per-file sha256 at 9288adf (the protected five taken from the sealed S10 artifact,
+     their blobs unchanged); P3-M1 confirms it at the PM seat. */
+  treeSha256: '2939ccfe839ba85632036a463054c40028f7cce0001c5fa7123d7206d9cea294',
   schemaV: 60,
   path: 'rebuild/engine/oracle-shim.cjs' });
 
