@@ -878,6 +878,27 @@
    "lists": []
   },
   {
+   "text": ": next weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ": set your working weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ": undo the agreed weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": ";font-weight:",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1
@@ -1627,6 +1648,13 @@
    ]
   },
   {
+   "text": "Check next weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Check-in: missing approved template ",
    "files": {
     "rebuild/m3/w7-preview/today/checkin-app.mjs": 1
@@ -1670,6 +1698,13 @@
    "lists": [
     "PREVIEW_RUNTIME_COPY"
    ]
+  },
+  {
+   "text": "Checking your saved workout.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
   },
   {
    "text": "Chest",
@@ -3366,6 +3401,13 @@
    ]
   },
   {
+   "text": "No new weight to agree to yet. Your saved sets are kept.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "No noticeable effect",
    "files": {
     "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
@@ -3414,6 +3456,13 @@
    "text": "No supporting estimate is available.",
    "files": {
     "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No working weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
    },
    "lists": []
   },
@@ -3494,7 +3543,8 @@
    "text": "Not now",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/screens.template.html": 1
+    "rebuild/m3/w7-preview/today/screens.template.html": 1,
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
    },
    "lists": [
     "PREVIEW_COPY"
@@ -3610,6 +3660,13 @@
    "lists": [
     "PREVIEW_RUNTIME_COPY"
    ]
+  },
+  {
+   "text": "Offered weight for each set",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
   },
   {
    "text": "Offline launch:",
@@ -4304,6 +4361,13 @@
    ]
   },
   {
+   "text": "Saved. The new weight applies on a later workout.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Saving sleep...",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -4369,7 +4433,8 @@
    "text": "Set ",
    "files": {
     "rebuild/m3/w7-preview/today/gym-app.mjs": 1,
-    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
    },
    "lists": []
   },
@@ -5393,6 +5458,13 @@
    "lists": []
   },
   {
+   "text": "Undone. The agreed weight will not be used.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Unlock",
    "files": {
     "rebuild/m3/w7-preview/import/import-screen.mjs": 1
@@ -5882,7 +5954,8 @@
   {
    "text": "Yes",
    "files": {
-    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
    },
    "lists": []
   },
@@ -5948,6 +6021,13 @@
    "text": "Your choice",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your choice is saved; the next card could not be checked.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
    },
    "lists": []
   },
@@ -6060,6 +6140,13 @@
    "lists": []
   },
   {
+   "text": "Your saved workout changed since this offer. Check again for a current one.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Your set targets are ready",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -6122,6 +6209,13 @@
    ]
   },
   {
+   "text": "Your workout is saved. The next weight could not be checked.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "a secret assigned in source",
    "files": {
     "rebuild/slice/pwa/pwa.cjs": 1
@@ -6139,6 +6233,13 @@
    "text": "a string literal of ",
    "files": {
     "rebuild/m3/w7-preview/today/plain-copy.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "a workout behind your agreed weight was corrected, so this lift is left off your workouts for now. Check next weight to undo the agreed weight.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
    },
    "lists": []
   },
@@ -7733,6 +7834,13 @@
   },
   {
    "text": "workout store: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "your working weight changed after you agreed to a new one, so this lift is left off your workouts for now. Check next weight to undo the agreed weight.",
    "files": {
     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
    },
