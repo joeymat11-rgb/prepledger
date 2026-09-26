@@ -118,7 +118,11 @@ non-ASCII dash in the runner's text ends the quotation.
    `POSTFIX PACKAGE PASS M2-S10-TODAY-SPLIT`, EXIT=0 | CHILD OBSERVED count 36 | LEGACY PASS lines 10 (10 LEGACY gates
    re-executed, all PASS). No red and no re-run at T20. The receipt it wrote was committed unmodified as C1 (T21).
 6. T24, `--full --package S10` (full3) at the head that carries the committed receipt, this verdict and the moved coach
-   constant (the byte-identity re-verify), at C3 `<C3>` (C2, the commit that adds this file, carries this verdict): `<T24-RESULT>`
+   constant (the byte-identity re-verify), at C3 `c2135dc` (C2, the commit that adds this file, carries this verdict):
+   PASS, EXIT=0 (AUTHORIZED | SEAL BASE ON THE TIP | ENVELOPE AUTHORIZED |
+   `AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY` over all 300 pinned product file(s), byte-identical to the sealed run of receipt
+   3c6d1f5d | 36 CHILD OBSERVED exit 0 | no new SEALED RUN RECORDED | `POSTFIX PACKAGE PASS M2-S10-TODAY-SPLIT`); the private
+   census junction was removed after it, as planned.
    [expected: AUTHORIZED | SEAL BASE ON THE TIP | ENVELOPE AUTHORIZED | `AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY
    (DECISIONS:136 (3)); artifact, runner, spec and all 300 pinned product file(s), plus 2 released and NOT
    re-verified here, are byte-identical to the sealed run recorded in rebuild/lanes/b/tooling/receipts/S10.json
@@ -141,7 +145,8 @@ non-ASCII dash in the runner's text ends the quotation.
 - Diagnostic runs, never merged, on `diag/s10-today17-hosted`: 36204552778 and 36206163821 (`:832`, `:833`).
 - CI-1 at A `dcb73ec`: `rebuild` run 36219778403, all four jobs success (rebuild-public and C font transport, ubuntu and
   windows) (`:836`, T15).
-- CI-2 at the sealing head: run `<CI-2-RUN-ID>` at `<C4>`, named on the `M2-S10-TODAY-SPLIT SEALED AND MERGED` ledger line
+- CI-2 at the sealing head C4 (the commit that carries this terminal file; a file cannot name its own commit or the
+  run taken on it): run id and head are named on the `M2-S10-TODAY-SPLIT SEALED AND MERGED` ledger line (L6)
   with both runners' conclusions, taken at the exact lane head that carries this file. This file is not edited after that
   run, because a later commit would move the head the run must stand on (brief OWED-T26).
 
@@ -190,7 +195,7 @@ This package moves engine bytes, and only these (REVIEW-S10-CLAUDE-FINAL-l1 sect
 entry the repaired engine deliberately departs from the frozen app's behaviour although no golden row moves; the file
 headers still say they were copied from frozen (spec notes[4]; payer the S10 seal chain by `:780` Q3). Owed, and NOT
 claimed by this verdict: (1) the port oracle on the synthetic fixture; (2) the sensitivity pass; (3) the private gate;
-(4) exact-head CI on both systems (CI-2 above, `<CI-2-RUN-ID>`). Grant (g) `:816` covers (3) at the PM seat; no line
+(4) exact-head CI on both systems (CI-2 above, run id on the L6 ledger line). Grant (g) `:816` covers (3) at the PM seat; no line
 this verdict stands on records (1), (2) or (3) as run. The LEGACY conformance and selftest lines of T14b and T20 do not
 pay them: those gates run `rebuild/conform/run.cjs` against the pinned public reference bundles (the frozen app's engine
 against itself), not against the repaired `rebuild/engine` bytes (D-T16-3, REVIEW-S10-SEAL-T16-FABLE-l1 section 4).
@@ -304,7 +309,8 @@ records it as run.
   36214720524 at `9849bc7`, ubuntu needle red; T8 ci0 at `9849bc7`, today-17 725 of 726; the first T14 full1 at A, EXIT=1
   (PATH); the first T23 coach run, exit 1 (bare directory form). Then green: CI-M1 (c) 36217102675, T14b REVIEW-PENDING
   EXIT=2 as predicted, CI-1 36219778403, T20 PASS EXIT=0 with no re-run, the T23 coach re-run 377/377 and the production
-  pair 28/28. CI-2 (`<CI-2-RUN-ID>`) and T24 (`<T24-RESULT>`) are recorded at C4.
+  pair 28/28. T24 at C3 `c2135dc`: byte-identity PASS, EXIT=0 (recorded at C4). CI-2 at C4 is recorded
+  on the L6 ledger line.
 
 ## V9 carries restated (from `VERDICT-S9.md`)
 - D-S9SEAL-1 (the runbook's predicted pinned-file count was wrong, the runner's is of record): the rule is applied here;
@@ -344,7 +350,7 @@ reviewed.
 
 ## The coach constant
 `rebuild/coach/engine-revision.cjs` `ENGINE_REVISION` moves once, from `M2-S9-UI-PINS@cb31838ff0db8406` (set at the S9 seal)
-to `M2-S10-TODAY-SPLIT@3c6d1f5d1fba7699` (the first 16 hex of this receipt's sha256), in commit C3 `<C3>` after this
+to `M2-S10-TODAY-SPLIT@3c6d1f5d1fba7699` (the first 16 hex of this receipt's sha256), in commit C3 `c2135dc` after this
 verdict. The edit is made in the lane worktree (one line, `:25`; C1 still carries the S9 value) and is committed as C3 after
 C2. The production pair (production-mapping and production-admission) ran 28/28, exit 0.
 The coach suite (`rebuild/coach/test/*.test.cjs`, the `rebuild.yml` glob, on the working tree that differs from C1 only by the one ENGINE_REVISION line C3 commits) ran 377/377 (tests 377, pass
