@@ -37,12 +37,12 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "9fbfdd2d9b09fe2aa8f8bd93090220b302414d32efba78e52a83309a61a7ec7c"
+    "runnerSha256": "bdbb8a938a9f84715ba129fd51157ecb1127b07a1499cd8dd00df9e79b514dd3"
   },
   "product": {
     ".github/workflows/rebuild.yml": {
       "pre": "e3b9c9d1dabdc1de46801e12556a7a334fea0d90c7d6f9670d3d0ebca88b1372",
-      "post": "cdc90cf8e9dfa97b9bc685e5f99886e52ff4749391b3a0f58c07f79eb3710edb",
+      "post": "0c861be9d3d0f448676e699094141ed14f33abf9962a1d8fed0c7fa7121bb9d6",
       "role": "edited"
     },
     ".github/workflows/shared-preflight.yml": {
@@ -182,8 +182,8 @@
     },
     "rebuild/lanes/b/tooling/b-package.cjs": {
       "pre": "9fbfdd2d9b09fe2aa8f8bd93090220b302414d32efba78e52a83309a61a7ec7c",
-      "post": "9fbfdd2d9b09fe2aa8f8bd93090220b302414d32efba78e52a83309a61a7ec7c",
-      "role": "carried"
+      "post": "bdbb8a938a9f84715ba129fd51157ecb1127b07a1499cd8dd00df9e79b514dd3",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/B-NTC.json": {
       "pre": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
@@ -192,53 +192,53 @@
     },
     "rebuild/lanes/b/tooling/packages/H3.json": {
       "pre": "922a9b33b984c5e666981390072db488a40d138d03789f07b5f1281e59a820ff",
-      "post": "922a9b33b984c5e666981390072db488a40d138d03789f07b5f1281e59a820ff",
-      "role": "carried"
+      "post": "bd187facbb05c04bfdb376fb0b9d8159bc9f197c9f0041af3ee1d3d98196d5dc",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S10.json": {
       "pre": "0f55a704968f89b984c976e3ab07d105f1b1461296c13b7ddf2382ae4fdb7308",
-      "post": "0f55a704968f89b984c976e3ab07d105f1b1461296c13b7ddf2382ae4fdb7308",
+      "post": "566539de9e20b6eaf22a9bbca7aebcd6679540ac47d67c1b5400936b57a07ea3",
       "role": "superseded-by-child"
     },
     "rebuild/lanes/b/tooling/packages/S3.json": {
       "pre": "34bb094b138b5970bb946cfcbf8144552807b6c6e5642410ec484f47f63ffc53",
-      "post": "34bb094b138b5970bb946cfcbf8144552807b6c6e5642410ec484f47f63ffc53",
-      "role": "carried"
+      "post": "2fcee0ce340de5d14d33605a2f3c2c17f509c693409bf7a20f544f6ac7b16a59",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S4.json": {
       "pre": "3c7c9764a046bf3863702370e7a22ab53cba02d54066af73dd49de606075f6d4",
-      "post": "3c7c9764a046bf3863702370e7a22ab53cba02d54066af73dd49de606075f6d4",
-      "role": "carried"
+      "post": "ee0bfaa3348e9cf5d596c637bcaaf36c2ec12bc9e60ecdb7ebfaef2f874f037a",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S5.json": {
       "pre": "978ca0afa70a9a05dfea0a24e072d4b77f6879e034b665f1bc098b0c9e31df76",
-      "post": "978ca0afa70a9a05dfea0a24e072d4b77f6879e034b665f1bc098b0c9e31df76",
-      "role": "carried"
+      "post": "a12921f6802288e1e8ff43b4080f97df75c9305808a6eeb994b7527c317daa7c",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S6.json": {
       "pre": "76ec2659e3092a43c2605822bf0571f4fd1b43a581de5ff4cb572141ce3dc98e",
-      "post": "76ec2659e3092a43c2605822bf0571f4fd1b43a581de5ff4cb572141ce3dc98e",
-      "role": "carried"
+      "post": "7a2e9970b5e2cf0c36b888f4b4de34a2c60dd9b68385eb59416498407abd58a7",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S7.json": {
       "pre": "3703543a485a7ecafb4bbd1a7ddce4e02af36283108be9dc4e76f1c259916967",
-      "post": "3703543a485a7ecafb4bbd1a7ddce4e02af36283108be9dc4e76f1c259916967",
-      "role": "carried"
+      "post": "3613ebf4f647485503e1ef6d2f96c49a9b8ba97f09cd3086f865693d58074931",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S8.json": {
       "pre": "1da6ef28bdcad8c3760efcf99f3a1a858b857638b4303c8bf135ebd7fbdf9c4f",
-      "post": "1da6ef28bdcad8c3760efcf99f3a1a858b857638b4303c8bf135ebd7fbdf9c4f",
-      "role": "carried"
+      "post": "4878b448337daf05529cd78d1011ff53c7e0e735fa470c7d35f91ab195cca789",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S9.json": {
       "pre": "a66530aaccbd7fc463ab27e32cabfc729045ec97d900de1b45320673ec3d29b8",
-      "post": "a66530aaccbd7fc463ab27e32cabfc729045ec97d900de1b45320673ec3d29b8",
-      "role": "carried"
+      "post": "a1f280444757e0994a85591cc1092197546ffce6e02a77997aff19511f464ea2",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
       "pre": "6981b1964c0ff68193ed70ba23517bd54f6e89ba8dcf905d84fed3ed2dfb0370",
-      "post": "6981b1964c0ff68193ed70ba23517bd54f6e89ba8dcf905d84fed3ed2dfb0370",
-      "role": "carried"
+      "post": "c98be22a16bfe5733855f4518243609b1adfb31c96a5490c9e0ab16ae03bb95d",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/test/release-from-seal.test.cjs": {
       "pre": "d872eaff3fb12a75227822218c569cf8deec820efeb59fe88aa84df0516422d0",
@@ -367,8 +367,8 @@
     },
     "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs": {
       "pre": "b1afad55b231210357da6cdcc5ada91f90ad7ceba719fc6ebab5a346f6d8769a",
-      "post": "b1afad55b231210357da6cdcc5ada91f90ad7ceba719fc6ebab5a346f6d8769a",
-      "role": "carried"
+      "post": "2cc5dcc9993825d1ee16b9c4b49add43b6a2f5bef7d102e4a77f5eb1fa99f9d5",
+      "role": "edited"
     },
     "rebuild/lanes/d/b-lom/legacy-order.test.mjs": {
       "pre": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
@@ -572,8 +572,8 @@
     },
     "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
       "pre": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
-      "post": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
-      "role": "carried"
+      "post": "d73291d4c0fa79b7afef8ebeb3dbc299ee0f89d07763a3e2febd84a61106d9aa",
+      "role": "edited"
     },
     "rebuild/m3/w6/host/test/food-live-save.test.mjs": {
       "pre": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
@@ -592,8 +592,8 @@
     },
     "rebuild/m3/w6/host/test/journey.test.mjs": {
       "pre": "2ac6a7f23bcc079406a1493fe01629b61abc66984c04289dc40fbbec60c20af9",
-      "post": "2ac6a7f23bcc079406a1493fe01629b61abc66984c04289dc40fbbec60c20af9",
-      "role": "carried"
+      "post": "d60d5a47079286c17dd02e25715656fd6394758496c812ed356766badfec7dd3",
+      "role": "edited"
     },
     "rebuild/m3/w6/host/test/local-real-day.test.mjs": {
       "pre": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
@@ -687,8 +687,8 @@
     },
     "rebuild/m3/w6/test/local-today-journey.test.mjs": {
       "pre": "4a371979a8b52b03e393f3e72baf2daf536ff1474f48f2ffffa1233ef6dc8a7a",
-      "post": "4a371979a8b52b03e393f3e72baf2daf536ff1474f48f2ffffa1233ef6dc8a7a",
-      "role": "carried"
+      "post": "99abe7443379e2de014a78e6b942c4420dbf961359f64a93788f81b3dc9eb3f4",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/browser-engine.cjs": {
       "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
@@ -722,8 +722,8 @@
     },
     "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs": {
       "pre": "bedb5c8e37186bff6221e0749a9e3896c4e1e575d4684a96aaf7807ff9eba9a9",
-      "post": "bedb5c8e37186bff6221e0749a9e3896c4e1e575d4684a96aaf7807ff9eba9a9",
-      "role": "carried"
+      "post": "78092e3197ff02f4312b20315434aa89b23280ca5c3b0ed31a2d00ec794391bc",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs": {
       "pre": "5edb49e3d853d946ea9695cb9e9a04166f5137368e700572d185607565007579",
@@ -797,8 +797,8 @@
     },
     "rebuild/m3/w7-preview/measure/test/boundary.test.mjs": {
       "pre": "c649d0cfc44eaf9b7ac9d127542f7592507233995f7c6c708fe9ef4bf2ee3313",
-      "post": "c649d0cfc44eaf9b7ac9d127542f7592507233995f7c6c708fe9ef4bf2ee3313",
-      "role": "carried"
+      "post": "4a0493ff78a7459f72b5c52a7735cd340d8808df66e0c527bf14e091bba0513f",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/measure/test/journey.test.mjs": {
       "pre": "2520a774e8de269af2a032b2ac7c444753a4d87698e0ac68286ac26c2290306a",
@@ -897,13 +897,13 @@
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.corpus.json": {
       "pre": "e3b1be1078c65877fcc990ce91223f0f758bf51c9dd3b4acc08653b261cd826c",
-      "post": "e3b1be1078c65877fcc990ce91223f0f758bf51c9dd3b4acc08653b261cd826c",
-      "role": "carried"
+      "post": "58dc7a743fc883af09537a6db7692ac008ae036cb18779333e97e2f504335f8c",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs": {
       "pre": "55ceef754cdfa091e0eb810f61fd1551c7999920102acf3938ec61be484d6cfa",
-      "post": "55ceef754cdfa091e0eb810f61fd1551c7999920102acf3938ec61be484d6cfa",
-      "role": "carried"
+      "post": "160f787464aa5701c8d555cf8dcf10f0e7f8d0bf61ae0ba7c0a22c401b266879",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/copy.test.mjs": {
       "pre": "290a90ab6d79c5558a01067b9755192655cd1fe465581bdb8cc358e24fd9f9e5",
@@ -917,8 +917,8 @@
     },
     "rebuild/m3/w7-preview/today/test/food.test.mjs": {
       "pre": "a7ed0609c345f722cf50706db4699980e5a33b820c502157716a1c905871af01",
-      "post": "a7ed0609c345f722cf50706db4699980e5a33b820c502157716a1c905871af01",
-      "role": "carried"
+      "post": "11cec2c04d91b46aece2b853028d419d70d884812cd383f1f26666b71d59436e",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs": {
       "pre": "64b0875225bcd7f64009f1ab67a10c88c542821f3b794794fee36c9cbb4718fd",
@@ -952,8 +952,8 @@
     },
     "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs": {
       "pre": "e45bce7c44b42cc00f961530fe660858dba7849f9a8bb1d3d74fa21e24bf69e7",
-      "post": "e45bce7c44b42cc00f961530fe660858dba7849f9a8bb1d3d74fa21e24bf69e7",
-      "role": "carried"
+      "post": "2fd9231d5a5d8f90e6c059c5508bd2ac51b0fef15454c6f08561a26a2ae46362",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs": {
       "pre": null,
@@ -967,18 +967,18 @@
     },
     "rebuild/m3/w7-preview/today/test/package.test.cjs": {
       "pre": "2980fa5142db88c4847e86ca5ea7353f3f45044227de08fdf6bc8321ada8a927",
-      "post": "2980fa5142db88c4847e86ca5ea7353f3f45044227de08fdf6bc8321ada8a927",
-      "role": "carried"
+      "post": "0ebe2246a9cfa098b82f0ea747db4119ae7f82dae32c5561733b25ff4108033c",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/problem.test.mjs": {
       "pre": "5fe767e02937745f22700316f8950af932977d05085ba09fe78fd068f2b1cbd8",
-      "post": "5fe767e02937745f22700316f8950af932977d05085ba09fe78fd068f2b1cbd8",
-      "role": "carried"
+      "post": "598ef752de213a49bf89494f8dbccc4d9be7a395fb42506a41c50b951b769557",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
       "pre": "e43ed642e8f3dc3ce6606a5b256064938ed3fc6d2b278f7b11a4b01ed26fdc32",
-      "post": "e43ed642e8f3dc3ce6606a5b256064938ed3fc6d2b278f7b11a4b01ed26fdc32",
-      "role": "carried"
+      "post": "c0562fd5608cf2ac046e158727036cb8d65376f2fff5597c6c735a03a270a366",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/view.test.mjs": {
       "pre": "3736dfa218ebb1b5b635a02e27aba6dd84af32c319606968bf300b20ac854ad6",
@@ -1032,8 +1032,8 @@
     },
     "rebuild/m4/import/local-source-profile.cjs": {
       "pre": "1a93f5716550bbb97a6f37169d85a11df900c05e6b8ab933e5567ddbe2aaa454",
-      "post": "1a93f5716550bbb97a6f37169d85a11df900c05e6b8ab933e5567ddbe2aaa454",
-      "role": "carried"
+      "post": "78bc19b79088b690774f4208c9ff1e87f6d7e0400021d2ff1d49a89eeb7ca3fa",
+      "role": "edited"
     },
     "rebuild/m4/import/measure-replay.cjs": {
       "pre": "61a4a9204985a468dbfadd5df6a87d92237a0e1587b7b1c11e10c9446c42876e",
@@ -1047,8 +1047,8 @@
     },
     "rebuild/m4/import/production-mapping.cjs": {
       "pre": "ef405ab3294922174a8a4e8d48fa4f1492ee05b6b536e9655b39fa61bb6b73c2",
-      "post": "ef405ab3294922174a8a4e8d48fa4f1492ee05b6b536e9655b39fa61bb6b73c2",
-      "role": "carried"
+      "post": "564d6a93ccab09fe1116ce9e4c9fddacb4fd395d5b84fd3f0c2f03b770fb2d5c",
+      "role": "edited"
     },
     "rebuild/m4/import/reading-replay.cjs": {
       "pre": "0580c0d0cd7910f4eae7960c970744ebee8a814186259f15d28aed29d46123ad",
@@ -1120,10 +1120,15 @@
       "post": "74bbba37999191d5ce5ae17061e676b96280542ed379f880c92957a6b87a3e5d",
       "role": "carried"
     },
+    "rebuild/m4/import/test/s3/run.mjs": {
+      "pre": null,
+      "post": "df810e2bb3a79ad3d23d2ed47198b89a0d3f09a638626592f9c048c832e6414d",
+      "role": "new"
+    },
     "rebuild/m4/import/test/s3/s3-portable-sources.json": {
       "pre": "58049328e57154869aa0cba0d3c0c5a346921267c3e548e6de3d60d409583fc9",
-      "post": "58049328e57154869aa0cba0d3c0c5a346921267c3e548e6de3d60d409583fc9",
-      "role": "carried"
+      "post": "155e6fa2806b39d4eba18edc1c551fb5c51e4fa90066130e78bb28a9fa1d5ad6",
+      "role": "edited"
     },
     "rebuild/m4/spec/b-ntc-cases.cjs": {
       "pre": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
@@ -1207,8 +1212,8 @@
     },
     "rebuild/m4/spec/configured-history-candidate/run.cjs": {
       "pre": "b996a49ff88a60a77a5620fcc467974fa0cb781005e1bcfd89055533b0ca994e",
-      "post": "b996a49ff88a60a77a5620fcc467974fa0cb781005e1bcfd89055533b0ca994e",
-      "role": "carried"
+      "post": "02048c8c82bfdacbdcd7ff04ea378b760f9eb6b7450e35424f879d54ba712c72",
+      "role": "edited"
     },
     "rebuild/m4/spec/native-load-options.test.cjs": {
       "pre": null,
@@ -1332,8 +1337,8 @@
     },
     "rebuild/m4/workout/test/native-trend-context.test.cjs": {
       "pre": "cb4643af81e7a7d6082ba7c2cbd1cb51c4896aa0f82ac69d9274c683659979ab",
-      "post": "cb4643af81e7a7d6082ba7c2cbd1cb51c4896aa0f82ac69d9274c683659979ab",
-      "role": "carried"
+      "post": "3d85838f971806fe3c6c56938639c9cbaa998094eb352d74bd83325720e372a6",
+      "role": "edited"
     },
     "rebuild/m4/workout/test/s10-engine-files-differential.cjs": {
       "pre": "e057a540528a28307d368b37c13cf4d7841fee4f0189c6bf6ce416b4ca63ed5b",
@@ -1402,8 +1407,8 @@
     },
     "rebuild/m4/workout/test/s3-companion-membership.test.cjs": {
       "pre": "764ee61633c88633eaec803f4889c50628e6d1d673744641015110210bda3eb0",
-      "post": "764ee61633c88633eaec803f4889c50628e6d1d673744641015110210bda3eb0",
-      "role": "carried"
+      "post": "71fb7a6ed12aa9f207c241938a455743d8baa8ca7833ab483b368101586e9fd2",
+      "role": "edited"
     },
     "rebuild/m4/workout/test/s3-companion-merge-native-date.test.cjs": {
       "pre": "165d5adeed47cc3b65a11e511b589628f5d4695c90117b4c01d54adbb88e12f0",
@@ -1417,8 +1422,8 @@
     },
     "rebuild/m4/workout/test/s3-supersede-defect-witnesses.test.cjs": {
       "pre": "92781c5bff89bc4ebda34f0d86bbde0ff97345bc7c6b533a03d952e18ed96682",
-      "post": "92781c5bff89bc4ebda34f0d86bbde0ff97345bc7c6b533a03d952e18ed96682",
-      "role": "carried"
+      "post": "f4165de7c1cd8e2283da1aef73b61acb4a16e4a61cd9b51b2fc72257973ed0e9",
+      "role": "edited"
     },
     "rebuild/m4/workout/test/s3-supersede-inherited-carriers.test.cjs": {
       "pre": "06300f812ac64930cf9231d82628f5a21bb47c9ff519ab910cae5034a8787691",
@@ -2103,7 +2108,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 6\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "PENDING STOP-S11-NEEDLEFORM: a NEW value, not a re-observation: copy-lock.test.mjs and its corpus moved at 1059673 (the corpus regenerated with the approved strings, DECISIONS:842 (2); CORPUS_SHA256 re-pinned; the S11 delta and engine explanation template pin tests added, D-S11R6-3), so the sealed S10 needle \"# pass 6\" (packages/S10.json 0f55a704 at edb8381) no longer holds (D-S11T3l-1); candidate \"# pass 9\" (tests 9 on a guarded Windows builder seat, builder-reported); the value is observed at the last product byte (T4) and taken on BOTH OS in hosted CI before the spec is frozen (T6)"
     },
     {
       "name": "native-load-fc12",
@@ -2121,7 +2126,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-source-commit.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: child for local-source-commit.test.mjs (in no S10 child and, at the parent, no rebuild.yml step, MEASURED), kept as its own child so that w6-local-source keeps S10's argv; its CI home was ruled at STOP-S11-W6ADM (A), 2026-09-26: the W6 local-source step, conditioned if: ${{ !cancelled() }}, with this file appended to its run line (fence row 'S11 P-S9-3 (37)'); it runs ONLY in hosted CI and on the PM seat under grant (g), never on a builder or reviewer seat (STOP-R21B-1: its fixture family loads the protected migrate.cjs); observe \"# pass N\" at the last product byte (T4) and take the value on BOTH OS in hosted CI before the spec is frozen (T6)"
+      "needle": "PENDING STOP-S11-NEEDLEFORM: child for local-source-commit.test.mjs (in no S10 child and, at the parent, no rebuild.yml step, MEASURED), kept as its own child so that w6-local-source keeps S10's argv; its CI home was ruled at STOP-S11-W6ADM (A), 2026-09-26: the W6 local-source step, conditioned if: ${{ !cancelled() }}, with this file appended to its run line (its fence row in rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs, committed at 97a0aa6, is the one titled \"the W6 local-source step exists and carries the not-cancelled condition\"); it runs ONLY in hosted CI and on the PM seat under grant (g), never on a builder or reviewer seat (STOP-R21B-1: its fixture family loads the protected migrate.cjs); observe \"# pass N\" at the last product byte (T4) and take the value on BOTH OS in hosted CI before the spec is frozen (T6)"
     },
     {
       "name": "w6-local-today-journey",
@@ -2130,20 +2135,23 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-today-journey.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: NEW child, ruled at STOP-S11-C4B (A), 2026-09-26 (rebuild/m3/w6/test/ is already a CHILD_ROOT, so no runner hunk; its CI home is the conditioned rebuild.yml step for this file, fence row 'S11 P-S9-3 (39)'); the file holds the FA02 today-entry.mjs pin in PAGE_PINS (8b169758 at the parent; the successor-pin item of brief 5.2 moves it red-first to the composed 169d5658); CANDIDATE \"# pass 51\" (tests 51, pass 51 on a guarded Windows builder seat after that move, 0 guard lines, builder-reported, not yet observed at these bytes); the value is observed at the last product byte (T4) and taken on BOTH OS in hosted CI before the spec is frozen (T6)"
+      "needle": "PENDING STOP-S11-NEEDLEFORM: NEW child, ruled at STOP-S11-C4B (A), 2026-09-26 (rebuild/m3/w6/test/ is already a CHILD_ROOT, so no runner hunk; its CI home is the conditioned rebuild.yml step for this file, whose fence row in rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs, committed at 97a0aa6, is the one titled \"the W6 local Today journey step exists and carries the not-cancelled condition\"); the file holds the FA02 today-entry.mjs pin in PAGE_PINS (8b169758 at the parent; the successor-pin item of brief 5.2 moved it red-first to the composed 169d5658 at 1f19d6d); CANDIDATE \"# pass 51\" (tests 51, pass 51 on a guarded Windows builder seat after that move, 0 guard lines, builder-reported, not yet observed at these bytes); the value is observed at the last product byte (T4) and taken on BOTH OS in hosted CI before the spec is frozen (T6)"
     }
   ],
   "notes": [
-    "PROPOSED DRAFT, NOT A SPEC OF RECORD. M2-S11 (package id PROPOSED M2-S11-NATIVE-LOAD, STOP-S11-ID) is the reseal child of M2-S10-TODAY-SPLIT that places the NATIVE-LOAD build on the S10 parent (working paper: S11-NATIVE-LOAD-RESEAL-BRIEF-DRAFT-rev3.md; the brief of record is STOP-S11-BRIEF). Composed by an S11 prep builder (claude-opus-5-5) in a scratch worktree on rebuild/b-s11-prep, never the S10 lane: git merge --no-ff --no-commit of rebuild/e-native-load-red bd7654a798592a7dae421b9d68fec850fb0993d1 (round 21, DECISIONS:827) onto the S10 CANDIDATE 9849bc7ffff5543668d3157c997235d108c54e62 (the S10 lane head after spec r2 ff98500 and the T7 merge #2), uncommitted. Every value that exists only at or after the S10 seal is a string that begins with PENDING and names its STOP (brief rev3 section 12); rebuild/lanes/b/S11-REGEN.cjs lists them all (PENDING census) and at T3k fills sourceBase, the parent option hashes and receipt line, the runner pin and the product map on the SEALED S10 fast-forward, which is not 9849bc7 (STOP-S11-BASE).",
-    "PRODUCT MAP (regenerated by rebuild/lanes/b/S11-REGEN.cjs at parent edb8381ea6a9f5373c8519ee7e9d7d8a303c2369). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s10-today-split.json 42a3eb020557); post is sha256 of the bytes at HEAD 9288adfc782a10ea4d3de098723955db9515f3b6. Parent-released paths are not declared: rebuild/m3/w7-preview/today/gym-app.mjs, rebuild/m3/w7-preview/today/today-app.cjs. New paths are every path HEAD changed since the parent, inside the S11 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself; tracked Markdown under rebuild/engine/ is declared because the engine-inventory cells walk every tracked file there. Roles: {\"edited\":14,\"carried\":286,\"new\":9,\"superseded-by-child\":1}.",
-    "PARENT-UNPINNED PATHS (regenerated at edb8381ea6a9f5373c8519ee7e9d7d8a303c2369): 3 path(s) existed at the parent pinned by neither its product map nor its execution pins and are declared here, so they are declared role new with pre null (DECISIONS:792): rebuild/m3/w6/host/build-host.mjs, rebuild/m3/w6/t2-stage.cjs, rebuild/m3/w6/test/local-source-commit.test.mjs.",
-    "EXECUTION PIN SUPERSEDED (regenerated at edb8381ea6a9f5373c8519ee7e9d7d8a303c2369): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: rebuild/lanes/b/tooling/packages/S10.json pre 0f55a704968f89b984c976e3ab07d105f1b1461296c13b7ddf2382ae4fdb7308 post 0f55a704968f89b984c976e3ab07d105f1b1461296c13b7ddf2382ae4fdb7308.",
-    "MERGE (brief T3a, measured in the prep worktree before the merge commit 1193ee079080cbb8ba7a00848286f3dba5a1c96f): the merge held 38 paths: 37 merged cleanly and were staged, and the 38th, .github/workflows/rebuild.yml, was unmerged (UU: resolved on disk, not staged); it conflicted on the Today-step run line only and is resolved as the union: the S10 line (copy-lock.test.mjs and the five gss-annex files) with rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs appended, and NATIVE-LOAD's FC12 step kept (composed sha256 cdc90cf8e9dfa97b9bc685e5f99886e52ff4749391b3a0f58c07f79eb3710edb; against the S10 post exactly the FC12 step, +6 lines, and the one Today line; against the bd7654a post exactly S10's +67/-4). writers.cjs, engine-capture.cjs, configuration-capture.test.cjs and engine-capture.test.cjs auto-merged, and each side's git patch-id --stable is unchanged on the other side. The rebuild.yml post is NOT final: T3e sets --package S11 on the standing step (it still says S10), adds if: ${{ !cancelled() }} to the FC12 step (DECISIONS:792, the :627 P-S9-3 shape) with its fence row, and applies the W6 step ruling (STOP-S11-W6ADM, STOP-S11-FENCE).",
-    "NOT YET AUTHORED IN THIS TREE (brief T3c, T3e, T3l, each built red-first in its own worktree; the PM applies them before the final S11-REGEN --write): the runner hunks (b-package.cjs IDS :181 and NO_REGISTER_IDS :333 gain S11) with the literal cells of pinned-unchanged-and-ruled-substitutions.test.cjs (:273, :299-300, :337-338) and the five CHILD_SPECS cells (STOP-S11-RUNNER); the successor pins of brief 5.2 (s3-portable-sources.json :122/:138/:250/:418/:430, configured-history-candidate/run.cjs :24, local-source-profile.cjs :17 (STOP-S11-LSP, ruled (A) 2026-09-26), journey.test.mjs :59/:415, s3/run.mjs :135, local-today-journey.test.mjs :699 under STOP-S11-C4B); the rev6 re-pins production-mapping.cjs :56 (STOP-S11-ENGINE-DIGEST), package.test.cjs and page-bundle.test.mjs (STOP-S11-BUNDLE) and the copy-lock corpus with its CORPUS_SHA256 pin (STOP-S11-COPYLOCK); the rebuild.yml steps and fence rows (STOP-S11-FENCE, STOP-S11-REGENCI, the W6ADM and C4B steps); the H3, S3..S9.json runnerSha256 re-pins and the S10.json re-pin. Until they land every such file is declared at its S10 post here; S11-REGEN re-measures each. The six s11-* gate-supersession cells ARE in this tree, declared new, as children 30-35 (see CHILDREN).",
-    "CHILDREN: 39 (reconciled 2026-09-26, brief rev6 5.1 FINAL CHILD COUNT): S10's 36 sealed children (packages/S10.json 0f55a704), minus its six supersession executions (children 30-35: s10-sup-source-carriers, s10-sup-inherited-carriers, s10-sup-defect-witnesses, s10-sup-writers-differential, s10-sup-second-gate, s10-engine-files-differential), plus the six S11 cells that replace them six for six in the same positions (s11-sup-source-carriers, s11-sup-inherited-carriers, s11-sup-defect-witnesses, s11-sup-writers-differential, s11-sup-second-gate and the plain-script s11-engine-files-differential; STOP-S11-SUP6, Astra L1 B3; S10 replaced S9's six the same way), plus three: native-load-fc12 (FC12), w6-local-source-commit (STOP-S11-W6ADM ruled (A): its own child, so w6-local-source keeps S10's argv; its CI home is the conditioned W6 step) and w6-local-today-journey (STOP-S11-C4B ruled (A)). 36 - 6 + 6 + 3 = 39. No W6DIR provisioning child (STOP-S11-W6DIR ruled (A): the named debt D-S11-W6DIR below). today-17's argv gains native-load-panel.test.mjs (FA03), in the order of the composed rebuild.yml Today line; every other inherited child keeps S10's name and argv. The six S10 cell FILES stay in the tree and in this product, carried at their sealed posts, unedited and no longer executed: each binds S10's engine bytes, and the runner refuses any child that exits nonzero. Every needle is PENDING: an inherited needle (sealed in packages/S10.json 0f55a704 at edb8381, both OS at DECISIONS:838) observes S10 bytes and is re-observed at T4 on the last product byte (STOP-S11-T4); a new child's needle (the six S11 cells, w6-local-source-commit, w6-local-today-journey) is a new value, predicted in its PENDING text and taken on BOTH OS in hosted CI before T6 (STOP-S11-NEEDLEFORM). SEATS: w6-local-source and w6-local-source-commit load the protected migrate.cjs and run ONLY in hosted CI and on the PM seat under grant (g) (STOP-R21B-1); today-17 is guard-tripped as a whole (DECISIONS:832) and is observed on the PM seat (g) and in CI; the engine-loading rows of the six S11 cells run only in hosted CI and on the PM seat (g); the seat of every other child is classified at T4.",
-    "OPEN ITEMS CARRIED BY THIS DRAFT (the 2026-09-26 PM rulings recorded here: STOP-S11-W6DIR (A) is the named debt D-S11-W6DIR below, with no provisioning child; STOP-S11-C4B (A) is the child w6-local-today-journey; STOP-S11-W6ADM (A) is the CI home of the child w6-local-source-commit; and, until T5, coverage.superseded.rulingLineSha256 is null, the runner's own placeholder (its supersession check refuses it by name as GATE-SUPERSESSION-RULING-NOT-CITED, where a PENDING string would fail GATE-SUPERSESSION-RULING-LINE-SHA256-SHAPE), while the ruled line's text and every gates[*].why stay PENDING STOP-S11-GSUP): STOP-S11-REV (FC03 PRODUCER_REVISION hashes today.cjs and writers.cjs, and writers.cjs is composed here, so it is re-bound red-first via FC12 R2-REVISION); STOP-S11-WRITERS and STOP-S11-ECAP (three-way proofs of the composed writers.cjs and engine-capture.cjs); STOP-S11-LSP; STOP-S11-FENCE; the Fable l1 debts D-S11R3-1..6 on the brief (the DECISIONS:798 copy cell, D-L14-OWNER and D-L14-LEGACY-NULL among them). No RELEASE-FROM-SEAL: S11 releases nothing, so this spec carries no release key (as H3..S8). authorizations.owner and .contract keep their ledger line numbers and lineSha256 but not the verbatim line text, which holds non-ASCII (U+2014, U+00B7) and is copied byte-exact from S10.json at T6.",
+    "M2-S11 (package id PROPOSED M2-S11-NATIVE-LOAD, STOP-S11-ID) is the reseal child of the SEALED M2-S10-TODAY-SPLIT that places the NATIVE-LOAD build on its S10 parent. PARENT: the sealed S10 (rebuild/m4/spec/acceptance-s10-today-split.json 42a3eb020557d312f4e8199eebc79101154ebe4315d2a44fd7a6e5c719450ae8, ACCEPTED review 8d9132787373e9e3e9a3ee1f91be8c403867acd9b8136a6390d1029a1d6a2a0a, receipt DECISIONS:837, sealed and merged at DECISIONS:838, seal tip edb8381ea6a9f5373c8519ee7e9d7d8a303c2369 = this spec's sourceBase). WORKING PAPER: the S11 reseal brief rev7 (sha256 f2eecdc4fc3b255d5351ee92f675a4f6c1890e432a344b35b33ee712c45ceb2e, 143358 B; its Fable l5 read: ACCEPT WITH NAMED DEBTS D-S11R7-1..4); rev7 is not the brief of record, which is STOP-S11-BRIEF. LANE: rebuild/b-s11-integration at ffcf82b97cdbb399e8ebd1d48f065c826f755992, which holds the composition (MERGE below) and the five committed S11 items 8709f48, 1f19d6d, 97a0aa6, 1059673 and ffcf82b (APPLIED below). The NATIVE-LOAD input S11 finally composes is the head the PM commits after round 24 and its reads (STOP-S11-R20); until that head merges, FC12 (rebuild/m4/spec/native-load-options.test.cjs) and FA03 (rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs) stand here at their round-21 bytes (blob-identical to bd7654a). Every value that exists only after a later step is a string that begins with PENDING and names its STOP; rebuild/lanes/b/S11-REGEN.cjs lists every one of them (PENDING census, uncapped) and re-measures sourceBase, the parent option hashes and receipt line, the runner pin and the product map at every --write (STOP-S11-BASE: again after the NATIVE-LOAD head merges).",
+    "PRODUCT MAP (regenerated by rebuild/lanes/b/S11-REGEN.cjs at parent edb8381ea6a9f5373c8519ee7e9d7d8a303c2369). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s10-today-split.json 42a3eb020557); post is sha256 of the bytes at HEAD ffcf82b97cdbb399e8ebd1d48f065c826f755992. Parent-released paths are not declared: rebuild/m3/w7-preview/today/gym-app.mjs, rebuild/m3/w7-preview/today/today-app.cjs. New paths are every path HEAD changed since the parent, inside the S11 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself; tracked Markdown under rebuild/engine/ is declared because the engine-inventory cells walk every tracked file there. Roles: {\"edited\":44,\"carried\":256,\"new\":16,\"superseded-by-child\":1}.",
+    "PARENT-UNPINNED PATHS (regenerated at edb8381ea6a9f5373c8519ee7e9d7d8a303c2369): 4 path(s) existed at the parent pinned by neither its product map nor its execution pins and are declared here, so they are declared role new with pre null (DECISIONS:792): rebuild/m3/w6/host/build-host.mjs, rebuild/m3/w6/t2-stage.cjs, rebuild/m3/w6/test/local-source-commit.test.mjs, rebuild/m4/import/test/s3/run.mjs.",
+    "EXECUTION PIN SUPERSEDED (regenerated at edb8381ea6a9f5373c8519ee7e9d7d8a303c2369): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: rebuild/lanes/b/tooling/packages/S10.json pre 0f55a704968f89b984c976e3ab07d105f1b1461296c13b7ddf2382ae4fdb7308 post 566539de9e20b6eaf22a9bbca7aebcd6679540ac47d67c1b5400936b57a07ea3.",
+    "MERGE (the composition, as recorded in git): 1193ee079080cbb8ba7a00848286f3dba5a1c96f merged the NATIVE-LOAD build rebuild/e-native-load-red bd7654a798592a7dae421b9d68fec850fb0993d1 (round 21, DECISIONS:827) --no-ff onto the S10 lane head before the S10 seal; 9288adfc782a10ea4d3de098723955db9515f3b6 then merged the sealed S10 chain tip 71cf1437e17821b89c113bff685dd35856643656 forward (DECISIONS:838 SEALED AND MERGED at edb8381; clean, 21 paths), so every S10 byte in this tree is the sealed parent's, never rebased (DECISIONS:563). The composition's one conflict was .github/workflows/rebuild.yml on the Today-step run line, resolved as the union: the S10 line (copy-lock.test.mjs and the five gss-annex files) with rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs appended, and NATIVE-LOAD's FC12 step kept (composed sha256 cdc90cf8e9dfa97b9bc685e5f99886e52ff4749391b3a0f58c07f79eb3710edb); S11's own workflow edits landed on top of it at 97a0aa6 (APPLIED), and the post declared here is the committed one. writers.cjs, engine-capture.cjs, configuration-capture.test.cjs and engine-capture.test.cjs auto-merged at 1193ee0; the per-side patch-id and three-way proofs on the committed bytes are STOP-S11-WRITERS and STOP-S11-ECAP.",
+    "APPLIED IN THIS TREE (five commits the PM made on rebuild/b-s11-integration from reviewed builder bytes, each read by Fable l1: ACCEPT WITH NAMED DEBTS; every path they touch is declared here edited, new or superseded-by-child at its committed post, re-measured by S11-REGEN --write at ffcf82b): 8709f48 adds the six s11 gate-supersession cells under rebuild/m4/workout/test/ (children 30-35, STOP-S11-SUP6). 1f19d6d moves the successor pins and carriers of brief 5.2 (rebuild/m4/import/test/s3/s3-portable-sources.json, rebuild/m4/spec/configured-history-candidate/run.cjs :24, rebuild/m3/w6/host/test/journey.test.mjs :59/:415, engine-equivalence.test.cjs, rebuild/m4/workout/test/native-trend-context.test.cjs, s3-companion-membership.test.cjs, s3-supersede-defect-witnesses.test.cjs, rebuild/m3/w6/test/local-today-journey.test.mjs PAGE_PINS today-entry.mjs, and rebuild/m4/import/test/s3/run.mjs :135-138 with the complete predicate, a file no package pinned before, so it is declared new with pre null, DECISIONS:792 shape), LSP (A) at rebuild/m4/import/local-source-profile.cjs :17 (STOP-S11-LSP), the production engine digest at rebuild/m4/import/production-mapping.cjs :56 computed off-seat, 2939ccfe839ba85632036a463054c40028f7cce0001c5fa7123d7206d9cea294 over the 19 engine modules (STOP-S11-ENGINE-DIGEST), and the bundle inventories of package.test.cjs and page-bundle.test.mjs with a negative witness per new required dependency (STOP-S11-BUNDLE). 97a0aa6 registers S11 in the runner (b-package.cjs IDS and NO_REGISTER_IDS; runner bdbb8a938a9f84715ba129fd51157ecb1127b07a1499cd8dd00df9e79b514dd3) with the literal cells of pinned-unchanged-and-ruled-substitutions.test.cjs and the five CHILD_SPECS cells (boundary, food, machine-settings-ui, problem, setup), the S11 fence rows of sealed-inventory-fence.test.mjs, the rebuild.yml standing step --package S11, the conditioned FC12 step, the W6 local-source step with local-source-commit.test.mjs (W6ADM (A)), the S11-REGEN step and the W6 local Today journey step (C4B (A)), and re-pins tooling.runnerSha256 in H3.json, S3..S9.json and S10.json (STOP-S11-RUNNER, -FENCE, -REGENCI, -W6ADM, -C4B). 1059673 regenerates the copy-lock corpus with the approved strings (DECISIONS:842 (2)), pins its CORPUS_SHA256 and adds the engine explanation template pins (STOP-S11-COPYLOCK). ffcf82b rebinds this spec on the sealed S10 (six-for-six children, the C4B child) and pays D-S11-A1/A2 in S11-REGEN. Still owed on these bytes: the PM-seat (g) and hosted CI observations (P3-M1 red then green, the bundle cells, engine-provider and the production-admission reopen cell, the w6 suites, the s11 cells' engine rows) and every needle (STOP-S11-T4, STOP-S11-NEEDLEFORM).",
+    "CHILDREN: 39 (reconciled 2026-09-26; brief rev7 5.1 FINAL CHILD COUNT, 38 to 40 by the child-form rulings): S10's 36 sealed children (packages/S10.json 0f55a704), minus its six supersession executions (children 30-35: s10-sup-source-carriers, s10-sup-inherited-carriers, s10-sup-defect-witnesses, s10-sup-writers-differential, s10-sup-second-gate, s10-engine-files-differential), plus the six S11 cells that replace them six for six in the same positions (s11-sup-source-carriers, s11-sup-inherited-carriers, s11-sup-defect-witnesses, s11-sup-writers-differential, s11-sup-second-gate and the plain-script s11-engine-files-differential; STOP-S11-SUP6, Astra L1 B3; S10 replaced S9's six the same way), plus three: native-load-fc12 (FC12), w6-local-source-commit (STOP-S11-W6ADM ruled (A): its own child, so w6-local-source keeps S10's argv; its CI home is the conditioned W6 step) and w6-local-today-journey (STOP-S11-C4B ruled (A)). 36 - 6 + 6 + 3 = 39. No W6DIR provisioning child (STOP-S11-W6DIR ruled (A): the named debt D-S11-W6DIR below). today-17's argv gains native-load-panel.test.mjs (FA03), in the order of the composed rebuild.yml Today line; every other inherited child keeps S10's name and argv. The six S10 cell FILES stay in the tree and in this product, carried at their sealed posts, unedited and no longer executed: each binds S10's engine bytes, and the runner refuses any child that exits nonzero. Every needle is PENDING: an inherited needle (sealed in packages/S10.json 0f55a704 at edb8381, both OS at DECISIONS:838) observes S10 bytes and is re-observed at T4 on the last product byte (STOP-S11-T4); a new child's needle (the six S11 cells, w6-local-source-commit, w6-local-today-journey) is a new value, predicted in its PENDING text and taken on BOTH OS in hosted CI before T6 (STOP-S11-NEEDLEFORM); so is s10-copy-lock's, whose file moved at 1059673 (the sealed \"# pass 6\" no longer holds, D-S11T3l-1). A needle that names a fence row names it by the row's content, never by its number alone. SEATS: w6-local-source and w6-local-source-commit load the protected migrate.cjs and run ONLY in hosted CI and on the PM seat under grant (g) (STOP-R21B-1); today-17 is guard-tripped as a whole (DECISIONS:832) and is observed on the PM seat (g) and in CI; the engine-loading rows of the six S11 cells run only in hosted CI and on the PM seat (g); the seat of every other child is classified at T4.",
+    "RULINGS RECORDED AND STOPS STILL NAMED. Rulings (DECISIONS:841 and the PM rulings of 2026-09-26): STOP-S11-W6DIR (A) is the named debt D-S11-W6DIR below, with no provisioning child; STOP-S11-C4B (A) is the child w6-local-today-journey with its conditioned rebuild.yml step; STOP-S11-W6ADM (A) is the CI home of the child w6-local-source-commit (the conditioned W6 local-source step with that file appended); STOP-S11-LSP (A) moved local-source-profile.cjs :17 only, and its two other stale pins are the named debt D-S11-LSP-PORT-PINS below; s3/run.mjs keeps the complete predicate and is declared new; rebuild/m4/spec/native-carriers-source.cjs:41 stays a historical construction pin, undeclared; the native-next-targets family is the named debt D-S11-NNT below; D-S3-PORTABLE-STALE and D-COPYLOCK-TODAY-MOUNT below; and, until T5, coverage.superseded.rulingLineSha256 is null, the runner's own placeholder (its supersession check refuses it by name as GATE-SUPERSESSION-RULING-NOT-CITED, where a PENDING string would fail GATE-SUPERSESSION-RULING-LINE-SHA256-SHAPE), while the ruled line's text and every gates[*].why stay PENDING STOP-S11-GSUP. STOPs still named: STOP-S11-REV (FC03 PRODUCER_REVISION hashes today.cjs and writers.cjs, and writers.cjs is composed here, so it is re-bound red-first via FC12 R2-REVISION on the NATIVE-LOAD head); STOP-S11-WRITERS and STOP-S11-ECAP (three-way proofs of the composed writers.cjs and engine-capture.cjs); STOP-S11-R20 and STOP-S11-FC12N (the NATIVE-LOAD head after round 24); STOP-S11-T4 and STOP-S11-NEEDLEFORM (every needle); STOP-S11-ID, STOP-S11-BRIEF, STOP-S11-THEME, STOP-S11-GSUP and STOP-S11-AUTH-TEXT (T5, T6). The debts of brief rev7 (D-S11R7-1..4) are debts of the brief, not of this spec. No RELEASE-FROM-SEAL: S11 releases nothing, so this spec carries no release key (as H3..S8). authorizations.owner and .contract keep their ledger line numbers and lineSha256 but not the verbatim line text, which holds non-ASCII (U+2014, U+00B7) and is copied byte-exact from S10.json at T6.",
     "D-BLOM, CARRIED (DECISIONS:798, :799): the b-lom child stays undeclared, as at S10 (S10.json notes[9]); the debt is re-measured after 2026-10-05 by the hosted-blom NO-path packet.",
     "D-S11-W6DIR, CARRIED (PM ruling STOP-S11-W6DIR (A), 2026-09-26; named again in VERDICT-S11): rebuild/m4/workout/test/engine-capture.test.cjs (:5) and configuration-capture.test.cjs (:8) throw 'Provide retained PERFORMED_W6_DIR' at load, no workflow sets that root and no child names either file, so neither this package nor CI observes their two R9.10 cells (engine-capture 'incomplete per-set plan vectors cannot silently flatten to the scalar card load R9.10' and configuration-capture 'invalid source configurations and numeric vectors refuse without changing input R9.10', each asserting that wSets [40] on the fixture's 2-slot card captures fitted [40,40], DECISIONS:803 (e), :804). The R9.10 fit semantics stay CI-observed through FC12's FIT rows (child native-load-fc12 and the CI FC12 step). No child and no rebuild.yml step here; a provisioning packet follows S11 (it needs a PM-named retained revision for PERFORMED_W6_DIR: the live tree fails configuration-capture on the retained capture.cjs refusal code).",
-    "D-S3-PORTABLE-STALE, CARRIED (PM ruling 2026-09-26; named again in VERDICT-S11): pre-existing at the sealed parent edb8381 and not moved by NATIVE-LOAD: eight entries of the S3 portable manifest rebuild/m4/import/test/s3/s3-portable-sources.json pin bytes that differ from those files at the parent (rebuild/client/copy.cjs, rebuild/client/index.cjs, rebuild/m3/w6/local/import-bundle.mjs, rebuild/m3/w6/local/local-client.mjs, rebuild/m3/w6/local/source-admission.mjs, rebuild/m3/w6/test/local-source-admission.test.mjs, rebuild/m4/workout/engine-history.cjs, rebuild/m4/workout/engine-order.cjs; three of them move again in this package), as do rebuild/m4/spec/configured-history-candidate/run.cjs :23 (engine-history.cjs) and :25 (engine-order.cjs). Neither harness runs in any child or CI step, and a full re-baseline needs protected reads, so none of these pins is edited here."
+    "D-S3-PORTABLE-STALE, CARRIED (DECISIONS:841, a named debt; named again in VERDICT-S11): eight entries of the S3 portable manifest rebuild/m4/import/test/s3/s3-portable-sources.json were already stale at the sealed parent edb8381, each pinning bytes that differ from its file there: rebuild/client/copy.cjs, rebuild/client/index.cjs, rebuild/m3/w6/local/import-bundle.mjs, rebuild/m4/workout/engine-history.cjs and rebuild/m4/workout/engine-order.cjs, which are blob-identical at edb8381 and here; and rebuild/m3/w6/local/local-client.mjs, rebuild/m3/w6/local/source-admission.mjs and rebuild/m3/w6/test/local-source-admission.test.mjs, which move AGAIN in S11 (the NATIVE-LOAD build), so whoever pays this debt re-baselines those three to their S11 posts, never to the S10 post. rebuild/m4/spec/configured-history-candidate/run.cjs :23 (engine-history.cjs) and :25 (engine-order.cjs) are stale the same way. Neither harness runs in any child or CI step, and a full re-baseline needs protected reads, so none of these pins is edited here (the manifest entries S11 itself moves were re-pinned at 1f19d6d).",
+    "D-S11-NNT, CARRIED (DECISIONS:841: the native-next-targets family is decided by a static read of the runner, successor carriers if its gate still executes, else a named debt; the static read by the successor-pin builder and its Fable l1 found no executor; named again in VERDICT-S11): rebuild/m4/workout/test/native-next-targets.test.cjs (:41/:43, an immutable original pinned by rebuild/m4/spec/b-ntc-native-next-targets.test.cjs:8 and rebuild/m4/spec/native-carriers-source.cjs:32), rebuild/m4/spec/native-next-target-candidate/fixture.cjs :70 and reach.cjs :8/:12 (support-pinned in m4/spec) and b-ntc-native-next-targets.test.cjs are red on the composed engine (builder-measured) and are not edited: no immutable original is edited in place. No S11 child executes the family: no argv of this spec names any of these files, the postfix gates the runner spawns (rebuild/conform/v4/postfix/run.cjs:9-21) name none of them, and no rebuild.yml run line does (only the comments at :44 and :48). Carried, not paid; it re-opens if a later package re-adds an executor of the family.",
+    "D-S11-LSP-PORT-PINS, CARRIED (PM ruling 2026-09-26: a named debt, not moved in S11; named again in VERDICT-S11): rebuild/m4/import/local-source-profile.cjs SOURCE_PINS :6 (rebuild/m3/setup/port/port.cjs, 08f877c7) and :7 (rebuild/m3/setup/port/unseal.cjs, 515822a1) differ from those files' bytes (b83bfd0f and 1f837ef7, blob-identical at edb8381 and here: stale since C2, before the sealed parent). No test compares either entry to disk (engine-pins-unprotected.test.cjs checks today.cjs and engine-runtime.cjs; S3-PROVIDER-ENGINE-PINS checks merge.cjs, today.cjs and engine-runtime.cjs), and qualify() compares SOURCE_PINS to the production mapping by identity only, so the profile's byte pin is not enforced for these two entries. S11 moved :17 only (engine-runtime.cjs, LSP (A), 1f19d6d). Whoever pays this moves :6 and :7 in ONE engine_digest rotation, red first through a new cell that compares them to disk.",
+    "D-COPYLOCK-TODAY-MOUNT, CARRIED (named again in VERDICT-S11): rebuild/m3/w7-preview/today/test/copy-lock-states.mjs mounts gym-app.mjs, machine-settings-host.mjs and design.cjs only; it never mounts today-entry.mjs open() or the native-load panel, so CL-COMPOSED says nothing about the panel. The approved copy of classes A-E (DECISIONS:798 (3), :804, :842 (2)) is held by the static scan (CL-HOLDS on the regenerated corpus 58dc7a74, 1059673) and the engine explanation templates by CL-ENGINE-COPY; a mounted panel state, declared and red first, is later work. The stale comments today-entry.mjs :169 and native-load.cjs :162 (wording PROPOSED, not approved) are product bytes that a later NATIVE-LOAD product round re-words with a re-measure."
   ]
 }
