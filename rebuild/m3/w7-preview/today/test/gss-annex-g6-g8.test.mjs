@@ -43,6 +43,19 @@ async function until(check, label) {
   }
   throw new Error('GSS-ANNEX-TIMEOUT: ' + label);
 }
+/* A Log delivery paints its saved screen through paint() -> model.read() over the encrypted
+   store, so the event-loop turns it needs after held.done depend on host speed; settle()'s
+   fixed 8 turns is not a bound on it. painted() waits on the exact condition the next oracle
+   asserts, against a wall-clock deadline like within(). It never asserts: at the deadline it
+   returns and that unchanged oracle fails with its own code. Once the condition holds it waits
+   settle() again, so a screen wiped right after it appears is still caught by that oracle. */
+async function painted(check, milliseconds = 5000) {
+  const deadline = performance.now() + milliseconds;
+  while (!check() && performance.now() < deadline) await new Promise((done) => setTimeout(done, 0));
+  await settle();
+}
+const savedScreen = (page) => /logged/.test(page.pick('[data-slot="saved-title"]')?.textContent || '')
+  && !!page.pick('[data-action="undo"]');
 
 async function collections(repository) {
   const value = (await repository.load()).generation.collections;
@@ -205,6 +218,7 @@ async function runG6(seam, plant = false) {
     held.release(); const envelope = await within(held.done, 'G6 delivery'); await settle();
     assertTyped(envelope, 'GSS-G6-' + seam.toUpperCase());
     if (envelope.result.ok) {
+      await painted(() => savedScreen(mounted));
       assert.match(mounted.pick('[data-slot="saved-title"]')?.textContent || '', /logged/,
         'GSS-G6-SAVED-SCREEN');
       assert(mounted.pick('[data-action="undo"]'), 'GSS-G6-UNDO');
@@ -304,6 +318,7 @@ async function runG6NeutralRepaint(kind) {
     held.release(); const envelope = await within(held.done, 'G6 neutral delivery'); await settle();
     assertTyped(envelope, 'GSS-G6-NEUTRAL-' + kind.toUpperCase());
     assert.equal(envelope.result.ok, true, 'GSS-G6-NEUTRAL-ACK-' + kind);
+    await painted(() => savedScreen(mounted));
     const saved = /logged/.test(mounted.pick('[data-slot="saved-title"]')?.textContent || '');
     const undo = !!mounted.pick('[data-action="undo"]');
     const clearedEntry = copy(draft.entry), clearedEffort = copy(draft.effort);
@@ -380,6 +395,7 @@ async function runG7(mode, plant = false) {
     unit.fault.state.armed = false; unit.fault.state.mode = null;
     assertTyped(envelope, 'GSS-G7-' + mode.toUpperCase());
     if (envelope.result.ok) {
+      await painted(() => savedScreen(mounted));
       assert.match(mounted.pick('[data-slot="saved-title"]')?.textContent || '', /logged/,
         'GSS-G7-CLEAN-SAVED-SCREEN');
       assert(mounted.pick('[data-action="undo"]'), 'GSS-G7-CLEAN-UNDO');

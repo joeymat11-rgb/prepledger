@@ -43,6 +43,19 @@ async function until(check, label) {
   }
   throw new Error('GSS-ANNEX-TIMEOUT: ' + label);
 }
+/* A Log delivery paints its saved screen through paint() -> model.read() over the encrypted
+   store, so the event-loop turns it needs after held.done depend on host speed; settle()'s
+   fixed 8 turns is not a bound on it. painted() waits on the exact condition the next oracle
+   asserts, against a wall-clock deadline like within(). It never asserts: at the deadline it
+   returns and that unchanged oracle fails with its own code. Once the condition holds it waits
+   settle() again, so a screen wiped right after it appears is still caught by that oracle. */
+async function painted(check, milliseconds = 5000) {
+  const deadline = performance.now() + milliseconds;
+  while (!check() && performance.now() < deadline) await new Promise((done) => setTimeout(done, 0));
+  await settle();
+}
+const savedScreen = (page) => /logged/.test(page.pick('[data-slot="saved-title"]')?.textContent || '')
+  && !!page.pick('[data-action="undo"]');
 
 async function collections(repository) {
   const value = (await repository.load()).generation.collections;
@@ -245,6 +258,7 @@ async function runG5(plant = false) {
     const envelope = await within(held.done, 'G5 Log delivery'); await settle();
     assert.equal(envelope.kind, 'returned', 'GSS-G5-LOG-THREW');
     assert.equal(envelope.result?.ok, true, 'GSS-G5-LOG-NOT-ACKNOWLEDGED');
+    await painted(() => savedScreen(mounted));
     const savedTitle = mounted.pick('[data-slot="saved-title"]')?.textContent || '';
     const undoPresent = !!mounted.pick('[data-action="undo"]');
     const performed = copy({ entry: draft.entry, effort: draft.effort });
