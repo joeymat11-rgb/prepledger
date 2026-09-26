@@ -147,6 +147,172 @@ export async function createSetupEntry({ today: day }, options = {}) {
   };
 }
 
+/* NATIVE-LOAD FA02 (NATIVE-LOAD-SPEC R9.8 105cc28 (sha256 28c73fa4), first built on R7 section E; owner answer YES, route B;
+   DECISIONS:784-785). The shared view/controller, local to this entry (FA01 is not a
+   file). Route B: after an ACKNOWLEDGED normal Close the gym model notifies this
+   controller (FB01), which checks the completed lifts and shows the offers; the
+   "Check next weight" button (A) recovers any unanswered choice. Every choice needs
+   its own yes; a decline, a cancel or a repeated check writes nothing; a failed check
+   never touches the saved workout. Figures shown are the host's display values for
+   the issuance it holds, never an editable issuance. */
+export const NATIVE_LOAD_COPY = Object.freeze({
+  check: "Check next weight",
+  checking: "Checking your saved workout.",
+  failed: "Your workout is saved. The next weight could not be checked.",
+  savedButUnchecked: "Your choice is saved; the next card could not be checked.",
+  stale: "Your saved workout changed since this offer. Check again for a current one.",
+  none: "No new weight to agree to yet. Your saved sets are kept.",
+  saved: "Saved. The new weight applies on a later workout.",
+  yes: "Yes",
+  decline: "Not now",
+});
+/* PROPOSED - NEW COPY, NOT APPROVED. Every string below needs Joe's approval before
+   release (round 4, D9 undo control and D-B2-1 disputed label; spec R7/R8 :153, :156,
+   :157). Nothing else in this file's copy changed. A lift's display name is prefixed to
+   `disputed` and `conflict` as "Name: ", and to `undoHeading` as "Name". */
+export const NATIVE_LOAD_PROPOSED_COPY = Object.freeze({
+  undoHeading: ": undo the agreed weight",
+  noWeight: "No working weight",
+  undone: "Undone. The agreed weight will not be used.",
+  disputed: "a workout behind your agreed weight was corrected, so this lift is left off your workouts for now. Check next weight to undo the agreed weight.",
+  conflict: "your working weight changed after you agreed to a new one, so this lift is left off your workouts for now. Check next weight to undo the agreed weight.",
+});
+// The fold issues that make a lift's new prescription unavailable and carry the spend
+// whose compensation resolves them (spec :157 BASIS_REPAIR_REQUIRED; R8 :156 load_basis).
+// Spec R9.2 :158: a hold superseded by a later adoption is history, never a notice.
+const heldIssue = x => x && typeof x.lift === "string" && typeof x.spend_id === "string" && !x.superseded_by &&
+  (x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" || (x.code === "NATIVE_LOAD_EFFECT_CONFLICT" && x.field === "load_basis"));
+const noticesOf = issues => (Array.isArray(issues) ? issues : []).filter(heldIssue)
+  .map(x => ({ lift: x.lift, code: x.code === "NATIVE_LOAD_BASIS_REPAIR_REQUIRED" ? "disputed" : "conflict" }));
+function createNativeLoadController({ openHost, lifts: liftNames = () => new Map(), onSaved, onClosedChecked } = {}) {
+  let host = null, opening = null, busy = Promise.resolve(), region = null, doc = null;
+  let view = { phase: "idle", offers: [], refusals: [], copy: null, notices: [] };
+  const held = new Map();   // proposalId -> the host's offer (with its opaque handle)
+  const ensure = async () => { if (host) return host; if (!opening) opening = openHost(); host = await opening; return host; };
+  const run = task => { const next = busy.then(task, task); busy = next.then(() => {}, () => {}); return next; };
+  function set(next) { view = next; paint(); }
+  const nameOf = lift => liftNames().get(lift) || lift;
+  async function checkNow(closeOpId) {
+    set({ ...view, phase: "checking", copy: NATIVE_LOAD_COPY.checking });
+    try {
+      const h = await ensure();
+      const projected = await h.project();
+      if (!projected || projected.ok !== true) throw new Error(projected && projected.code || "NATIVE_LOAD_PROJECTION_FAILED");
+      const targets = projected.lifts.filter(l => l.normal && (closeOpId === undefined || l.completion_op_id === closeOpId));
+      const offers = [], refusals = [];
+      held.clear();
+      for (const target of targets) {
+        const result = await h.check({ lift_lineage_id: target.lift_lineage_id, completion_op_id: target.completion_op_id });
+        if (result.status === "offer") for (const offer of result.offers) { held.set(offer.proposalId, offer); offers.push(offer); }
+        else if (result.refusal) refusals.push({ lift: target.lift_lineage_id, code: result.refusal.code });
+      }
+      /* D9 UNDO (spec :153): the explicit check also lists, for every accepted effect not yet
+         used and every held one, its compensating choice as its own offer. FC01 decides
+         eligibility (no captured Start, landing or later training), so an ineligible undo
+         is simply not offered. Route B's after-Close check lists only new weights. */
+      if (closeOpId === undefined) {
+        const spends = new Map();
+        for (const e of projected.effects || []) if (e && (e.kind === "queued" || e.kind === "adopted")) {
+          let lift = null; try { lift = JSON.parse(e.spend_id)[1]; } catch (_) { lift = null; }
+          if (typeof lift === "string") spends.set(e.spend_id, lift);
+        }
+        for (const x of (projected.issues || []).filter(heldIssue)) spends.set(x.spend_id, x.lift);
+        // Spec R9.1 :158 NO TRAP exit (a): a genuine accepted spend kept behind a lift hold
+        // (never applied, so neither an effect nor a held issue names it) still lists its undo.
+        for (const x of projected.spent || []) if (x && !x.cancelled && !spends.has(x.spend_id)) {
+          let lift = null; try { const d = JSON.parse(x.spend_id); lift = d[0] === "native-load" ? d[1] : null; } catch (_) { lift = null; }
+          if (typeof lift === "string") spends.set(x.spend_id, lift);
+        }
+        for (const [spend, lift] of spends) {
+          const newest = projected.lifts.find(l => l.lift_lineage_id === lift && l.normal);
+          if (!newest) continue;
+          const result = await h.check({ lift_lineage_id: lift, completion_op_id: newest.completion_op_id, intent: { compensate: spend } });
+          if (result.status === "offer") for (const offer of result.offers) { held.set(offer.proposalId, offer); offers.push(offer); }
+        }
+      }
+      set({ phase: offers.length ? "offers" : "refused", offers, refusals, notices: noticesOf(projected.issues),
+        copy: offers.length ? null : NATIVE_LOAD_COPY.none });
+    } catch (_) {
+      held.clear();
+      set({ phase: "failed", offers: [], refusals: [], notices: view.notices, copy: NATIVE_LOAD_COPY.failed });
+    }
+    return api.view();
+  }
+  async function answer(proposalId, word) {
+    const offer = held.get(proposalId);
+    if (!offer) return { acknowledged: false, code: "NATIVE_LOAD_CAPABILITY_REQUIRED" };
+    const h = await ensure();
+    const result = await h.respond({ handle: offer.handle, proposal_id: proposalId, answer: word });
+    if (word !== "accept") {
+      held.delete(proposalId);
+      set({ ...view, offers: view.offers.filter(o => o.proposalId !== proposalId) });
+      return result;
+    }
+    if (result.acknowledged === true) {
+      held.delete(proposalId);
+      set({ phase: "saved", offers: view.offers.filter(o => o.lift !== offer.lift), refusals: [], notices: view.notices,
+        copy: offer.kind === "compensate" ? NATIVE_LOAD_PROPOSED_COPY.undone : NATIVE_LOAD_COPY.saved });
+      if (typeof onSaved === "function") {
+        try { await onSaved(); } catch (_) { set({ ...view, copy: NATIVE_LOAD_COPY.savedButUnchecked }); }
+      }
+      return result;
+    }
+    held.clear();
+    set({ phase: "refused", offers: [], refusals: [{ lift: offer.lift, code: result.code }],
+      copy: result.code === "NATIVE_LOAD_STALE_OFFER" ? NATIVE_LOAD_COPY.stale : (result.copy || NATIVE_LOAD_COPY.none) });
+    return result;
+  }
+  function paint() {
+    if (!region || !doc) return;
+    const make = (tag, attrs = {}, textValue) => {
+      const el = doc.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      if (textValue !== undefined) el.textContent = textValue;
+      return el;
+    };
+    const button = make("button", { type: "button", "data-native-load": "check", class: "btn" }, NATIVE_LOAD_COPY.check);
+    button.addEventListener("click", () => { api.check(); });
+    const children = [button];
+    if (view.copy) children.push(make("p", { "data-native-load": "status", role: "status" }, view.copy));
+    for (const notice of view.notices || [])
+      children.push(make("p", { "data-native-load": "notice", "data-lift": notice.lift }, nameOf(notice.lift) + ": " + NATIVE_LOAD_PROPOSED_COPY[notice.code]));
+    for (const offer of view.offers) {
+      const card = make("div", { "data-native-load": "offer", "data-lift": offer.lift, "data-kind": offer.kind, "data-proposal": offer.proposalId });
+      card.append(make("h3", {}, nameOf(offer.lift) + (offer.kind === "earn" ? ": next weight" : offer.kind === "compensate" ? NATIVE_LOAD_PROPOSED_COPY.undoHeading : ": set your working weight")));
+      const list = make("ul", { "aria-label": "Offered weight for each set" });
+      offer.loads.forEach((load, i) => { const item = make("li", {}, "Set " + (i + 1) + ": "); item.append(make("span", { "data-native-load": "set-load" }, load === null ? NATIVE_LOAD_PROPOSED_COPY.noWeight : load + " " + offer.unit)); list.append(item); });
+      card.append(list, make("p", { "data-native-load": "reason" }, offer.reason));
+      const yes = make("button", { type: "button", "data-native-load": "yes", class: "btn" }, NATIVE_LOAD_COPY.yes);
+      yes.addEventListener("click", () => { api.accept(offer.proposalId); });
+      const no = make("button", { type: "button", "data-native-load": "decline", class: "btn" }, NATIVE_LOAD_COPY.decline);
+      no.addEventListener("click", () => { api.decline(offer.proposalId); });
+      card.append(yes, no);
+      children.push(card);
+    }
+    region.replaceChildren(...children);
+  }
+  const api = Object.freeze({
+    check: () => run(() => checkNow(undefined)),
+    // After a saved Close the programme may have moved (a landing): reconcile Today in
+    // the same serialized task, contained, so the saved workout is never affected.
+    afterClose: ({ closeOpId } = {}) => run(async () => {
+      const shown = await checkNow(closeOpId);
+      if (typeof onClosedChecked === "function") { try { await onClosedChecked(); } catch (_) { /* reported on the next refresh */ } }
+      return shown;
+    }),
+    accept: proposalId => run(() => answer(proposalId, "accept")),
+    decline: proposalId => run(() => answer(proposalId, "decline")),
+    view: () => JSON.parse(JSON.stringify({ ...view, offers: view.offers.map(o => ({ proposalId: o.proposalId, lift: o.lift, kind: o.kind,
+      state: o.state, loads: o.loads, unit: o.unit, current: o.current, reason: o.reason })) })),
+    settled: () => busy,
+    // The label for a lift whose new prescription is held (spec :157 "labeled disputed").
+    setNotices(issues) { set({ ...view, notices: noticesOf(issues) }); },
+    mount(document_, element) { doc = document_; region = element; paint(); },
+    close() { if (host && typeof host.close === "function") host.close(); },
+  });
+  return api;
+}
+
 export async function createWorkoutEntry(model, options = {}) {
   const view = model.read();
   const day = model.today;
@@ -180,8 +346,58 @@ export async function createWorkoutEntry(model, options = {}) {
      (gym-app.mjs `view.title || view.session.instruction.display`), which is the name
      of the thing actually being logged. No engine byte moves, and no sentence is
      invented here. */
+  /* NATIVE-LOAD FA02: the controller exists only where the installation supplies the
+     trusted native-load host (today-bindings.mjs createNativeLoadHost). Its refresh
+     folds from this entry's IMMUTABLE basis, hands the result to the existing
+     model.adoptBasis, and re-probes the card; new preparations already read the
+     accepted effects through the decorated registrar, and a started session keeps
+     its own capture. */
+  let immutableBasis = typeof model.basisState === "function" ? model.basisState() : null;
+  let lastAdopted = null;
+  /* THE RECONCILE (spec :165, review B5): "after the existing adoption chain as well as
+     after each relevant save/reopen". It folds from the immutable basis (never the state
+     it last handed to adoptBasis: a basis that differs from the last adopted one is a
+     NEW adoption and becomes the immutable one) and adopts the result, so Today and the
+     gym read one projection. With no native effect at all the fold equals the basis and
+     nothing is adopted, so the adoption gate (today-model setPendingAdoption) is never
+     lifted by this. It runs on a yes (onSaved), after a checked Close and on the entry's
+     exported refresh, which today-app.cjs calls after its adoption chain and on reopen. */
+  /* The basis the native host judges against, read afresh on every check, projection and
+     yes (review B21; spec :148, :165): the page's current basis, unless it is exactly the
+     projection this entry itself adopted, in which case the immutable basis beneath it. So
+     a newer adopted plan makes an older displayed offer STALE_OFFER before any write. */
+  function hostBase() {
+    if (typeof model.basisState !== "function") return model.stateFromOps();
+    const current = model.basisState();
+    return lastAdopted !== null && JSON.stringify(current) === JSON.stringify(lastAdopted) ? immutableBasis : current;
+  }
+  async function reconcile() {
+    if (!nativeLoad || !immutableBasis || typeof model.adoptBasis !== "function") return false;
+    const current = model.basisState();
+    if (lastAdopted === null || JSON.stringify(current) !== JSON.stringify(lastAdopted)) { immutableBasis = current; lastAdopted = null; }
+    const opened = await openedNativeHost();
+    if (!opened) return false;
+    const projected = await opened.project({ base: immutableBasis });
+    if (!projected || projected.ok !== true || !projected.state) throw new Error((projected && projected.code) || "NATIVE_LOAD_PROJECTION_FAILED");
+    nativeLoad.setNotices(projected.issues); // a held lift is labeled, never silently missing (spec :157)
+    const next = { ...projected.state }; delete next.workoutFacts;
+    if (lastAdopted === null && JSON.stringify(next) === JSON.stringify(immutableBasis)) return false;
+    model.adoptBasis(next);
+    lastAdopted = model.basisState();
+    return true;
+  }
+  const nativeLoad = hosts && typeof hosts.createNativeLoadHost === "function" ? createNativeLoadController({
+    openHost: () => openedNativeHost(),
+    lifts: () => new Map((model.stateFromOps().exercises || []).map(e => [e.id, e.n || e.id])),
+    onSaved: async () => { await reconcile(); await refresh(); },
+    onClosedChecked: async () => { await reconcile(); },
+  }) : null;
+  let nativeHost = null;
+  const openedNativeHost = async () => nativeHost || (nativeHost = hosts && typeof hosts.createNativeLoadHost === "function"
+    ? await hosts.createNativeLoadHost({ day, engineState: hostBase }) : null);
   const gym = createGymModel({ gymHost, hostForDay,
-    sessionTitle: view.workout && view.workout.today === true ? view.workout.title : null });
+    sessionTitle: view.workout && view.workout.today === true ? view.workout.title : null,
+    ...(nativeLoad ? { onClosed: closed => nativeLoad.afterClose(closed) } : {}) });
   let summary = null;
   let onRefresh = null;
   const gymDraft = newGymDraft();
@@ -206,20 +422,43 @@ export async function createWorkoutEntry(model, options = {}) {
     return result;
   }
   await refresh();
+  /* The exported refresh reconciles first (spec :165; today-app.cjs:2503 calls it after
+     adoption). A projection that cannot be read is carried on the summary by code, and
+     Today keeps the basis it has rather than painting a newly folded one. */
+  async function reconcileAndRefresh() {
+    let nativeCode = null;
+    if (nativeLoad) { try { await reconcile(); } catch (error) { nativeCode = (error && error.message) || "NATIVE_LOAD_PROJECTION_FAILED"; } }
+    await refresh();
+    if (nativeCode) summary = { ...summary, nativeCode };
+    return summary;
+  }
   return {
     summary: () => summary,
-    refresh,
+    refresh: nativeLoad ? reconcileAndRefresh : refresh,
     recover,
     setOnRefresh(fn) { onRefresh = fn; },
     /* A3 review F7: the card's half-entered set is held BY THE ENTRY, not by the
        mount, so stepping out to the check-in and straight back does not discard it.
        It is transient only — a logged set clears it, and nothing here is of record. */
     open({ doc, phone, back, checkIn }) {
-      return mountGym(doc, phone, { model: gym, onBack: back, onChanged: refresh,
+      if (!nativeLoad) return mountGym(doc, phone, { model: gym, onBack: back, onChanged: refresh,
+        onCheckIn: checkIn, draft: gymDraft });
+      /* FA02 pre-split mount (spec E): an owned check region and a gym child container
+         inside the supplied phone element; ONLY the child goes to mountGym, whose own
+         repaint replaces its container and so can never erase the check control. */
+      const region = doc.createElement("section");
+      region.setAttribute("data-native-load", "region");
+      region.setAttribute("aria-label", NATIVE_LOAD_COPY.check);
+      const child = doc.createElement("div");
+      child.setAttribute("data-native-load", "gym");
+      phone.replaceChildren(region, child);
+      nativeLoad.mount(doc, region);
+      return mountGym(doc, child, { model: gym, onBack: back, onChanged: refresh,
         onCheckIn: checkIn, draft: gymDraft });
     },
     gymDraft: () => gymDraft,
     gym, gymHost,
+    ...(nativeLoad ? { nativeLoad } : {}),
   };
 }
 
@@ -447,7 +686,7 @@ export async function boot(options = {}) {
   function teardown() {
     try { if (api && typeof api.dispose === "function") api.dispose(); }
     catch (_) { /* a mount that will not come down must not keep the new day out */ }
-    for (const handle of [readings, workout ? workout.gymHost : null,
+    for (const handle of [readings, workout ? workout.gymHost : null, workout && workout.nativeLoad ? workout.nativeLoad : null,
       checkin ? checkin.host : null, setup ? setup.host : null, owned]) {
       try { if (handle && typeof handle.close === "function") handle.close(); }
       catch (_) { /* the same: one handle's refusal is not the whole page's */ }

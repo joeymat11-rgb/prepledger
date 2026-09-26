@@ -20,9 +20,10 @@ const forbidden = [
   ['rebuild/m4/workout/engine-runtime.cjs', p => p === 'rebuild/m4/workout/engine-runtime.cjs'],
 ];
 // The engine modules the host runtime is allowed to pull in: exactly the
-// twelve it names, plus entered-load.cjs, which performed.cjs requires.
+// thirteen it names (NATIVE-LOAD-SPEC R7 FC14 adds native-load), plus entered-load.cjs,
+// which performed.cjs requires.
 const ALLOWED_ENGINE = new Set([...['dates', 'constants', 'plan', 'performed', 'progression', 'sleep',
-  'energy', 'policy', 'today', 'volume', 'earn', 'writers', 'entered-load'].map(n => 'rebuild/engine/' + n + '.cjs')]);
+  'energy', 'policy', 'today', 'volume', 'earn', 'writers', 'native-load', 'entered-load'].map(n => 'rebuild/engine/' + n + '.cjs')]);
 const paths = result.inventory.map(i => i.path);
 let clean = true;
 for (const [label, match] of forbidden) {

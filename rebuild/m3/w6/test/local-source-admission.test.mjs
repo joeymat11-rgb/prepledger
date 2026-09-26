@@ -187,3 +187,35 @@ test('S3-Q-MIXED-PREFIX: nonempty legacy plus real native capture needs its sepa
  assert.equal(view.order_map.native_root_id,workout.startId);assert.equal(view.order_map.assertion.answer,true);
  assert.deepEqual(view.state.sessionLog,source.sessionLog);assert.deepEqual(view.workout_facts.sessions.map(s=>s.start_op_id),[workout.startId]);
 });
+/* NATIVE-LOAD-SPEC R9.13 (iv) A-LEGACY-VECTOR (owner approval DECISIONS:819, "Spread it evenly"). Admission-level cells over an
+   invented old-app source whose first lift stores per-set weights. NOT RUN on a builder seat: this file's fixture
+   (m4/import/test/s3/engine.cjs) and source-admission.mjs itself (through m4/import/engine-provider.cjs) load a protected engine
+   file, so these cells run where the protected suites run. The conversion's own bytes are exercised locally, red-first, by
+   rebuild/m4/spec/native-load-options.test.cjs R913-ALV-*. */
+const alvEntry=(p={})=>({kind:'debut',done:false,state:'DEBUT',newW:105,t:'TEST-ONLY legacy debut',...p});
+async function alvSource(t,entries){
+ const template=await fixture(t,{withFacts:false,databaseName:'s3-alv-template'}),source=structuredClone(template.state),ex=source.exercises[0],other=source.exercises[1];
+ ex.w=100;ex.wSets=[100,100,95];source.queue=[...(source.queue||[]),...entries.map(q=>({exId:ex.id,...q}))];
+ return {source,id:ex.id,other:other.id};
+}
+test('R913-ALV-CONVERT (NATIVE-LOAD-SPEC R9.13 (iv); red on 40eb702: no newWSets): a pending legacy scalar DEBUT newW 105 on a lift at w 100 with per-set weights [100,100,95] is admitted with newWSets [105,105,100]; the entry and the lift keep every other value the file had',async t=>{
+ const {source,id}=await alvSource(t,[alvEntry()]),f=await fixture(t,{source,withFacts:false,databaseName:'s3-alv-convert'});
+ const v=await f.controller.view(await prepare(f)),q=v.state.queue.find(x=>x.exId===id&&x.t==='TEST-ONLY legacy debut'),ex=v.state.exercises.find(x=>x.id===id);
+ assert.deepEqual([q.kind,q.state,q.done,q.newW,q.newWSets],['debut','DEBUT',false,105,[105,105,100]]);
+ assert.deepEqual([ex.w,ex.wSets],[100,[100,100,95]],'w and wSets are not written');
+});
+test('R913-ALV-KINDS (NATIVE-LOAD-SPEC R9.13 (iv)): an unlock entry is converted the same way; a PROPOSED entry, a done entry, an entry already carrying newWSets and an entry on a lift without per-set weights are admitted as the file had them',async t=>{
+ const {source,id,other}=await alvSource(t,[alvEntry({kind:'unlock',t:'u'}),alvEntry({state:'PROPOSED',t:'p'}),alvEntry({done:true,state:'ESTABLISH',t:'d'}),alvEntry({newW:110,newWSets:[110,110,105],t:'own'})]);
+ source.queue.push({...alvEntry({t:'no-vector'}),exId:other});
+ const f=await fixture(t,{source,withFacts:false,databaseName:'s3-alv-kinds'}),v=await f.controller.view(await prepare(f)),by=k=>v.state.queue.find(x=>x.t===k);
+ assert.deepEqual(by('u').newWSets,[105,105,100],'unlock');
+ for(const k of ['p','d','no-vector'])assert.equal(Object.hasOwn(by(k),'newWSets'),false,k+' unconverted');
+ assert.deepEqual(by('own').newWSets,[110,110,105],'own newWSets kept');
+ assert.deepEqual([by('p').state,by('d').done],['PROPOSED',true]);
+});
+test('R913-ALV-IDEMPOTENT (NATIVE-LOAD-SPEC R9.13 (iv)): the same source admitted twice gives byte-identical state and identical source, checkpoint, material, operation, interpretation and programme digests',async t=>{
+ const {source}=await alvSource(t,[alvEntry()]),f=await fixture(t,{source,withFacts:false,databaseName:'s3-alv-again'});
+ const a=await f.controller.view(await prepare(f)),b=await f.controller.view(await prepare(f));
+ assert.equal(JSON.stringify(b.state),JSON.stringify(a.state));
+ for(const k of ['source_digest','checkpoint_digest','material_digest','operation_digest','interpretation_digest','programme_digest'])assert.equal(b.basis[k],a.basis[k],k);
+});

@@ -17,6 +17,9 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
  const producer=copy(producerIdentity);
  const configured=producer.rule_profile===CONFIGURATION_PROFILE,layoutProfile=configured?'earned/captured-lift-layout/v2':'earned/captured-lift-layout/v1';
  const number=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&!Object.is(x,-0);
+ // Spec R9.10 L FIT (DECISIONS:803 (e)): every entry of the whole stored vector is validated first, then it is fitted
+ // to the card's n slots: fewer sets capture the first n, extra sets repeat the last listed weight; a fresh array.
+ const fit=(v,n)=>{if(!Array.isArray(v)||v.length<1||!Array.from(v).every(x=>number(x)))fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');return n<=v.length?v.slice(0,n):[...v,...Array(n-v.length).fill(v[v.length-1])];};
  const configuration=x=>typeof x==='string'&&x.trim().length>0;
  const exact=(x,names)=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).length===names.length&&names.every(k=>Object.hasOwn(x,k));
  function loadCell(value){
@@ -76,8 +79,8 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
      if(card.w!==selectedLoad||q?.newWSets!==undefined||original.wSets!==undefined)fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');
      loads=card.tgt.map(()=>card.w);
     }else{
-    if(q?.newWSets!==undefined){if(q.newW!==card.w)fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');loads=copy(q.newWSets);}
-    else if(original.wSets!==undefined){if(card.w!==original.w)fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');loads=copy(original.wSets);}
+    if(q?.newWSets!==undefined){if(q.newW!==card.w)fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');loads=fit(q.newWSets,card.tgt.length);}
+    else if(original.wSets!==undefined){if(card.w!==original.w)fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');loads=fit(original.wSets,card.tgt.length);}
     else loads=card.tgt.map(()=>card.w);
     if(!Array.isArray(loads)||loads.length!==card.tgt.length||!Array.from(loads).every(x=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&!Object.is(x,-0)))fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');
     }
@@ -88,7 +91,7 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
     const id=JSON.stringify([card.id,i+1]),load=loadCell(loads[i]);
     slots.push({logical_set_slot:id,lift_lineage_id:card.id,label:card.n,
      load,
-     reps:card.baselineAsk?{state:'not_prescribed',display:'Record the reps performed',source_json:null}:valueCell(String(target),{value:target,unit:'rep'}),
+     reps:card.baselineAsk?{state:'not_prescribed',display:'Record the reps performed',source_json:null}:valueCell(String(target),{value:target,unit:'rep',...(Number.isSafeInteger(original.hi)&&original.hi>0?{window_hi:original.hi}:{})}),
      effort:valueCell(reserve+' reps in reserve',{target:reserve,unit:'rep'}),setup:textCell(card.setup),
      reason:textCell([card.note,card.live,...effort.why].filter(x=>typeof x==='string'&&x.length).join('\n')),confidence:unknown()});
     layout.push({logical_set_slot:id,lift_lineage_id:card.id,position:i+1,prescribed_effort:{state:'specified',target:reserve},...(configured?{prescribed_load:readLoad(load)}:{})});

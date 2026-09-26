@@ -78,7 +78,7 @@ function _lineOf(row) {
   return Array.isArray(row.en.reps) ? row.en.reps.slice() : [];
 }
 function _prescribedLoads(ex) {
-  return Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => (Array.isArray(ex.wSets) && ex.wSets[i] != null ? ex.wSets[i] : ex.w));
+  return Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => { const k = Array.isArray(ex.wSets) && ex.wSets.length > 0 ? Math.min(i, ex.wSets.length - 1) : -1; return k >= 0 && ex.wSets[k] != null ? ex.wSets[k] : ex.w; });
 }
 function _rowAtCurrentLoad(row, ex) {
   if (row.native) return E.performedLoadMatches(row.en, _prescribedLoads(ex));

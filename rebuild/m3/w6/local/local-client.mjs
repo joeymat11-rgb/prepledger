@@ -131,12 +131,29 @@ function writeMarker({ indexedDB, databaseName, at }) {
   });
 }
 
+// NATIVE-LOAD FC07 (NATIVE-LOAD-SPEC R7; DECISIONS:784-785). The prepared response the
+// trusted capability owned for THIS attempt must be exactly the one operation the batch
+// commits: class plan, kind proposal-response, payload {proposal_id, answer:'accept',
+// issuance}. Checked synchronously inside the durable transaction, beside the existing
+// sidecar checks, never replacing them.
+export function respondFailure({ staged, batch }) {
+  if (!staged || !staged.respond) return null;
+  const operations = batch?.operations;
+  const expected = { proposal_id: staged.respond.proposalId, answer: "accept", issuance: staged.respond.issuance };
+  if (!Array.isArray(operations) || operations.length !== 1 || operations[0].class !== "plan" || operations[0].kind !== "proposal-response" ||
+      JSON.stringify(operations[0].payload) !== JSON.stringify(expected)) return { state: 3, code: "NATIVE_LOAD_RESPONSE_NOT_PREPARED" };
+  return null;
+}
+
 export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB, crypto = globalThis.crypto,
-  databaseName, namespace, athleteId, deviceId, clock, workoutCommands, projector } = {}) {
+  databaseName, namespace, athleteId, deviceId, clock, workoutCommands, projector, nativeLoad } = {}) {
   if (!indexedDB || !crypto?.subtle || !crypto?.getRandomValues || !databaseName || typeof namespace !== "string" || !namespace ||
       !athleteId || !deviceId || typeof clock?.now !== "function" || typeof clock?.today !== "function" ||
       typeof clock?.monotonicMs !== "function") throw new StorageFailure("LOCAL_CLIENT_CONFIGURATION_REQUIRED", 18);
   if (projector !== undefined && typeof projector !== "function") throw new StorageFailure("LOCAL_PROJECTOR_INVALID", 18);
+  // FC07: the OPTIONAL trusted native-load capability, fixed at construction. It is never
+  // an execute() option: a caller that did not construct the installation cannot add one.
+  if (nativeLoad !== undefined && typeof nativeLoad?.validate !== "function") throw new StorageFailure("NATIVE_LOAD_CAPABILITY_INVALID", 18);
 
   // Probe BEFORE opening anything: opening creates empty databases, and the
   // question is whether this device already holds an installation.
@@ -185,15 +202,28 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
     copy: code === "LOCAL_LEASE_EXPIRED" ? LEASE_EXPIRED_COPY
       : state === 18 ? Client.copy.RESTORE_REQUIRED : Client.copy.SAVE_FAILED });
 
-  const t2 = Stage.createT2Stage(metadata => localEraConfig(metadata, { athleteId, deviceId, clock }), { workoutCommands });
+  // FC07: the capability the stage consults records what it owned for this attempt, so
+  // the commit validator can bind the batch to exactly that prepared response.
+  let ownedResponse = null;
+  const guardedNativeLoad = nativeLoad === undefined ? undefined : Object.freeze({ validate(generation, args) {
+    const owned = nativeLoad.validate(generation, args);
+    ownedResponse = owned && !owned.refusal && typeof owned.proposalId === "string" && owned.issuance
+      ? { proposalId: owned.proposalId, issuance: clone(owned.issuance) } : null;
+    return owned;
+  } });
+  const t2 = Stage.createT2Stage(metadata => localEraConfig(metadata, { athleteId, deviceId, clock }),
+    { workoutCommands, ...(guardedNativeLoad ? { nativeLoad: guardedNativeLoad } : {}) });
 
   // The stage the bridge sees: the real T2 stage, plus the context the bridge
   // hands the validator, plus the derived sidecar written into the candidate
   // BEFORE the seal so it rides in the same repository.commit as the operation.
   function stage(generation, command, args) {
     const id = ++attempt;
-    pending = null;
+    pending = null; ownedResponse = null;
     const candidate = t2(generation, command, args);
+    const respond = command === "respond" ? ownedResponse : null;
+    if (command === "respond" && candidate?.result?.acknowledged === true && !respond)
+      throw new StorageFailure("NATIVE_LOAD_RESPONSE_NOT_PREPARED", 3);
     const context = { namespace, sessionEpoch, observationEpoch: sessionEpoch };
     if (command === null || !candidate?.generation || candidate.result?.acknowledged !== true) return { ...candidate, context };
     const basis = opsBasis(candidate.generation);
@@ -217,13 +247,15 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
       else { sidecar = clone(carried); authored = false; }
     }
     candidate.generation.collections[DERIVED] = sidecar;
-    pending = { id, sidecar: clone(sidecar), basis, authored };
+    pending = { id, sidecar: clone(sidecar), basis, authored, ...(respond ? { respond } : {}) };
     return { ...candidate, context };
   }
 
   // Synchronous, reject-only, inside the durable transaction. It can refuse; it
   // can never write, and it never returns a promise (repository refuses one).
-  const validateCommit = context => commitFailure({ staged: pending, attempt, batch: context.batch });
+  const validateCommit = context => commitFailure({ staged: pending, attempt, batch: context.batch }) ||
+    (context.command === "respond" && !pending?.respond ? { state: 3, code: "NATIVE_LOAD_RESPONSE_NOT_PREPARED" }
+      : respondFailure({ staged: pending, batch: context.batch }));
 
   const bridge = createBridge({ repository, stage, validateCommit });
 
@@ -365,6 +397,20 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
           if (code === "LOCAL_LEASE_EXPIRED") status = { state: "restore-required", code };
           return { ...result, code, ...(code === "LOCAL_LEASE_EXPIRED" ? { copy: LEASE_EXPIRED_COPY } : {}) };
         }
+        return result;
+      });
+    },
+    // FC07: the ONE guarded path for a native-load yes. Not an execute() command: it
+    // takes only an opaque ticket the trusted capability issued, the capability owns
+    // the issuance, and the bridge's compare-and-swap plus the synchronous validator
+    // bind the commit to the exact generation the capability validated.
+    respondNativeLoad(args) {
+      if (closed) return Promise.resolve(refusal(3, "LOCAL_CLIENT_CLOSED"));
+      if (guardedNativeLoad === undefined) return Promise.resolve(refusal(3, "NATIVE_LOAD_CAPABILITY_REQUIRED"));
+      if (status.state !== "ready")
+        return Promise.resolve(refusal(status.code === "LOCAL_LEASE_EXPIRED" ? 20 : 18, status.code));
+      return bridge.execute("respond", args).then(result => {
+        if (result?.state === 18) status = { state: "restore-required", code: result.code || "RESTORE_UNPROVEN" };
         return result;
       });
     },

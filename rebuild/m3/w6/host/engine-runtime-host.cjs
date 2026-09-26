@@ -41,7 +41,10 @@
 // This file is a BINDING, not a reimplementation. It adds no rule, no default,
 // no athlete data and no provider; every line below the require list is a
 // structural mirror of the accepted runtime.
-const MODULES = Object.freeze(['dates', 'constants', 'plan', 'performed', 'progression', 'sleep', 'energy', 'policy', 'today', 'volume', 'earn', 'writers']);
+// NATIVE-LOAD (NATIVE-LOAD-SPEC R7 FC05; DECISIONS:784-785): 'native-load' is appended
+// after writers here exactly as the accepted runtime appends it, by a LITERAL require,
+// and the two pure native-load names are mirrored. Still a mirror; still no rule here.
+const MODULES = Object.freeze(['dates', 'constants', 'plan', 'performed', 'progression', 'sleep', 'energy', 'policy', 'today', 'volume', 'earn', 'writers', 'native-load']);
 // WIDENED WITH THE ACCEPTED RUNTIME BY M2-B-NTC (DECISIONS:109, PATH A). This
 // list is a MIRROR and never leads: engine-runtime.cjs:30 is where the surface
 // is decided, and engine-equivalence.test.cjs:26 fails on any drift between the
@@ -51,8 +54,8 @@ const MODULES = Object.freeze(['dates', 'constants', 'plan', 'performed', 'progr
 // WIDENED AGAIN WITH THE ACCEPTED RUNTIME BY M2-S3-COMPANION: the fifth name is the
 // today.cjs reader `sessionMembership` (the complete ordered pool ids of a training
 // day, null on a rest day; no sleep read, no structural picker). Still a mirror.
-const EXPOSED = Object.freeze(['genSession', 'rirPlan', 'dayWeather', 'cleanAtDate', 'sessionMembership']);
-// Literal requires: the same twelve modules MODULES names, in that order.
+const EXPOSED = Object.freeze(['genSession', 'rirPlan', 'dayWeather', 'cleanAtDate', 'sessionMembership', 'evaluateNativeLoad', 'applyNativeLoadDecision']);
+// Literal requires: the same thirteen modules MODULES names, in that order.
 const FACTORIES = Object.freeze({
  dates: require('../../../engine/dates.cjs'),
  constants: require('../../../engine/constants.cjs'),
@@ -66,6 +69,7 @@ const FACTORIES = Object.freeze({
  volume: require('../../../engine/volume.cjs'),
  earn: require('../../../engine/earn.cjs'),
  writers: require('../../../engine/writers.cjs'),
+ 'native-load': require('../../../engine/native-load.cjs'),
 });
 // The literal require list and the module list must agree, in order, or this
 // file would compose a different engine than the one it claims to mirror.
@@ -107,11 +111,13 @@ function createEngineRuntime({ clock, ids, drafts, nativeTrendContext } = {}) {
   Object.assign(E, created);
  }
  for (const name of EXPOSED) if (typeof E[name] !== 'function') throw new TypeError('Accepted engine did not compose ' + name);
- // The same five thin forwarders the accepted runtime returns, in the same
+ // The same seven thin forwarders the accepted runtime returns, in the same
  // order and with the same arities; E itself never leaves this function.
  return Object.freeze({ genSession: (s, iso, slp) => E.genSession(s, iso, slp), rirPlan: (s, ex, slp) => E.rirPlan(s, ex, slp),
   dayWeather: (s, iso) => E.dayWeather(s, iso), cleanAtDate: (s, iso) => E.cleanAtDate(s, iso),
-  sessionMembership: (s, iso) => E.sessionMembership(s, iso) });
+  sessionMembership: (s, iso) => E.sessionMembership(s, iso),
+  evaluateNativeLoad: (s, request) => E.evaluateNativeLoad(s, request),
+  applyNativeLoadDecision: (s, decision, context) => E.applyNativeLoadDecision(s, decision, context) });
 }
 
 const COMPOSITION = Object.freeze({ profile: 'earned/engine-runtime-host/v1',

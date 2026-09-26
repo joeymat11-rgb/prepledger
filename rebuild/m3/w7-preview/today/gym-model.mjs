@@ -93,7 +93,7 @@ const sameSlot = (a, b) => a && b && a.logical_set_slot === b.logical_set_slot &
    (WORKOUT_RESUME_SLOT_MAPPING_REQUIRED, executed), so the only host that can
    retire that session is one standing on the day it belongs to. When no factory is
    supplied the recovery is simply unavailable and says so; nothing is guessed. */
-export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
+export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } = {}) {
   if (!gymHost || !gymHost.host) throw new TypeError('createGymModel requires a composed gym host');
   /* P0 HIS NUMBERS - `current` is the LIVE handle this model reads and writes
      through. `gymHost` is composed by today-entry.mjs createWorkoutEntry BEFORE
@@ -543,6 +543,17 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
       session_start_op_id: startId, completion_kind: 'normal', causal_parents: [...new Set(parents)] } });
     if (result.acknowledged !== true) return remember(result);
     saved = null;
+    /* NATIVE-LOAD FB01 (NATIVE-LOAD-SPEC R7 route B; DECISIONS:784-785). AFTER the
+       normal Close is acknowledged, and only then, the entry is told which Close it was
+       so it can check the completed lifts. The notification can neither reject nor
+       delay this Finish: whatever it throws or rejects is contained here, and the
+       saved workout is reported as saved. */
+    if (typeof onClosed === 'function') {
+      try {
+        const told = onClosed({ startId, closeOpId: result.op_id });
+        if (told && typeof told.then === 'function') told.then(undefined, () => {});
+      } catch (_) { /* a failed check is its own result, never the Finish's */ }
+    }
     return { ok: true, opId: result.op_id };
   }
 
