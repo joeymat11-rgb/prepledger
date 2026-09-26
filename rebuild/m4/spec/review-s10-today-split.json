@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "ca7f676503a6f28fabebb374b052cc570879451d",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-09-26 · cowork · POSTFIX-ACCEPTANCE M2-S10-TODAY-SPLIT dcb73ec7a7d77298ebdcce6d023ea3d351484e94 rebuild/m4/spec/acceptance-s10-today-split.json 42a3eb020557d312f4e8199eebc79101154ebe4315d2a44fd7a6e5c719450ae8 ACCEPTED",
+    "lineSha256": "ac7077f820a056e5711e2398f1e8762ef6159049db30c24e3a9626cad0d1785e"
+  }
+}
