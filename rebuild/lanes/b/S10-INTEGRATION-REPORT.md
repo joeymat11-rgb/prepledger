@@ -188,3 +188,51 @@ No new range row:
 Per commit, 92be4e3..f4125cd (15 commit hunks, M 0 R 0 N 12 plus 3 S10.json hunks inside its own row): dc08f36 8 (production-mapping 1, page-bundle 6, review 1); f2be262 3 (S10.json); f4125cd 4 (L8 review 1, census TSV 1, this report -144 +145 0/21, census review 1).
 Declared by stage at f4125cd: Track A M 15 R 127 and Track B N 60 unchanged; rest of S10 N 89 -> 96, R 14 unchanged.
 UNCLASSIFIED: 0 at f4125cd under the accepted limit (5). The 3.2 STOP does not fire. This section and the appended TSV rows are themselves record bytes after f4125cd and outside the census (limit 5).
+
+## Census addendum 2 at e9ff2ca (pays Claude final D-R2C-2 and Fable D-R2-2 if accepted; census author claude-opus-5-5, 2026-09-25; left UNCOMMITTED for the PM)
+Range added: f4125cd..e9ff2ca = 2c4d24e (census addendum records), 4dc2029 (final spec), ccc2f63 (T7 merge of chain tip 194f03f; parents 4dc2029 and 194f03f; merge-base ace916f), e9ff2ca (GSS settle fix, DECISIONS:832). The census range becomes parent d7f654017962d35661adea8cf3688251ad686b9e to e9ff2ca24e6e3a7632fb1e1724928d8db0fb4945. Instrument: census.cjs's own hunks() (with its binary rule), hexOnly() and role rules, applied per path at P..HEAD, roles from the COMMITTED S10.json at e9ff2ca (%TEMP%\s10-seal-prep\census2\census2-apply.cjs; STATIC git only, one shared pm-run slot per run, jobs s10-census2-explore, s10-census2-dry, s10-census2-write). Path set = the 163 paths `git diff --name-status f4125cd e9ff2ca` yields under the census pathspec (same excludes: protected five, app.js, src, ledger, *soak*, conform/private, EarnedPort; none of the protected five or app.js among them). The chain's ledger lines that ccc2f63 brings are outside the pathspec and were not read. The PM's uncommitted r2 S10.json (sha 82f60c3a...) was not touched; the apply script refuses unless it is the only dirty path.
+Rules honoured: existing rows are never rewritten; new rows carry the basis suffix "[ADDENDUM f4125cd..e9ff2ca, commit <c>]"; a path new at the parent keeps its one new-file range row (re-measured below, row not rewritten); chain-authored merge-forward bytes are class M with a basis naming the chain commit; the census's own TSV and sections stay outside (limit 5). No split file changed, so every new row is one staged row and one physical hunk.
+
+| scope | paths | staged rows | physical hunks | M | R | N | UNCLASSIFIED |
+|---|---|---|---|---|---|---|---|
+| ALL at f4125cd (addendum 1) | 120 | 361 | 339 | 16 | 143 | 202 | 0 |
+| addendum 2, undeclared chain deletions merged forward (3b54a72 via ccc2f63) | +157 | +157 | +157 | +157 | 0 | 0 | 0 |
+| addendum 2, kept range rows re-measured (DECISIONS.md, this report, S10.json, two GSS tests) | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| ALL at e9ff2ca (final head) | 277 | 518 | 496 | 173 | 143 | 202 | 0 |
+
+New rows (appended to rebuild/lanes/b/S10-FINAL-CENSUS.tsv after row 361, rows 362-518):
+- 157 whole-file deletion hunks, one per path, class M, undeclared (none is declared in the committed S10.json, and none in the uncommitted r2 S10.json either), 13469 minus lines, 0 plus lines, 0 binary. Each path is deleted by chain commit 3b54a72 ("test cleanup phase 1, 157 unpinned dead/duplicate test files", DECISIONS:803, :813), which is in ace916f..194f03f and not in f4125cd; ccc2f63 brings it. For every path the script checks: absent at e9ff2ca, e9ff2ca equals chain tip 194f03f at that path, f4125cd equals the parent at that path (S10 authored no byte of it), 3b54a72 deletes it, and the hunk has no plus line. 3b54a72 changes 157 paths under the census pathspec, all deletions, and all 157 are rowed (0 unrowed). Basis: "merge-forward: whole-file deletion byte-equal to chain tip 194f03f (chain commit 3b54a72, test cleanup phase 1, DECISIONS:803/:813; merged by ccc2f63); byte-equal to the parent at f4125cd, S10 authors no byte".
+No new range row (the P..HEAD hunk keeps its existing row; re-measured here, rows not rewritten):
+- rebuild/DECISIONS.md, row 150 (-809 +810): 0/2 -> 0/22. Still one append-only physical hunk; the 20 added lines are DECISIONS:812-831 brought by ccc2f63 (1 commit hunk). Class M holds against the new chain tip: e9ff2ca equals 194f03f at this path. Row 150's basis names ace916f (cbe2bdf), which was true at 92be4e3 and f4125cd; at e9ff2ca the equality holds against 194f03f (ccc2f63), and no longer against ace916f.
+- rebuild/lanes/b/tooling/packages/S10.json (undeclared, the declaration): new at the parent, one new-file hunk, 0/2053 -> 0/2063; 4dc2029's 51 commit hunks lie inside it. Class N holds.
+- rebuild/lanes/b/S10-INTEGRATION-REPORT.md: new at the parent, one new-file hunk, TSV keeps 0/144; 0/190 at e9ff2ca (longer again with this section); 2c4d24e's 3 commit hunks (the two D-CENSUS-STAGED-COUNT labels and the addendum 1 section) lie inside it. Class N holds.
+- rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs (declared new): one new-file hunk, 0/514 -> 0/530; e9ff2ca's 4 commit hunks (+16, -0) lie inside it. Class N ("declared new: new file") holds.
+- rebuild/m3/w7-preview/today/test/gss-annex-log-timing.test.mjs (declared new): one new-file hunk, 0/363 -> 0/377; e9ff2ca's 2 commit hunks (+14, -0) lie inside it. Class N holds.
+- rebuild/lanes/b/S10-FINAL-CENSUS.tsv: 2c4d24e's 1 commit hunk (the 10 addendum 1 rows); P..HEAD 0/362. Outside the census by limit (5), as in addendum 1; if the PM rules it counted it is N as a record: 278 paths, 519 staged rows, 497 physical hunks, N 203.
+Per commit, f4125cd..e9ff2ca (first-parent commit hunks under the census pathspec, 219 in all): 2c4d24e 4 (report 3 inside its row, census TSV 1 outside); 4dc2029 51 (S10.json, inside its row); ccc2f63 158 (157 deletions -> 157 new M rows; DECISIONS.md 1 inside row 150); e9ff2ca 6 (g6-g8 4, log-timing 2, inside their new-file rows). New rows by commit: ccc2f63 157, every other commit 0.
+Declared by stage at e9ff2ca: Track A M 15 R 127, Track B N 60, rest of S10 N 96 R 14, all unchanged from f4125cd (the two GSS edits sit inside declared new-file rows). Every new row is undeclared.
+UNCLASSIFIED: 0 at e9ff2ca. The 3.2 STOP does not fire.
+Limits, stated not hidden: (1) Chain-tip parameter: the accepted census.cjs hard-codes CHAIN_TIP ace916f for its DECISIONS.md M rule. Run unmodified at e9ff2ca it would call row 150 UNCLASSIFIED ("undeclared existing path, no rule"), because the lane now carries 194f03f. This addendum applies the same rule with the tip the lane actually merged (ccc2f63's second parent, 194f03f). The PM should confirm that parameter move; if it is refused, the count is M 172, UNCLASSIFIED 1 (a STOP). (2) The 157 deletions are M under the accepted reading of "pure moved byte" as bytes carried unchanged from the accepted chain tip (limit 2 of the accepted census). If a reviewer rules deletions N instead, the totals are M 16 R 143 N 359, still 0 UNCLASSIFIED. (3) Static only: this census does not check whether any S10 cell or runner imports or names a deleted file; that is a run question for CI, not a census question. (4) This section and the 157 appended rows are themselves record bytes after e9ff2ca and outside the census (limit 5).
+Dry run (node census2-apply.cjs, no --write, output pasted verbatim by the script; the SAMPLE row's tab separators are kept; in COMMIT lines the letter after a file name is its git status, M = modified, not a class):
+```
+BASE rebuild/lanes/b/S10-FINAL-CENSUS.tsv sha256 953d8bdbc890ff5cf656d49c176825017f961400e297340ed14e286f36a75e92 rows 361
+BASE rebuild/lanes/b/S10-INTEGRATION-REPORT.md sha256 017a6875c48151859d5a25e4fa6837ff62c14582f6892c34cd057f4fafc97bb0 lines 190
+CHAIN merge ccc2f63 parents 4dc2029 194f03f; merge-base(f4125cd, 194f03f) = ace916f; 3b54a72 in ace916f..194f03f and not in f4125cd
+CLEAN 3b54a72 under the census pathspec: 157 paths changed, 157 deleted
+PATHS changed f4125cd..HEAD 163 (P..HEAD 278, P..f4125cd 121)
+DELETIONS rows 157 over 157 paths; 3b54a72 deletions not rowed: 0; minus lines 13469; binary 0; declared in HEAD S10.json 0 (rule); declared in the uncommitted r2 S10.json 0
+KEPT rebuild/DECISIONS.md row -809 +810 0/2 -> re-measured 0/22 class M holds=true commit ccc2f63 commit hunks ccc2f63:1
+SELF rebuild/lanes/b/S10-FINAL-CENSUS.tsv commit 2c4d24e P..HEAD -0 +1 0/362 (limit 5: outside the census)
+KEPT rebuild/lanes/b/S10-INTEGRATION-REPORT.md row -0 +1 0/144 -> re-measured 0/190 class N holds=true commit 2c4d24e commit hunks 2c4d24e:3
+KEPT rebuild/lanes/b/tooling/packages/S10.json row -0 +1 0/2053 -> re-measured 0/2063 class N holds=true commit 4dc2029 commit hunks 4dc2029:51
+KEPT rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs row -0 +1 0/514 -> re-measured 0/530 class N holds=true commit e9ff2ca commit hunks e9ff2ca:4
+KEPT rebuild/m3/w7-preview/today/test/gss-annex-log-timing.test.mjs row -0 +1 0/363 -> re-measured 0/377 class N holds=true commit e9ff2ca commit hunks e9ff2ca:2
+COMMIT 2c4d24e paths 2 commit hunks 4 rows 0 {"M":0,"R":0,"N":0,"UNCLASSIFIED":0} | S10-FINAL-CENSUS.tsv M 1; S10-INTEGRATION-REPORT.md M 3
+COMMIT 4dc2029 paths 1 commit hunks 51 rows 0 {"M":0,"R":0,"N":0,"UNCLASSIFIED":0} | S10.json M 51
+COMMIT ccc2f63 paths 158 commit hunks 158 (157 deletions, 1 hunk each) rows 157 {"M":157,"R":0,"N":0,"UNCLASSIFIED":0} | DECISIONS.md M 1
+COMMIT e9ff2ca paths 2 commit hunks 6 rows 0 {"M":0,"R":0,"N":0,"UNCLASSIFIED":0} | gss-annex-g6-g8.test.mjs M 4; gss-annex-log-timing.test.mjs M 2
+NUMSTAT e9ff2ca 16 0 rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs | 14 0 rebuild/m3/w7-preview/today/test/gss-annex-log-timing.test.mjs
+ROWS appended 157 {"M":157,"R":0,"N":0,"UNCLASSIFIED":0}
+SAMPLE rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/run-tests.cjs	undeclared	D	undeclared	S10	M	-1 +0	27/0	merge-forward: whole-file deletion byte-equal to chain tip 194f03f (chain commit 3b54a72, test cleanup phase 1, DECISIONS:803/:813; merged by ccc2f63); byte-equal to the parent at f4125cd, S10 authors no byte [ADDENDUM f4125cd..e9ff2ca, commit ccc2f63]
+CENSUS2 DRY RUN: nothing written
+```
