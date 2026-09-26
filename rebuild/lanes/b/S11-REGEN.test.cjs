@@ -11,8 +11,9 @@
    Every ported row keeps its meaning with S11's names (S11.json, the parent S10.json, the S10 artifact
    slug s10-today-split). S10's D-SPLIT-PARENT source row is not ported: the check it fed is S10's own.
    Rows NEW in S11 carry "S11" in their name: the FC06 exact SCOPE file, the candidate-parent released
-   pair, the PENDING census, a successful --write, the protected five by object id, and the D-S11P-2
-   draft-time notes flagged as stale. */
+   pair, the PENDING census, a successful --write, the protected five by object id, the D-S11P-2
+   draft-time notes flagged as stale, the D-S11-A1 uncapped census and the D-S11-A2 reads that precede
+   discovery. */
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
@@ -564,4 +565,69 @@ test('S11-REGEN S11 D-S11P-2 CONTROL: a carried note with no candidate id and no
   assert.equal(r.out.includes('STALE NOTE'), false, 'a note with no draft-time claim was flagged: ' + r.out);
   assert.deepEqual(w.writes, [SPEC], r.out);
   assert(JSON.parse(w.disk[SPEC]).notes.includes(keep), 'the carried note was not kept');
+});
+
+/* S11 D-S11-A1 (Astra S11-REGEN-SCOPE-REVIEW-L1): the PENDING census is EXHAUSTIVE. The S11 draft holds more
+   than 40 PENDING values, and a census capped at 40 ("... N more") hides the rest from the PM's inspection.
+   Both censuses (on disk, and the one --write prints after its fill) must list every path, with no cap
+   marker. Every value is invented. Red first against the capped helper (bf87138f), green after the fix. */
+const MANY = 45;
+const manyPending = (s) => { s.children = Array.from({ length: MANY }, (_, i) => ({ name: 'c' + i, argv: ['--test'], needle: 'PENDING STOP-S11-T4: invented needle ' + i })); };
+const censusOf = (line) => line.split(' - ').slice(1).join(' - ').trim().split(' ');
+test('S11-REGEN S11 D-S11-A1: a dry run lists ALL ' + MANY + ' PENDING values on disk, past 40, with no cap marker', () => {
+  const w = world(); editSpec(w, manyPending);
+  const r = run(w);
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.exitCode, 0, r.out);
+  const line = r.out.split('\n').find((l) => l.includes('PENDING census on disk:')) || '';
+  assert.match(line, new RegExp('PENDING census on disk: ' + MANY + ' value\\(s\\) - '));
+  assert.equal(/\.\.\. \d+ more/.test(line), false, 'the on-disk census is capped: ...' + line.slice(-60));
+  assert.deepEqual(censusOf(line), Array.from({ length: MANY }, (_, i) => '$.children[' + i + '].needle'));
+});
+test('S11-REGEN S11 D-S11-A1: --write lists ALL the PENDING values it leaves for the PM, past 40, with no cap marker', () => {
+  const w = sealed(world(), 'ACCEPTED'); w.allowWrite = true;
+  editSpec(w, (s) => { manyPending(s); s.packageId = 'PENDING STOP-S11-ID: invented package id'; });
+  const r = run(w, ['--parent', 'fake', '--write', '--receipt-line', '7']);
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.exitCode, 0, r.out);
+  const line = r.out.split('\n').find((l) => l.includes('PENDING left for the PM')) || '';
+  assert.match(line, new RegExp('never filled by this helper: ' + (MANY + 1) + ' value\\(s\\) - '));
+  assert.equal(/\.\.\. \d+ more/.test(line), false, 'the after-fill census is capped: ...' + line.slice(-60));
+  assert.deepEqual(censusOf(line).sort(), ['$.packageId', ...Array.from({ length: MANY }, (_, i) => '$.children[' + i + '].needle')].sort());
+});
+
+/* S11 D-S11-A2 (Astra S11-REGEN-SCOPE-REVIEW-L1): the header called FIXED_INPUTS "the only files read before
+   discovery", but the S10 parent artifact and review are read (each validated first) before discovery too,
+   and in the CANDIDATE mode of a dry run so are the parent's execution-pin targets. The two CONTROL rows pin
+   the behaviour the corrected comment describes (the reads recorded before the scoped `git diff`, in order;
+   green before and after, since only the comment changes). The header row is red first against the old
+   comment (bf87138f) and green after it. */
+function readsBeforeDiscovery(w, argv) {
+  const snap = [], changed = w.changed;
+  w.changed = { join: (sep) => { snap.push(w.reads.slice()); return changed.join(sep); } };
+  const r = run(w, argv);
+  return { r, before: snap[0] };
+}
+test('S11-REGEN S11 D-S11-A2 CONTROL: at a sealed parent the reads before discovery are exactly S11.json, the parent S10.json, the parent artifact and its review, in that order', () => {
+  const { r, before } = readsBeforeDiscovery(sealed(world(), 'ACCEPTED'));
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.exitCode, 0, r.out);
+  assert.deepEqual(before, [SPEC, S10SPEC, ART, REV]);
+});
+test('S11-REGEN S11 D-S11-A2 CONTROL: with no artifact at the parent (CANDIDATE mode, dry run) the reads before discovery are S11.json, the parent S10.json and its execution-pin targets, never an artifact or review', () => {
+  const { r, before } = readsBeforeDiscovery(world());
+  assert.equal(r.error, null, String(r.error && r.error.stack));
+  assert.equal(r.exitCode, 0, r.out);
+  assert.deepEqual(before.slice(0, 2), [SPEC, S10SPEC]);
+  assert.deepEqual([...new Set(before.slice(2))].sort(), [RUNNER, S10SPEC].sort());
+  assert.equal(before.includes(ART) || before.includes(REV), false, 'an artifact or review was read: ' + before.join(' '));
+});
+test('S11-REGEN S11 D-S11-A2: the header calls FIXED_INPUTS the initial trust inputs and names every read that precedes discovery', () => {
+  const src = fsReal.readFileSync(HELPER, 'utf8');
+  const header = src.slice(0, src.indexOf('*/'));
+  assert.equal(/are the only files read before\s+discovery/.test(header), false, 'the header still says FIXED_INPUTS are the only files read before discovery');
+  assert.match(header, /FIXED_INPUTS \(S11\.json, the parent's\s+S10\.json, the runner\) are the INITIAL TRUST INPUTS/);
+  assert.match(header, /the reads that precede\s+discovery are:/);
+  for (const named of ['S11.json on disk', 'S10.json at the parent P', 'PARENT_ARTIFACT', 'PARENT_REVIEW', 'CANDIDATE mode', 'execution-pin targets'])
+    assert(header.includes(named), 'the header does not name ' + named);
 });

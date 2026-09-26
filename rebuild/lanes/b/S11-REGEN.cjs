@@ -26,9 +26,15 @@
    ledger coordinate, a parent binding the runner re-reads (it is optional only for a dry run).
    PENDING CENSUS (new in S11): the S11 draft marks every value nobody can measure before the S10 seal
    as a string that begins with the word PENDING and names its STOP. Every such value is listed by its
-   JSON path on every run, before and after the fields this helper fills; the ones it does not fill
-   (package id, brief, THEME, needles, the supersession ruling, the option note) are the PM's at T5/T6
-   and are LISTED, never refused and never invented here.
+   JSON path, ALL of them, with no cap (D-S11-A1: the census used to print the first 40 paths and then
+   "... N more", which hid the rest of a 62-value draft from the PM's inspection). Every run prints the
+   census ON DISK, before any fill ("PENDING census on disk"). A DRY RUN fills nothing and exits after
+   the note checks, so it prints no second census, and its on-disk list still holds the values a
+   --write would fill (sourceBase, the parent option hashes and receipt line, the runner pin, any
+   product value). Only --write prints the second census, AFTER its fill ("PENDING left for the PM").
+   The values it does not fill (package id, brief, THEME, needles, the supersession ruling text, the
+   option note) are the PM's at T5/T6 and are LISTED, never refused and never invented here. The
+   product-move list printed above the census is still capped at 40 lines ("... N more").
 
    THE PATH BOUNDARY (B5, carried from S10-REGEN unchanged in kind). Nothing is read outside a
    POSITIVE, reviewed scope:
@@ -38,7 +44,14 @@
        rebuild/m3/w6/t2-stage.cjs (FC06, a NATIVE-LOAD product path that lies under no S10 root;
        rebuild/m3/w6/ itself is NOT a root, so a sibling there stays outside). Every run prints the
        count of entries and of path/revision pairs it validated. FIXED_INPUTS (S11.json, the parent's
-       S10.json, the runner) are the only files read before discovery, and they are validated first.
+       S10.json, the runner) are the INITIAL TRUST INPUTS: they are validated first, before any read
+       (D-S11-A2). They are not the only reads before discovery. In order, the reads that precede
+       discovery are: S11.json on disk and S10.json at the parent P; then, each validated first, the
+       S10 parent artifact and review at P, refused by name unless they are exactly PARENT_ARTIFACT and
+       PARENT_REVIEW (the reviewed slug s10-today-split); and, only in the CANDIDATE mode (no artifact
+       at P, so a dry run only), the parent's execution-pin targets at P (the runner, S10.json, the S10
+       brief and every S10 child argv file), each validated first. Otherwise the runner itself is read
+       only after discovery, for its sha256 at HEAD.
    (2) Discovery is `git diff --name-only <P> HEAD -- <SCOPE...>`, never an unscoped diff; every
        git call that names a path passes it after an explicit `--` (ls-tree), and blob bytes are read
        only by object id (cat-file) after that path passed validation.
@@ -325,7 +338,7 @@ console.log('  S10.json execution-pin pre at the parent: ' + String(epins[S10SPE
 console.log('  parent.options[0]: artifact sha256 ' + (artRaw ? sha(artRaw) : 'ABSENT') + ', review sha256 ' + (revRaw ? sha(revRaw) : 'ABSENT') +
   ', receiptLedgerLine ' + (arg('--receipt-line') || 'not given'));
 console.log('  runnerSha256 at HEAD ' + shaAt('HEAD', RUNNER));
-console.log('  PENDING census on disk: ' + pendingBefore.length + ' value(s)' + (pendingBefore.length ? ' - ' + pendingBefore.slice(0, 40).join(' ') + (pendingBefore.length > 40 ? ' ... ' + (pendingBefore.length - 40) + ' more' : '') : ''));
+console.log('  PENDING census on disk: ' + pendingBefore.length + ' value(s)' + (pendingBefore.length ? ' - ' + pendingBefore.join(' ') : ''));   // D-S11-A1: every path, no cap
 for (const p of problems) console.log('  PROBLEM ' + p);
 
 // Regenerate the measured notes; flag the carried ones that still cite the S10 candidate.
@@ -359,6 +372,6 @@ S11.notes = notes;
 S11.tooling.runnerSha256 = shaAt('HEAD', RUNNER);
 S11.product = product;
 const pendingAfter = pendingPaths(S11, '$', []);
-console.log('  PENDING left for the PM (T5/T6), never filled by this helper: ' + pendingAfter.length + ' value(s)' + (pendingAfter.length ? ' - ' + pendingAfter.slice(0, 40).join(' ') + (pendingAfter.length > 40 ? ' ... ' + (pendingAfter.length - 40) + ' more' : '') : ''));
+console.log('  PENDING left for the PM (T5/T6), never filled by this helper: ' + pendingAfter.length + ' value(s)' + (pendingAfter.length ? ' - ' + pendingAfter.join(' ') : ''));   // D-S11-A1: every path, no cap
 fs.writeFileSync(path.join(REPO, SPEC), JSON.stringify(S11, null, 2) + '\n');
 console.log('WROTE ' + SPEC + ' ' + sha(fs.readFileSync(path.join(REPO, SPEC))));
