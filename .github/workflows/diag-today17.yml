@@ -45,6 +45,7 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
+          set +e
           D=rebuild/m3/w7-preview/today/test
           for r in 1 2 3; do
             echo "=== GSS ROUND $r"
@@ -57,6 +58,7 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
+          set +e
           D=rebuild/m3/w7-preview/today/test
           M=rebuild/m3/w7-preview/measure/test
           for r in 1 2 3; do
