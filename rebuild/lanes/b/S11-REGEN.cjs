@@ -17,8 +17,11 @@
    NOTES: the three notes whose content IS a parent measurement - PRODUCT MAP, the parent-unpinned
    paths and the superseded execution pins - are REGENERATED from the values this run measures. Every
    other note is carried, and any carried note that still cites the S10 candidate (9849bc7, e9ff2ca,
-   the candidate S10.json bytes 82f60c3a, the word CANDIDATE or the words PROPOSED DRAFT) is FLAGGED;
-   --write refuses while one is flagged unless --allow-stale-notes is given, and then prints the list.
+   the candidate S10.json bytes 82f60c3a, the word CANDIDATE or the words PROPOSED DRAFT) or a
+   draft-time claim (D-S11P-2: the word DRAFT, "prep worktree", a brief step T3a..T3k, NOT YET
+   AUTHORED, OPEN FOR A PM RULING, OPEN ITEMS - the MERGE, NOT YET AUTHORED, CHILDREN and OPEN ITEMS
+   notes of the draft) is FLAGGED; --write refuses while one is flagged unless --allow-stale-notes
+   is given, and then prints the list.
    --receipt-line is REQUIRED with --write: parent.options[0].receiptLedgerLine is the S10 receipt's
    ledger coordinate, a parent binding the runner re-reads (it is optional only for a dry run).
    PENDING CENSUS (new in S11): the S11 draft marks every value nobody can measure before the S10 seal
@@ -338,13 +341,16 @@ for (const [key, text] of MEASURED) {
   if (i >= 0) notes[i] = text; else notes.push(text);
   refreshed.push(key + (i >= 0 ? ' [' + i + ']' : ' [appended]'));
 }
-const STALE = /9849bc7|e9ff2ca|82f60c3a|CANDIDATE|PROPOSED DRAFT/;
+// D-S11P-2: the S10 candidate ids, plus the draft-time claims of the S11 draft's carried notes (a MERGE
+// measured in the prep worktree, a brief step T3a-T3k still to come, NOT YET AUTHORED work, a question
+// OPEN FOR A PM RULING, OPEN ITEMS, the word DRAFT); every one is false once the seal's steps land.
+const STALE = /9849bc7|e9ff2ca|82f60c3a|CANDIDATE|PROPOSED DRAFT|\bDRAFT\b|prep worktree|\bT3[a-k]\b|NOT YET AUTHORED|OPEN FOR A PM RULING|OPEN ITEMS/;
 const stale = notes.map((n, i) => [n, i]).filter(([n]) => STALE.test(n) && !MEASURED.some(([, t]) => t === n)).map(([n, i]) => '[' + i + '] ' + n.slice(0, 70));
 console.log('  notes regenerated: ' + refreshed.join(', '));
-for (const s of stale) console.log('  STALE NOTE (still cites the S10 candidate; re-author it) ' + s);
+for (const s of stale) console.log('  STALE NOTE (still cites the S10 candidate or a draft-time claim; re-author it) ' + s);
 if (!WRITE) { console.log('DRY RUN: nothing written'); process.exit(problems.length ? 1 : 0); }
 if (problems.length) fail(problems.length + ' problem(s) above');
-if (stale.length && !process.argv.includes('--allow-stale-notes')) fail(stale.length + ' carried note(s) still cite the S10 candidate (listed above); re-author them, or pass --allow-stale-notes to write and keep the list');
+if (stale.length && !process.argv.includes('--allow-stale-notes')) fail(stale.length + ' carried note(s) still cite the S10 candidate or a draft-time claim (listed above); re-author them, or pass --allow-stale-notes to write and keep the list');
 S11.sourceBase = P;
 S11.parent.decided = true; S11.parent.chosen = 'S10';
 option.sha256 = sha(artRaw); option.reviewSha256 = revRaw ? sha(revRaw) : null;
