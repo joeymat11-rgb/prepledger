@@ -1,0 +1,148 @@
+name: native-load-sweep
+
+# HOSTED NATIVE-LOAD SINGLE-CLAUSE MUTATION SWEEP (the PC's four shared slots, moved to hosted runners).
+# Runs ONLY on a push to a branch named obs/sweep-* (and by hand). The branch carries the mutant list file
+# (default .github/native-load-sweep/mutants.jsonl, written on the PC by pc-sweep.cjs). Each shard runs its
+# slice of that list: per mutant, one in-memory overlay (anchor checked, applied must be exactly 1) and a
+# WHOLE run of FC12 and, when the list says so, a WHOLE run of FA03, under the loader guard that refuses the
+# protected five. The merge job writes ONE results file (artifact native-load-sweep-results, 30 days); the
+# per-shard hand-off artifacts carry the same public fields and expire after 1 day (no job holds actions: write).
+# THE REPOSITORY IS PUBLIC, so logs and artifacts are public: the scripts print and record only mutant id,
+# file, test, status, applied count, pass/fail counts and the first failing test title, never raw output.
+# See .github/native-load-sweep/HOSTED-SWEEP-NOTES.md.
+
+on:
+  push:
+    branches: ['obs/sweep-*']
+  workflow_dispatch:
+    inputs:
+      shards:
+        description: 'Number of shards (1-256). Empty = the list header value, else 20.'
+        required: false
+        default: ''
+      per_shard:
+        description: 'Concurrent test processes per shard runner (1-4). Empty = the list header value, else 2.'
+        required: false
+        default: ''
+      list:
+        description: 'Mutant list file in this checkout.'
+        required: false
+        default: '.github/native-load-sweep/mutants.jsonl'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-load-sweep-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  SWEEP_LIST: ${{ inputs.list || '.github/native-load-sweep/mutants.jsonl' }}
+  SWEEP_NODE: '24.19.0'
+
+jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      shards: ${{ steps.plan.outputs.shards }}
+      par: ${{ steps.plan.outputs.par }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.SWEEP_NODE }}
+      - id: plan
+        name: Count the list and fix the shard matrix
+        env:
+          IN_SHARDS: ${{ inputs.shards }}
+          IN_PAR: ${{ inputs.per_shard }}
+        run: node .github/native-load-sweep/plan.cjs --list "$SWEEP_LIST" --shards "$IN_SHARDS" --par "$IN_PAR" >> "$GITHUB_OUTPUT"
+
+  sweep:
+    name: sweep shard ${{ matrix.shard }}
+    needs: plan
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      MEASURED_TEST_NOW: '2026-09-03'
+      TZ: America/New_York
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # The same node setup and dependency installs as rebuild.yml's public-gates job (npm ci, pnpm 9, the
+      # pinned W6 and W5 installs, frozen), and nothing beyond them; only the node version differs: it is
+      # pinned to the PC sweeps' 24.19.0 (rebuild.yml takes the newest 22.x).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.SWEEP_NODE }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund --include=dev
+      - name: Install pnpm 9 (as rebuild.yml)
+        run: npm install -g pnpm@9
+      - name: Install the pinned W6 dependencies (as rebuild.yml)
+        run: pnpm --dir rebuild/m3/w6 install --frozen-lockfile
+      - name: Install the pinned W5 dependencies (as rebuild.yml)
+        run: pnpm --dir rebuild/m3/w5 install --frozen-lockfile --ignore-scripts --ignore-workspace
+      - name: Run this shard (prints only id, file, test, status, applied, counts, first failing title)
+        run: >-
+          node .github/native-load-sweep/shard.cjs
+          --list "$SWEEP_LIST"
+          --shard ${{ matrix.shard }}
+          --shards ${{ needs.plan.outputs.shards }}
+          --par ${{ needs.plan.outputs.par }}
+          --out "$RUNNER_TEMP/nlsweep/results-shard-${{ matrix.shard }}.jsonl"
+      # A hand-off to the merge job only (same fields as the results file); it expires after 1 day (D-HSW-1).
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nlsweep-shard-${{ matrix.shard }}
+          path: ${{ runner.temp }}/nlsweep/results-shard-${{ matrix.shard }}.jsonl
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    name: merge
+    needs: [plan, sweep]
+    if: ${{ !cancelled() && needs.plan.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.SWEEP_NODE }}
+      # continue-on-error: with every shard leg failed there is nothing to download, and the merge then
+      # records every pair MISSING (complete=false) instead of the job dying without a results file.
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: nlsweep-shard-*
+          path: ${{ runner.temp }}/shards
+          merge-multiple: true
+      - id: merge
+        name: Concatenate the shard results into one file (prints counts only)
+        run: >-
+          node .github/native-load-sweep/merge.cjs
+          --in "$RUNNER_TEMP/shards"
+          --list "$SWEEP_LIST"
+          --shards ${{ needs.plan.outputs.shards }}
+          --out "$RUNNER_TEMP/nlsweep-results/native-load-sweep-results.jsonl"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-load-sweep-results
+          path: ${{ runner.temp }}/nlsweep-results/native-load-sweep-results.jsonl
+          if-no-files-found: error
+          retention-days: 30
+      - name: Fail the run when the sweep is not whole (after the upload)
+        run: node -e "const h=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8').split('\n')[0]);console.log('complete '+h.complete+' shardsSeen '+h.shardsSeen+'/'+h.shards);process.exit(h.complete?0:1)" "$RUNNER_TEMP/nlsweep-results/native-load-sweep-results.jsonl"

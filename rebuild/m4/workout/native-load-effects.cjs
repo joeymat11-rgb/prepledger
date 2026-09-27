@@ -337,10 +337,15 @@ function structural(op, byId, athleteId, base) {
   try { body = json(iss.body); } catch (_) { return 'issuance body not strict JSON'; }
   if (!same(body, iss.body)) return 'issuance body not strict JSON';
   if (!map(body) || body.profile !== DECISION || !text(body.spend_id) || !Array.isArray(body.consumes) || !Array.isArray(body.evidence) || !map(body.basis)) return 'decision shape';
+  // Spec :117, :120, :111, :60, :175 (round 29, H-04): basis members no S clause names are refused by name, never read past.
+  const bs = body.basis;
+  if (Object.keys(bs).some((k) => !['athlete_id', 'coverage', 'effect_frontier', 'load_basis', 'order', 'plan', 'source', 'technique'].includes(k)) || !map(bs.plan) || !map(bs.technique) ||
+    !Array.isArray(bs.effect_frontier) || !bs.effect_frontier.every((f) => map(f) && text(f.spend_id)) || !map(body.base_load) || !map(body.base_load.fields)) return 'decision shape';
   if (proposalDigest(iss.producer, iss.body, iss.reason) !== p.proposal_id) return 'proposal digest';
   if (body.basis.athlete_id !== athleteId) return 'athlete scope';
   if (!base.exercises.some((x) => x && x.id === body.lift_lineage_id)) return 'lineage';
   for (const item of body.evidence) {
+    if (!map(item) || !Array.isArray(item.sets) || !item.sets.every(map)) continue; // spec :155 S4 names a malformed item (field evidence; round 29, H-03)
     const refs = [item.start, item.close, ...item.sets.flatMap((s) => [s.original, ...(s.edits || [])])].filter((r) => r !== null);
     for (const r of refs) { const o = byId.get(r && r.op_id); if (!o || o.canonical_content_commitment !== r.commitment) return 'consumed reference absent'; }
   }
@@ -467,6 +472,7 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
     // a set removed or corrected after issuance is the later edit (:157), not a forgery.
     const item = body.evidence.find((x) => x.close.op_id === latest.close);
     const actual = item.sets.filter((s) => s.origin !== 'added').map((s) => (s.state === 'performed' && map(s.current) && map(s.current.load) ? s.current.load.value : null));
+    if (body.kind !== 'adopt-baseline' && map(body.basis.load_basis) && !Array.isArray(body.basis.load_basis.authority_refs)) return 'base_load'; // :120, S8 (round 29, H-04; adopt-baseline: REFS-ARM)
     const ar = map(body.basis.load_basis) && Array.isArray(body.basis.load_basis.authority_refs) ? body.basis.load_basis.authority_refs : [];
     if (body.kind === 'adopt-baseline') {
       // Spec R9.9 :155 ADOPT-BASELINE ANCHOR (the other-hold anchor): the base is the record's own
@@ -507,7 +513,7 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
     }
     else if (!cap.every((v) => typeof v === 'number') || !same(baseVec, cap)) return 'base_load';
     if (body.kind === 'earn' && !same(actual, cap)) return 'base_load';
-    const tv = Array.isArray(body.target_load.vector) ? body.target_load.vector.map((x) => (map(x) ? x.value : null)) : [];
+    const tv = map(body.target_load) && Array.isArray(body.target_load.vector) ? body.target_load.vector.map((x) => (map(x) ? x.value : null)) : [];
     if (body.kind !== 'earn' && !same(tv, actual)) return 'target_load';
   }
   return null;
@@ -518,6 +524,7 @@ function evidenceChanged(body, facts) {
   const shape = (s) => ({ slot: s.slot, position: s.position, state: s.state, original: s.original ? s.original.op_id : null,
     edits: (s.edits || []).map((r) => r.op_id), current: s.current });
   for (const item of body.evidence) {
+    if (!map(item) || !Array.isArray(item.sets) || !item.sets.every(map)) return true; // malformed: not the issued cut (round 29, H-03)
     const hit = sessionOf(facts, item.close && item.close.op_id, body.lift_lineage_id);
     if (!hit) return true;
     const now = hit.entry.slots.map((slot) => {
@@ -532,7 +539,7 @@ function evidenceChanged(body, facts) {
   return false;
 }
 function dayOf(body, facts) {
-  const closes = body.evidence.map((item) => item.close && item.close.op_id);
+  const closes = body.evidence.map((item) => item && item.close && item.close.op_id);
   for (let i = closes.length - 1; i >= 0; i--) { const hit = sessionOf(facts, closes[i], body.lift_lineage_id); if (hit) return hit.session.effective.local_date; }
   const all = ((facts && facts.sessions) || []).map((s) => s.effective.local_date).sort();
   return all.length ? all[all.length - 1] : '1970-01-01';
@@ -759,7 +766,8 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
       // D-R20L1-6): a record that fails REFS-ARM is never re-evaluated under a present revision; it takes the correspondence branch
       // below, which refuses it RECORD_INVALID by its first failing field, exactly as an absent revision does (R1 = R2, :165
       // UNPROVABLE ORDER). A record that passes REFS-ARM (every genuine host exit in the ordered layout) is re-evaluated as before.
-      const reproducible = present && !changed && members.every((b) => sameCut(b, atCut(b), V)) && refsArm(body, { facts, byId, issues });
+      const reproducible = present && !changed && members.every((b) => map(b.basis.order) && Array.isArray(b.basis.order.start_ids) &&
+        (b.kind === 'adopt-baseline' || !map(b.basis.load_basis) || Array.isArray(b.basis.load_basis.authority_refs)) && sameCut(b, atCut(b), V)) && refsArm(body, { facts, byId, issues }); // round 29, H-01, H-04
       // STRUCTURAL CORRESPONDENCE (spec R9 :155): a record that is not re-evaluated applies
       // only when S1-S8 hold; the first failure refuses that lift by the failing field.
       if (!reproducible) {
