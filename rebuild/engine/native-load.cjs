@@ -255,6 +255,10 @@ function evaluate(state, request) {
     if (!complete || !values.every((v) => typeof v === 'number' && Number.isFinite(v) && v > 0)) refuse('PREFIX_UNRESOLVED', [closeRef]);
     if (!values.every((v) => v === values[0]) || Array.isArray(ex.wSets)) refuse('VECTOR_ADOPTION_UNDEFINED', [closeRef]);
     const kind = ex.w == null ? 'adopt-baseline' : 'adopt-observed';
+    // Spec :156 DERIVABLE (c3) (Astra L20-B1, DECISIONS:856 (1) (a)): an adopt-observed needs a numeric w, so over a configuration w it is
+    // never minted; it is refused as DERIVABLE refuses that record (RECORD_INVALID, field base_load), as :156 refuses an unsupported
+    // wSets "at issuance and here" (the SUPPORTED wSets refusal above). No template or displayed string changes.
+    if (kind === 'adopt-observed' && !(typeof ex.w === 'number' && Number.isFinite(ex.w))) refuse('RECORD_INVALID', [], 'base_load');
     const spent = new Set(frontier.map((f) => (map(f) ? decodeSpend(f.spend_id) : null)).filter((x) => x && x.lift === lift).flatMap((x) => x.consumes));
     const root = rootOf(cur, lift);
     if (spent.has(root)) refuse('SOURCE_OVERLAP', [closeRef]);

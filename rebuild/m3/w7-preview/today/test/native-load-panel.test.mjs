@@ -1307,3 +1307,920 @@ test('R913-LEGACY-OVER-NULL-HOST [Y] (spec R9.13 (v); red on 40eb702: gym.read b
     h.close(); era.close();
   }
 });
+
+// ROUND 22 (Astra L14 B1; spec R9.13 (v) LEGACY-OVER-NULL, "null or ABSENT"): mutant L14-M01 (FC03 heldProjection
+// "x.w == null -> x.w === null") survived all 47 host cells, which use a PRESENT null w. The same admitted basis as
+// R913-LEGACY-OVER-NULL-HOST with demo-press's w field DELETED (ABSENT), beside that present-null row.
+test('L14-B1-ABSENT-W-HOST [Y] (spec R9.13 (v), "null or ABSENT"; Astra L14 B1, mutant L14-M01): a never-held demo-press with NO w field and a pending legacy DEBUT 60 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has no numeric w, no visible unfinished demo-press debut and no active issue', async () => {
+  const legacyBasis = day => { const s = basisFor(day); delete s.exercises.find(e => e.id === 'demo-press').w; s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    assert.equal(Object.hasOwn(legacyBasis(day).exercises.find(e => e.id === 'demo-press'), 'w'), false, day + ' the basis has no w field (ABSENT, not a present null)');
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), day + ' demo-press: the baseline ask');
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w == null, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [true, 0, []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+
+// ROUND 22c (Fable R22 l2 B-R22L2-1 and D-R22L2-2; spec R9.13 (v) LEGACY-OVER-NULL): mutant X6 (FC03 heldProjection's hide
+// predicate "HIDDEN_LEGACY_KINDS.has(q.kind) -> q.kind === 'debut'") and mutant E1 ("!q.done -> q.done === false") survived all
+// 48 host cells, whose every legacy entry over a null or ABSENT w is a kind 'debut' with done:false. The UNLOCK twin of
+// R913-LEGACY-OVER-NULL-HOST (w null) and the no-done-key twin of L14-B1-ABSENT-W-HOST (w ABSENT); each changes one key only.
+test('R22L2-UNLOCK-OVER-NULL-HOST [Y] (spec R9.13 (v) RULE "every unfinished LEGACY debut/unlock entry ... of EVERY lift whose projected w is null or ABSENT" and INVARIANT; Fable R22 l2 B-R22L2-1, mutant X6): the UNLOCK twin of R913-LEGACY-OVER-NULL-HOST: a never-held demo-press with w null and a pending legacy UNLOCK 60 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has w null, no visible unfinished demo-press debut/unlock and no active issue. Under X6 the unlock is shown and gym.read is blocked ENGINE_CAPTURE_BASELINE_UNPROVEN', async () => {
+  const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind: 'unlock', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy unlock' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), day + ' demo-press: the baseline ask');
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, 0, []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+test('R22L2-ABSENT-DONE-HOST [Y] (spec R9.13 (v) RULE "hides every unfinished LEGACY debut/unlock entry (... not done ...)": an entry with NO done key is unfinished; "null or ABSENT"; Fable R22 l2 D-R22L2-2, mutant E1 "!q.done -> q.done === false"): the no-done-key twin of L14-B1-ABSENT-W-HOST: a never-held demo-press with NO w field and a pending legacy DEBUT 60 that carries NO done key in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has no numeric w, no visible unfinished demo-press debut/unlock and no active issue. Under E1 the entry is shown and gym.read is blocked ENGINE_CAPTURE_BASELINE_UNPROVEN', async () => {
+  const legacyBasis = day => { const s = basisFor(day); delete s.exercises.find(e => e.id === 'demo-press').w; s.queue.push({ exId: 'demo-press', kind: 'debut', state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const b = legacyBasis(day), q = b.queue.find(x => x && x.t === 'SYNTHETIC legacy debut');
+    assert.deepEqual([Object.hasOwn(b.exercises.find(e => e.id === 'demo-press'), 'w'), Object.hasOwn(q, 'done')], [false, false], day + ' the basis has no w field and the entry no done key (both ABSENT)');
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), day + ' demo-press: the baseline ask');
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w == null, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [true, 0, []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+
+// ROUND 22d (Fable R22 l3 B-R22L3-1; spec R9.13 (v) LEGACY-OVER-NULL RULE "of EVERY lift" and INVARIANT): mutant z09 (FC03
+// heldProjection hides only the FIRST hideable entry) survived all 50 host cells, each of which carries one hideable entry at a
+// time. The two-lift form of R913-LEGACY-OVER-NULL-HOST: demo-press AND demo-row never held at w null, each with its own entry.
+test('R22L3-EVERY-LIFT-OVER-NULL-HOST [Y] (spec R9.13 (v) RULE "hides every unfinished LEGACY debut/unlock entry ... of EVERY lift whose projected w is null or ABSENT" and INVARIANT "no registered projection carries an unfinished debut/unlock entry, native or legacy, of a lift whose w is null or ABSENT"; Fable R22 l3 B-R22L3-1, mutant z09): the two-lift form of R913-LEGACY-OVER-NULL-HOST: demo-press and demo-row both never held at w null, each with its own pending legacy DEBUT 60 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready and demo-press and demo-row are both the baseline ask (load not_prescribed on every slot); the host projection has w null for both, no visible unfinished debut/unlock of either and no active issue on either. Under z09 demo-row\'s debut is shown and gym.read is blocked ENGINE_CAPTURE_BASELINE_UNPROVEN', async () => {
+  const legacyBasis = day => { const s = withPress(day, { w: null }); s.exercises.find(e => e.id === 'demo-row').w = null; s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut press' }, { exId: 'demo-row', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut row' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    for (const lift of ['demo-press', 'demo-row']) assert.ok(slots.some(s => s.lift_lineage_id === lift) && slots.filter(s => s.lift_lineage_id === lift).every(s => s.load.state === 'not_prescribed'), day + ' ' + lift + ': the baseline ask');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    const liftOf = id => p.state.exercises.find(e => e.id === id), shown = id => p.state.queue.filter(q => q && q.exId === id && !q.done && ['debut', 'unlock'].includes(q.kind)).length, active = id => p.issues.filter(i => i.lift === id && !i.superseded_by).map(i => i.code);
+    assert.deepEqual([liftOf('demo-press').w, liftOf('demo-row').w, shown('demo-press'), shown('demo-row'), active('demo-press'), active('demo-row')], [null, null, 0, 0, [], []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+
+// ROUND 22e (Fable R22 l4 D-R22L4-3; spec R9.13 (v) LEGACY-OVER-NULL): the FC03 mutants z04 (a falsy w hides like a null w),
+// z06 (the hide set widened to FC01's STRUCTURAL), w04 (only a lift's FIRST unfinished entry hidden) and w05 (hidden only when the
+// lift has ONE unfinished entry) survived all 51 host cells, whose every legacy entry sits alone on a null or ABSENT w lift and is
+// a debut or an unlock. Three cells beside R913-LEGACY-OVER-NULL-HOST: a w 0 lift, an other-kind entry, two entries on one lift.
+test('R22L4-ZERO-W-HOST [Y] (spec R9.13 (v) RULE "of EVERY lift whose projected w is null or ABSENT": w 0 is neither; R913-LEGACY-OVER-NULL-CONTROL "the same entry on a lift with numeric w ... stays visible, and the card prescribes ... as today (E/today.cjs:98)"; Fable R22 l4 D-R22L4-3, mutant z04 "x && x.w == null -> x && !x.w"): the host form of FC12 R22L3-ZERO-W-VISIBLE: demo-press at w 0 with a pending legacy DEBUT newW 5 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is prescribed 5 lb on every slot and demo-row is unaffected; the host projection keeps w 0 and the entry visible ([debut, DEBUT, 5]) with no active issue. Under z04 the entry is hidden and the card falls back to the w 0 scalar', async () => {
+  const legacyBasis = day => { const s = withPress(day, { w: 0 }); s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 5, t: 'SYNTHETIC legacy debut' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day), press = slots.filter(s => s.lift_lineage_id === 'demo-press');
+    assert.ok(press.length > 0 && press.every(s => s.load.state === 'specified' && /^5 lb/.test(s.load.display)), day + ' demo-press: the card prescribes the entry\'s 5 on every slot ' + JSON.stringify(press.map(s => s.load.display)));
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done).map(q => [q.kind, q.state, q.newW]), p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [0, [['debut', 'DEBUT', 5]], []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+test('R22L4-OTHER-KINDS-HOST [Y] (spec R9.13 (v) RULE "kind in HIDDEN_LEGACY_KINDS, :250" (debut and unlock only) and "Only the registered projection changes"; Fable R22 l4 D-R22L4-3, mutant z06 "new Set([\'debut\', \'unlock\']) -> new Set([\'debut\', \'unlock\', \'own\', \'reclaim\', \'ladder\'])"): the host form of FC12 R22L3-OTHER-KINDS-KEPT: a never-held demo-press with w null, a pending legacy entry of kind own (and, the same, reclaim and ladder; state DEBUT, newW 60) and a pending legacy DEBUT 60 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has w null, hides the debut only and keeps the own/reclaim/ladder entry, with no active issue. Under z06 that entry is hidden too', async () => {
+  for (const kind of ['own', 'reclaim', 'ladder']) {
+    const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind, done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy ' + kind }, { exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut' }); return s; };
+    const fault = faultDatabase();
+    for (const day of [D1, D3]) {
+      const era = await reopenAt(fault, day);
+      hostGate(era);
+      const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+      assert.equal(view.phase, 'ready', kind + ' ' + day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+      const slots = await slotsOf(one.entry, day);
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), kind + ' ' + day + ' demo-press: the baseline ask');
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), kind + ' ' + day + ' demo-row normal');
+      one.entry.gymHost.close();
+      const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+      assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done).map(q => [q.kind, q.state, q.newW]), p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, [[kind, 'DEBUT', 60]], []], kind + ' ' + day + ' the host projection');
+      h.close(); era.close();
+    }
+  }
+});
+test('R22L4-EVERY-ENTRY-HOST [Y] (spec R9.13 (v) RULE "hides every unfinished LEGACY debut/unlock entry ... of EVERY lift whose projected w is null or ABSENT" and INVARIANT "no registered projection carries an unfinished debut/unlock entry, native or legacy, of a lift whose w is null or ABSENT"; Fable R22 l4 D-R22L4-3, mutants w04 (only the lift\'s FIRST unfinished entry hidden) and w05 (hidden only when the lift has ONE unfinished entry)): the host form of FC12 R22L3-EVERY-ENTRY-OVER-NULL: a never-held demo-press with w null carrying a pending legacy DEBUT 60 AND a pending legacy UNLOCK 65 in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has w null, no visible unfinished demo-press debut/unlock and no active issue. Under w04 the unlock is shown, under w05 both are, and gym.read is blocked ENGINE_CAPTURE_BASELINE_UNPROVEN', async () => {
+  const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, t: 'SYNTHETIC legacy debut' }, { exId: 'demo-press', kind: 'unlock', done: false, state: 'DEBUT', newW: 65, t: 'SYNTHETIC legacy unlock' }); return s; };
+  const fault = faultDatabase();
+  for (const day of [D1, D3]) {
+    const era = await reopenAt(fault, day);
+    hostGate(era);
+    const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+    assert.equal(view.phase, 'ready', day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+    const slots = await slotsOf(one.entry, day);
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), day + ' demo-press: the baseline ask');
+    assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), day + ' demo-row normal');
+    one.entry.gymHost.close();
+    const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+    assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, 0, []], day + ' the host projection');
+    h.close(); era.close();
+  }
+});
+
+// ROUND 23 (Astra L15 B5 and B6; spec R9.13 (v) LEGACY-OVER-NULL): the FC03 mutants N13 (a legacy entry must carry NO
+// native_load_spend key) and N14 (an entry is hidden unless its done is exactly true) survived all 51 host cells Astra ran (and all
+// 54 of round 22e), whose every legacy entry carries no marker and a boolean done. Two cells beside R913-LEGACY-OVER-NULL-HOST: a
+// present non-string marker, and a finished entry whose done is a truthy non-boolean.
+test('L15-B5-NONSTRING-MARKER-HOST [Y] (spec R9.13 (v) RULE "hides every unfinished LEGACY debut/unlock entry (typeof native_load_spend !== \'string\', not done, kind in HIDDEN_LEGACY_KINDS) of EVERY lift whose projected w is null or ABSENT": a present non-string marker is legacy; Astra L15 B5, mutant N13 "typeof q.native_load_spend !== \'string\' -> q.native_load_spend === undefined"): the host form of FC12 L15-B5-NONSTRING-MARKER-HIDDEN: a never-held demo-press with w null and a pending legacy DEBUT 60 whose native_load_spend is PRESENT and null (and, the same, 0 and false) in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (load not_prescribed on every slot) and demo-row is unaffected; the host projection has w null, no visible unfinished demo-press debut/unlock and no active issue. Under N13 the entry is shown and gym.read is blocked ENGINE_CAPTURE_BASELINE_UNPROVEN', async () => {
+  for (const marker of [null, 0, false]) {
+    const M = 'native_load_spend ' + JSON.stringify(marker) + ' ';
+    const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind: 'debut', done: false, state: 'DEBUT', newW: 60, native_load_spend: marker, t: 'SYNTHETIC legacy debut' }); return s; };
+    const fault = faultDatabase();
+    for (const day of [D1, D3]) {
+      const era = await reopenAt(fault, day);
+      hostGate(era);
+      const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+      assert.equal(view.phase, 'ready', M + day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+      const slots = await slotsOf(one.entry, day);
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), M + day + ' demo-press: the baseline ask');
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), M + day + ' demo-row normal');
+      one.entry.gymHost.close();
+      const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+      assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.exId === 'demo-press' && !q.done && ['debut', 'unlock'].includes(q.kind)).length, p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, 0, []], M + day + ' the host projection');
+      h.close(); era.close();
+    }
+  }
+});
+test('L15-B6-FINISHED-ENTRY-HOST [Y] (spec R9.13 (v) RULE "hides every unfinished LEGACY debut/unlock entry (... not done ...)": a finished entry is not hidden; "Only the registered projection changes"; (iv) DEFINITIONS "q.done falsy": a truthy done is done; Astra L15 B6, mutant N14 "!q.done -> q.done !== true"): the host form of FC12 L15-B6-FINISHED-ENTRY-SHOWN: a never-held demo-press with w null and a FINISHED legacy DEBUT 60, state ESTABLISH, done 1 (and, the same, the string \'yes\') in the admitted basis -> through the durable host, and again after a cold reopen on the next U day, gym.read is ready, demo-press is the baseline ask (no unfinished entry) and demo-row is unaffected; the host projection has w null, KEEPS the finished entry ([debut, 1, ESTABLISH, 60]) and has no active issue. Under N14 the finished entry is missing from the host projection', async () => {
+  for (const done of [1, 'yes']) {
+    const M = 'done ' + JSON.stringify(done) + ' ';
+    const legacyBasis = day => { const s = withPress(day, { w: null }); s.queue.push({ exId: 'demo-press', kind: 'debut', done, state: 'ESTABLISH', newW: 60, t: 'SYNTHETIC finished legacy' }); return s; };
+    const fault = faultDatabase();
+    for (const day of [D1, D3]) {
+      const era = await reopenAt(fault, day);
+      hostGate(era);
+      const one = await dayEntryWith(era, day, legacyBasis(day)), view = await one.entry.gym.read();
+      assert.equal(view.phase, 'ready', M + day + ' gym.read ' + (view.code || '') + ' ' + JSON.stringify(view.issues || view.error || null));
+      const slots = await slotsOf(one.entry, day);
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-press') && slots.filter(s => s.lift_lineage_id === 'demo-press').every(s => s.load.state === 'not_prescribed'), M + day + ' demo-press: the baseline ask');
+      assert.ok(slots.some(s => s.lift_lineage_id === 'demo-row') && slots.filter(s => s.lift_lineage_id === 'demo-row').every(s => /^40 lb/.test(s.load.display)), M + day + ' demo-row normal');
+      one.entry.gymHost.close();
+      const h = await era.createNativeLoadHost({ day, engineState: legacyBasis(day) }), p = await h.project();
+      assert.deepEqual([pressOf(p).w, p.state.queue.filter(q => q && q.t === 'SYNTHETIC finished legacy').map(q => [q.kind, q.done, q.state, q.newW]), p.issues.filter(i => i.lift === 'demo-press' && !i.superseded_by).map(i => i.code)], [null, [['debut', done, 'ESTABLISH', 60]], []], M + day + ' the host projection keeps the finished entry');
+      h.close(); era.close();
+    }
+  }
+});
+
+// ROUND 24 (Astra L16 B6; FC08 L/today-bindings.mjs:623-626 and spec :164-165): the host's default projection reads the CURRENT
+// basis. Every earlier cell opened its host on one immutable basis, so a project() that kept the basis captured when the host opened
+// (Astra's mutant: `first` for baseNow() at :674) agreed with every cell. FA02 passes a function and calls project() with no base.
+test('L16-B6-HOST-CURRENT-BASIS [Y] (FC08 L/today-bindings.mjs:623-626 "engineState is the page\'s immutable basis, or a function returning the CURRENT one ...: check, project and the pre-commit re-evaluation all read it anew"; spec :164 "No new persisted topRun, effect receipt collection or plan cache is authoritative" and :165; Astra L16 B6, mutant "project(base === undefined ? baseNow() : base) -> project(base === undefined ? first : base)" at :674, which survived 267/267 and 56/56): the durable host opened with engineState a function returning the page\'s current immutable basis (demo-press w 40) -> project() gives w 40; the page then replaces that basis with a new immutable one (w 55) and project() with no base gives w 55 and the same registered state as a host opened on the w-55 basis; after a cold reopen on the next U day, a host opened while the basis was w 40 and projected after the page moved it to w 55 gives w 55. Under the mutant the later projections still give 40', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  let current = withPress(D1, { w: 40 });
+  const host = await era.createNativeLoadHost({ day: D1, engineState: () => current });
+  const p1 = await host.project();
+  assert.deepEqual([p1.ok, pressOf(p1).w], [true, 40], 'D1 the first projection reads the basis current at that call');
+  current = withPress(D1, { w: 55 });
+  const p2 = await host.project();
+  assert.deepEqual([p2.ok, pressOf(p2).w], [true, 55], 'D1 project() after the page adopted a new basis reads the CURRENT basis');
+  const fresh = await era.createNativeLoadHost({ day: D1, engineState: withPress(D1, { w: 55 }) }), pf = await fresh.project();
+  assert.deepEqual(p2.state, pf.state, 'D1 the same registered state as a host opened on the current basis');
+  fresh.close(); host.close(); era.close();
+  const again = await reopenAt(fault, D3);
+  let cold = withPress(D3, { w: 40 });
+  const h3 = await again.createNativeLoadHost({ day: D3, engineState: () => cold });
+  cold = withPress(D3, { w: 55 });
+  const p3 = await h3.project();
+  assert.deepEqual([p3.ok, pressOf(p3).w], [true, 55], 'D3 after a cold reopen the host reads the current basis');
+  h3.close(); again.close();
+});
+
+// ROUND 24 SWEEP CELLS (report, Round 24, section 2): the host projection and check (L/today-bindings.mjs :640-:690). Each cell cites
+// its clause and asserts the specified outcome through the real durable host; every value is invented.
+test('R24S-HOST-SPENT-AND-RETRY [Y] (spec :97 "project() -> authenticated Fold" with :96 Fold {status,state,effects,spent,issues,coverage}; :172 "If the acknowledgement is lost, read the authenticated operation log for that exact issuance/spend; report already-saved only if found and folded. Do not mint another response"; :298 N06 "retry of the same issuance reports already-saved and still 1 response"; round-24 sweep, mutants S24-H17 "status: null", S24-H22 "spent first-only", S24-H06 "only rejected responses count", S24-H10 "spent.every" and S24-H11 "spend_id !==" at L/today-bindings.mjs:666-681): D1 and D2 sessions, then the durable host on D2: yes to demo-press through host.respond -> acknowledged; the SAME handle answered again -> acknowledged, alreadySaved, the first op_id, still exactly 1 response; then yes to demo-row -> acknowledged, and its retry -> alreadySaved, still 2 responses; project() -> status ready and spent lists BOTH accepted spends, neither cancelled. Under the mutants the status is null, a spend is missing, or a retry is refused as stale', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const { entry } = await twoTops(era);
+  assert.equal((await train(entry)).finished.ok, true);
+  entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D2, engineState: basisFor(D2) }), p0 = await host.project();
+  const yes = async lift => {
+    const done = p0.lifts.find(l => l.lift_lineage_id === lift);
+    const c = await host.check({ lift_lineage_id: lift, completion_op_id: done.completion_op_id });
+    assert.equal(c.status, 'offer', lift + ' ' + JSON.stringify(c.refusal));
+    const o = c.offers.find(x => x.lift === lift), r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+    assert.equal(r.acknowledged, true, lift + ' ' + JSON.stringify(r));
+    return { o, r };
+  };
+  const press = await yes('demo-press');
+  const again = await host.respond({ handle: press.o.handle, proposal_id: press.o.proposalId, answer: 'accept' });
+  assert.deepEqual([again.acknowledged, again.alreadySaved, again.op_id, (await responsesOf(era)).length], [true, true, press.r.op_id, 1], 'the retry of the same issuance reports already-saved and mints no response');
+  const row = await yes('demo-row');
+  const again2 = await host.respond({ handle: row.o.handle, proposal_id: row.o.proposalId, answer: 'accept' });
+  assert.deepEqual([again2.acknowledged, again2.alreadySaved, again2.op_id, (await responsesOf(era)).length], [true, true, row.r.op_id, 2], 'with two spends folded the retry still reports already-saved');
+  const p = await host.project(), ids = (await responsesOf(era)).map(op => op.payload.issuance.body.spend_id).sort();
+  assert.deepEqual([p.ok, p.status, p.spent.map(x => x.spend_id).sort(), p.spent.map(x => x.cancelled)], [true, 'ready', ids, [false, false]], 'the host projection: status ready and every accepted spend, none cancelled');
+  host.close(); era.close();
+});
+test('R24S-HOST-IMPORTED-SOURCE-REFUSAL [Y] (spec R9.1 :157 ADMISSION GATE (1): "an imported generation refuses SOURCE_FRONTIER_UNPROVEN before folding (the local host refuses a nonempty imported-source collection ...)"; :97 check -> "refusal"; round-24 sweep, mutant S24-H25 "check()\'s refusal code null" at L/today-bindings.mjs:686): the durable installation\'s generation carries a nonempty sourceImports collection (committed through the repository as D-FRESH-2 commits a rewritten record) -> project() refuses with ok false and code NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN, and check() is refused with that same code and no offer. Under the mutant the check\'s refusal code is null', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const one = await dayEntry(era, D1);
+  assert.equal((await train(one.entry)).finished.ok, true);
+  const repo = one.entry.gymHost.repository, snap = await repo.load(), gen = structuredClone(snap.generation);
+  gen.collections.sourceImports = { 'fx-import-1': { profile: 'earned/source-import/v1' } };
+  await repo.commit({ revision: snap.revision, token: snap.token }, gen);
+  one.entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D1, engineState: basisFor(D1) });
+  const p = await host.project();
+  assert.deepEqual([p.ok, p.code], [false, 'NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN'], 'project() refuses the imported generation');
+  const c = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: 'fx-any-close' });
+  assert.deepEqual([c.status, c.offers, c.refusal && c.refusal.code], ['refused', [], 'NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN'], 'check() is refused with the same code');
+  host.close(); era.close();
+});
+test('R24S-HOST-CHECK-CURRENT-BASIS [Y] (FC08 L/today-bindings.mjs:623-626 "engineState is the page\'s immutable basis, or a function returning the CURRENT one ...: check, project and the pre-commit re-evaluation all read it anew"; spec :127 step 2 "Resolve the current authorised plan ... If deliberate load ... changed since that completion, refuse the applicable code"; round-24 sweep, mutant S24-H29 "check() folds the basis captured at open (first)" at L/today-bindings.mjs:685, the check() form of Astra L16 B6): one D1 session trained on the cards; the durable host opened with engineState a function returning the page\'s current immutable basis (demo-press w 40) -> the check on demo-press\'s completion is not PLAN_CHANGED; the page then adopts a new immutable basis with demo-press w 55 -> the same check refuses NATIVE_LOAD_PLAN_CHANGED and equals the check of a host opened on the w-55 basis. Under the mutant the second check still answers from the w-40 basis', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const one = await dayEntry(era, D1);
+  assert.equal((await train(one.entry)).finished.ok, true);
+  one.entry.gymHost.close();
+  let current = withPress(D1, { w: 40 });
+  const host = await era.createNativeLoadHost({ day: D1, engineState: () => current }), p = await host.project();
+  const req = { lift_lineage_id: 'demo-press', completion_op_id: p.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id };
+  const brief = c => [c.status, c.refusal && c.refusal.code, c.refusal && (c.refusal.refs || []).map(r => r.op_id), c.offers.map(o => [o.kind, o.loads])];
+  const c1 = brief(await host.check(req));
+  current = withPress(D1, { w: 55 });
+  const c2 = brief(await host.check(req));
+  const fresh = await era.createNativeLoadHost({ day: D1, engineState: withPress(D1, { w: 55 }) }), cf = brief(await fresh.check(req));
+  assert.notEqual(c1[1], 'NATIVE_LOAD_PLAN_CHANGED', 'control: on the basis current at the completion the plan has not moved ' + JSON.stringify(c1));
+  assert.deepEqual(c2, cf, 'the check reads the CURRENT basis: the same answer as a host opened on it');
+  assert.equal(c2[1], 'NATIVE_LOAD_PLAN_CHANGED', 'the plan moved since that completion (step 2) ' + JSON.stringify(c2));
+  fresh.close(); host.close(); era.close();
+});
+
+// ROUND 25 (test bytes only; PM ruling DECISIONS:847 on Claude R24 l1 B-R24-O-4 and Astra L17 B4-B6): three host cells through the
+// real durable host (L/today-bindings.mjs, product unchanged 91aa980f). Each cites its clause and asserts the specified outcome with
+// the reviewer's own input; every value is invented.
+// L17-B4 / B-R24-O-4: R24S-HOST-SPENT-AND-RETRY never undoes a spend, so a project() that reports every spend cancelled false
+// (Claude's C07 = Astra's L17-M11) agreed with every cell.
+test('R25-HOST-CANCELLED-SPEND [Y] (spec :97 "project() -> authenticated Fold", :96 Fold carries spent, :123 "context.spent is the derived array of {spend_id,consumes,response_refs,close_ref,cancelled_by}, with nullable ... cancelled_by", :154 "On its own yes, restore that image ..., retire only the targeted native queue entry and keep its spend tombstone", :158 NO TRAP "every accepted spend ... and whether it is cancelled"; Claude R24 l1 B-R24-O-4, mutant C07, = Astra L17 B4, mutant L17-M11 "cancelled: !!x.cancelled_by -> cancelled: false" at L/today-bindings.mjs:681, which survived 286/286 and 60/60): D1 and D2 sessions, then the durable host on D2: yes to demo-press (acknowledged), then its offered Undo (check intent {compensate: that spend}) accepted -> project() is ok, its spent still names the yes\'s spend (the tombstone is kept) with cancelled true, and every other listed spend (the Undo\'s own) cancelled false. Under the mutant the undone spend is reported live (cancelled false)', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const { entry } = await twoTops(era);
+  assert.equal((await train(entry)).finished.ok, true);
+  entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D2, engineState: basisFor(D2) }), p0 = await host.project();
+  const req = { lift_lineage_id: 'demo-press', completion_op_id: p0.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id };
+  const c = await host.check(req);
+  assert.equal(c.status, 'offer', JSON.stringify(c.refusal));
+  const o = c.offers.find(x => x.lift === 'demo-press'), r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  assert.equal(r.acknowledged, true, JSON.stringify(r));
+  const spend = (await responsesOf(era)).find(op => op.op_id === r.op_id).payload.issuance.body.spend_id;
+  const before = await host.project();
+  assert.deepEqual(before.spent.filter(x => x.spend_id === spend).map(x => x.cancelled), [false], 'control: before the Undo the yes\'s spend is live');
+  const u = await host.check({ ...req, intent: { compensate: spend } });
+  assert.equal(u.status, 'offer', 'the Undo is offered: ' + JSON.stringify(u.refusal));
+  const undo = await host.respond({ handle: u.offers[0].handle, proposal_id: u.offers[0].proposalId, answer: 'accept' });
+  assert.equal(undo.acknowledged, true, JSON.stringify(undo));
+  const p = await host.project();
+  assert.equal(p.ok, true);
+  assert.deepEqual(p.spent.filter(x => x.spend_id === spend).map(x => x.cancelled), [true], 'the undone spend is kept (its tombstone) and reported cancelled ' + JSON.stringify(p.spent));
+  assert.deepEqual(p.spent.filter(x => x.spend_id !== spend).map(x => x.cancelled).filter(x => x !== false), [], 'no other spend is cancelled ' + JSON.stringify(p.spent));
+  host.close(); era.close();
+});
+// L17-B5: every earlier closed-handle cell closed the host only, with the installation open, where savedResponse can still read; a
+// held-handle lookup that ignores `alive` (Astra's L17-M12) then reaches the same refusal. With the installation closed too, the
+// lookup must refuse before any read.
+test('R25-HOST-CLOSED-HANDLE [Y] (spec :97 "close() invalidates held handles"; :169 "Refuse detached host, wrong athlete/source, cloned handle or wrong proposal ID before staging"; :170 "Without that capability, \'respond\' refuses NATIVE_LOAD_CAPABILITY_REQUIRED"; :188 "Unowned handle ... CAPABILITY_REQUIRED"; Astra L17 B5, mutant L17-M12 "alive && dropped from the held-handle lookup" at L/today-bindings.mjs:708, which survived 286/286 and 60/60): D1 and D2 sessions, the durable host on D2 offers demo-press a yes (a genuine held handle); then host.close() AND the installation closed -> respond({accept}) with that handle resolves (no exception) to acknowledged false, code NATIVE_LOAD_CAPABILITY_REQUIRED; after a reopen no response was written. The weaker input (only the host closed) gives the same refusal. Under the mutant the closed installation is read and respond throws', async () => {
+  for (const both of [false, true]) {
+    const M = both ? 'host and installation closed: ' : 'host closed: ';
+    const fault = faultDatabase(), era = await reopenAt(fault, D1);
+    hostGate(era);
+    const { entry } = await twoTops(era);
+    assert.equal((await train(entry)).finished.ok, true);
+    entry.gymHost.close();
+    const host = await era.createNativeLoadHost({ day: D2, engineState: basisFor(D2) }), p = await host.project();
+    const c = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: p.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id });
+    assert.equal(c.status, 'offer', M + JSON.stringify(c.refusal));
+    const o = c.offers.find(x => x.lift === 'demo-press');
+    host.close(); if (both) era.close();
+    let got;
+    try { got = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' }); }
+    catch (error) { got = { threw: String(error && (error.code || error.message) || error) }; }
+    assert.deepEqual([got.threw, got.acknowledged, got.code], [undefined, false, 'NATIVE_LOAD_CAPABILITY_REQUIRED'], M + 'a closed host refuses the held handle before any read ' + JSON.stringify(got));
+    if (!both) era.close();
+    const again = await reopenAt(fault, D2);
+    assert.equal((await responsesOf(again)).length, 0, M + 'nothing written');
+    again.close();
+  }
+});
+// L17-B6 (S24-H08, moved from SPEC-SILENT to a blocker by the PM, DECISIONS:847): the host's early already-saved lookup must match
+// the ENTIRE held issuance, not its shortened digest. R6-B17 pins the full comparison at re-evaluation; no cell reached
+// savedResponse's early return with a digest-equal but different issuance, so dropping its issuance equality (the round-24 sweep's
+// H08) agreed with every cell. TEST SEAM (no product hook), as R6-B17: the shared FC03 module object today-bindings imports; only
+// the SECOND check's proposal_id is made to collide with the first; bodies, spends and durable commits are the product's own.
+test('R25-HOST-SAVED-NEEDS-EXACT-ISSUANCE [Y] (spec :149 "At accept, the host re-evaluates ..., checks the ENTIRE issued body/reason/producer and semantic source basis ... Stale means STALE_OFFER; even a newly valid larger/smaller number requires another displayed offer and yes"; :172 "read the authenticated operation log for that exact issuance/spend; report already-saved only if found and folded. Do not mint another response"; :60; Astra L17 B6, mutant S24-H08 "savedResponse matches proposal_id only (the issuance equality dropped)" at L/today-bindings.mjs:667, which survived 286/286 and 60/60): D1 and D2 sessions; the durable host on D2 with engineState a function returning the current basis; a check at inc 5 offers demo-press 45; the page moves demo-press to inc 10 and a second check offers 50 (a different offer for the same completion, the same spend), its proposal_id forced equal to the first (test seam); back at inc 5 the 45 yes is accepted; at inc 10 the held 50 offer is answered yes -> refused NATIVE_LOAD_STALE_OFFER, not acknowledged, not already-saved; still exactly 1 response (the 45 issuance) and the pending demo-press target is 45. Under the mutant the 50 yes is reported acknowledged and alreadySaved', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const { entry } = await twoTops(era);
+  assert.equal((await train(entry)).finished.ok, true);
+  entry.gymHost.close();
+  let current = withPress(D2, { inc: 5 });
+  const host = await era.createNativeLoadHost({ day: D2, engineState: () => current }), p = await host.project();
+  const req = { lift_lineage_id: 'demo-press', completion_op_id: p.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id };
+  const a = await host.check(req);
+  assert.equal(a.status, 'offer', JSON.stringify(a.refusal));
+  const oa = a.offers.find(x => x.lift === 'demo-press');
+  current = withPress(D2, { inc: 10 });
+  const NLE = require('../../../../m4/workout/native-load-effects.cjs'), realIssuance = NLE.issuanceFor;
+  let secondSpend;
+  NLE.issuanceFor = (offer, args) => { const got = realIssuance(offer, args); secondSpend = got.issuance.body.spend_id; return { ...got, proposal_id: oa.proposalId }; };
+  let b;
+  try { b = await host.check(req); } finally { NLE.issuanceFor = realIssuance; }
+  assert.equal(b.status, 'offer', JSON.stringify(b.refusal));
+  const ob = b.offers.find(x => x.lift === 'demo-press');
+  assert.equal(ob.proposalId, oa.proposalId, 'test seam: the two held offers share one proposal_id');
+  assert.notDeepEqual(ob.loads, oa.loads, 'two genuine different offers before either yes ' + JSON.stringify([oa.loads, ob.loads]));
+  current = withPress(D2, { inc: 5 });
+  const first = await host.respond({ handle: oa.handle, proposal_id: oa.proposalId, answer: 'accept' });
+  assert.equal(first.acknowledged, true, JSON.stringify(first));
+  const stored = (await responsesOf(era)).find(op => op.op_id === first.op_id);
+  assert.equal(stored.payload.issuance.body.spend_id, secondSpend, 'the same spend under two different issuances');
+  current = withPress(D2, { inc: 10 });
+  const second = await host.respond({ handle: ob.handle, proposal_id: ob.proposalId, answer: 'accept' }), after = await host.project();
+  assert.deepEqual([second.acknowledged, !!second.alreadySaved, second.code], [false, false, 'NATIVE_LOAD_STALE_OFFER'], 'the held 50 is not the saved 45: STALE_OFFER, never already-saved ' + JSON.stringify(second));
+  assert.deepEqual([(await responsesOf(era)).length, after.state.queue.filter(x => x && x.exId === 'demo-press' && !x.done).map(x => x.newW)], [1, [45]], 'nothing minted: one response, the pending target 45');
+  host.close(); era.close();
+});
+// ROUND 26 (test bytes only; PM ruling DECISIONS:848 on Claude R25 l1 B-R25C-1/-2 and Astra L18 B3, B4, B5, B7, B8, B9, B10): host
+// cells through the real durable host (L/today-bindings.mjs, product unchanged 91aa980f). Each cites its clause and asserts the
+// specified outcome with the reviewers' own inputs; every value is invented.
+// B-R25C-1 = L18-B8: no cell answered respond() with anything but 'accept', 'decline' or 'cancel', so dropping the accept-only guard
+// (Claude's H03) or letting an absent answer through (Astra's L18-M16) agreed with every cell.
+const r26Offer = async (fault, kind) => {
+  const era = await reopenAt(fault, D1);
+  hostGate(era);
+  let day = D2;
+  if (kind === 'earn') { const { entry } = await twoTops(era); assert.equal((await train(entry)).finished.ok, true); entry.gymHost.close(); }
+  else { day = D1; const one = await dayEntry(era, D1); assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true); one.entry.gymHost.close(); }
+  const host = await era.createNativeLoadHost({ day, engineState: basisFor(day) }), p = await host.project();
+  const c = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: p.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id });
+  assert.equal(c.status, 'offer', kind + ' ' + JSON.stringify(c.refusal));
+  return { era, host, o: c.offers.find(x => x.lift === 'demo-press') };
+};
+const r26Nothing = async (era, host, M) => {
+  const after = await host.project(), press = after.state.exercises.find(e => e.id === 'demo-press');
+  assert.deepEqual([(await responsesOf(era)).length, press.w, nativeQueue(after.state, 'demo-press').length], [0, 40, 0], M + ' nothing staged: 0 responses, w 40, no native entry');
+};
+test('R26-HOST-ACCEPT-ONLY [Y] (spec :97 "respond({handle,proposal_id,answer}) -> durable result; answer=\'accept\'|\'decline\'"; :101 "Accept payload is exactly {proposal_id,answer:\'accept\',issuance}"; :170 "only accept reaches this command. Host decline returns {acknowledged:false,dismissed:true} without staging"; :188 "invalid record -> RECORD_INVALID"; Claude R25 l1 B-R25C-1, mutant H03 "the accept-only guard dropped" at L/today-bindings.mjs:707, and Astra L18 B8, mutant L18-M16 "if (answer && answer !== \'accept\')", both of which survived 294/294 and 63/63): the genuine held handle and its own proposal_id with answer \'yes\', \'ACCEPT\' or undefined (Claude: D1 and D2 sessions, the host on D2 offers demo-press an earn) and with the answer key ABSENT (Astra: D1 at 45 over the working 40, an adopt-observed offer [45,45]) -> each resolves acknowledged false, code NATIVE_LOAD_RECORD_INVALID, not dismissed; 0 responses, w 40 and no native entry after. Under H03 each is acknowledged and one response is written; under L18-M16 the undefined and absent answers are', async () => {
+  const cases = [['earn', 'yes'], ['earn', 'ACCEPT'], ['earn', undefined], ['observed', 'ABSENT']];
+  for (const [kind, answer] of cases) {
+    const M = kind + ' answer ' + JSON.stringify(answer) + ': ', fault = faultDatabase(), { era, host, o } = await r26Offer(fault, kind);
+    if (kind === 'observed') assert.deepEqual([o.kind, o.loads, o.current], ['adopt-observed', [45, 45], [40, 40]], M + 'fixture: the genuine adopt-observed offer');
+    const args = { handle: o.handle, proposal_id: o.proposalId };
+    if (answer !== 'ABSENT') args.answer = answer;
+    const r = await host.respond(args);
+    assert.deepEqual([r.acknowledged, r.code, !!r.dismissed], [false, 'NATIVE_LOAD_RECORD_INVALID', false], M + 'not consent: RECORD_INVALID before staging ' + JSON.stringify(r));
+    await r26Nothing(era, host, M);
+    host.close(); era.close();
+  }
+});
+// B-R25C-2 = L18-B5: every earlier refused-handle cell used a closed, cloned or foreign handle; none passed a genuine live handle with
+// a wrong proposal_id, so dropping the scope test (Claude's H02) or making it `if (false)` (Astra's L18-M12) agreed with every cell.
+test('R26-HOST-WRONG-PROPOSAL-ID [Y] (spec :169 "Refuse detached host, wrong athlete/source, cloned handle or wrong proposal ID before staging"; :188 "Unowned handle, wrong athlete/source or caller issuance -> CAPABILITY_REQUIRED or SCOPE_MISMATCH"; Claude R25 l1 B-R25C-2, mutant H02 "the proposal-ID scope refusal dropped" at L/today-bindings.mjs:710, and Astra L18 B5, mutant L18-M12 "if (proposal_id !== held.proposal_id) -> if (false)", both of which survived 294/294 and 63/63; one row pays both): the genuine live held handle with answer accept and a WRONG proposal_id: \'prop-0000000000000000\' (Claude: D1 and D2 sessions, the host on D2 offers demo-press an earn) and \'synthetic-wrong-proposal\' (Astra: D1 at 45 over the working 40, the adopt-observed offer [45,45]) -> resolves acknowledged false, code NATIVE_LOAD_SCOPE_MISMATCH; 0 responses, w 40 and no native entry after. Under either mutant the answer is acknowledged and one response is written (the adoption sets w 45)', async () => {
+  for (const [kind, wrong] of [['earn', 'prop-0000000000000000'], ['observed', 'synthetic-wrong-proposal']]) {
+    const M = kind + ' proposal_id ' + wrong + ': ', fault = faultDatabase(), { era, host, o } = await r26Offer(fault, kind);
+    assert.notEqual(o.proposalId, wrong, M + 'fixture: the proposal_id differs from the held one');
+    const r = await host.respond({ handle: o.handle, proposal_id: wrong, answer: 'accept' });
+    assert.deepEqual([r.acknowledged, r.code], [false, 'NATIVE_LOAD_SCOPE_MISMATCH'], M + 'a wrong proposal ID refuses before staging ' + JSON.stringify(r));
+    await r26Nothing(era, host, M);
+    host.close(); era.close();
+  }
+});
+// L18-B3, -B4, -B7, -B9, -B10: the host maps each issued offer to the display the athlete consents to (L/today-bindings.mjs:700-701).
+// No cell displayed a zero load, a nonuniform vector or compared the displayed reason with the saved one, so mapping 0 to null
+// (L18-M08, -M09), erasing the reason (L18-M15) or reversing a vector (L18-M17, -M18) agreed with every cell.
+const r26Issued = async (era, opId) => (await responsesOf(era)).find(op => op.op_id === opId).payload.issuance;
+const r26Values = vector => vector.map(v => (v ? v.value : null));
+test('R26-HOST-ZERO-LOAD-DISPLAY [Y] (spec :97 "check(...) -> immutable display offer"; :110 base_load "Load is existing {value,unit:\'lb\'} ... never an inferred magnitude; vector null positions mean not prescribed" (a numeric 0 is a Load, not an unprescribed position); :111 target_load "Only compensation may restore original null/unprescribed positions, with the target effect\'s prior FieldImage"; :139 "The displayed reason and vector are part of the issuance checked at yes"; :154 "restore that image"; Astra L18 B3, mutant L18-M08 "loads: v.value || null" and L18 B4, mutant L18-M09 "current: v.value || null" at L/today-bindings.mjs:700, both of which survived 294/294 and 63/63): demo-press working weight 0, D1 completed at 5, the host on D1: (B4) the check offers adopt-observed with current [0,0] and loads [5,5]; its yes is acknowledged and stores w 5; (B3) then the offered Undo (intent {compensate: that spend}) displays kind compensate with loads [0,0] and current [5,5]; its yes is acknowledged and stores w 0 (the prior image). Each displayed vector equals the vector of the issuance saved with that yes. Under L18-M09 the adoption displays current [null,null]; under L18-M08 the Undo displays loads [null,null]', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = withPress(D1, { w: 0 }), one = await dayEntryWith(era, D1, base);
+  assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 5 } })).finished.ok, true);
+  one.entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D1, engineState: base }), p = await host.project();
+  const req = { lift_lineage_id: 'demo-press', completion_op_id: p.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id };
+  const c = await host.check(req);
+  assert.equal(c.status, 'offer', JSON.stringify(c.refusal));
+  const o = c.offers.find(x => x.lift === 'demo-press');
+  assert.deepEqual([o.kind, o.current, o.loads], ['adopt-observed', [0, 0], [5, 5]], '(B4) the numeric zero base is displayed as 0, never as not prescribed ' + JSON.stringify(o));
+  const yes = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  assert.equal(yes.acknowledged, true, JSON.stringify(yes));
+  const issued = await r26Issued(era, yes.op_id);
+  assert.deepEqual([r26Values(issued.body.base_load.vector), r26Values(issued.body.target_load.vector)], [o.current, o.loads], '(B4) the displayed vectors are the issued ones (:139)');
+  assert.equal((await host.project()).state.exercises.find(e => e.id === 'demo-press').w, 5, '(B4) the yes stores 5');
+  const u = await host.check({ ...req, intent: { compensate: issued.body.spend_id } });
+  assert.equal(u.status, 'offer', 'the Undo is offered: ' + JSON.stringify(u.refusal));
+  const ou = u.offers[0];
+  assert.deepEqual([ou.kind, ou.loads, ou.current], ['compensate', [0, 0], [5, 5]], '(B3) the Undo displays the prior image 0, never not prescribed ' + JSON.stringify(ou));
+  const undo = await host.respond({ handle: ou.handle, proposal_id: ou.proposalId, answer: 'accept' });
+  assert.equal(undo.acknowledged, true, JSON.stringify(undo));
+  const undone = await r26Issued(era, undo.op_id);
+  assert.deepEqual([r26Values(undone.body.base_load.vector), r26Values(undone.body.target_load.vector)], [ou.current, ou.loads], '(B3) the displayed vectors are the issued ones (:139)');
+  assert.equal((await host.project()).state.exercises.find(e => e.id === 'demo-press').w, 0, '(B3) the Undo restores w 0 (:154)');
+  host.close(); era.close();
+});
+test('R26-HOST-DISPLAYED-REASON [Y] (spec :97 "check(...) -> immutable display offer"; :102 "reason is the engine-produced native explanation"; :139 "Native explanation is produced in FC01 ... It names baseline/adoption or earning, source workouts, current/target load per set and the canonical reason ... The displayed reason and vector are part of the issuance checked at yes"; :149 "checks the ENTIRE issued body/reason/producer"; Astra L18 B7, mutant L18-M15 "reason: offer.reason -> reason: null" at L/today-bindings.mjs:701, which survived 294/294 and 63/63): demo-press working weight 40, D1 completed at 45, the host on D1 offers adopt-observed [45,45]; accept -> acknowledged, and the displayed explanation is a nonempty string equal to the issuance.reason saved with that yes. Under the mutant the display shows reason null while the saved explanation is the full sentence', async () => {
+  const fault = faultDatabase(), { era, host, o } = await r26Offer(fault, 'observed');
+  assert.deepEqual([o.kind, o.loads, o.current], ['adopt-observed', [45, 45], [40, 40]], 'fixture: the genuine adopt-observed offer');
+  const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  assert.equal(r.acknowledged, true, JSON.stringify(r));
+  const saved = (await r26Issued(era, r.op_id)).reason;
+  assert.equal(typeof saved, 'string');
+  assert.ok(saved.length > 0, 'the saved explanation is a sentence');
+  assert.equal(o.reason, saved, 'the displayed explanation is exactly the explanation saved with the yes (:139) ' + JSON.stringify([o.reason, saved]));
+  host.close(); era.close();
+});
+test('R26-HOST-VECTOR-ORDER-DISPLAY [Y] (spec :110 base_load vector, :111 target_load vector "complete for captured set count" (per set, in set order); :139 "current/target load per set ... The displayed reason and vector are part of the issuance checked at yes"; :149 ENTIRE issued body; :151 "newW/newWSets equal the selected candidate"; Astra L18 B9, mutant L18-M17 "current vector .reverse()" and L18 B10, mutant L18-M18 "loads vector .reverse()" at L/today-bindings.mjs:700, both of which survived 294/294 and 63/63): demo-press w 40 with wSets [40,35]; D1 and D2 completed on that card; the host on D2 offers an earn -> displayed current [40,35] and loads [45,40], each equal to the issued base/target vector in set order; accept -> acknowledged and the queued native entry carries newWSets [45,40], the displayed loads. Under L18-M17 current displays [35,40]; under L18-M18 loads display [40,45] while [45,40] is queued', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = day => withPress(day, { w: 40, wSets: [40, 35] });
+  for (const day of [D1, D2]) { const one = await dayEntryWith(era, day, base(day)); assert.equal((await train(one.entry)).finished.ok, true); one.entry.gymHost.close(); }
+  const host = await era.createNativeLoadHost({ day: D2, engineState: base(D2) }), p = await host.project();
+  const c = await host.check({ lift_lineage_id: 'demo-press', completion_op_id: p.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id });
+  assert.equal(c.status, 'offer', JSON.stringify(c.refusal));
+  const o = c.offers.find(x => x.lift === 'demo-press');
+  assert.deepEqual([o.kind, o.current, o.loads], ['earn', [40, 35], [45, 40]], 'the per-set vectors are displayed in set order ' + JSON.stringify(o));
+  const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  assert.equal(r.acknowledged, true, JSON.stringify(r));
+  const issued = await r26Issued(era, r.op_id);
+  assert.deepEqual([r26Values(issued.body.base_load.vector), r26Values(issued.body.target_load.vector)], [o.current, o.loads], 'the displayed vectors are the issued ones (:139)');
+  const after = await host.project();
+  assert.deepEqual(nativeQueue(after.state, 'demo-press').filter(q => !q.done).map(q => q.newWSets), [o.loads], 'the queued target is the displayed one (:151) ' + JSON.stringify(o.loads));
+  host.close(); era.close();
+});
+// Round 27 (PM ruling DECISIONS:850): Claude R26 l1 B-R26C-2 and B-R26C-3, Astra L19-B1..B5. Every value is invented.
+const r27Req = p => ({ lift_lineage_id: 'demo-press', completion_op_id: p.lifts.find(l => l.lift_lineage_id === 'demo-press').completion_op_id });
+// B-R26C-2: every earlier host cell accepted the first (or only) displayed offer, so a pre-commit re-evaluation that compares the held
+// issuance with the FIRST fresh offer only (Claude's N-H1) agreed with every cell.
+test('R27-C2-HOST-SECOND-OFFER [Y] (spec :149 "At accept, the host re-evaluates against the freshly loaded generation, checks the ENTIRE issued body/reason/producer ... Stale means STALE_OFFER"; :97 "check(...) -> immutable display offer plus opaque handle"; :151 "newW/newWSets equal the selected candidate"; Claude R26 l1 B-R26C-2, mutant N-H1 "sameIssued tested against the first fresh offer only" at L/today-bindings.mjs:718, which survived 299/299 and 68/68): demo-press on the rung ladder steps [40,45,50,55,60]; D1 and D2 trained with effort 3+; the durable host on D2 displays two genuine earn offers, PROPOSED [50,50] and DEBUT [45,45]; on a fresh installation each is answered accept with its own handle and proposal ID -> each is acknowledged, exactly 1 response, and the pending native entry is the answered candidate (50, then 45). Under N-H1 the yes to the second displayed offer is refused NATIVE_LOAD_STALE_OFFER and nothing is saved', async () => {
+  for (const pick of [0, 1]) {
+    const fault = faultDatabase(), era = await reopenAt(fault, D1);
+    hostGate(era);
+    const base = day => withPress(day, { steps: [40, 45, 50, 55, 60] });
+    for (const day of [D1, D2]) { const one = await dayEntryWith(era, day, base(day)); assert.equal((await train(one.entry, 12, '3+')).finished.ok, true); one.entry.gymHost.close(); }
+    const host = await era.createNativeLoadHost({ day: D2, engineState: base(D2) }), p = await host.project();
+    const c = await host.check(r27Req(p));
+    assert.equal(c.status, 'offer', JSON.stringify(c.refusal));
+    const shown = c.offers.filter(x => x.lift === 'demo-press');
+    assert.deepEqual(shown.map(x => [x.kind, x.state, x.loads]), [['earn', 'PROPOSED', [50, 50]], ['earn', 'DEBUT', [45, 45]]], 'fixture: two genuine displayed offers');
+    const o = shown[pick], M = 'offer ' + pick + ' (' + o.loads[0] + '): ';
+    const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+    assert.deepEqual([r.acknowledged, r.code === undefined ? null : r.code], [true, null], M + 'a yes to a displayed, current offer is saved ' + JSON.stringify(r));
+    assert.equal((await responsesOf(era)).length, 1, M + 'exactly one response');
+    const after = await host.project();
+    assert.deepEqual(nativeQueue(after.state, 'demo-press').filter(q => !q.done).map(q => q.newW), [o.loads[0]], M + 'the pending target is the answered candidate');
+    host.close(); era.close();
+  }
+});
+// B-R26C-3: R26-HOST-ACCEPT-ONLY pins the invalid answers; no cell asserted the DECLINE result, so a decline that returns
+// {acknowledged:false} without dismissed (Claude's N-H3) agreed with every cell. The cancel answer is NOT pinned here (D-R26C-3, held).
+test('R27-C3-HOST-DECLINE-DISMISSED [Y] (spec :170 "only accept reaches this command. Host decline returns {acknowledged:false,dismissed:true} without staging"; :101 "Native decline/Not now and cancel only dismiss the view, writing NO operation and spending nothing ... A later manual check can offer again, with a new yes required"; :97 answer=\'accept\'|\'decline\'; Claude R26 l1 B-R26C-3, mutant N-H3 "decline returns {acknowledged:false} without dismissed" at L/today-bindings.mjs:706, which survived 299/299 and 68/68): D1 at 45 over the working 40, the host on D1 displays the genuine adopt-observed offer [45,45]; answered decline with its own handle and proposal ID -> exactly {acknowledged:false, dismissed:true}; 0 responses, w 40, no native entry; a later check offers the same adoption again. Under N-H3 the result lacks dismissed', async () => {
+  const fault = faultDatabase(), { era, host, o } = await r26Offer(fault, 'observed');
+  assert.deepEqual([o.kind, o.loads, o.current], ['adopt-observed', [45, 45], [40, 40]], 'fixture: the genuine adopt-observed offer');
+  const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'decline' });
+  assert.deepEqual(r, { acknowledged: false, dismissed: true }, 'decline dismisses without staging ' + JSON.stringify(r));
+  await r26Nothing(era, host, 'decline: ');
+  const again = await host.check(r27Req(await host.project()));
+  assert.deepEqual([again.status, again.offers.filter(x => x.lift === 'demo-press').map(x => [x.kind, x.loads])], ['offer', [['adopt-observed', [45, 45]]]], 'a later manual check can offer again');
+  host.close(); era.close();
+});
+// L19-B1, -B5: R26-HOST-ZERO-LOAD-DISPLAY and -VECTOR-ORDER-DISPLAY compare integer, non-null displayed vectors with the issued ones;
+// no cell displayed a fractional base or a baseline (null) base, so rounding the displayed current (L19-N02) or dropping its null
+// positions (L19-N12) agreed with every cell.
+test('R27-L19B1-HOST-FRACTIONAL-BASE-DISPLAY [Y] (spec :97 "check(...) -> immutable display offer"; :110 base_load "Load is existing {value,unit:\'lb\'} ... never an inferred magnitude"; :139 "It names ... current/target load per set ... The displayed reason and vector are part of the issuance checked at yes"; Astra L19-B1, mutant L19-N02 "Math.round on the displayed current loads" at L/today-bindings.mjs:700, which survived 299/299 and 68/68): demo-press working weight 40.25, D1 completed at 45.75 on every set, the host on D1 offers adopt-observed -> displayed current [40.25,40.25] and loads [45.75,45.75]; accept -> acknowledged, the saved issuance\'s base and target vectors are exactly the displayed ones, and w 45.75. Under the mutant current displays [40,40] while [40.25,40.25] is saved', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = withPress(D1, { w: 40.25 }), one = await dayEntryWith(era, D1, base);
+  assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 45.75 } })).finished.ok, true);
+  one.entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D1, engineState: base }), p = await host.project(), c = await host.check(r27Req(p));
+  assert.equal(c.status, 'offer', JSON.stringify(c.refusal));
+  const o = c.offers.find(x => x.lift === 'demo-press');
+  assert.deepEqual([o.kind, o.current, o.loads], ['adopt-observed', [40.25, 40.25], [45.75, 45.75]], 'the fractional base and target are displayed as they are ' + JSON.stringify(o));
+  const yes = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  assert.equal(yes.acknowledged, true, JSON.stringify(yes));
+  const issued = await r26Issued(era, yes.op_id);
+  assert.deepEqual([r26Values(issued.body.base_load.vector), r26Values(issued.body.target_load.vector)], [o.current, o.loads], 'the displayed vectors are the issued ones (:139)');
+  assert.equal((await host.project()).state.exercises.find(e => e.id === 'demo-press').w, 45.75, 'the yes stores 45.75');
+  host.close(); era.close();
+});
+test('R27-L19B5-HOST-BASELINE-NULL-DISPLAY [Y] (spec :97 "check(...) -> immutable display offer"; :60 and :110 base_load "vector:[LoadOrNull] ... vector null positions mean not prescribed"; :139 "current/target load per set ... The displayed reason and vector are part of the issuance checked at yes"; Astra L19-B5, mutant L19-N12 "null base positions filtered out of the displayed current vector" at L/today-bindings.mjs:700, which survived 299/299 and 68/68): demo-press with no working weight (w null), D1 completed at 45 on every set, the host on D1 offers adopt-baseline -> displayed current [null,null] (one position per set, each not prescribed) and loads [45,45]; accept -> acknowledged, the saved issuance\'s base and target vectors are exactly the displayed ones, and w 45. Under the mutant current displays [] while [null,null] is saved', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = withPress(D1, { w: null }), one = await dayEntryWith(era, D1, base);
+  assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true);
+  one.entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D1, engineState: base }), p = await host.project(), c = await host.check(r27Req(p));
+  assert.equal(c.status, 'offer', JSON.stringify(c.refusal));
+  const o = c.offers.find(x => x.lift === 'demo-press');
+  assert.deepEqual([o.kind, o.current, o.loads], ['adopt-baseline', [null, null], [45, 45]], 'every base position is displayed, each not prescribed ' + JSON.stringify(o));
+  const yes = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  assert.equal(yes.acknowledged, true, JSON.stringify(yes));
+  const issued = await r26Issued(era, yes.op_id);
+  assert.deepEqual([r26Values(issued.body.base_load.vector), r26Values(issued.body.target_load.vector)], [o.current, o.loads], 'the displayed vectors are the issued ones (:139)');
+  assert.equal((await host.project()).state.exercises.find(e => e.id === 'demo-press').w, 45, 'the yes stores 45');
+  host.close(); era.close();
+});
+// L19-B2: R26-HOST-DISPLAYED-REASON compares the displayed and saved explanation of an ADOPTION only, so a display that omits the reason
+// of a compensation only (L19-N06) agreed with every cell.
+test('R27-L19B2-HOST-UNDO-REASON [Y] (spec :97 "check(...) -> immutable display offer"; :102 "reason is the engine-produced native explanation"; :139 "The displayed reason and vector are part of the issuance checked at yes"; :149 "checks the ENTIRE issued body/reason/producer"; :154 compensation; Astra L19-B2, mutant L19-N06 "the reason omitted for a compensation only" at L/today-bindings.mjs:701, which survived 299/299 and 68/68): demo-press working weight 40, D1 completed at 45, the host on D1: the adopt-observed [45,45] is accepted, then its offered Undo (intent {compensate: that spend}) -> the Undo displays kind compensate, loads [40,40], current [45,45] and a nonempty explanation equal to the issuance.reason saved with its yes; the Undo is acknowledged and restores w 40. Under the mutant the Undo displays reason null while the saved explanation is the full sentence', async () => {
+  const fault = faultDatabase(), { era, host, o } = await r26Offer(fault, 'observed');
+  const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  assert.equal(r.acknowledged, true, JSON.stringify(r));
+  const adopted = await r26Issued(era, r.op_id), p = await host.project();
+  const u = await host.check({ ...r27Req(p), intent: { compensate: adopted.body.spend_id } });
+  assert.equal(u.status, 'offer', 'the Undo is offered: ' + JSON.stringify(u.refusal));
+  const ou = u.offers[0];
+  assert.deepEqual([ou.kind, ou.loads, ou.current], ['compensate', [40, 40], [45, 45]], 'fixture: the genuine Undo offer ' + JSON.stringify(ou));
+  const yes = await host.respond({ handle: ou.handle, proposal_id: ou.proposalId, answer: 'accept' });
+  assert.equal(yes.acknowledged, true, JSON.stringify(yes));
+  const saved = (await r26Issued(era, yes.op_id)).reason;
+  assert.equal(typeof saved, 'string');
+  assert.ok(saved.length > 0, 'the saved explanation is a sentence');
+  assert.equal(ou.reason, saved, 'the displayed Undo explanation is exactly the explanation saved with its yes (:139) ' + JSON.stringify([ou.reason, saved]));
+  assert.equal((await host.project()).state.exercises.find(e => e.id === 'demo-press').w, 40, 'the Undo restores w 40 (:154)');
+  host.close(); era.close();
+});
+// L19-B3, -B4: R26-HOST-ACCEPT-ONLY and -WRONG-PROPOSAL-ID pin string answers and non-empty wrong IDs; no cell answered boolean true or
+// omitted the proposal ID, so accepting true as consent (L19-N09) or checking the scope only for a truthy ID (L19-N10) agreed with every cell.
+test('R27-L19B3-HOST-BOOLEAN-ANSWER [Y] (spec :97 "respond({handle,proposal_id,answer}) -> durable result; answer=\'accept\'|\'decline\'"; :101 "Accept payload is exactly {proposal_id,answer:\'accept\',issuance}"; :60; :170 "only accept reaches this command"; :188 "invalid record -> RECORD_INVALID"; Astra L19-B3, mutant L19-N09 "boolean true accepted as consent" at L/today-bindings.mjs:707, which survived 299/299 and 68/68): D1 at 45 over the working 40, the genuine adopt-observed offer [45,45], its genuine handle and correct proposal ID with answer true -> acknowledged false, code NATIVE_LOAD_RECORD_INVALID, not dismissed; 0 responses, w 40, no native entry. Under the mutant it is acknowledged, one response is written and w becomes 45', async () => {
+  const fault = faultDatabase(), { era, host, o } = await r26Offer(fault, 'observed');
+  assert.deepEqual([o.kind, o.loads, o.current], ['adopt-observed', [45, 45], [40, 40]], 'fixture: the genuine adopt-observed offer');
+  const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: true });
+  assert.deepEqual([r.acknowledged, r.code, !!r.dismissed], [false, 'NATIVE_LOAD_RECORD_INVALID', false], 'boolean true is not consent ' + JSON.stringify(r));
+  await r26Nothing(era, host, 'answer true: ');
+  host.close(); era.close();
+});
+test('R27-L19B4-HOST-MISSING-PROPOSAL-ID [Y] (spec :169 "Refuse detached host, wrong athlete/source, cloned handle or wrong proposal ID before staging"; :188 "Unowned handle, wrong athlete/source or caller issuance -> CAPABILITY_REQUIRED or SCOPE_MISMATCH"; :101 "Accept payload is exactly {proposal_id,answer:\'accept\',issuance}"; Astra L19-B4, mutant L19-N10 "the proposal scope checked only for a truthy proposal_id" at L/today-bindings.mjs:710, which survived 299/299 and 68/68): D1 at 45 over the working 40, the genuine adopt-observed offer [45,45], its genuine live handle and answer accept with the proposal_id key ABSENT, and again with proposal_id the empty string -> each resolves acknowledged false, code NATIVE_LOAD_SCOPE_MISMATCH; 0 responses, w 40, no native entry. Under the mutant each is acknowledged, one response is written and w becomes 45', async () => {
+  for (const id of ['ABSENT', '']) {
+    const M = 'proposal_id ' + JSON.stringify(id) + ': ', fault = faultDatabase(), { era, host, o } = await r26Offer(fault, 'observed');
+    const args = { handle: o.handle, answer: 'accept' };
+    if (id !== 'ABSENT') args.proposal_id = id;
+    const r = await host.respond(args);
+    assert.deepEqual([r.acknowledged, r.code], [false, 'NATIVE_LOAD_SCOPE_MISMATCH'], M + 'no matching proposal ID refuses before staging ' + JSON.stringify(r));
+    await r26Nothing(era, host, M);
+    host.close(); era.close();
+  }
+});
+// Round 27 BROAD SWEEP host cells (PM ruling DECISIONS:850; Part B). Each names the sweep mutant(s) it kills and asserts only the
+// outcome the cited clause states, through the genuine durable host. Every value is invented.
+test('R27S-H186-H190-HOST-FRESH-YES-AND-WRITE-FAILURE [Y] (spec :172 "Return acknowledged:true only after the existing durable commit. If the acknowledgement is lost, read the authenticated operation log for that exact issuance/spend; report already-saved only if found and folded. Do not mint another response"; :185 "host write failure leaves acknowledged:false"; :212 "Decline/cancel/failed put | No native authorisation, no spend"; :261 N06 ABORT seam; sweep S27-H186 "the committed-result test negated" and S27-H190 "the committed-result return removed" at L/today-bindings.mjs:725, which survived 299/299 and 75/75): D1 at 45 over the working 40, the genuine adopt-observed offer [45,45]: (a) accepted on a healthy store -> {acknowledged:true, op_id, durableRevision} with no alreadySaved, exactly one response; (b) on a fresh installation, the store armed to fail the write (faultDatabase quota, spec :261) and the same offer accepted -> acknowledged false, not already-saved, 0 responses. Under H190 (a) reports alreadySaved; under H186 (a) reports alreadySaved and (b) reports acknowledged true with nothing saved', async () => {
+  { const fault = faultDatabase(), { era, host, o } = await r26Offer(fault, 'observed');
+    const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+    assert.deepEqual([r.acknowledged, Object.hasOwn(r, 'alreadySaved'), typeof r.op_id, typeof r.durableRevision], [true, false, 'string', 'number'], '(a) a first commit is acknowledged, never already-saved ' + JSON.stringify(r));
+    assert.equal((await responsesOf(era)).length, 1, '(a) exactly one response');
+    host.close(); era.close(); }
+  { const fault = faultDatabase(), { era, host, o } = await r26Offer(fault, 'observed');
+    fault.state.armed = true; fault.state.mode = 'quota';
+    const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+    fault.state.armed = false; fault.state.mode = null;
+    assert.deepEqual([r.acknowledged, !!r.alreadySaved], [false, false], '(b) a failed put is not acknowledged ' + JSON.stringify(r));
+    assert.equal((await responsesOf(era)).length, 0, '(b) nothing saved');
+    host.close(); era.close(); }
+});
+test('R27S-H194-HOST-WRITE-FAILURE-NOT-SAVED [Y] (spec :172 "report already-saved only if found and folded"; :185 "host write failure leaves acknowledged:false"; sweep S27-H194 "the late already-saved test negated" at L/today-bindings.mjs:728, which survived 299/299 and 75/75): D1 at 45 over the working 40, the genuine adopt-observed offer [45,45], the store armed to fail the write (faultDatabase quota, spec :261) -> respond resolves (no exception) to acknowledged false with a refusal code, 0 responses. Under the mutant respond throws reading the op_id of the absent saved response', async () => {
+  const fault = faultDatabase(), { era, host, o } = await r26Offer(fault, 'observed');
+  fault.state.armed = true; fault.state.mode = 'quota';
+  let r = null, thrown = null;
+  try { r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' }); } catch (err) { thrown = err; }
+  fault.state.armed = false; fault.state.mode = null;
+  assert.equal(thrown, null, 'respond resolves: ' + (thrown && thrown.message));
+  assert.deepEqual([r.acknowledged, typeof r.code], [false, 'string'], 'a failed put is refused by name ' + JSON.stringify(r));
+  assert.equal((await responsesOf(era)).length, 0, 'nothing saved');
+  host.close(); era.close();
+});
+test('R27S-H049-HOST-INVALID-BASIS [Y] (spec :97 "project() -> authenticated Fold plus source basis"; :188 "invalid record -> RECORD_INVALID"; FC08 L/today-bindings.mjs:638-640 the page basis option; sweep S27-H049 "project(): the invalid-basis refusal removed" at L/today-bindings.mjs:642, which survived 299/299 and 75/75): the durable host after one saved workout; project({base}) with a basis whose exercises is not an array -> {ok:false, code NATIVE_LOAD_RECORD_INVALID}, never a fold. Under the mutant project() reports ok true with a refused fold', async () => {
+  const fault = faultDatabase(), { era, host } = await r26Offer(fault, 'observed');
+  const p = await host.project({ base: { exercises: 'none' } });
+  assert.deepEqual([p.ok, p.code, Object.hasOwn(p, 'status')], [false, 'NATIVE_LOAD_RECORD_INVALID', false], JSON.stringify(p));
+  host.close(); era.close();
+});
+test('R27S-H111-HOST-RETRY-NEEDS-A-FOLD [Y] (spec :172 "report already-saved only if found and folded"; :157 ADMISSION GATE (1) "an imported generation refuses SOURCE_FRONTIER_UNPROVEN before folding"; sweep S27-H111 "savedResponse: the found-and-folded test removed" at L/today-bindings.mjs:668, which survived 299/299 and 75/75): D1 at 45 over the working 40, the genuine adopt-observed offer accepted (acknowledged, 1 response); the installation\'s generation then gains a nonempty sourceImports collection; the SAME handle answered accept again -> not acknowledged and not already-saved (nothing is folded, the refusal is NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN); still exactly 1 response. Under the mutant the retry reports already-saved from an unfolded generation', async () => {
+  const fault = faultDatabase(), { era, host, o } = await r26Offer(fault, 'observed');
+  const r1 = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  assert.equal(r1.acknowledged, true, JSON.stringify(r1));
+  const one = await dayEntry(era, D1), repo = one.entry.gymHost.repository, snap = await repo.load(), gen = structuredClone(snap.generation);
+  gen.collections.sourceImports = { 'fx-import-1': { profile: 'earned/source-import/v1' } };
+  await repo.commit({ revision: snap.revision, token: snap.token }, gen);
+  one.entry.gymHost.close();
+  const r2 = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  assert.deepEqual([r2.acknowledged, !!r2.alreadySaved, r2.code], [false, false, 'NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN'], 'already-saved needs a fold ' + JSON.stringify(r2));
+  assert.equal((await responsesOf(era)).length, 1, 'still exactly one response');
+  host.close(); era.close();
+});
+
+// ---- FA03 (rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs), appended after the round-27 cells ----
+// Two IDB-API seams, outside product code (as faultDatabase): LOST ACKNOWLEDGEMENT (the armed readwrite 'generations' transaction
+// that puts 'active' really commits, but the product's completion handler is replaced by its own abort handler: Claude D-R25C-2's
+// seam) and INTERLEAVED WRITE (the armed readonly 'generations' transaction completes, an external commit lands, and only then does
+// the product's own completion handler run: Claude D-R24-O-3's seam).
+const r28Wrap = (fault, onTx) => {
+  const open = fault.indexedDB.open.bind(fault.indexedDB);
+  fault.indexedDB.open = (...a) => { const req = open(...a);
+    req.addEventListener('success', () => { const db = req.result, orig = db.transaction.bind(db);
+      db.transaction = (...t) => { const tx = orig(...t); onTx(tx, t); return tx; }; });
+    return req; };
+};
+const r28LostAck = fault => { const flag = { armed: false, fired: 0 };
+  r28Wrap(fault, (tx, t) => {
+    if (t[0] !== 'generations' || t[1] !== 'readwrite' || !flag.armed) return;
+    let wrote = false, h = null, decided = null; const os = tx.objectStore.bind(tx);
+    tx.objectStore = n => { const s = os(n); if (n === 'generations' && !s.r28) { const put = s.put.bind(s); s.put = (v, k) => { if (k === 'active') wrote = true; return put(v, k); }; s.r28 = true; } return s; };
+    Object.defineProperty(tx, 'oncomplete', { configurable: true, set(v) { h = v; }, get() { if (!h) return null;
+      if (decided === null) { decided = wrote && flag.armed; if (decided) { flag.armed = false; flag.fired++; } }
+      return decided ? (e => { const ab = tx.onabort; if (ab) ab.call(tx, e); }) : h; } });
+  });
+  return flag; };
+const r28Interleave = fault => { const flag = { armed: false, fired: 0, inject: null };
+  r28Wrap(fault, (tx, t) => {
+    if (t[0] !== 'generations' || (t[1] !== undefined && t[1] !== 'readonly') || !flag.armed) return;
+    flag.armed = false; let h = null;
+    Object.defineProperty(tx, 'oncomplete', { configurable: true, set(v) { h = v; }, get() { if (!h) return null;
+      return e => { flag.fired++; Promise.resolve().then(() => flag.inject()).then(() => h.call(tx, e)); }; } });
+  });
+  return flag; };
+const r28ImportCommit = async (era, day, imports) => { const one = await dayEntry(era, day), repo = one.entry.gymHost.repository, snap = await repo.load(), gen = structuredClone(snap.generation);
+  gen.collections.sourceImports = imports;
+  return { run: () => repo.commit({ revision: snap.revision, token: snap.token }, gen), close: () => one.entry.gymHost.close(), repo }; };
+test('R28-HOST-LOST-ACK-ALREADY-SAVED [Y] (spec :172 "Return acknowledged:true only after the existing durable commit. If the acknowledgement is lost, read the authenticated operation log for that exact issuance/spend; report already-saved only if found and folded. Do not mint another response"; Claude D-R25C-2 seam; sweep S27-H198 "the late already-saved return removed", H197 "returns null", H195 "acknowledged false", H196 "alreadySaved false", H199/H200/H201 "acknowledged / alreadySaved / op_id dropped" at L/today-bindings.mjs:728): D1 at 45 over the working 40, the genuine adopt-observed offer [45,45]; the one commit of the yes is durable but its acknowledgement is lost -> respond resolves exactly {acknowledged:true, alreadySaved:true, op_id: the saved response}; exactly 1 response; w 45. Under H198 it is {acknowledged:false, state:3, code:TRANSACTION_ABORTED, copy:null} with the response on disk', async () => {
+  const fault = faultDatabase(), flag = r28LostAck(fault), { era, host, o } = await r26Offer(fault, 'observed');
+  flag.armed = true;
+  const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  flag.armed = false;
+  assert.equal(flag.fired, 1, 'fixture: exactly one acknowledgement was lost');
+  const saved = await responsesOf(era);
+  assert.equal(saved.length, 1, 'the response is durable and no second one is minted');
+  assert.deepEqual(r, { acknowledged: true, alreadySaved: true, op_id: saved[0].op_id }, 'found and folded: already saved ' + JSON.stringify(r));
+  assert.equal((await host.project()).state.exercises.find(e => e.id === 'demo-press').w, 45, 'the saved yes is folded');
+  host.close(); era.close();
+});
+test('R28-HOST-INTERLEAVED-WRITE [Y] (spec :169 "It loads/authenticates through the same host bindings used for workout history; constructs the fold and evaluation from that generation"; :157 ADMISSION GATE (1) "an imported generation refuses SOURCE_FRONTIER_UNPROVEN before folding"; :149 "Stale means STALE_OFFER"; Claude D-R24-O-3 seam; sweep S27-H076 "the history-revision guard removed", H074 "ok true", H075 "returns null", H078 "code dropped" at L/today-bindings.mjs:648): D1 at 45 over the working 40 (the durable host on D1); a commit that adds a nonempty sourceImports collection lands between project()\'s generation load and its history read -> project() resolves {ok:false, code NATIVE_LOAD_STALE_OFFER}, never a fold of the older generation; the next project() refuses SOURCE_FRONTIER_UNPROVEN. Under H076 project() reports ok true, status ready, revision 8 while the durable revision is 9 and imported; under H074/H075 it throws; under H078 its code is absent', async () => {
+  const fault = faultDatabase(), flag = r28Interleave(fault), { era, host } = await r26Offer(fault, 'observed');
+  const w = await r28ImportCommit(era, D1, { 'fx-import-1': { profile: 'earned/source-import/v1' } });
+  flag.inject = w.run; flag.armed = true;
+  const p = await host.project();
+  flag.armed = false;
+  assert.equal(flag.fired, 1, 'fixture: the write landed between the two loads');
+  assert.deepEqual([p.ok, p.code], [false, 'NATIVE_LOAD_STALE_OFFER'], 'a projection is of one generation: the interleaved write refuses it ' + JSON.stringify({ ok: p.ok, code: p.code, revision: p.revision }));
+  const next = await host.project();
+  assert.deepEqual([next.ok, next.code], [false, 'NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN'], 'the durable generation is imported');
+  w.close(); host.close(); era.close();
+});
+test('R28-HOST-RETRY-OVER-AN-UNFOLDED-BASIS [Y] (spec :172 "report already-saved only if found and folded"; :188 "invalid record -> RECORD_INVALID"; FC08 L/today-bindings.mjs:623-626 engineState "a function returning the CURRENT one"; sweep S27-H107 "savedResponse: || -> && before the spent test" at L/today-bindings.mjs:668): D1 at 45 over the working 40, the durable host on D1 with engineState a function; the adopt-observed [45,45] is accepted (acknowledged, 1 response); the page then adopts a basis with no queue array, so the fold refuses RECORD_INVALID field base and folds nothing (spent []); the SAME handle answered accept again -> not acknowledged, not already-saved, code NATIVE_LOAD_STALE_OFFER; still 1 response. Under H107 the retry reports {acknowledged:true, alreadySaved:true} with nothing folded', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const one = await dayEntry(era, D1);
+  assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true);
+  one.entry.gymHost.close();
+  let current = basisFor(D1);
+  const host = await era.createNativeLoadHost({ day: D1, engineState: () => current }), c = await host.check(r27Req(await host.project()));
+  const o = c.offers.find(x => x.lift === 'demo-press');
+  assert.equal((await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' })).acknowledged, true);
+  const noQueue = basisFor(D1); delete noQueue.queue; current = noQueue;
+  const p = await host.project();
+  assert.deepEqual([p.ok, p.status, p.issues.map(i => [i.code, i.field]), p.spent], [true, 'refused', [['NATIVE_LOAD_RECORD_INVALID', 'base']], []], 'fixture: nothing is folded');
+  const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  assert.deepEqual([r.acknowledged, !!r.alreadySaved, r.code], [false, false, 'NATIVE_LOAD_STALE_OFFER'], 'found but not folded: never already-saved ' + JSON.stringify(r));
+  assert.equal((await responsesOf(era)).length, 1, 'still exactly one response');
+  host.close(); era.close();
+});
+test('R28-HOST-EMPTY-IMPORT-COLLECTION [Y] (spec R9.1 :157 ADMISSION GATE (1) "an imported generation refuses SOURCE_FRONTIER_UNPROVEN before folding (the local host refuses a nonempty imported-source collection ...)"; :97 project() -> authenticated Fold; sweep S27-H052 "imported && typeof ... && keys.length -> imported || ..." at L/today-bindings.mjs:645): D1 at 45 over the working 40; the installation\'s generation gains an EMPTY sourceImports collection ({}) -> project() is ok with status ready and the check still offers adopt-observed [45,45]. Under H052 project() refuses NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN and nothing is offered', async () => {
+  const fault = faultDatabase(), { era, host } = await r26Offer(fault, 'observed');
+  const w = await r28ImportCommit(era, D1, {}); await w.run(); w.close();
+  const p = await host.project();
+  assert.deepEqual([p.ok, p.code, p.status], [true, undefined, 'ready'], 'an empty collection imports nothing ' + JSON.stringify([p.ok, p.code]));
+  const c = await host.check(r27Req(p));
+  assert.deepEqual([c.status, c.offers.map(x => [x.kind, x.loads])], ['offer', [['adopt-observed', [45, 45]]]], 'the offer stands');
+  host.close(); era.close();
+});
+test('R28-HOST-STORAGE-CODE-KEPT [Y] (spec :185 "host write failure leaves acknowledged:false. Existing storage/lease/source-reader codes retain their original names and copy"; :261 N06 fault seam; sweep S27-H203 "(result && result.code) || NOT_SAVED -> (result && result.code) && NOT_SAVED" at L/today-bindings.mjs:729): D1 at 45 over the working 40, the genuine adopt-observed offer [45,45], the store armed to fail the write (faultDatabase quota) -> respond resolves acknowledged false with the storage failure\'s own code TRANSACTION_WRITE_FAILED, 0 responses. Under H203 the code is replaced by NATIVE_LOAD_NOT_SAVED', async () => {
+  const fault = faultDatabase(), { era, host, o } = await r26Offer(fault, 'observed');
+  fault.state.armed = true; fault.state.mode = 'quota';
+  const r = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+  fault.state.armed = false; fault.state.mode = null;
+  assert.deepEqual([r.acknowledged, r.code], [false, 'TRANSACTION_WRITE_FAILED'], 'the storage code keeps its name ' + JSON.stringify(r));
+  assert.equal((await responsesOf(era)).length, 0, 'nothing saved');
+  host.close(); era.close();
+});
+test('R28-HOST-CHECK-REFUSAL-SHAPE [Y] (spec :185 "Refusal is exactly {code,refs,field}. refs are authenticated operation/source references or [], field is the implicated input field or null"; :97 "check(...) -> immutable display offer plus opaque handle or refusal"; R9.1 :157 ADMISSION GATE (1); sweep S27-H131 "refs: [] dropped" and S27-H132 "field: null dropped" from check()\'s host-refusal return at L/today-bindings.mjs:686): D1 at 45 over the working 40; the installation\'s generation then gains a nonempty sourceImports collection -> check() resolves exactly {status:\'refused\', offers:[], refusal:{code:NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN, refs:[], field:null}}. Under H131 the refusal has no refs; under H132 it has no field', async () => {
+  const fault = faultDatabase(), { era, host } = await r26Offer(fault, 'observed'), req = r27Req(await host.project());
+  const one = await dayEntry(era, D1), repo = one.entry.gymHost.repository, snap = await repo.load(), gen = structuredClone(snap.generation);
+  gen.collections.sourceImports = { 'fx-import-1': { profile: 'earned/source-import/v1' } };
+  await repo.commit({ revision: snap.revision, token: snap.token }, gen);
+  one.entry.gymHost.close();
+  const c = await host.check(req);
+  assert.deepEqual(c, { status: 'refused', offers: [], refusal: { code: 'NATIVE_LOAD_SOURCE_FRONTIER_UNPROVEN', refs: [], field: null } }, 'a refusal is exactly {code,refs,field} ' + JSON.stringify(c));
+  host.close(); era.close();
+});
+test('R28-HOST-CLOSED-CHECK-IS-A-REFUSAL [Y] (spec :97 "check({lift_lineage_id,completion_op_id,intent}) -> immutable display offer plus opaque handle or refusal ... close() invalidates held handles"; :185 "Refusal is exactly {code,refs,field}. refs are authenticated operation/source references or [], field is the implicated input field or null"; the refusal CODE after close is NOT pinned here (Claude D-R25C-1, carried); sweep S27-H041 "the closed-host return -> null" and S27-H044 "its code dropped" at L/today-bindings.mjs:641): D1 at 45 over the working 40, the durable host on D1, host.close() -> check() on demo-press\'s completion resolves (no exception) to status refused, no offer, and a refusal that is exactly {code: a string, refs: an array, field: a string or null}. Under H041 check() throws; under H044 the refusal has no code', async () => {
+  const fault = faultDatabase(), { era, host } = await r26Offer(fault, 'observed'), req = r27Req(await host.project());
+  host.close();
+  let c = null, thrown = null;
+  try { c = await host.check(req); } catch (err) { thrown = err; }
+  assert.equal(thrown, null, 'check() after close resolves: ' + (thrown && thrown.message));
+  assert.deepEqual([c.status, c.offers], ['refused', []], 'no offer from a closed host ' + JSON.stringify(c));
+  assert.deepEqual(Object.keys(c.refusal).sort(), ['code', 'field', 'refs'], 'a refusal is exactly {code,refs,field} ' + JSON.stringify(c.refusal));
+  assert.deepEqual([typeof c.refusal.code, Array.isArray(c.refusal.refs), c.refusal.field === null || typeof c.refusal.field === 'string'], ['string', true, true], JSON.stringify(c.refusal));
+  era.close();
+});
+
+// ---- Round 28 builder: H011/H016 and H018 pinned from classifier C's inputs (CLASSIFY-HOST-ALV.md section 4, probes T2/T4) by PM ruling DECISIONS:852 (1), citing the w6 host contract ----
+test('R28C-GYM-DETACHED-HANDLE-REFUSES-A-WRITE [Y] (w6 host contract, L/today-bindings.mjs:566-:569 "A detached handle is no longer the current session, so a write that outlives it is refused by the public client rather than reaching a live repository" and :595 "Detaches THIS handle only"; PM ruling DECISIONS:852 (1); classifier C input "detached-gym"; sweep S27-H011 "isCurrentSession: alive === true && ... -> alive === true || ..." at L/today-bindings.mjs:571 and S27-H016 "close() { alive = false; } -> alive = true" at :596): a gym entry on D1, its gymHost closed, then gym.start() -> {ok:false, code SESSION_CHANGED} and no op written. Under H011 and H016 the start is accepted (ok true) and one op is written through the detached handle', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1), one = await dayEntry(era, D1);
+  const before = (await opsOf(era)).length;
+  one.entry.gymHost.close();
+  const s = await one.entry.gym.start();
+  assert.deepEqual([s.ok, s.code], [false, 'SESSION_CHANGED'], 'a detached handle is no longer the current session ' + JSON.stringify({ ok: s.ok, code: s.code }));
+  assert.equal((await opsOf(era)).length, before, 'no write reaches the repository through the detached handle');
+  era.close();
+});
+test('R28C-HOST-RECONCILE-MISMATCH-REFUSED [Y] (w6 host contract, L/today-bindings.mjs:302-:322 reconcile "A MISMATCH is refused by name" and C4b-D1 "A host\'s day comes from its day argument and from nowhere else, so a second, possibly disagreeing clock is refused BY NAME"; createNativeLoadHost applies the installation\'s reconcile at :620; PM ruling DECISIONS:852 (1); classifier C input "reconcile" (probe T4); sweep S27-H018 "reconcile(where, options) -> reconcile(options, where)" at L/today-bindings.mjs:620): createNativeLoadHost({day D1, engineState}) with a clock, or a namespace, databaseName or indexedDB other than the installation\'s -> throws StorageFailure LOCAL_ERA_CLOCK_MISMATCH / LOCAL_ERA_NAMESPACE_MISMATCH / LOCAL_ERA_DATABASE_MISMATCH / LOCAL_ERA_STORE_MISMATCH and no host opens. Under H018 every one of the four opens', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  for (const [extra, code] of [[{ clock: { today: () => D1 } }, 'LOCAL_ERA_CLOCK_MISMATCH'], [{ namespace: 'fx-other-namespace' }, 'LOCAL_ERA_NAMESPACE_MISMATCH'], [{ databaseName: 'fx-other-db' }, 'LOCAL_ERA_DATABASE_MISMATCH'], [{ indexedDB: {} }, 'LOCAL_ERA_STORE_MISMATCH']]) {
+    const k = Object.keys(extra)[0];
+    let h = null, thrown = null;
+    try { h = await era.createNativeLoadHost({ day: D1, engineState: basisFor(D1), ...extra }); } catch (err) { thrown = err; }
+    if (h) h.close();
+    assert.equal(h, null, k + ': no host opens over a mismatched option');
+    assert.deepEqual([thrown && thrown.name, thrown && thrown.code], ['StorageFailure', code], k + ': refused by name ' + String(thrown && (thrown.code || thrown.message)));
+  }
+  era.close();
+});
+
+// ---- Round 30 builder U (PM ruling DECISIONS:856 (1)): Astra L20-B3..B7 and -B10 pinned at the REAL rendered panel over the genuine
+// durable host, and L20-B1 at the durable host. Every value is invented. The display rows before this block compare the host's offer
+// OBJECT with the saved issuance; no cell compared the TEXT the panel renders (today-entry.mjs:283-:284) with the saved issuance, or
+// clicked the actual Not now button (today-entry.mjs:288), so L20-M01..M06 agreed with every cell.
+const r30Open = async entry => { const doc = shell(), phone = doc.getElementById('phone'); await entry.open({ doc, phone, back: () => {} }); return doc; };
+const r30Check = async (entry, doc) => { const b = q(doc, '[data-native-load="check"]'); assert.ok(b, 'the visible Check next weight action'); b.click(); await entry.nativeLoad.settled(); };
+const r30Card = (doc, lift, kind) => { const cards = qa(doc, '[data-native-load="offer"]').filter(c => c.getAttribute('data-lift') === lift && c.getAttribute('data-kind') === kind); assert.equal(cards.length, 1, 'exactly one rendered ' + kind + ' card for ' + lift); return cards[0]; };
+const r30Shown = card => ({ proposal: card.getAttribute('data-proposal'), loads: qa(card, '[data-native-load="set-load"]').map(x => x.textContent.trim()), reason: q(card, '[data-native-load="reason"]').textContent });
+const r30Text = vector => vector.map(v => (v === null ? PROPOSED().noWeight : v.value + ' ' + v.unit));
+// Click the card's real Yes, then compare what the card RENDERED (captured before the click) with the issuance saved by that click.
+const r30Agree = async (era, entry, card, M) => {
+  const shown = r30Shown(card), before = (await responsesOf(era)).length;
+  q(card, '[data-native-load="yes"]').click();
+  await entry.nativeLoad.settled();
+  const all = await responsesOf(era), mine = all.filter(op => op.payload.proposal_id === shown.proposal);
+  assert.deepEqual([all.length - before, mine.length, mine.length && mine[0].payload.answer], [1, 1, 'accept'], M + 'the Yes click saves exactly one accept for the rendered proposal');
+  const issuance = mine[0].payload.issuance;
+  assert.deepEqual(shown.loads, r30Text(issuance.body.target_load.vector), M + 'the rendered set loads are the saved issuance target vector, every position in set order (:138, :139) ' + JSON.stringify(shown.loads));
+  assert.equal(typeof issuance.reason, 'string');
+  assert.ok(issuance.reason.length > 0, M + 'the saved explanation is a sentence');
+  assert.equal(shown.reason, issuance.reason, M + 'the rendered explanation is the saved issuance reason (:102, :139) ' + JSON.stringify(shown.reason));
+  return { shown, issuance };
+};
+const r30Press = async (era, day, basis) => { const host = await era.createNativeLoadHost({ day, engineState: basis }), p = await host.project(); host.close(); return { press: p.state.exercises.find(e => e.id === 'demo-press'), queue: nativeQueue(p.state, 'demo-press'), issues: p.issues }; };
+test('R30-L20B3-DOM-FRACTIONAL-TARGET [Y] (spec :138 "Display the chosen full vector and native yes-required explanation"; :139 "It names ... current/target load per set ... The displayed reason and vector are part of the issuance checked at yes"; :111 target_load "exactly observed/canonical"; Astra L20-B3, mutant L20-M01 "Math.round(load)" in the rendered set load at today-entry.mjs:283, which survived 393/393 and 88/88): demo-press working weight 40.25, D1 completed at 45.75 on both sets; the real panel (Check next weight clicked) renders the adopt-observed card with set loads ["45.75 lb","45.75 lb"]; its Yes click saves exactly one accept whose issuance target vector renders to exactly that text and whose reason is the rendered one; the next projection has w 45.75. Under the mutant the card renders ["46 lb","46 lb"] while 45.75 is saved', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = withPress(D1, { w: 40.25 }), { entry } = await dayEntryWith(era, D1, base);
+  assert.equal((await train(entry, 12, '1', { loadFor: { 'demo-press': 45.75 } })).finished.ok, true);
+  const doc = await r30Open(entry);
+  await r30Check(entry, doc);
+  const card = r30Card(doc, 'demo-press', 'adopt-observed');
+  assert.deepEqual(r30Shown(card).loads, ['45.75 lb', '45.75 lb'], 'the fractional target is rendered as it is ' + JSON.stringify(r30Shown(card).loads));
+  const { issuance } = await r30Agree(era, entry, card, 'fractional: ');
+  assert.deepEqual(r26Values(issuance.body.target_load.vector), [45.75, 45.75]);
+  assert.equal((await r30Press(era, D1, base)).press.w, 45.75, 'the yes stores 45.75');
+  entry.gymHost.close(); era.close();
+});
+test('R30-L20B4-DOM-VECTOR-ORDER [Y] (spec :138 "Candidate vector is earnWalk.newWSets verbatim ... Display the chosen full vector"; :139 "current/target load per set ... The displayed reason and vector are part of the issuance checked at yes"; :111 target_load vector; :151 "newW/newWSets equal the selected candidate"; Astra L20-B4, mutant L20-M02 "offer.loads.slice().reverse()" in the rendered set loads at today-entry.mjs:283, which survived 393/393 and 88/88): demo-press w 40 with wSets [40,35]; D1 and D2 completed on that card; on D2 the real panel renders the earn card with set loads ["45 lb","40 lb"] (Set 1, Set 2); its Yes click saves exactly one accept whose issuance target vector renders to exactly that text in that order and whose reason is the rendered one; the queued native entry carries newWSets [45,40]. Under the mutant the card renders ["40 lb","45 lb"] while [45,40] is saved', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = day => withPress(day, { w: 40, wSets: [40, 35] });
+  const first = await dayEntryWith(era, D1, base(D1));
+  assert.equal((await train(first.entry)).finished.ok, true);
+  first.entry.gymHost.close();
+  const { entry } = await dayEntryWith(era, D2, base(D2));
+  assert.equal((await train(entry)).finished.ok, true);
+  const doc = await r30Open(entry);
+  await r30Check(entry, doc);
+  const card = r30Card(doc, 'demo-press', 'earn');
+  assert.deepEqual(r30Shown(card).loads, ['45 lb', '40 lb'], 'the per-set vector is rendered in set order ' + JSON.stringify(r30Shown(card).loads));
+  assert.deepEqual(qa(card, 'li').map(x => x.textContent.trim()), ['Set 1: 45 lb', 'Set 2: 40 lb'], 'each set is labelled with its own load');
+  const { issuance } = await r30Agree(era, entry, card, 'vector: ');
+  assert.deepEqual(r26Values(issuance.body.target_load.vector), [45, 40]);
+  assert.deepEqual((await r30Press(era, D2, base(D2))).queue.filter(x => !x.done).map(x => x.newWSets), [[45, 40]], 'the queued target is the rendered one (:151)');
+  entry.gymHost.close(); era.close();
+});
+// L20-B5, -B6, -B7: an adoption agreed on the real panel, then its Undo rendered by the same panel (Check next weight clicked again).
+const r30Undo = async (patch, done, M) => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = withPress(D1, patch), { entry } = await dayEntryWith(era, D1, base);
+  assert.equal((await train(entry, 12, '1', { loadFor: { 'demo-press': done } })).finished.ok, true);
+  const doc = await r30Open(entry);
+  await r30Check(entry, doc);
+  const adoption = await r30Agree(era, entry, r30Card(doc, 'demo-press', patch.w === null ? 'adopt-baseline' : 'adopt-observed'), M + 'adoption: ');
+  await r30Check(entry, doc);
+  const card = r30Card(doc, 'demo-press', 'compensate'), shown = r30Shown(card);
+  const undo = await r30Agree(era, entry, card, M + 'Undo: ');
+  const after = await r30Press(era, D1, base);
+  entry.gymHost.close(); era.close();
+  return { adoption, shown, undo, after };
+};
+test('R30-L20B5-DOM-UNDO-REASON [Y] (spec :102 "reason is the engine-produced native explanation"; :139 "Native explanation is produced in FC01 ... The displayed reason and vector are part of the issuance checked at yes"; :149 "checks the ENTIRE issued body/reason/producer"; :153 compensation; Astra L20-B5, mutant L20-M03 "offer.kind === \'compensate\' ? \'\' : offer.reason" in the rendered reason at today-entry.mjs:284, which survived 393/393 and 88/88): demo-press working weight 40, D1 completed at 45; on the real panel the adopt-observed Yes, then the rendered Undo card: its rendered explanation is exactly the nonempty issuance.reason saved by its Yes click, its set loads render ["40 lb","40 lb"], and the Undo restores w 40. Under the mutant the Undo card renders an empty explanation while the full sentence is saved', async () => {
+  const r = await r30Undo({ w: 40 }, 45, 'undo reason: ');
+  assert.ok(r.shown.reason.length > 0, 'the Undo card renders its explanation ' + JSON.stringify(r.shown.reason));
+  assert.equal(r.shown.reason, r.undo.issuance.reason, 'the rendered Undo explanation is the saved one (:139)');
+  assert.deepEqual(r.shown.loads, ['40 lb', '40 lb']);
+  assert.equal(r.after.press.w, 40, 'the Undo restores w 40');
+});
+test('R30-L20B6-DOM-ZERO-IS-A-LOAD [Y] (spec :110 base_load "Load is existing {value,unit:\'lb\'} ... vector null positions mean not prescribed" (a numeric 0 is a Load); :111 target_load "Only compensation may restore original null/unprescribed positions, with the target effect\'s prior FieldImage"; :139 "The displayed reason and vector are part of the issuance checked at yes"; Astra L20-B6, mutant L20-M04 "!load ? NATIVE_LOAD_PROPOSED_COPY.noWeight" at today-entry.mjs:283, which survived 393/393 and 88/88): demo-press working weight 0, D1 completed at 5; on the real panel the adopt-observed card renders ["5 lb","5 lb"] and its Yes stores 5; the rendered Undo card shows ["0 lb","0 lb"] (0 is a load, never "No working weight"), equal to the target vector [0,0] saved by its Yes click, and the Undo restores w 0. Under the mutant the Undo card renders "No working weight" twice while [0,0] is saved', async () => {
+  const r = await r30Undo({ w: 0 }, 5, 'zero restore: ');
+  assert.deepEqual(r.adoption.shown.loads, ['5 lb', '5 lb']);
+  assert.deepEqual(r.shown.loads, ['0 lb', '0 lb'], 'zero is rendered as 0 ' + JSON.stringify(r.shown.loads));
+  assert.deepEqual(r26Values(r.undo.issuance.body.target_load.vector), [0, 0]);
+  assert.equal(r.after.press.w, 0, 'the Undo restores w 0');
+});
+test('R30-L20B7-DOM-NULL-POSITIONS-KEPT [Y] (spec :110 base_load "vector:[LoadOrNull] ... vector null positions mean not prescribed"; :111 "Only compensation may restore original null/unprescribed positions"; :138 "Display the chosen full vector"; :139 "current/target load per set ... The displayed reason and vector are part of the issuance checked at yes"; Astra L20-B7, mutant L20-M05 "offer.loads.filter(load => load !== null)" at today-entry.mjs:283, which survived 393/393 and 88/88): demo-press with no working weight (w null), D1 completed at 45; on the real panel the adopt-baseline card renders ["45 lb","45 lb"] and its Yes stores 45; the rendered Undo card shows one "No working weight" position per set (two), equal to the target vector [null,null] saved by its Yes click, and the Undo restores w null. Under the mutant the Undo card renders no set at all while [null,null] is saved', async () => {
+  const r = await r30Undo({ w: null }, 45, 'null restore: ');
+  assert.deepEqual(r.adoption.shown.loads, ['45 lb', '45 lb']);
+  assert.deepEqual(r.shown.loads, [PROPOSED().noWeight, PROPOSED().noWeight], 'every null position is rendered ' + JSON.stringify(r.shown.loads));
+  assert.deepEqual(r26Values(r.undo.issuance.body.target_load.vector), [null, null]);
+  assert.equal(r.after.press.w, null, 'the Undo restores w null');
+});
+test('R30-L20B10-DOM-NOT-NOW-WRITES-NOTHING [Y] (spec :60 "No ... automatic acceptance of an offer"; :97 "answer=\'accept\'|\'decline\'"; :101 "Native decline/Not now and cancel only dismiss the view, writing NO operation and spending nothing ... A later manual check can offer again, with a new yes required"; Astra L20-B10, mutant L20-M06 "api.decline(offer.proposalId) -> api.accept(offer.proposalId)" on the Not now click at today-entry.mjs:288, which survived 393/393 and 88/88): demo-press working weight 40, D1 completed at 45 on both sets; the real panel renders the adopt-observed card ["45 lb","45 lb"]; a click on its actual Not now button writes ZERO responses and ZERO operations, the next projection keeps w 40 with no native entry, and a later Check next weight renders the same adoption again. Under the mutant the click saves one accept and w becomes 45', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = withPress(D1, { w: 40 }), { entry } = await dayEntryWith(era, D1, base);
+  assert.equal((await train(entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true);
+  const doc = await r30Open(entry);
+  await r30Check(entry, doc);
+  const card = r30Card(doc, 'demo-press', 'adopt-observed'), no = q(card, '[data-native-load="decline"]');
+  assert.deepEqual(r30Shown(card).loads, ['45 lb', '45 lb']);
+  assert.equal(no.textContent.trim(), TodayEntry.NATIVE_LOAD_COPY.decline, 'the actual Not now button');
+  const ops = (await opsOf(era)).length;
+  no.click();
+  await entry.nativeLoad.settled();
+  const written = [(await responsesOf(era)).length, (await opsOf(era)).length - ops];
+  await r30Check(entry, doc);
+  const again = qa(doc, '[data-native-load="offer"]').filter(c => c.getAttribute('data-lift') === 'demo-press').map(c => [c.getAttribute('data-kind'), r30Shown(c).loads]);
+  const after = await r30Press(era, D1, base);
+  assert.deepEqual([...written, after.press.w, after.queue.length], [0, 0, 40, 0], 'Not now writes nothing: 0 responses, 0 operations, w 40, no native entry');
+  assert.deepEqual(again, [['adopt-observed', ['45 lb', '45 lb']]], 'a later manual check offers the same adoption again (:101)');
+  entry.gymHost.close(); era.close();
+});
+// L20-B1 (product; the FIX is builder P's, round 30): RED on the round 29b bytes (bd7654a plus FC03 b7d90a15). The row pins the
+// specified outcome only: no adoption is minted over a configuration working weight, and any offer that IS returned and acknowledged
+// must survive into the next projection. R28B-CONFIGURATION-CAPTURE (FC12) is not edited here.
+test('R30-L20B1-HOST-CONFIGURATION-NO-ADOPTION [Y] (spec :156 (c3) "By kind: \'earn\' and \'adopt-observed\' need a numeric w (a configuration or null w is underivable for them); \'adopt-baseline\' needs w null or ABSENT"; :110 base_load "Load is existing {value,unit:\'lb\'} or typed configuration, never an inferred magnitude"; :139 "The displayed reason and vector are part of the issuance checked at yes"; :172 "Return acknowledged:true only after the existing durable commit"; Astra L20-B1 at E/native-load.cjs:254-264 versus :499-502 and L/today-bindings.mjs:725; PM ruling DECISIONS:856 (1)): demo-press working weight the configuration \'BW\', D1 completed at 45 on both sets, the durable host on D1: check() on demo-press shows NO offer (c3), and any offer it does show whose yes is acknowledged survives into the next projection (w is the acknowledged target, no NATIVE_LOAD_RECORD_INVALID). On the round 29b bytes the check offers adopt-observed [45,45] with no current load on either set, its yes is acknowledged, and the next projection has w null and RECORD_INVALID base_load', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = withPress(D1, { w: 'BW' }), one = await dayEntryWith(era, D1, base);
+  const card = await one.entry.gym.read();
+  assert.deepEqual([card.phase, card.lift.id, card.entry.load], ['ready', 'demo-press', null], 'fixture: the BW card opens with no numeric load');
+  assert.equal((await train(one.entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true);
+  one.entry.gymHost.close();
+  const host = await era.createNativeLoadHost({ day: D1, engineState: base }), c = await host.check(r27Req(await host.project()));
+  const shown = c.offers.filter(o => o.lift === 'demo-press'), lost = [];
+  if (shown.length) {
+    const o = shown[0], yes = await host.respond({ handle: o.handle, proposal_id: o.proposalId, answer: 'accept' });
+    if (yes.acknowledged === true) {
+      const t = (await r26Issued(era, yes.op_id)).body.target_load.scalar, target = t && typeof t === 'object' && 'value' in t ? t.value : t;
+      const after = await host.project(), w = after.state.exercises.find(e => e.id === 'demo-press').w;
+      const invalid = after.issues.filter(i => i.code === 'NATIVE_LOAD_RECORD_INVALID').map(i => [i.code, i.field]);
+      if (w !== target || invalid.length) lost.push({ acknowledged: true, target, status: after.status, w, invalid, spent: Array.isArray(after.spent) ? after.spent.length : after.spent });
+    }
+  }
+  host.close(); era.close();
+  assert.deepEqual({ offers: shown.map(o => [o.kind, o.current, o.loads]), lost }, { offers: [], lost: [] }, 'c3: no adoption over a configuration w, and no acknowledged yes is lost ' + JSON.stringify({ status: c.status, refusal: c.refusal }));
+});

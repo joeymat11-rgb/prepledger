@@ -340,10 +340,53 @@ function structural(op, byId, athleteId, base) {
   if (proposalDigest(iss.producer, iss.body, iss.reason) !== p.proposal_id) return 'proposal digest';
   if (body.basis.athlete_id !== athleteId) return 'athlete scope';
   if (!base.exercises.some((x) => x && x.id === body.lift_lineage_id)) return 'lineage';
+  const shape = recordShape(p); // round 30: the ONE total record validator, below
+  if (shape) return 'field ' + shape;
   for (const item of body.evidence) {
     const refs = [item.start, item.close, ...item.sets.flatMap((s) => [s.original, ...(s.edits || [])])].filter((r) => r !== null);
     for (const r of refs) { const o = byId.get(r && r.op_id); if (!o || o.canonical_content_commitment !== r.commitment) return 'consumed reference absent'; }
   }
+  return null;
+}
+// The ONE total record validator (round 30, DECISIONS:856 (1) (b); it replaces round 29b's scattered H-01..H-04 guards). Spec :101
+// ("Accept payload is exactly {proposal_id,answer:'accept',issuance}"), :104-:112 (every Decision field required, null where stated;
+// evidence, base_load with its FieldImage, target_load, candidate), :117-:119 (Basis is exactly its eight members; plan and load_basis
+// are listed member for member; order, technique and effect_frontier are described, not listed), :120 (Ref), :61 (strict plain JSON:
+// own data properties only, no extras), :175 (a malformed native accept is refused RECORD_INVALID, never dropped). It checks a record
+// EXACTLY as deep as that definition goes and no deeper (the answer to D-R29F-2): members, containers, Refs, Loads and presence
+// wrappers; a value the spec leaves to another clause (S1-S8, DERIVABLE, re-evaluation) is judged there. The first defect names the
+// field of the clause that owns the member (:155 "field = the failing field"): the envelope and the Basis containers no S clause
+// names 'payload' (the head's precedent, R28B-BODY-NULL, R29-H04-BASIS-MEMBERS); the Decision's own members 'decision' (FC01's
+// Decision check; R28B-FORGED-UNDO-TARGET, R29-H02); a consumes root that is not text S1 'lift_lineage_id'; evidence S4; coverage
+// S5; order S6; source S7; load_basis and base_load S8 / DERIVABLE (c1)-(c2) 'base_load'; DERIVABLE 'candidate' and 'target_load'.
+const has = (x, keys) => map(x) && same(Object.keys(x).sort(), keys.slice().sort());
+const isRef = (r) => has(r, ['op_id', 'commitment']) && text(r.op_id) && text(r.commitment);
+const isLoad = (x) => x === null || (has(x, ['value', 'unit']) && x.unit === 'lb' && typeof x.value === 'number' && Number.isFinite(x.value)) ||
+  (has(x, ['kind', 'configuration_key']) && x.kind === 'configuration' && text(x.configuration_key));
+const isWrapper = (x) => has(x, ['present', 'value']) && typeof x.present === 'boolean' && (x.present || x.value === null);
+const DECISION_KEYS = ['profile', 'kind', 'lift_lineage_id', 'basis', 'evidence', 'base_load', 'target_load', 'candidate', 'reason_key', 'spend_id', 'consumes', 'compensates'];
+const BASIS_KEYS = ['athlete_id', 'source', 'coverage', 'order', 'plan', 'technique', 'load_basis', 'effect_frontier'];
+const FIELD_KEYS = ['w', 'wSets', 'wAt', 'last', 'lastMeta', 'own', 'std', 'topAt', 'topRun'];
+const REASON_KEYS = { 'adopt-baseline': 'baseline', 'adopt-observed': 'observed-load', earn: 'canonical-earn', compensate: 'compensation' };
+function recordShape(p) {
+  const body = p.issuance.body, bs = body.basis, T = body.target_load, lb = bs.load_basis, bl = body.base_load, c = body.candidate;
+  if (!has(p, ['proposal_id', 'answer', 'issuance']) || Object.keys(bs).some((k) => !BASIS_KEYS.includes(k)) ||
+    !has(bs.plan, ['plan_basis', 'input_basis', 'programme_sha256', 'capture_sha256', 'structural_queue_sha256']) || !map(bs.technique) ||
+    !Array.isArray(bs.effect_frontier) || !bs.effect_frontier.every((f) => map(f) && text(f.spend_id)) || !map(bl) || !map(bl.fields)) return 'payload';
+  if (!has(body, DECISION_KEYS) || REASON_KEYS[body.kind] !== body.reason_key || (body.kind === 'compensate' ? !text(body.compensates) : body.compensates !== null) ||
+    (body.kind === 'earn' ? !map(c) : c !== null) || !has(T, ['scalar', 'vector']) || !Array.isArray(T.vector)) return 'decision';
+  if (!body.consumes.every(text)) return 'lift_lineage_id';
+  if (!body.evidence.every((i) => has(i, ['start', 'close', 'sets']) && isRef(i.start) && isRef(i.close) && Array.isArray(i.sets) &&
+    i.sets.every((s) => has(s, ['slot', 'position', 'origin', 'state', 'original', 'edits', 'current']) && (s.original === null || isRef(s.original)) &&
+      Array.isArray(s.edits) && s.edits.every(isRef) && (s.current === null || has(s.current, ['load', 'reps', 'reserve']))))) return 'evidence';
+  if (!Array.isArray(bs.coverage) || !bs.coverage.every((x) => has(x, ['op_id', 'commitment', 'disposition', 'source_member']) && text(x.op_id) && text(x.commitment))) return 'basis.coverage';
+  if (!map(bs.order) || !Array.isArray(bs.order.start_ids) || !bs.order.start_ids.every(text)) return 'basis.order';
+  if (!Object.hasOwn(bs, 'source')) return 'basis.source';
+  if (!has(lb, ['authority_refs', 'tenure_start', 'sets', 'prefix', 'hi', 'steps', 'inc', 'w', 'wSets']) || !Array.isArray(lb.authority_refs) || !lb.authority_refs.every(isRef) ||
+    !['w', 'wSets', 'inc', 'steps'].every((k) => isWrapper(lb[k])) || !has(bl, ['scalar', 'vector', 'fields']) || !isLoad(bl.scalar) || !Array.isArray(bl.vector) ||
+    !bl.vector.every(isLoad) || !has(bl.fields, FIELD_KEYS) || !FIELD_KEYS.every((k) => isWrapper(bl.fields[k]))) return 'base_load';
+  if (body.kind === 'earn' && (!has(c, ['kind', 'newW', 'newWSets', 'state', 't', 'gate', 'rule']) || c.kind !== 'debut' || !(c.newWSets === null || Array.isArray(c.newWSets)))) return 'candidate';
+  if (!isLoad(T.scalar) || !T.vector.every(isLoad)) return 'target_load';
   return null;
 }
 
@@ -616,9 +659,14 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
   // The native-load family: every native accept is admitted, coalesced or refused BY NAME.
   for (const op of ops) {
     if (!(op.class === 'plan' && op.kind === 'proposal-response' && map(op.payload) && map(op.payload.issuance) && op.payload.issuance.producer === PRODUCER)) continue;
-    const why = structural(op, byId, athleteId, base);
+    // Round 30 PER-RECORD CONTAINMENT (DECISIONS:856 (1) (b); spec :175, :155 per lift): no record makes the fold throw; an
+    // unexpected exception while judging its shape refuses that record RECORD_INVALID, field payload, like any malformed accept.
+    let why;
+    try { why = structural(op, byId, athleteId, base); } catch (_) { why = 'unexpected exception'; }
     // A consumed reference absent from the log is spec R9 S3 (authentic work): field 'consumes'.
     // Spec R9.6 :155 S1 (fresh l1 N2): an absent lineage refuses field lift_lineage_id, never a generic field.
+    // Round 30: the record validator names the field of the clause that owns the malformed member ('field <name>').
+    if (why && why.startsWith('field ')) { dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [refOf(op)], field: why.slice(6), reason: 'record shape', lift: liftOf(op) }); continue; }
       if (why) { dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [refOf(op)], field: why === 'consumed reference absent' ? 'consumes' : why === 'lineage' ? 'lift_lineage_id' : 'payload', reason: why, lift: liftOf(op) }); continue; }
     const body = op.payload.issuance.body, g = groups.get(body.spend_id);
     if (!g) groups.set(body.spend_id, { body, ops: [op], seq: op.device_seq || 0, device: op.device_id });
@@ -701,7 +749,14 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
     }
     return true;
   };
+  // Round 30 PER-RECORD CONTAINMENT (DECISIONS:856 (1) (b); spec :175, :155 per lift, :185): `judging` is the record whose accept or
+  // landing is being judged; an unexpected exception there never escapes the fold: the event's partial work is undone and that record
+  // is refused RECORD_INVALID, field payload, for its own lift only, so every other lift folds exactly as before.
+  let judging = null;
   for (const ev of events) {
+    const mark = { state, issues: issues.length, spent: spent.length };
+    judging = ev.type === 'accept' ? ev.g : null;
+    try {
     if (ev.type === 'accept') {
       const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = [...g.ops, ...(g.alt || [])].map(refOf).sort(byOp), lift = body.lift_lineage_id;
       // Same-lift records wait behind a named refusal (the hold stands; nothing guesses past
@@ -907,6 +962,7 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
     for (const q of state.queue.filter((x) => x && x.exId === lift && !x.done && typeof x.native_load_spend === 'string')) {
       const g = groups.get(q.native_load_spend);
       if (!g) continue;
+      judging = g;
       const got = captureOf(ev.start, ev.entry);
       // Spec R9.9 :152 SELECTED ENTRY (DECISIONS:801 (1)): the card generated from q (newW on every
       // captured original slot whatever their number, else exactly newWSets); any other capture is
@@ -934,6 +990,12 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
         const x = spent.find((y) => y.spend_id === g.body.spend_id); if (x && t.effect && t.effect.kind === 'landed') x.close_ref = refOf(close);
         effects.set(g.body.spend_id, t.effect);
       } else if (t.refusal) issues.push({ code: t.refusal.code, refs: t.refusal.refs, field: t.refusal.field, lift });
+    }
+    } catch (error) {
+      if (!judging) throw error;
+      state = mark.state; issues.length = mark.issues; spent.length = mark.spent;
+      for (const book of [repair, held]) for (const [k, v] of [...book]) if (!issues.includes(v)) book.delete(k);
+      dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [...judging.ops, ...(judging.alt || [])].map(refOf).sort(byOp), field: 'payload', reason: 'unexpected exception', lift: judging.body.lift_lineage_id });
     }
   }
   // Step 6 (spec R8 :135): the governor projection, ONCE per projection, after the accepted
@@ -1128,7 +1190,7 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:1d7dbe40782cc96971a94911aa90ed9dc77a28440ef5f60fbdc088f628803def';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:51730efcd11d615e88e409c664a425af4e4aa7fbcf9d7b136c29c44f939ec06c';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf,
   heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]), isHold };
