@@ -255,6 +255,10 @@ function evaluate(state, request) {
     if (!complete || !values.every((v) => typeof v === 'number' && Number.isFinite(v) && v > 0)) refuse('PREFIX_UNRESOLVED', [closeRef]);
     if (!values.every((v) => v === values[0]) || Array.isArray(ex.wSets)) refuse('VECTOR_ADOPTION_UNDEFINED', [closeRef]);
     const kind = ex.w == null ? 'adopt-baseline' : 'adopt-observed';
+    // Spec :156 DERIVABLE (c3) (Astra L20-B1, DECISIONS:856 (1) (a)): an adopt-observed needs a numeric w, so over a configuration w it is
+    // never minted; it is refused as DERIVABLE refuses that record (RECORD_INVALID, field base_load), as :156 refuses an unsupported
+    // wSets "at issuance and here" (the SUPPORTED wSets refusal above). No template or displayed string changes.
+    if (kind === 'adopt-observed' && !(typeof ex.w === 'number' && Number.isFinite(ex.w))) refuse('RECORD_INVALID', [], 'base_load');
     const spent = new Set(frontier.map((f) => (map(f) ? decodeSpend(f.spend_id) : null)).filter((x) => x && x.lift === lift).flatMap((x) => x.consumes));
     const root = rootOf(cur, lift);
     if (spent.has(root)) refuse('SOURCE_OVERLAP', [closeRef]);
@@ -466,7 +470,10 @@ function derivable(d, spent, refs, ex) {
   const lb0 = map(d.basis) && map(d.basis.load_basis) ? d.basis.load_basis : {};
   const fields = map(d.base_load.fields) ? d.base_load.fields : {};
   const wrapped = (x) => map(x) && typeof x.present === 'boolean';
-  if (!wrapped(lb0.w) || !wrapped(fields.w) || !same(lb0.w, fields.w) || !wrapped(lb0.wSets) || !wrapped(fields.wSets) || !same(lb0.wSets, fields.wSets)) bad('base_load');
+  // Spec :61 ("semantic equality compares the validated full data"; round 31, Astra L21-B3): two wrappers are equal when their
+  // presence and value are, whatever their member order.
+  const sameWrapper = (a, b) => a.present === b.present && same(a.value, b.value);
+  if (!wrapped(lb0.w) || !wrapped(fields.w) || !sameWrapper(lb0.w, fields.w) || !wrapped(lb0.wSets) || !wrapped(fields.wSets) || !sameWrapper(lb0.wSets, fields.wSets)) bad('base_load');
   const w = dec(lb0.w), wSets = dec(lb0.wSets), inc = dec(lb0.inc), steps = dec(lb0.steps);
   // SUPPORTED wSets: ABSENT, present-null (the scalar repeats, as planVector does) or an array.
   if (!(wSets === ABSENT || wSets === null || Array.isArray(wSets))) bad('load_basis.wSets');
@@ -477,6 +484,10 @@ function derivable(d, spent, refs, ex) {
   const noW = w === ABSENT || w === null;
   if (!noW && typeof w !== 'number' && typeof w !== 'string') bad('base_load');
   const n = Math.max(1, (Number.isSafeInteger(lb0.sets) ? lb0.sets : 0) || 1);
+  // Round 31 (Fable B-R30F-1 = Claude B-R30C-1): the record's own sets never sizes an allocation before it is checked. (c2) needs
+  // base_load.vector of length max(1, sets), so a record whose vector has another length is refused base_load here, BEFORE any
+  // vector is built; n is then bounded by the record's own vector.
+  if (!Array.isArray(d.base_load.vector) || d.base_load.vector.length !== n) bad('base_load');
   const wantScalar = noW ? null : loadOf(w);
   const wantVector = noW ? Array.from({ length: n }, () => null) : planVector({ w, sets: n, ...(Array.isArray(wSets) ? { wSets } : {}) }).map(loadOf);
   if (!same(d.base_load.scalar, wantScalar) || !same(d.base_load.vector, wantVector)) bad('base_load');
