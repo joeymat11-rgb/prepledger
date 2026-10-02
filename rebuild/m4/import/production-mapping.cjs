@@ -53,10 +53,14 @@ const { ENGINE_REVISION } = require('../../coach/engine-revision.cjs');
 const ENGINE = Object.freeze({
   sha256: 'dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d',
   /* S11 re-pin (S10's value was 9c135054, measured by the PM from port.cjs engineDigest() at 92be4e3): S11 edits engine
-     writers.cjs and progression.cjs and adds native-load.cjs, 18 -> 19 modules. Value computed from port.cjs engineDigest()'s
-     own definition over the 19 public per-file sha256 at 9288adf (the protected five taken from the sealed S10 artifact,
-     their blobs unchanged); P3-M1 confirms it at the PM seat. */
-  treeSha256: '2939ccfe839ba85632036a463054c40028f7cce0001c5fa7123d7206d9cea294',
+     writers.cjs and progression.cjs and adds native-load.cjs, 18 -> 19 modules. Value computed OFF-SEAT by the D:841 method
+     (brief 2.2 METHOD (1)): port.cjs engineDigest()'s own join over the 19 names of git ls-tree 0b8d074 (the T1-head merge,
+     DECISIONS:870); 16 unmoved files take the sealed S10 public per-file sha256 (artifact 42a3eb02 = S10.json 0f55a704),
+     each confirmed by blob-id equality with edb8381 (the protected five as ids only); native-load.cjs (dd197849),
+     progression.cjs and writers.cjs from byte-exact extractions at 0b8d074. Calibrated first: the same procedure gives
+     S10's 9c135054 over edb8381 and the previous S11 value 2939ccfe over 1763205. Not read from any assertion; P3-M1
+     confirms it at the PM seat. */
+  treeSha256: 'b8e8eb3d3b66fe97a849a6891ac576cfd2fac59403db7dde299047df9b6d83cf',
   schemaV: 60,
   path: 'rebuild/engine/oracle-shim.cjs' });
 
