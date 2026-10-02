@@ -20,8 +20,13 @@ const UNDERIVABLE = new Set(['target_load', 'candidate', 'base_load', 'compensat
 const HELD_BACK = new Set(['NATIVE_LOAD_LEGACY_PENDING', 'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED']);
 
 const json = (x) => JSON.parse(JSON.stringify(x));
-const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const map = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
+// Spec :61 "semantic equality compares the validated full data" (round 31, Astra L21-B3; round 32, DECISIONS:863 (1), Astra L22-B1 =
+// Fable D-R31F-1 = Claude D-R31C-1, B-R31C-2, L22-B6): the ONE data comparison of this module is semantic: the JSON of the
+// recursively member-sorted data, so member order never decides at any site (array order is data). The strict-JSON check, the
+// negative-zero check (recordShape) and the proposal digest run on the record as received, before any comparison.
+const canon = (x) => (Array.isArray(x) ? x.map(canon) : map(x) ? Object.fromEntries(Object.keys(x).sort().map((k) => [k, canon(x[k])])) : x);
+const same = (a, b) => JSON.stringify(canon(a)) === JSON.stringify(canon(b));
 const text = (x) => typeof x === 'string' && x.length > 0;
 const byOp = (a, b) => (a.op_id < b.op_id ? -1 : a.op_id > b.op_id ? 1 : 0);
 
@@ -231,7 +236,10 @@ function movedBase(ex, body) {
   const img = (k) => (Object.hasOwn(ex, k) ? { present: true, value: ex[k] === undefined ? null : json(ex[k]) } : { present: false, value: null });
   const f = map(body.base_load) && map(body.base_load.fields) ? body.base_load.fields : {};
   const forks = map(body.basis) && map(body.basis.technique) && Array.isArray(body.basis.technique.forks) ? body.basis.technique.forks : [];
-  return !same(img('w'), f.w) || !same(img('wSets'), f.wSets) || !same(json(ex.forks || []), forks);
+  // Spec :61 semantic equality (round 31, Astra L21-B3): a recorded wrapper equals the image by presence and value, whatever its
+  // member order.
+  const sameImage = (a, b) => map(b) && a.present === b.present && same(a.value, b.value);
+  return !sameImage(img('w'), f.w) || !sameImage(img('wSets'), f.wSets) || !same(json(ex.forks || []), forks);
 }
 // Spec R9.2 :158: the named refusals that hold a lift (earns refused, the adoption exit open).
 const HOLD_CODES = new Set(['NATIVE_LOAD_RECORD_INVALID', 'NATIVE_LOAD_EFFECT_CONFLICT', 'NATIVE_LOAD_SOURCE_OVERLAP', 'NATIVE_LOAD_BASIS_REPAIR_REQUIRED']);
@@ -340,10 +348,69 @@ function structural(op, byId, athleteId, base) {
   if (proposalDigest(iss.producer, iss.body, iss.reason) !== p.proposal_id) return 'proposal digest';
   if (body.basis.athlete_id !== athleteId) return 'athlete scope';
   if (!base.exercises.some((x) => x && x.id === body.lift_lineage_id)) return 'lineage';
+  const shape = recordShape(p); // round 30: the ONE total record validator, below
+  if (shape) return 'field ' + shape;
   for (const item of body.evidence) {
     const refs = [item.start, item.close, ...item.sets.flatMap((s) => [s.original, ...(s.edits || [])])].filter((r) => r !== null);
     for (const r of refs) { const o = byId.get(r && r.op_id); if (!o || o.canonical_content_commitment !== r.commitment) return 'consumed reference absent'; }
   }
+  return null;
+}
+// The ONE total record validator (round 30, DECISIONS:856 (1) (b); it replaces round 29b's scattered H-01..H-04 guards). Spec :101
+// ("Accept payload is exactly {proposal_id,answer:'accept',issuance}"), :104-:112 (every Decision field required, null where stated;
+// evidence, base_load with its FieldImage, target_load, candidate), :117-:119 (Basis is exactly its eight members; plan and load_basis
+// are listed member for member; order, technique and effect_frontier are described, not listed), :120 (Ref), :61 (strict plain JSON:
+// own data properties only, no extras), :175 (a malformed native accept is refused RECORD_INVALID, never dropped). It checks a record
+// EXACTLY as deep as that definition goes and no deeper (the answer to D-R29F-2): members, containers, Refs, Loads and presence
+// wrappers; a value the spec leaves to another clause (S1-S8, DERIVABLE, re-evaluation) is judged there. The first defect names the
+// field of the clause that owns the member (:155 "field = the failing field"): the envelope and the Basis containers no S clause
+// names 'payload' (the head's precedent, R28B-BODY-NULL, R29-H04-BASIS-MEMBERS); the Decision's own members 'decision' (FC01's
+// Decision check; R28B-FORGED-UNDO-TARGET, R29-H02); a consumes root that is not text S1 'lift_lineage_id'; evidence S4; coverage
+// S5; order S6; source S7; load_basis and base_load S8 / DERIVABLE (c1)-(c2) 'base_load'; DERIVABLE 'candidate' and 'target_load'.
+const has = (x, keys) => map(x) && same(Object.keys(x).sort(), keys.slice().sort());
+const isRef = (r) => has(r, ['op_id', 'commitment']) && text(r.op_id) && text(r.commitment);
+const isLoad = (x) => x === null || (has(x, ['value', 'unit']) && x.unit === 'lb' && typeof x.value === 'number' && Number.isFinite(x.value)) ||
+  (has(x, ['kind', 'configuration_key']) && x.kind === 'configuration' && text(x.configuration_key));
+const isWrapper = (x) => has(x, ['present', 'value']) && typeof x.present === 'boolean' && (x.present || x.value === null);
+// Round 31 (Astra L21-B1): :109 "current is typed resolved load/reps/reserve or null", typed as the typed performed slot types them
+// (E/performed.cjs recorded() and effort(), which every evidence set passed when FC01 issued it): load a Load (:110) or null, reps
+// {value,unit:'rep'} with a whole count, reserve null (absent) or the typed effort: {tag} unknown/skipped/not_asked, exact 0-2 or
+// at_least 3 in reps.
+const isReps = (x) => has(x, ['value', 'unit']) && x.unit === 'rep' && Number.isSafeInteger(x.value) && x.value >= 0;
+const isReserve = (x) => x === null || (has(x, ['tag']) && ['unknown', 'skipped', 'not_asked'].includes(x.tag)) ||
+  (has(x, ['tag', 'value', 'unit']) && x.unit === 'rep' && ((x.tag === 'exact' && [0, 1, 2].includes(x.value)) || (x.tag === 'at_least' && x.value === 3)));
+const isCurrent = (x) => x === null || (has(x, ['load', 'reps', 'reserve']) && isLoad(x.load) && isReps(x.reps) && isReserve(x.reserve));
+const DECISION_KEYS = ['profile', 'kind', 'lift_lineage_id', 'basis', 'evidence', 'base_load', 'target_load', 'candidate', 'reason_key', 'spend_id', 'consumes', 'compensates'];
+const BASIS_KEYS = ['athlete_id', 'source', 'coverage', 'order', 'plan', 'technique', 'load_basis', 'effect_frontier'];
+const FIELD_KEYS = ['w', 'wSets', 'wAt', 'last', 'lastMeta', 'own', 'std', 'topAt', 'topRun'];
+const REASON_KEYS = { 'adopt-baseline': 'baseline', 'adopt-observed': 'observed-load', earn: 'canonical-earn', compensate: 'compensation' };
+// Round 32 (Astra L22-B3; :61 "no negative zero"; DECISIONS:863 (2)): a negative zero anywhere in the record, read as received (the
+// strict-JSON copy and the digest print it as 0, so they cannot see it), is refused by the clause that owns the member, below.
+const negZero = (x) => Object.is(x, -0) || (Array.isArray(x) ? x.some(negZero) : map(x) ? Object.values(x).some(negZero) : false);
+function recordShape(p) {
+  const body = p.issuance.body, bs = body.basis, T = body.target_load, lb = bs.load_basis, bl = body.base_load, c = body.candidate;
+  if (!has(p, ['proposal_id', 'answer', 'issuance']) || Object.keys(bs).some((k) => !BASIS_KEYS.includes(k)) ||
+    !has(bs.plan, ['plan_basis', 'input_basis', 'programme_sha256', 'capture_sha256', 'structural_queue_sha256']) || !map(bs.technique) ||
+    !Array.isArray(bs.effect_frontier) || !bs.effect_frontier.every((f) => map(f) && text(f.spend_id)) || !map(bl) || !map(bl.fields) ||
+    negZero(bs.athlete_id) || negZero(bs.plan) || negZero(bs.technique) || negZero(bs.effect_frontier)) return 'payload';
+  if (!has(body, DECISION_KEYS) || REASON_KEYS[body.kind] !== body.reason_key || (body.kind === 'compensate' ? !text(body.compensates) : body.compensates !== null) ||
+    (body.kind === 'earn' ? !map(c) : c !== null) || !has(T, ['scalar', 'vector']) || !Array.isArray(T.vector)) return 'decision';
+  if (!body.consumes.every(text)) return 'lift_lineage_id';
+  if (negZero(body.evidence) || !body.evidence.every((i) => has(i, ['start', 'close', 'sets']) && isRef(i.start) && isRef(i.close) && Array.isArray(i.sets) &&
+    i.sets.every((s) => has(s, ['slot', 'position', 'origin', 'state', 'original', 'edits', 'current']) && (s.original === null || isRef(s.original)) &&
+      Array.isArray(s.edits) && s.edits.every(isRef) && isCurrent(s.current)))) return 'evidence';
+  if (!Array.isArray(bs.coverage) || negZero(bs.coverage) || !bs.coverage.every((x) => has(x, ['op_id', 'commitment', 'disposition', 'source_member']) && text(x.op_id) && text(x.commitment))) return 'basis.coverage';
+  if (!map(bs.order) || negZero(bs.order) || !Array.isArray(bs.order.start_ids) || !bs.order.start_ids.every(text)) return 'basis.order';
+  // Round 33 (Astra L23-B2; DECISIONS:865 (2); :119, E/performed.cjs:168): a record count is a non-negative safe integer, never
+  // coerced: the verified frontier here, load_basis.prefix below (null when the programme has no count, as basisOf writes it).
+  if (!Number.isSafeInteger(bs.order.frontier) || bs.order.frontier < 0) return 'basis.order';
+  if (!Object.hasOwn(bs, 'source') || negZero(bs.source)) return 'basis.source';
+  if (!has(lb, ['authority_refs', 'tenure_start', 'sets', 'prefix', 'hi', 'steps', 'inc', 'w', 'wSets']) || !Array.isArray(lb.authority_refs) || !lb.authority_refs.every(isRef) ||
+    !['w', 'wSets', 'inc', 'steps'].every((k) => isWrapper(lb[k])) || !has(bl, ['scalar', 'vector', 'fields']) || !isLoad(bl.scalar) || !Array.isArray(bl.vector) ||
+    !bl.vector.every(isLoad) || !has(bl.fields, FIELD_KEYS) || !FIELD_KEYS.every((k) => isWrapper(bl.fields[k])) || negZero(lb) || negZero(bl)) return 'base_load';
+  if (!(lb.prefix === null || (Number.isSafeInteger(lb.prefix) && lb.prefix >= 0))) return 'base_load';
+  if (body.kind === 'earn' && (negZero(c) || !has(c, ['kind', 'newW', 'newWSets', 'state', 't', 'gate', 'rule']) || c.kind !== 'debut' || !(c.newWSets === null || Array.isArray(c.newWSets)))) return 'candidate';
+  if (negZero(T) || !isLoad(T.scalar) || !T.vector.every(isLoad)) return 'target_load';
   return null;
 }
 
@@ -380,6 +447,29 @@ function refsArm(body, { facts, byId, issues = [] }) {
       o.payload.issuance.body.lift_lineage_id === lift && (holding(r.op_id) || (dissolved(r.op_id) && provenBefore([o], start, byId))); };
   return ar.length > 0 && ar.every(ok);
 }
+// Round 31 (Astra L21-B2; :155 S4): the typed edit fold (rebuild/m4/workout/edit-history.cjs fold) replayed for ONE fact over the
+// listed edit operation ids (the fact's edit order): a correction patches its target (a {clear:true} value removes the member), a
+// tombstone removes its target, and an edit that is itself corrected or removed acts as corrected or not at all. Returns
+// {active, value} for the fact, or null when an operation is not an edit that fold interprets. Loops only over the listed ids.
+function replayEdits(f, ids, byId) {
+  const corrections = new Map(), removals = new Set(), rank = new Map(ids.map((id, i) => [id, i]));
+  const patched = (id, value) => {
+    for (const c of (corrections.get(id) || []).slice().sort((a, b) => a.rank - b.rank)) for (const [k, v] of Object.entries(c.patch)) { if (has(v, ['clear']) && v.clear === true) delete value[k]; else value[k] = json(v); }
+    return value;
+  };
+  for (let i = ids.length - 1; i >= 0; i--) {
+    const op = byId.get(ids[i]);
+    if (!op || !map(op.payload) || !text(op.target_op_id)) return null;
+    const value = patched(ids[i], json(op.payload)), active = !removals.has(ids[i]);
+    if (op.kind === 'correction' && has(op.payload, ['replacement_fields']) && map(value.replacement_fields)) {
+      if (active) corrections.set(op.target_op_id, [...(corrections.get(op.target_op_id) || []), { rank: rank.get(ids[i]), patch: value.replacement_fields }]);
+    } else if (op.kind === 'tombstone' && has(op.payload, ['reason'])) { if (active) removals.add(op.target_op_id); } else return null;
+  }
+  return { active: !removals.has(f.source_op_id), value: patched(f.source_op_id, json(f.original)) };
+}
+// The typed slot states that name no fact and no skip (rebuild/m4/workout/engine-history.cjs: unlogged, unresolved, and removed when
+// more than one removed fact leaves none to name); S4 binds a set that names neither to one of them (round 33).
+const NO_FACT_STATES = ['unlogged', 'unresolved', 'removed'];
 function correspondence(body, { facts, byId, source, issues = [], spent = [], groups = null }) {
   const lift = body.lift_lineage_id;
   const isOp0 = (id, kind) => { const o = byId.get(id); return !!o && o.class === 'session' && o.kind === kind; };
@@ -444,6 +534,27 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
       // Before any edit the slot's value is its original fact (a later removal or correction
       // changes the current value, never the value the evidence recorded).
       if (edits.length === 0 && now.length > 0 && !same(set.current, f && f.original ? cur(f.original) : null)) return 'evidence';
+      // Round 33 (Astra L23-B1 = Claude D-R32C-2; DECISIONS:865 (1); :109 "position/origin/state are the typed slot's fields"): the
+      // state is bound to the authentic fact after exactly the listed edits, as current is. Every edit listed: the typed slot's own
+      // state (a removed fact named among removed_facts: removed); none listed of a fact that has edits: performed (its original);
+      // a proper prefix: below, beside its current. No fact and no skip named: a state that names neither (unlogged, unresolved,
+      // removed).
+      const listed = edits.length === now.length ? (f ? (f === slot.fact ? slot.state : 'removed') : original !== null ? slot.state : null) : edits.length === 0 ? 'performed' : undefined;
+      if (listed === null ? !NO_FACT_STATES.includes(set.state) : listed !== undefined && set.state !== listed) return 'evidence';
+      // Round 31 (Astra L21-B2): a non-empty PROPER prefix binds current too (:155 S4 "its current equals the slot's value after
+      // exactly those edits"): the original fact replayed through exactly the listed edit operations (replayEdits). The replay
+      // binds when it is faithful, i.e. replaying ALL the slot's edits reproduces the authentic current value (as every history
+      // the typed edit fold produces does; an operation that fold cannot interpret leaves no performed fact to name it).
+      if (edits.length > 0 && edits.length < now.length && f && map(f.original)) {
+        const all = replayEdits(f, now, byId);
+        if (all && (performed ? all.active && same(cur(all.value), f.current ? cur(f.current) : null) : !all.active)) {
+          // Round 32 (Claude B-R31C-1 = Astra L22-B2; DECISIONS:863 (4)): whether the prefix has a current value is the AUTHENTIC
+          // fact's, after exactly the listed edits (active: its value; removed: null), never the record's own claimed state.
+          const upTo = replayEdits(f, now.slice(0, edits.length), byId);
+          if (!upTo || !same(set.current, upTo.active ? cur(upTo.value) : null)) return 'evidence';
+          if (set.state !== (upTo.active ? 'performed' : 'removed')) return 'evidence'; // round 33: its state, as its current
+        }
+      }
     }
   }
   // S5 coverage: every consumed Start and Close and every Ref the evidence names.
@@ -465,8 +576,10 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
     const baseVec = Array.isArray(body.base_load.vector) ? body.base_load.vector.map((x) => (map(x) && typeof x.value === 'number' ? x.value : null)) : [];
     // Actual loads as the evidence recorded them (S4 has bound each set to its authentic fact);
     // a set removed or corrected after issuance is the later edit (:157), not a forgery.
+    // Round 33 (DECISIONS:865 (1); :155 "Actual loads here are the values S4 binds"): read from the bound current alone, never a
+    // claimed state (a set that is not performed has current null).
     const item = body.evidence.find((x) => x.close.op_id === latest.close);
-    const actual = item.sets.filter((s) => s.origin !== 'added').map((s) => (s.state === 'performed' && map(s.current) && map(s.current.load) ? s.current.load.value : null));
+    const actual = item.sets.filter((s) => s.origin !== 'added').map((s) => (map(s.current) && map(s.current.load) ? s.current.load.value : null));
     const ar = map(body.basis.load_basis) && Array.isArray(body.basis.load_basis.authority_refs) ? body.basis.load_basis.authority_refs : [];
     if (body.kind === 'adopt-baseline') {
       // Spec R9.9 :155 ADOPT-BASELINE ANCHOR (the other-hold anchor): the base is the record's own
@@ -520,14 +633,18 @@ function evidenceChanged(body, facts) {
   for (const item of body.evidence) {
     const hit = sessionOf(facts, item.close && item.close.op_id, body.lift_lineage_id);
     if (!hit) return true;
-    const now = hit.entry.slots.map((slot) => {
-      const f = slot.fact, cur = slot.state === 'performed' && f && f.current ? f.current : null;
+    // Round 33 (DECISIONS:865 (3)): the slot as FC01's evidenceOf now records it (a slot whose ONE fact is removed names that fact
+    // and its edits); the round-32 form of that same slot (original null, no edits) is the same slot, unchanged.
+    const removedFact = (slot) => (!slot.fact && slot.state === 'removed' && Array.isArray(slot.removed_facts) && slot.removed_facts.length === 1 && map(slot.removed_facts[0]) ? slot.removed_facts[0] : null);
+    const now = (named) => hit.entry.slots.map((slot) => {
+      const f = slot.fact || (named ? removedFact(slot) : null), cur = slot.state === 'performed' && f && f.current ? f.current : null;
       return { slot: slot.logical_set_slot, position: slot.position, state: slot.state,
         original: f ? f.source_op_id : text(slot.skip_op_id) ? slot.skip_op_id : null,
         edits: f && Array.isArray(f.edit_op_ids) ? f.edit_op_ids.slice() : [],
         current: cur ? { load: cur.load, reps: cur.reps, reserve: cur.reserve === undefined ? null : cur.reserve } : null };
     });
-    if (!same(now, item.sets.map(shape))) return true;
+    const was = item.sets.map(shape);
+    if (!same(now(true), was) && !same(now(false), was)) return true;
   }
   return false;
 }
@@ -550,7 +667,23 @@ function checkedCompletion(body, facts) {
 const refusedFold = (issue) => ({ status: 'refused', state: null, effects: [], spent: [], issues: [issue], coverage: [] });
 
 // ---------- the fold (spec B "Apply and fold", every current projection) ----------
-function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, source } = {}) {
+// Round 31 PER-RECORD CONTAINMENT, complete (Astra L21-B4, Claude D-R30C-2; spec :155 RECORD_INVALID "nothing applied", :175,
+// DECISIONS:856 (1) (b)): an unexpected exception while judging one record's accept or landing refuses THAT record, and the fold is
+// replayed with it refused before anything applies (foldOnce's `excluded`), exactly like a malformed accept. So every mutation of
+// the failed event (in-place writes to earlier entries, a spend's close_ref included) and every earlier effect of the refused record
+// are gone: nothing of it is applied, and every other lift folds exactly as without it. Each replay refuses at least one more
+// record, so the replays end (at most once per record).
+class Contained extends Error { constructor(ids) { super('NATIVE_LOAD_CONTAINED'); this.ids = ids; } }
+function foldNativeLoad(args = {}) {
+  const excluded = new Set();
+  for (;;) {
+    try { return foldOnce(args, excluded); } catch (error) {
+      if (!(error instanceof Contained) || error.ids.every((id) => excluded.has(id))) throw error;
+      for (const id of error.ids) excluded.add(id);
+    }
+  }
+}
+function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } = {}, excluded = new Set()) {
   if (!map(base) || !Array.isArray(base.exercises) || !Array.isArray(base.queue)) return refusedFold({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [], field: 'base' });
   if (!map(engine) || !text(engine.revision) || typeof engine.at !== 'function') return refusedFold({ code: 'NATIVE_LOAD_CAPABILITY_REQUIRED', refs: [], field: 'engine' });
   const facts = map(workoutFacts) ? workoutFacts : null;
@@ -616,9 +749,14 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
   // The native-load family: every native accept is admitted, coalesced or refused BY NAME.
   for (const op of ops) {
     if (!(op.class === 'plan' && op.kind === 'proposal-response' && map(op.payload) && map(op.payload.issuance) && op.payload.issuance.producer === PRODUCER)) continue;
-    const why = structural(op, byId, athleteId, base);
+    // Round 30 PER-RECORD CONTAINMENT (DECISIONS:856 (1) (b); spec :175, :155 per lift): no record makes the fold throw; an
+    // unexpected exception while judging its shape refuses that record RECORD_INVALID, field payload, like any malformed accept.
+    let why;
+    try { why = structural(op, byId, athleteId, base); } catch (_) { why = 'unexpected exception'; }
     // A consumed reference absent from the log is spec R9 S3 (authentic work): field 'consumes'.
     // Spec R9.6 :155 S1 (fresh l1 N2): an absent lineage refuses field lift_lineage_id, never a generic field.
+    // Round 30: the record validator names the field of the clause that owns the malformed member ('field <name>').
+    if (why && why.startsWith('field ')) { dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [refOf(op)], field: why.slice(6), reason: 'record shape', lift: liftOf(op) }); continue; }
       if (why) { dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [refOf(op)], field: why === 'consumed reference absent' ? 'consumes' : why === 'lineage' ? 'lift_lineage_id' : 'payload', reason: why, lift: liftOf(op) }); continue; }
     const body = op.payload.issuance.body, g = groups.get(body.spend_id);
     if (!g) groups.set(body.spend_id, { body, ops: [op], seq: op.device_seq || 0, device: op.device_id });
@@ -641,6 +779,12 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
     g.ops = every.filter((op) => same(bodyOf(op), g.body));
     g.alt = every.filter((op) => !same(bodyOf(op), g.body));
     g.cut = Math.min(...every.map((op) => cutOf(bodyOf(op))));
+  }
+  // Round 31 (complete containment, above): a record whose accept or landing threw in an earlier pass is refused here, before
+  // anything applies: RECORD_INVALID, field payload, refs = all its records, its own lift only; it takes no part in this pass.
+  for (const g of [...groups.values()]) if ([...g.ops, ...g.alt].some((op) => excluded.has(op.op_id))) {
+    groups.delete(g.body.spend_id);
+    dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [...g.ops, ...g.alt].map(refOf).sort(byOp), field: 'payload', reason: 'unexpected exception', lift: g.body.lift_lineage_id });
   }
   // Incompatible accepts are refused TOGETHER before anything applies: same spend with
   // different bodies, or different spends over overlapping evidence. Never a clock winner.
@@ -678,7 +822,10 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
   // the digest of every exercise record as the projection showed it (after the governor
   // replay over the facts of that cut), plan.structural_queue_sha256 the queue, and
   // coverage every fact op. Equal digests and covered fact ops: the same inputs.
-  const sameCut = (b, cut, S = state) => {
+  // Round 34 (B-R33C-1, DECISIONS:867; :155 ORIGINAL CUT, D-R9-1): `yes` are the record's responses. A set removed AFTER the yes
+  // keeps its fact among the slot's removed_facts; an op of it outside coverage and not proven before the yes is a later edit, so
+  // the cut is not reproduced (as for a later correction of a live fact). One proven before the yes is judged as before.
+  const sameCut = (b, cut, S = state, yes = []) => {
     const p = map(b.basis) && map(b.basis.plan) ? b.basis.plan : {};
     if (sha(S.queue) !== p.structural_queue_sha256) return false;
     let s0 = withFacts(S, cut);
@@ -696,12 +843,20 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
           const f = slot.fact;
           if (f && (!covered.has(f.source_op_id) || (Array.isArray(f.edit_op_ids) && f.edit_op_ids.some((id) => !covered.has(id))))) return false;
           if (text(slot.skip_op_id) && !covered.has(slot.skip_op_id)) return false;
+          for (const r of Array.isArray(slot.removed_facts) ? slot.removed_facts : []) if (map(r) && [r.source_op_id, ...(Array.isArray(r.edit_op_ids) ? r.edit_op_ids : [])]
+            .some((id) => !covered.has(id) && !(byId.has(id) && yes.some((y) => provenBefore([byId.get(id)], y, byId))))) return false;
         }
       }
     }
     return true;
   };
+  // Round 30 PER-RECORD CONTAINMENT (DECISIONS:856 (1) (b); spec :175, :155 per lift, :185): `judging` is the record whose accept or
+  // landing is being judged; an unexpected exception there never escapes the fold: round 31 hands that record to foldNativeLoad,
+  // which replays the fold with it refused RECORD_INVALID, field payload, for its own lift only (nothing of it applied).
+  let judging = null;
   for (const ev of events) {
+    judging = ev.type === 'accept' ? ev.g : null;
+    try {
     if (ev.type === 'accept') {
       const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = [...g.ops, ...(g.alt || [])].map(refOf).sort(byOp), lift = body.lift_lineage_id;
       // Same-lift records wait behind a named refusal (the hold stands; nothing guesses past
@@ -759,7 +914,7 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
       // D-R20L1-6): a record that fails REFS-ARM is never re-evaluated under a present revision; it takes the correspondence branch
       // below, which refuses it RECORD_INVALID by its first failing field, exactly as an absent revision does (R1 = R2, :165
       // UNPROVABLE ORDER). A record that passes REFS-ARM (every genuine host exit in the ordered layout) is re-evaluated as before.
-      const reproducible = present && !changed && members.every((b) => sameCut(b, atCut(b), V)) && refsArm(body, { facts, byId, issues });
+      const reproducible = present && !changed && members.every((b) => sameCut(b, atCut(b), V, [...g.ops, ...(g.alt || [])])) && refsArm(body, { facts, byId, issues });
       // STRUCTURAL CORRESPONDENCE (spec R9 :155): a record that is not re-evaluated applies
       // only when S1-S8 hold; the first failure refuses that lift by the failing field.
       if (!reproducible) {
@@ -907,6 +1062,7 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
     for (const q of state.queue.filter((x) => x && x.exId === lift && !x.done && typeof x.native_load_spend === 'string')) {
       const g = groups.get(q.native_load_spend);
       if (!g) continue;
+      judging = g;
       const got = captureOf(ev.start, ev.entry);
       // Spec R9.9 :152 SELECTED ENTRY (DECISIONS:801 (1)): the card generated from q (newW on every
       // captured original slot whatever their number, else exactly newWSets); any other capture is
@@ -934,6 +1090,10 @@ function foldNativeLoad({ base, generation, workoutFacts, engine, athleteId, sou
         const x = spent.find((y) => y.spend_id === g.body.spend_id); if (x && t.effect && t.effect.kind === 'landed') x.close_ref = refOf(close);
         effects.set(g.body.spend_id, t.effect);
       } else if (t.refusal) issues.push({ code: t.refusal.code, refs: t.refusal.refs, field: t.refusal.field, lift });
+    }
+    } catch (error) {
+      if (!judging) throw error;
+      throw new Contained([...judging.ops, ...(judging.alt || [])].map((op) => op.op_id));
     }
   }
   // Step 6 (spec R8 :135): the governor projection, ONCE per projection, after the accepted
@@ -1128,7 +1288,7 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:1d7dbe40782cc96971a94911aa90ed9dc77a28440ef5f60fbdc088f628803def';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:3c86253710607d45b467047ec858b8780483643cd5c3b9b53306040a59099b5e';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf,
   heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]), isHold };
