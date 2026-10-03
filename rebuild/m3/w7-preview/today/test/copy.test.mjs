@@ -165,8 +165,12 @@ test('P1 — the engine’s own headline vocabulary survives the normaliser, who
    2. THE BUILT PAGE, and the build-time refusal (DECISIONS:117 (1)).
    ========================================================================== */
 test('P1 — the built page carries no dash in anything the athlete can see', async () => {
-  const result = await buildToday();
-  const assets = ASSETS.map((name) => [name, fs.readFileSync(path.join(DIST, name))]);
+  /* ITS OWN OUTPUT DIRECTORIES, as the launch guard below: other suites rebuild the
+     SHARED dist in parallel processes, so reading it back could see a half-written
+     app.js. The accepted build is byte-for-byte the same; only the path moves. */
+  const result = await buildToday({ dist: path.join(DIST, '..', 'w7-p1-dist'),
+    scratch: path.join(DIST, '..', 'w7-p1-build') });
+  const assets = ASSETS.map((name) => [name, fs.readFileSync(path.join(result.dist, name))]);
   assert.deepEqual(assets.map(([name]) => name).sort(), [...ASSETS].sort());
 
   const report = scanBuiltAssets(assets);
@@ -206,7 +210,9 @@ test('P1 — the built page carries no dash in anything the athlete can see', as
  */
 test('A1 the built bundle EVALUATES with no Node globals, as a browser must run it', async () => {
   const vm = await import('node:vm');
-  const result = await buildToday();
+  /* Its own output directories too, for the same reason as P1 above. */
+  const result = await buildToday({ dist: path.join(DIST, '..', 'w7-a1-dist'),
+    scratch: path.join(DIST, '..', 'w7-a1-build') });
   const bundle = fs.readFileSync(path.join(result.dist, 'app.js'), 'utf8');
   const dom = new JSDOM(fs.readFileSync(path.join(result.dist, 'index.html'), 'utf8'),
     { url: 'http://127.0.0.1:4178/' });
@@ -382,7 +388,9 @@ async function planted(file, find, replace) {
       .then(() => null, (e) => e);
     assert(error, 'the build accepted a planted dash in ' + file);
     /* and the real tree was never touched: it is still GREEN, from its own bytes */
-    const clean = await buildToday();
+    /* (its own output directories, as every build in this file: see P1 above) */
+    const clean = await buildToday({ dist: path.join(DIST, '..', 'w7-clean-dist'),
+      scratch: path.join(DIST, '..', 'w7-clean-build') });
     assert.equal(clean.dashes.offences.length, 0, 'the worktree was planted in');
     return error;
   } finally {
@@ -398,7 +406,8 @@ test('P1 — the build REFUSES a dash planted in the markup, in a COPY of the tr
   assert.equal(error.name, 'AiDashInBuild');
   assert(error.offences.some((o) => o.asset === 'index.html'), error.message);
   // and the build is clean afterwards, as it was throughout
-  const again = await buildToday();
+  const again = await buildToday({ dist: path.join(DIST, '..', 'w7-again-markup-dist'),
+    scratch: path.join(DIST, '..', 'w7-again-markup-build') });
   assert.equal(again.dashes.offences.length, 0);
 });
 
@@ -408,7 +417,8 @@ test('P1 — the build REFUSES a dash planted in a string this page owns', async
   assert.equal(error.code, 'AI_DASH_IN_BUILD', error.message);
   assert(error.offences.some((o) => o.asset === 'app.js' && /today-app\.cjs/.test(o.what)),
     'the offence names the module that wrote it: ' + error.message);
-  const again = await buildToday();
+  const again = await buildToday({ dist: path.join(DIST, '..', 'w7-again-string-dist'),
+    scratch: path.join(DIST, '..', 'w7-again-string-build') });
   assert.equal(again.dashes.offences.length, 0);
 });
 
