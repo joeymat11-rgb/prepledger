@@ -1469,7 +1469,14 @@ test('A4 - "Start using Earned" writes ONCE through the durable lane and lands o
   const primary = doc.querySelector('#phone [data-slot="primary"]');
   assert.equal(primary.disabled, false);
   primary.click();
-  await new Promise((resolve) => setTimeout(resolve, 50));
+  /* THE PAGE'S OWN ANSWER, NOT A 50 ms SLEEP (today-17 sweep). today-entry.mjs onDone
+     awaits host.save, then refresh, then done(), and done() is what renders Today, so
+     Today on screen means the write was acknowledged. A sleep that ended before a slow
+     write did read the store early. Bounded, so a page that never lands fails loudly. */
+  for (const started = Date.now(); api.screen() !== 'today';) {
+    if (Date.now() - started >= 30000) throw new Error('SETUP-NEVER-LANDED: "Start using Earned" did not reach Today in 30000 ms');
+    await new Promise((resolve) => setTimeout(resolve, 1));
+  }
   assert.equal(await entry.host.enrolled(), true, 'the record holds the first run');
   assert.equal((await opsOf(entry.host.repository)).length, 1, 'exactly one operation');
   assert.equal(api.screen(), 'today', 'and he lands on Today');

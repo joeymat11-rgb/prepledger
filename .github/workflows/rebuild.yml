@@ -22,10 +22,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    # Raised from 15 with the 2026-09-11 CI re-seal: the native-carriers package now
-    # actually completes (it used to die in ~1 min at the `focused` child), and six new
-    # suites plus two pnpm installs run alongside it on both runners.
-    timeout-minutes: 30
+    # Raised 15 -> 30 at the 2026-09-11 re-seal (native-carriers package now runs to completion), then
+    # 30 -> 60 at the S11 CI-2 STOP (2026-10-03): windows ran 29.3-29.5 min and was cancelled twice at 30;
+    # the 39 S11 children alone take ~20 min on windows (T5b run 37108132701).
+    timeout-minutes: 60
     env:
       MEASURED_TEST_NOW: '2026-09-03'
       TZ: America/New_York

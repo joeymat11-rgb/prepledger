@@ -78,6 +78,18 @@ function today(options = {}, clipboard = undefined) {
   };
 }
 
+/* "START USING EARNED" HAS LANDED when the page shows Today (today-17 sweep). The
+   setup entry's onDone awaits the durable save, then refresh, then done(); done() arms
+   the new adoption chain and renders Today in one synchronous run, so Today on screen
+   is the page's own answer that the write was acknowledged and the chain armed. This
+   replaces a 50 ms sleep that a slow write outlasted; it is bounded and loud. */
+async function landedOnToday(api, what) {
+  for (const started = Date.now(); api.screen() !== 'today';) {
+    if (Date.now() - started >= 30000) throw new Error('SETUP-NEVER-LANDED: ' + what + ' did not reach Today in 30000 ms');
+    await new Promise((resolve) => setTimeout(resolve, 1));
+  }
+}
+
 /* ONE device: one IndexedDB factory is one installation, so every host below opens
    the SAME local era, exactly as the page's own boot does. */
 async function installation() {
@@ -986,7 +998,7 @@ test('P0C.1 - completing setup adopts his own state in place, exactly as a fresh
   assert.equal(primary.textContent.trim(), 'Start using Earned');
   const beforeReady = booted.api.ready;
   primary.click();
-  await new Promise((resolve) => setTimeout(resolve, 50));
+  await landedOnToday(booted.api, 'the in-page first run');
   assert.notEqual(booted.api.ready, beforeReady, 'the transition armed a NEW adoption chain');
   await booted.api.ready;
   assert.equal(booted.api.screen(), 'today', 'landed on Today, in page, with no reload');
@@ -3248,7 +3260,7 @@ test('S6C.3 - completing setup lands on Today with HIS own empty records and no 
   const primary = doc.querySelector('#phone [data-slot="primary"]');
   assert.equal(primary.textContent.trim(), 'Start using Earned');
   primary.click();
-  await new Promise((resolve) => setTimeout(resolve, 50));
+  await landedOnToday(booted.api, 'the S6 first run');
   await booted.api.ready;
   assert.equal(booted.api.screen(), 'today', 'the existing setup-to-Today transition, unchanged');
   const firstFrame = s6Phone(dom);
@@ -3277,7 +3289,7 @@ test('S6C.4 - a RELOAD after setup boots to Today, off the same store, on the li
   model.goto(6);
   first.booted.api.render('setup');
   first.doc.querySelector('#phone [data-slot="primary"]').click();
-  await new Promise((resolve) => setTimeout(resolve, 50));
+  await landedOnToday(first.booted.api, 'the first load\'s first run');
   await first.booted.api.ready;
   assert.equal(first.booted.api.screen(), 'today', 'the first load ended on Today');
   first.booted.teardown();

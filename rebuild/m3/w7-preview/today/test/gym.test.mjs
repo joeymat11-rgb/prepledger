@@ -476,7 +476,27 @@ test('A2 — the gym screens render the capture, with nothing preselected', asyn
   const phone = doc.getElementById('phone');
   const kit = await device();
   await kit.model.start();
-  await mountGym(doc, phone, { model: kit.model, onBack: () => {} });
+  /* THE CARD'S OWN ANSWERS ARE WAITED ON, NOT A FIXED SLEEP (today-17, windows-latest).
+     A log is model.logSet, then the delivered outcome: a refusal writes #gym-error, a
+     saved set runs paint() - a second durable read - and only after that paint calls
+     onChanged. The old 20 ms and 60 ms sleeps were a guess at that chain; on a starved
+     runner this cell's own model.read() (queued behind the write) answered 'saved' while
+     the card's repaint read was still in flight, and `saved-facts` was null. onChanged
+     is the mount's own "the saved screen is painted" signal, so the success path awaits
+     it, and the refusal path waits for the refusal text the card writes. Both waits are
+     bounded so a card that never answers fails loudly with its own label. */
+  let changes = 0;
+  await mountGym(doc, phone, { model: kit.model, onBack: () => {}, onChanged: () => { changes += 1; } });
+  const ANSWER_DEADLINE_MS = 30000;
+  async function answered(what, check) {
+    const started = Date.now();
+    for (;;) {
+      if (check()) return;
+      if (Date.now() - started >= ANSWER_DEADLINE_MS)
+        throw new Error('GYM-CARD-NEVER-ANSWERED: waited ' + (Date.now() - started) + ' ms for ' + what);
+      await new Promise(resolve => setTimeout(resolve, 1));
+    }
+  }
 
   await t.test('the active-set screen is Refinement A, bound to the capture', async () => {
     const view = await kit.model.read();
@@ -497,14 +517,18 @@ test('A2 — the gym screens render the capture, with nothing preselected', asyn
 
   await t.test('the log button refuses without an effort answer, in the approved words', async () => {
     doc.querySelector('[data-slot="log"]').click();
-    await new Promise(resolve => setTimeout(resolve, 20));
+    await answered('the card to write its refusal after Log was pressed with no effort',
+      () => doc.getElementById('gym-error').textContent !== '');
+    assert.equal(changes, 0, 'a refused log changed the card');
     assert.match(doc.getElementById('gym-error').textContent, /Choose clean reps left, or Unsure\./);
   });
 
   await t.test('choosing an effort, then logging, lands on the saved-set screen', async () => {
     [...doc.querySelectorAll('.choice')].find(c => c.textContent === '2').click();
+    const before = changes;
     doc.querySelector('[data-slot="log"]').click();
-    await new Promise(resolve => setTimeout(resolve, 60));
+    await answered('the card to paint the saved-set screen and call onChanged after the log',
+      () => changes > before);
     const view = await kit.model.read();
     assert.equal(view.phase, 'saved');
     assert.equal(doc.querySelector('[data-slot="saved-facts"]').textContent, view.saved.facts);

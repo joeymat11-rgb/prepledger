@@ -112,27 +112,27 @@ export async function typeWaist(view, row) {
   'the waist entry boxes for ' + row.date + ' to be on the screen');
   view.pick('measure-waist-date').value = row.date;
   view.pick('measure-waist-value').value = String(row.in);
-  /* WHAT THE SAVE IS WAITED ON, and why it is the table and not the screen. The lane
-     writes, and only THEN does the comparison re-read and repaint. "The screen stopped
-     changing" is true in the gap between the save being accepted and that repaint
-     landing, so a wait on stillness returns a table that does not yet carry this row -
-     which is how a green-looking run produced `Not enough data yet` in the two waist
-     columns of the last week. The condition is therefore the TABLE'S OWN CONTENT
-     changing: the page has taken this reading when what it renders is no longer what
-     it rendered before the click. */
-  const before = renderedTableText(view);
+  /* WHAT THE SAVE IS WAITED ON: THE LANE'S ANSWER, THEN THE TABLE PAINTED AFTER IT.
+     measure-screen.mjs saveWaist awaits lane.save and only then repaints, and a
+     repaint of the same route keeps the mount token, so a paint begun BEFORE the save
+     (the previous row's, or the marker pick's) is still alive and still lands its
+     table on the screen while this save is in flight. That table is honest but does
+     not carry this row. The old wait - "the table text changed, then held still for
+     3 turns" - accepted it whenever the previous paint had not finished when this
+     click came (its own quiet had ended in a slow read's gap), and cell (a) then read
+     week 12 without the last reading: the today-17 red, "week 12 as rendered".
+     So the wait is on the page's own facts, not on stillness: (1) the lane has
+     answered THIS save (page() records every save the screen makes), and (2) a table
+     is on the screen. Once (1) holds on a macrotask turn, saveWaist's continuation
+     has already run (it reacts to the same promise, in the same microtask drain) and
+     render() has synchronously shown a fresh section with no table, so any table seen
+     after (1) was painted from reads that began after the save was answered. A
+     stale paint writes only into its own detached section. */
+  const saved = view.saves.length;
   view.pick('measure-waist-save').click();
-  await settle(() => renderedTableText(view) !== before,
-    'the trial table to repaint with the waist row for ' + row.date);
-  /* AND THEN UNTIL IT STOPS REPAINTING, because the repaint is itself in stages: the
-     table comes back with the new row's shape before the comparison has recomputed the
-     waist columns, so "it changed" is true while the last week still reads
-     `Not enough data yet`. Measured: waiting only for the first change left cell (a)
-     red on exactly those two columns about one run in three - the same intermittency,
-     one layer down, which is why the wait is on the table settling and not on the
-     first sign of movement. */
-  await quiet(() => renderedTableText(view),
-    'the trial table to stop repainting after the waist row for ' + row.date);
+  await laneAnswer(view.saves, saved, 'the waist save for ' + row.date);
+  await settle(() => view.pick('measure-trial-table'),
+    'the trial table to repaint after the waist save for ' + row.date + ' was answered');
 }
 
 /* The sets, one session per training date, through the accepted workout stack:
@@ -252,8 +252,24 @@ export async function page(fault, { basis, today = FIXTURE.today, measure = null
   const model = createTodayModel({ today, basisState: basis, readings: reading,
     foodDays: { rows: () => foodRows }, sleepNights: { rows: () => sleepRows } });
   const setup = await createSetupEntry({ today }, { indexedDB: fault.indexedDB, crypto: webcrypto });
-  const lane = measure || await createMeasureHost({ day: today,
+  const host = measure || await createMeasureHost({ day: today,
     indexedDB: fault.indexedDB, crypto: webcrypto });
+  /* EVERY WAIST SAVE AND MARKERS SAVE THE SCREEN MAKES, recorded with the lane's
+     answer, so typeWaist and pickMarkersOnScreen wait on that answer (laneAnswer). A
+     rejection is recorded as a rejection, never as an answer. The page is handed the
+     same host's own methods; only the two writes are observed, and each promise is
+     returned untouched. */
+  const saves = [], markerSaves = [];
+  const observed = (method, log) => (...args) => {
+    const record = { answered: false, result: undefined, rejected: null };
+    log.push(record);
+    const pending = host[method](...args);
+    pending.then((result) => { record.result = result; record.answered = true; },
+      (error) => { record.rejected = error || new Error('rejected with no reason'); });
+    return pending;
+  };
+  const lane = Object.freeze({ ...host, save: observed('save', saves),
+    saveMarkers: observed('saveMarkers', markerSaves) });
   const api = mountToday(doc, model, { setup, measure: lane });
   const pick = (slot) => doc.querySelector('#phone [data-slot="' + slot + '"]');
   const all = (selector) => [...doc.querySelectorAll('#phone ' + selector)];
@@ -271,7 +287,7 @@ export async function page(fault, { basis, today = FIXTURE.today, measure = null
   await settle(() => pick('measure-tile'),
     'the Today screen to paint its Measure control after mountToday');
   await quiet(phone, 'the Today screen to stop changing after mountToday');
-  return { dom, doc, api, model, setup, lane, pick, all, phone,
+  return { dom, doc, api, model, setup, lane, saves, markerSaves, pick, all, phone,
     text: () => doc.getElementById('phone').textContent,
     /* go() ASSERTS ITS TARGET BEFORE IT CLICKS, AND WAITS FOR WHAT THE CLICK IS FOR.
        Two things were wrong with the line this replaces, `pick(slot).click(); settle()`.
@@ -328,13 +344,38 @@ export async function pickMarkersOnScreen(view, names = FIXTURE.markers) {
     box.checked = true;
     box.dispatchEvent(new view.dom.window.Event('change', { bubbles: true }));
   }
+  const before = view.markerSaves.length;
   view.all('[data-slot="measure-marker-save"]')[0].click();
-  /* The markers are saved when the pick screen has gone: that is the page's own
-     answer, and it is what the next line of every caller depends on. */
+  /* The markers are saved when THE LANE HAS ANSWERED THE SAVE, not when the screen
+     looks still. measure-screen.mjs pickMarkers awaits lane.saveMarkers and then
+     repaints, exactly as saveWaist does, so on the turn the answer is seen the route
+     has already shown a fresh section with no pick on it; the pick screen being gone
+     is then checked as the page's own confirmation. What the screen paints next is
+     waited for by the caller's own named condition (typeWaist's boxes, or
+     waitForTrialTable), so no stillness wait is needed here. */
+  await laneAnswer(view.markerSaves, before, 'the markers save');
   await settle(() => !view.pick('measure-marker-pick'),
     'the marker pick screen to close after the markers were saved');
-  await quiet(view.phone, 'the screen to stop changing after the markers were saved');
   return boxes.length;
+}
+
+/* THE LANE'S ANSWER TO ONE WRITE THE SCREEN MADE (page() records each one). It is
+   waited for under settle's own deadline, and a REJECTED or REFUSED write fails here,
+   at once and in its own words, instead of being counted as answered and surfacing
+   later as a table that does not match. */
+export async function laneAnswer(log, index, what) {
+  await settle(() => log.length > index && (log[index].answered || log[index].rejected !== null),
+    'the measure lane to answer ' + what);
+  const record = log[index];
+  if (record.rejected !== null) {
+    throw new Error('MEASURE-LANE-REJECTED: ' + what + ' was rejected: '
+      + ((record.rejected && record.rejected.message) || String(record.rejected)));
+  }
+  if (!record.result || record.result.ok !== true) {
+    throw new Error('MEASURE-LANE-REFUSED: ' + what + ' was answered '
+      + ((record.result && record.result.code) || 'without ok'));
+  }
+  return record.result;
 }
 
 /* WHEN THE MEASURE SCREEN HAS FINISHED LOADING, named once so both the cells and
