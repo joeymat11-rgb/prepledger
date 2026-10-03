@@ -37,7 +37,8 @@ import { createRequire } from 'node:module';
 import { IDBFactory, sealInventedBundle, eraFor, firstRun, admit, SETUP, IMPORTED_LOADS,
   liveAt, firstRunWith, carry, material, producerRegistryFor } from '../../../m3/w7-preview/import/test/support.mjs';
 import { createLocalSourceController, localSourceCommitCapability } from '../../../m3/w6/local/source-admission.mjs';
-import { sealed, variant, PHONE, AT, SETUP_DAY, phoneState, CTRL_DAYS } from '../p3-real-shape/real-shape-support.mjs';
+import { sealed, sealNamed, variant, PHONE, AT, SETUP_DAY, phoneState, CTRL_DAYS } from '../p3-real-shape/real-shape-support.mjs';
+import { createWorkoutEntry, createTodayModel } from '../../../m3/w7-preview/today/today-entry.mjs';
 import { createGymModel } from '../../../m3/w7-preview/today/gym-model.mjs';
 import { createCleanInitState } from '../../../m3/w7-preview/today/setup-model.mjs';
 import { admittedLocalSourceBasis } from '../../../m3/w7-preview/today/local-source-basis.mjs';
@@ -364,7 +365,7 @@ const activeCodes = issues => [...new Set((issues || []).filter(i => i && !i.sup
    number into that box, so the fixture now does the same - 20 lb, and the window's 8 reps - and RECORDS every empty box
    in `blank`, so a cell can prove the box was empty for a lift that genuinely has no working weight, not for one that
    has (a defect in core logging, which a cell must report rather than type past). */
-async function observedWorkout(era, day, engineState, pick = () => true, { effort = EFFORT } = {}) {
+async function observedWorkout(era, day, engineState, pick = () => true, { effort = EFFORT, top = null } = {}) {
   const openGym = d => era.createGymHost({ day: d, engineState, plannedSplitSlotId: 'earned-today-preview/' + d });
   const gymHost = await openGym(day);
   const gym = createGymModel({ gymHost, sessionTitle: null, hostForDay: openGym });
@@ -383,8 +384,9 @@ async function observedWorkout(era, day, engineState, pick = () => true, { effor
       blank.push({ lift: view.set.lift, slot: view.set.slot, load: empty(view.entry.load), reps: empty(view.entry.reps) });
     if (lift === null && pick(view.set.lift)) { lift = view.set.lift; card = empty(view.entry.load) ? null : Number(view.entry.load); }
     const shown = empty(view.entry.load) ? null : Number(view.entry.load);
-    const load = view.set.lift === lift ? String(shown === null ? 20 : shown + 5) : shown === null ? '20' : view.entry.load;
-    const reps = empty(view.entry.reps) ? '8' : view.entry.reps;
+    /* Round 9: `top` logs the chosen lift at its card's own load and `top` reps (a session at the top of the window), not 5 lb over. */
+    const load = view.set.lift === lift ? String(shown === null ? 20 : top === null ? shown + 5 : shown) : shown === null ? '20' : view.entry.load;
+    const reps = view.set.lift === lift && top !== null ? top : empty(view.entry.reps) ? '8' : view.entry.reps;
     if (view.set.lift === lift) lifted.push(Number(load));
     ok('the set', await gym.logSet({ startId, slot: view.set.slot, lift: view.set.lift, load, reps,
       effort: view.set.lift === lift ? effort : EFFORT }));
@@ -678,17 +680,18 @@ test('FC09-Q3-E ADMISSION AND PAGE FOLD THE SAME ON THE REAL SHAPE (spec :176-:1
    file names it by another id, and every native-load judgement after the import must read those workouts as the file lift's
    own (the page projects them under the phone's id and never re-keys; admission's F9 folds the same projection). RED at the
    round-6 FC03 (19ae7efc). */
-async function realShapeHistory(t, tag, { workouts, importDay }) {
+async function realShapeHistory(t, tag, { workouts, importDay, prepare = null, file = null }) {
   const fileLifts = variant(1).exercises, fileIds = new Set(fileLifts.map(e => e.id));
   const scope = { databaseName: 'p3-fc09-' + tag, namespace: 'joe/p3-fc09-' + tag, athleteId: 'ath-p3-fc09', deviceId: 'dev-p3-fc09' };
   const era = await eraFor({ indexedDB: new IDBFactory(), live: liveAt(AT(workouts[0].day)), ...scope });
   t.after(() => era.close());
   await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
   const engineState = phoneState();
+  if (prepare) prepare(engineState);
   let lift = null;
   const done = [];
   for (const w of workouts) {
-    const r = await observedWorkout(era, w.day, engineState, id => (lift === null ? !fileIds.has(id) : id === lift), { effort: w.effort });
+    const r = await observedWorkout(era, w.day, engineState, id => (lift === null ? !fileIds.has(id) : id === lift), { effort: w.effort, top: w.top || null });
     assert.ok(r.lift, 'precondition: no lift on the ' + w.day + ' card is named differently by the file: ' + JSON.stringify(r.seen));
     lift = r.lift;
     const host = await era.createNativeLoadHost({ day: w.day, engineState });
@@ -698,8 +701,9 @@ async function realShapeHistory(t, tag, { workouts, importDay }) {
     if (w.yes) {
       const check = await host.check({ lift_lineage_id: lift, completion_op_id: completion.completion_op_id });
       assert.equal(check.status, 'offer', 'no offer before the import: ' + JSON.stringify(check.refusal));
-      const offer = check.offers.find(o => o.lift === lift && o.kind === 'adopt-observed');
-      assert.ok(offer, 'no adopt-observed offer: ' + JSON.stringify(check.offers.map(o => [o.lift, o.kind])));
+      const kind = w.yes === 'earn' ? 'earn' : 'adopt-observed';
+      const offer = check.offers.find(o => o.lift === lift && o.kind === kind);
+      assert.ok(offer, 'no ' + kind + ' offer: ' + JSON.stringify(check.offers.map(o => [o.lift, o.kind])));
       const saved = await host.respond({ handle: offer.handle, proposal_id: offer.proposalId, answer: 'accept' });
       assert.equal(saved.acknowledged, true, 'the Yes was not saved: ' + (saved.code || JSON.stringify(saved)));
       opId = saved.op_id;
@@ -710,7 +714,8 @@ async function realShapeHistory(t, tag, { workouts, importDay }) {
   const phoneName = PHONE.setup.exercises.find(e => e.id === lift).n;
   const fileLift = fileLifts.filter(e => LiftCorrespondence.normaliseName(e.n) === LiftCorrespondence.normaliseName(phoneName));
   assert.equal(fileLift.length, 1, 'precondition: ' + lift + ' corresponds to exactly one file lift');
-  const { carried, platform } = await carry(era, sealed(1));
+  const phoneEx = JSON.parse(JSON.stringify(engineState.exercises.find(e => e.id === lift)));
+  const { carried, platform } = await carry(era, file ? file(lift, phoneEx) : sealed(1));
   assert.equal(carried.imported, true, 'custody refused: ' + carried.code);
   const held = await material(era, platform, carried.name);
   const controller = createLocalSourceController({ repository: held.repository, ...scope,
@@ -726,7 +731,11 @@ async function realShapeHistory(t, tag, { workouts, importDay }) {
   t.after(() => host.close());
   const p = await host.project();
   assert.equal(p.ok, true, p.code);
-  return { era, lift, fileLift: fileLift[0].id, done, view, imported, host, p };
+  /* Round 9b: the lift the ADMITTED state carries for that name (the file actually imported, which a cell may build itself: the
+     one-id twin's file names it by the phone's own id), never the id variant(1) gives it. */
+  const admitted = imported.exercises.filter(e => LiftCorrespondence.normaliseName(e.n) === LiftCorrespondence.normaliseName(phoneName));
+  assert.equal(admitted.length, 1, 'precondition: the admitted state carries exactly one lift named as ' + lift);
+  return { era, lift, fileLift: admitted[0].id, done, view, imported, host, p, phoneEx };
 }
 const HOT = { tag: 'exact', value: 0, unit: 'rep' };
 
@@ -812,4 +821,68 @@ test('FC09-Q3-H THE GOVERNOR READS THE PRE-IMPORT OPENERS, ON THE PAGE AND IN AD
   assert.ok(row, 'F9 did not answer for the Yes');
   t.diagnostic('Q3-H admission ' + JSON.stringify(row.fold_codes) + ' ' + row.outcome + '; page ' + JSON.stringify(activeCodes(r.p.issues)));
   assert.deepEqual(row.fold_codes, activeCodes(r.p.issues), 'admission and the page folded the history differently');
+});
+
+
+/* ROUND 9 (PM ruling DECISIONS:884 (1), BLOCKING; Claude Opus l2 B1). THE UNDO TODAY LISTS. A Yes on the phone, then an import
+   whose file names that lift by ANOTHER id and KEEPS its working weight: FC03 folds the Yes as applied (an adoption) or queued (an
+   earn), not held, and its Undo is offered on the file's lift. The page's "Check next weight" must LIST that Undo (spec :153, D9),
+   on the file's lift, exactly as it lists it when the file names the lift by the phone's own id (the one-id twin). RED at 22ac52b:
+   today-entry.mjs takes the Undo's lift from the spend id (the phone's), while the page keys its completions by the file's lift, so
+   the listing skips it. The file is variant(1) with the corresponded lift's working weight made the phone's own (w and wSets, the
+   members spec :156 compares), so the import keeps the base the Yes was issued on; in the twin that lift also keeps the phone's id. */
+const KEPT = ['w', 'wSets'];
+function keptFile(key, twin) {
+  return (lift, phoneEx) => sealNamed('fc09-q3i-' + key + (twin ? '-twin' : ''), () => {
+    const state = variant(1);
+    const x = state.exercises.find(e => LiftCorrespondence.normaliseName(e.n) === LiftCorrespondence.normaliseName(phoneEx.n));
+    for (const k of KEPT) { if (Object.hasOwn(phoneEx, k)) x[k] = JSON.parse(JSON.stringify(phoneEx[k])); else delete x[k]; }
+    if (twin) {
+      const was = x.id;
+      x.id = lift;
+      for (const day of Object.keys(state.exOrder)) state.exOrder[day] = state.exOrder[day].map(id => (id === was ? lift : id));
+      for (const day of Object.values(state.sessionLog)) for (const entry of day.entries) if (entry.id === was) entry.id = lift;
+      for (const q of state.queue) if (q.exId === was) q.exId = lift;
+      for (const book of ['insertions', 'retirements']) if (state[book] && Object.hasOwn(state[book], was)) { state[book][lift] = state[book][was]; delete state[book][was]; }
+    }
+    return state;
+  });
+}
+/* The page's own listing: the Today workout entry over the admitted basis, its "Check next weight", every Undo it lists. */
+async function undoListing(t, r, day) {
+  const model = createTodayModel({ today: day, basisState: r.imported });
+  const entry = await createWorkoutEntry(model, { hosts: r.era });
+  t.after(() => { entry.nativeLoad.close(); entry.gymHost.close(); });
+  await entry.nativeLoad.check();
+  await entry.nativeLoad.settled();
+  const view = entry.nativeLoad.view();
+  return view.offers.filter(o => o.kind === 'compensate').map(o => ({ lift: o.lift, loads: o.loads, current: o.current }));
+}
+for (const [label, key, workouts, prepare] of [
+  ['an applied adoption', 'adopted', [{ day: '2026-09-18', yes: true }], null],
+  /* An earn needs a next load on file: the phone's lifts are given a rung ladder over their first load (the test's own basis). */
+  ['a queued earn', 'queued', [{ day: '2026-09-18', top: '12' }, { day: '2026-09-25', top: '12', yes: 'earn' }],
+    s => { for (const e of s.exercises) e.steps = [e.w, e.w + 5, e.w + 10]; }],
+]) test('FC09-Q3-I TODAY LISTS THE UNDO OF ' + label.toUpperCase() + ' ON THE FILE\'S LIFT (DECISIONS:884 (1); spec :153 D9, :154): '
+  + 'a Yes on the phone, an import that renames the lift and keeps its working weight; "Check next weight" lists the Undo on '
+  + 'the file\'s lift, as the one-id twin lists it on its own', async t => {
+  const IMPORT = '2026-09-26';
+  const r = await realShapeHistory(t, 'q3i-' + key, { workouts, importDay: IMPORT, prepare, file: keptFile(key, false) });
+  const twin = await realShapeHistory(t, 'q3i-' + key + '-twin', { workouts, importDay: IMPORT, prepare, file: keptFile(key, true) });
+  const yes = r.done.at(-1).opId, twinYes = twin.done.at(-1).opId;
+  t.diagnostic('Q3-I ' + key + ' ' + r.lift + ' -> ' + r.fileLift + '; issues ' + JSON.stringify(r.p.issues.map(i => [i.code, i.field, i.lift]))
+    + '; effects ' + JSON.stringify(r.p.effects.map(e => e.kind)) + '; twin effects ' + JSON.stringify(twin.p.effects.map(e => e.kind)));
+  assert.notEqual(r.fileLift, r.lift, 'precondition: the file names the lift by another id');
+  assert.equal(twin.fileLift, twin.lift, 'precondition: the twin\'s file names it by the phone\'s own id');
+  for (const [name, x, op] of [['correspondence', r, yes], ['twin', twin, twinYes]]) {
+    assert.deepEqual(x.p.issues.filter(i => !i.superseded_by && (i.refs || []).some(z => z && z.op_id === op)).map(i => i.code), [],
+      'precondition (' + name + '): the import kept the base, so the Yes is not held');
+    assert.deepEqual(x.p.effects.map(e => e.kind), [key], 'precondition (' + name + '): the Yes is ' + key);
+  }
+  const listed = await undoListing(t, r, IMPORT), twinListed = await undoListing(t, twin, IMPORT);
+  t.diagnostic('Q3-I ' + key + ' listed ' + JSON.stringify(listed) + '; twin ' + JSON.stringify(twinListed));
+  assert.deepEqual(twinListed.map(o => o.lift), [twin.lift], 'control: one id lists the Undo');
+  assert.deepEqual(listed.map(o => o.lift), [r.fileLift], 'THE UNDO LISTING SEAM: Today does not list the Undo on the file\'s lift');
+  assert.deepEqual(listed.map(o => ({ loads: o.loads, current: o.current })), twinListed.map(o => ({ loads: o.loads, current: o.current })),
+    'the listed Undo is the one-id twin\'s');
 });

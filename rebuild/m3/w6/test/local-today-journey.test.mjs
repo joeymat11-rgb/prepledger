@@ -706,8 +706,18 @@ export const PAGE_PINS = Object.freeze({
      so the `hosts` branch is byte-unchanged; an INJECTED installation is still never
      closed by this page (the teardown closes the native-load handle, never `hosts`);
      and a declared-day caller still gets no watcher at all. gym-host.mjs,
-     reading-host.mjs and checkin-host.mjs did not move. */
-  'today-entry.mjs': '169d56585edc9cfd1b1ef43ea0fb82f93179b2c3b131a96de7f5861e2e747ef6',
+     reading-host.mjs and checkin-host.mjs did not move.
+     S11 FC09 round 9 re-pin (PM ruling DECISIONS:884 (1), the Today Undo listing). today-entry.mjs moves by ONE hunk,
+     inside createNativeLoadController's D9 listing (today-entry.mjs:215-227): an Undo is listed on the lift the host
+     names for its spend (projected.spend_lifts, built by today-bindings.mjs spendLifts through its shownLift), not on
+     the spend id's own lift. Re-read against today-bindings.mjs at this re-pin, as every re-pin must: boot() is
+     byte-unchanged, so it still opens the local era BY DEFAULT (today-entry.mjs:524 `hosts = options.hosts || null`,
+     :533-540 openTodayHosts only when none was injected) and the `hosts` branch is untouched; the new hunk only READS
+     the host's projection and opens no store; today-bindings.mjs spendLifts is a pure function of the fold and the
+     resolver and opens no store either; an INJECTED installation is still never closed by this page
+     (today-entry.mjs:687 `owned = options.hosts ? null : hosts`); and a declared-day caller still gets no watcher at
+     all. gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move. */
+  'today-entry.mjs': 'b3de1c31801714f800c36536cf338fade41432fee297c25f563a1c0b4b29e97d',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

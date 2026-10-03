@@ -212,16 +212,19 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
          is simply not offered. Route B's after-Close check lists only new weights. */
       if (closeOpId === undefined) {
         const spends = new Map();
+        /* S11 FC09 round 9 (PM ruling DECISIONS:884 (1)): a spend names its record's lift; the host gives the lift the page shows it
+           on (today-bindings.mjs spendLifts, the one resolver), so an Undo is listed against the completions it keys by that lift. */
+        const shownOf = (spend, lift) => (projected.spend_lifts && typeof projected.spend_lifts[spend] === "string" ? projected.spend_lifts[spend] : lift);
         for (const e of projected.effects || []) if (e && (e.kind === "queued" || e.kind === "adopted")) {
           let lift = null; try { lift = JSON.parse(e.spend_id)[1]; } catch (_) { lift = null; }
-          if (typeof lift === "string") spends.set(e.spend_id, lift);
+          if (typeof lift === "string") spends.set(e.spend_id, shownOf(e.spend_id, lift));
         }
         for (const x of (projected.issues || []).filter(heldIssue)) spends.set(x.spend_id, x.lift);
         // Spec R9.1 :158 NO TRAP exit (a): a genuine accepted spend kept behind a lift hold
         // (never applied, so neither an effect nor a held issue names it) still lists its undo.
         for (const x of projected.spent || []) if (x && !x.cancelled && !spends.has(x.spend_id)) {
           let lift = null; try { const d = JSON.parse(x.spend_id); lift = d[0] === "native-load" ? d[1] : null; } catch (_) { lift = null; }
-          if (typeof lift === "string") spends.set(x.spend_id, lift);
+          if (typeof lift === "string") spends.set(x.spend_id, shownOf(x.spend_id, lift));
         }
         for (const [spend, lift] of spends) {
           const newest = projected.lifts.find(l => l.lift_lineage_id === lift && l.normal);

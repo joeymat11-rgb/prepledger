@@ -171,6 +171,16 @@ function atLift(rt, recordLift) {
   const viewOf = (s) => (renamed ? lineageView(inBase(s), from, to) : inBase(s));
   const requestOf = (q) => (!map(q) || !map(q.basis) || !Array.isArray(q.basis.effect_frontier) ? q
     : { ...q, basis: { ...q.basis, effect_frontier: q.basis.effect_frontier.map((f) => (map(f) && typeof f.spend_id === 'string' ? { ...f, spend_id: spendIn(f.spend_id, at) } : f)) } });
+  // DECISIONS:884 (2) (Fable l2 B3): a native queue entry names its spend as it was written (a record is never rewritten), and FC01
+  // reads that name only against the request's frontier and intent (E/native-load.cjs:215-:223 TARGET_QUEUED refs, :378 heldTrace,
+  // :399 compensation). In an EVALUATION the copy's entries are read in the frontier's space, the same `at`. An evaluation returns
+  // no state, so nothing has to map back; a transition's view keeps the queue as written (it compares it with the decision's own
+  // ids, :566-:666). A view in which no entry moves is handed on as it is.
+  const queueIn = (s) => {
+    if (!map(s) || !Array.isArray(s.queue)) return s;
+    const moved = (q) => map(q) && typeof q.native_load_spend === 'string' && spendIn(q.native_load_spend, at) !== q.native_load_spend;
+    return s.queue.some(moved) ? { ...s, queue: s.queue.map((q) => (moved(q) ? { ...q, native_load_spend: spendIn(q.native_load_spend, at) } : q)) } : s;
+  };
   const answerOf = (ev, q) => {
     if (!map(ev) || !map(q) || q.basis === undefined) return ev;
     let basis; try { basis = json(q.basis); } catch (_) { return ev; }
@@ -179,7 +189,7 @@ function atLift(rt, recordLift) {
   return Object.freeze({
     evaluateNativeLoad: (s, request) => {
       let v;
-      try { v = viewOf(s); } catch (error) {
+      try { v = queueIn(viewOf(s)); } catch (error) {
         if (!(error instanceof LineageRefused)) throw error;
         let basis = null; try { basis = map(request) && request.basis !== undefined ? json(request.basis) : null; } catch (_) { basis = null; }
         return { profile: PRODUCER, status: 'refused', basis, offers: [], refusal: { ...LINEAGE_REFUSAL } };

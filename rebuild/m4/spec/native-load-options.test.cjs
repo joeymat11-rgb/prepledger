@@ -9308,3 +9308,25 @@ test('FC09-LINEAGE-C5 ADMISSION\'S RE-KEYED FACTS FOLD EXACTLY AS THE PROJECTED 
  }
  assert.equal(n,12);
 });
+
+test('FC09-LINEAGE-TQ A QUEUED PRE-IMPORT EARN NAMES ITS AUTHORITY AS ONE ID WOULD (PM ruling DECISIONS:884 (2), Fable l2 B3; spec :127 TARGET_QUEUED refs = the queued effect\'s authority Refs): two pre-import completions and the earn Yes, then an import that keeps the base; every check while the debut pends answers the one-id twin\'s refusal, refs included, with and without an imported prefix, page and admission forms; the queue entry keeps its spend as written',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1'),spend=decisionOf(s.offer).spend_id;
+ const twin=sharedTwin({pre:s.cs,extra:[s.resp]});
+ for(const log of [false,true])for(const facts of ['page','admission']){
+  let a=lineageArgs({pre:s.cs,extra:[s.resp],facts});if(log)a=withImportedLog(a);
+  const name='log '+log+' '+facts+': ',f=EFFECTS.m.foldNativeLoad(a);
+  assert.deepEqual(issueRows(f),[],name+'the earn applies');
+  const q=f.state.queue.find(x=>x&&x.native_load_spend===spend);
+  assert.ok(q&&q.exId===FILE&&q.done===false&&q.state==='DEBUT',name+'its debut pends on the file\'s lift, its spend as written: '+JSON.stringify(f.state.queue));
+  for(const c of s.cs){
+   const pq=checkOf(a,FILE,c),tq=checkOf(twin,LIFT,{close:c.close});
+   assert.deepEqual(verdictOf(tq),['refused','NATIVE_LOAD_TARGET_QUEUED',[]],'control: one id');
+   assert.deepEqual(tq.refusal.refs,[ref('fx-resp-1')],'control: one id names the Yes');
+   assert.deepEqual(pq.refusal,tq.refusal,name+c.close+': the refusal, refs included, is the one-id twin\'s');
+  }
+  const pu=checkOf(a,FILE,s.cs[1],{compensate:spend}),tu=checkOf(twin,LIFT,{close:s.cs[1].close},{compensate:spend});
+  assert.deepEqual(shapeOf(pu),shapeOf(tu),name+'the Undo of the queued earn');
+  assert.deepEqual(verdictOf(pu),['offer',null,['compensate']]);
+ }
+});

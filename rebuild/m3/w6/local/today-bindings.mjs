@@ -637,6 +637,18 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
   }
   // The lift a page shows for a record's or a completion's lift: the base lift its lineage resolves to.
   function shownLift(lineage, id) { return lineage && lineage.pairs && Object.hasOwn(lineage.pairs, id) ? lineage.pairs[id] : id; }
+  /* S11 FC09 round 9 (PM ruling DECISIONS:884 (1)): the lift the page lists each spend's Undo on. A spend id names the lift its
+     record was issued under (the phone's, before an import that renamed it); the page keys its completions by the shown lift
+     (`lifts` below), so every spend of the fold is given its shown lift by the SAME resolver, shownLift, and nothing else. */
+  function spendLifts(fold, lineage) {
+    const out = {};
+    for (const x of [...(fold.effects || []), ...(fold.spent || [])]) {
+      if (!x || typeof x.spend_id !== "string" || Object.hasOwn(out, x.spend_id)) continue;
+      let lift = null; try { const d = JSON.parse(x.spend_id); lift = Array.isArray(d) && typeof d[1] === "string" ? d[1] : null; } catch { lift = null; }
+      if (lift !== null) out[x.spend_id] = shownLift(lineage, lift);
+    }
+    return out;
+  }
 
   function heldProjection(fold, runtime, day) {
     // Spec R9.2 :158: FC03's one held-lift projection (w/wSets null, held native entries not
@@ -722,6 +734,8 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
           effects: structuredClone(p.fold.effects), issues: structuredClone(p.fold.issues), lifts: structuredClone(p.lifts),
           // Spec R9.1 :158 NO TRAP: every accepted spend (held-back ones included) and whether it is cancelled.
           spent: p.fold.spent.map(x => ({ spend_id: x.spend_id, cancelled: !!x.cancelled_by })),
+          // S11 FC09 round 9 (DECISIONS:884 (1)): spend_id -> the lift its Undo is listed on (spendLifts above).
+          spend_lifts: spendLifts(p.fold, p.args.lineage),
           revision: p.snap.revision };
       },
       async check(request = {}) {

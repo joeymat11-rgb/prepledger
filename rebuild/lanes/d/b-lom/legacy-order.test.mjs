@@ -176,11 +176,16 @@ const REPO = new URL('../../../../', import.meta.url);
 async function callers(symbol) {
   const found = [], roots = ['rebuild/m3', 'rebuild/m4'];
   const skip = /(^|\/)(test|node_modules|\.tmp)(\/|$)|\.test\.(c|m)?js$|-mutants\.(c|m)?js$/;
+  /* S11 FC09 round 9b (PM ruling after DECISIONS:884): the same by-path exclusions as LOM-S6-LITERAL, tested on a directory
+     before it is listed and on an entry before it is read or descended into: any src/ tree, conform/private and any private/
+     directory, any soak path, any ledger/ directory, any app.js. It narrows only which files are read. */
+  const forbidden = /(^|\/)src(\/|$)|(^|\/)conform\/private(\/|$)|(^|\/)private(\/|$)|soak|(^|\/)ledger(\/|$)|(^|\/)app\.js$/i;
   while (roots.length) {
     const dir = roots.shift();
+    if (forbidden.test(dir)) continue;
     for (const entry of await readdir(fileURLToPath(new URL(dir, REPO)), { withFileTypes: true })) {
       const rel = dir + '/' + entry.name;
-      if (skip.test(rel)) continue;
+      if (forbidden.test(rel) || skip.test(rel)) continue;
       if (entry.isDirectory()) { roots.push(rel); continue; }
       if (!/\.(cjs|mjs|js)$/.test(entry.name)) continue;
       if (rel === 'rebuild/m4/workout/legacy-order-mapping.cjs') continue;
@@ -812,13 +817,24 @@ test('LOM-S6-ADMISSION - the ONE admission stamp: attachAdmittedOrder has exactl
 test('LOM-S6-LITERAL - no new site writes legacy_baseline or import_anchor as an object literal; the only literals are the '
   + 'order law\'s derived anchor, the stamp helper\'s own pair, and the spec checker that predates this seam', async () => {
     const found = {}, roots = ['rebuild/m3', 'rebuild/m4'];
+    /* S11 FC09 round 9 (PM ruling DECISIONS:884 (3)): the paths this cell may never open, read or descend into, EXCLUDED BY PATH
+       before any read: any src/ tree, rebuild/conform/private (and any private/ directory), any soak path, any ledger directory
+       and any built app.js. A directory is tested before it is listed and a file before it is read. */
+    const forbidden = /(^|\/)src(\/|$)|(^|\/)conform\/private(\/|$)|(^|\/)private(\/|$)|soak|(^|\/)ledger(\/|$)|(^|\/)app\.js$/i;
+    for (const p of ['src', 'src/app.jsx', 'rebuild/m3/src/x.mjs', 'rebuild/conform/private/x.cjs', 'rebuild/m4/private/x.cjs',
+      'rebuild/m3/soak-stub/app.mjs', 'rebuild/m4/x/ledger/y.cjs', 'rebuild/m3/w7-preview/app.js'])
+      assert.ok(forbidden.test(p), 'the exclusion does not name ' + p);
+    for (const p of ['rebuild/m4/workout/legacy-order-mapping.cjs', 'rebuild/m4/workout/engine-order.cjs', 'rebuild/m3/w6/local/source-admission.mjs'])
+      assert.ok(!forbidden.test(p), 'the exclusion names a runtime module: ' + p);
+    for (const root of roots) assert.ok(!forbidden.test(root));
     const skip = /(^|\/)(test|node_modules|\.tmp|ledger)(\/|$)|soak|\.test\.(c|m)?js$|-mutants\.(c|m)?js$|(^|\/)app\.js$/i;
     const literal = /['"]?\b(legacy_baseline|import_anchor)['"]?\s*:/g;
     while (roots.length) {
       const dir = roots.shift();
+      if (forbidden.test(dir)) continue;
       for (const entry of await readdir(fileURLToPath(new URL(dir, REPO)), { withFileTypes: true })) {
         const rel = dir + '/' + entry.name;
-        if (skip.test(rel)) continue;
+        if (forbidden.test(rel) || skip.test(rel)) continue;
         if (entry.isDirectory()) { roots.push(rel); continue; }
         if (!/\.(cjs|mjs|js)$/.test(entry.name)) continue;
         const n = ((await readFile(fileURLToPath(new URL(rel, REPO)), 'utf8')).match(literal) || []).length;
