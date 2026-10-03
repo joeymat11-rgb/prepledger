@@ -158,8 +158,8 @@ unaffected. PM RULING: fixed, not re-run around (`:888`). The artifact `93f55718
    `SEALED RUN NEXT STEP [cut] sha256 6ead5e9e87c0ec849cde25f95e07f4db374b8fd7a4a732ad7a18cc4d73d26af1 [cut]` |
    `POSTFIX PACKAGE PASS M2-S11-NATIVE-LOAD`, EXIT=0 | CHILD OBSERVED 39 | LEGACY PASS 10. No red and no re-run at T20. The receipt
    it wrote was committed unmodified as C1 `f4fae8a` (T21).
-8. T24, `--full --package S11` at C3 <<PM: C3>> (the byte-identity re-verify; C2 <<PM: C2>> carries this verdict):
-   <<PM: T24 line>>. S11 has 0 released paths, so the S10 sentence's "plus 2 released and NOT re-verified here" clause is absent
+8. T24, `--full --package S11` at C3 `9e98a68` (the byte-identity re-verify; C2 `763432e` carries this verdict):
+   "AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY (DECISIONS:136 (3)); artifact, runner, spec and all 320 pinned product file(s) are byte-identical to the sealed run recorded in rebuild/lanes/b/tooling/receipts/S11.json 6ead5e9e87c0ec849cde25f95e07f4db374b8fd7a4a732ad7a18cc4d73d26af1, whose own bytes stand IN GIT at every base checked ...", then "POSTFIX PACKAGE PASS M2-S11-NATIVE-LOAD", 39 children OBSERVED, EXIT=0, no re-run. S11 has 0 released paths, so the S10 sentence's "plus 2 released and NOT re-verified here" clause is absent
    (runbook T24). The private census junction is removed after this run. Terminal 7 stands as the evidence for the private
    oracle, the historical audit and the 19 original gates; T24 does not re-run them.
 
@@ -171,7 +171,7 @@ unaffected. PM RULING: fixed, not re-run around (`:888`). The artifact `93f55718
   at A is the first hosted run of this tree (A = M1 + the artifact only) (`:891`).
 - CI-1 at A `24982cf1`: `rebuild` run `37110080030`, rebuild-public and C font transport success on ubuntu and windows (the S11
   package step, S11-REGEN, W6 and C4B steps green with the rest) (`:891`, T15).
-- CI-2 at the sealing head C4 <<PM: C4>> (the commit that carries this terminal file): <<PM: CI-2>>, named on the
+- CI-2 at the sealing head C4 (the commit that carries this terminal file): its run id and both runners' conclusions are named on the
   `M2-S11-NATIVE-LOAD SEALED AND MERGED` ledger line (L6) with both runners' conclusions, b-lom included (`D:800`: D-BLOM excuses
   no red public step). This file is not edited after that run.
 - Hosted observation runs (never merged): T5b run 1 `37079669559`, run 2 `37102082564`, run 3 `37108132701` (below).
@@ -310,7 +310,7 @@ method, not as defects. Every other red:
    today-17 `copy.test.mjs:167` P1 (828/829), paid by `78779d8f` (`:889`); re-runs ci0b and ci1b EXIT=0, recorded with their reds.
 7. Second pass T7-T20: no red; T12 ci2 EXIT=0; T14 full2 EXIT=2, the predicted REVIEW-PENDING (its envelope-line deviation is
    D-T16S11-1); CI run `37109597259` at M1 cancelled by concurrency, not red (`:891`); CI-1 green (`:891`); T20 EXIT=0, no re-run.
-8. T23, T24 and CI-2: as recorded in The coach constant, terminal 8 and CI, and on L6 <<PM: L6>>.
+8. T23, T24 and CI-2: as recorded in The coach constant, terminal 8 and CI, and on L6 (the SEALED AND MERGED line).
 
 ### Every incident
 - HARD-LIMIT INCIDENT (`:883`), recorded not excused: in FC09 round 8 the builder ran a one-off regex count over `rebuild/m3` that read
@@ -642,9 +642,9 @@ hosted-blom packet (notes[8]).
 ## The coach constant
 `rebuild/coach/engine-revision.cjs` `ENGINE_REVISION` (the literal on :25) moves once, from `M2-S10-TODAY-SPLIT@3c6d1f5d1fba7699`
 (set at the S10 seal) to `M2-S11-NATIVE-LOAD@6ead5e9e87c0ec84` (the first 16 hex of this receipt's sha256), in commit C3
-<<PM: C3>> after this verdict. S11.json declares no `rebuild/coach` path (0 rebuild/coach paths in the product, Fable T16 section 2),
+`9e98a68` after this verdict. S11.json declares no `rebuild/coach` path (0 rebuild/coach paths in the product, Fable T16 section 2),
 so C3 does not void the receipt. The coach suite (`rebuild/coach/test/*.test.cjs`, the `rebuild.yml` glob) ran
-<<PM: T23 coach count>>; the production pair (production-mapping and production-admission) ran <<PM: T23 production pair count>>
+377/377 (EXIT=0); the production pair (production-mapping and production-admission) ran 28/28 (EXIT=0)
 (child 7's needle is `# pass 28`, notes[14]).
 
 ## What this seal carries for the athlete
@@ -658,4 +658,4 @@ one question stays open for the trial: whether a phone with no imported history 
 ladder has no next load (`:885`, owner step T29). This all sits on the sealed S10 Today split; the only engine bytes that move are
 the new native-load module and the declared FG01 and FG02 hunks in `writers.cjs` and `progression.cjs`. The owner said "Yes, at each
 seal" at `DECISIONS:816` (2): the fast-forward that lands this seal updates his phone preview through `slice-host.yml`, as L6
-records (<<PM: L6>>). The only coach byte that moves is the revision constant, which moves once to name this seal.
+records. The only coach byte that moves is the revision constant, which moves once to name this seal.
