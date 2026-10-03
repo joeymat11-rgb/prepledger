@@ -107,7 +107,7 @@
     },
     "rebuild/engine/native-load.cjs": {
       "pre": null,
-      "post": "dd197849fe92a493dee86ed7c530bdc9e1c22d382004fa4ee6c04968de7e0a73",
+      "post": "ab2a1ca86d8cb2907fd537b946e82e32dd34969a471598cd0706c573e80acad6",
       "role": "new"
     },
     "rebuild/engine/oracle-shim.cjs": {
@@ -377,8 +377,8 @@
     },
     "rebuild/lanes/d/b-lom/legacy-order.test.mjs": {
       "pre": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
-      "post": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
-      "role": "carried"
+      "post": "e336594c172917f4e224c567eb79d48f1767c03923d1642d3a8b2e2f9d93fe8d",
+      "role": "edited"
     },
     "rebuild/lanes/d/f2/guard-coverage.test.mjs": {
       "pre": "78d1d73c02b115981006ab38dd0a16bfcd9fddbee8afa40c872964155281b9e7",
@@ -475,6 +475,11 @@
       "post": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
       "role": "carried"
     },
+    "rebuild/lanes/d/p3-replay-all/native-load-import.test.mjs": {
+      "pre": null,
+      "post": "fc4c9fe6e088e40b7b098a5719a1d56b6804fdd7c2f2a5787528b43be7647183",
+      "role": "new"
+    },
     "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs": {
       "pre": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
       "post": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
@@ -482,13 +487,13 @@
     },
     "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs": {
       "pre": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
-      "post": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
-      "role": "carried"
+      "post": "7d6571190880f58786b2579bdaf43462cb22c67fc3f46bdf2bffacc080d48aa3",
+      "role": "edited"
     },
     "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs": {
       "pre": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
-      "post": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
-      "role": "carried"
+      "post": "1491e63f4dd9c62a89dd3928f2ea8310767d45161fa1da8467c806ddb58fcd55",
+      "role": "edited"
     },
     "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs": {
       "pre": "448193e0216cabd3eedc4a50e8b1719c0ca493c9385ec291e0fc35f5143ece2d",
@@ -647,7 +652,7 @@
     },
     "rebuild/m3/w6/local/source-admission.mjs": {
       "pre": "2f477147b79d3fc1b03feae873b25f40359334425051a851570880b7423113a3",
-      "post": "10bd5cfbf0f591dbfba652b64c514d270345230664c5785c33aea8cabf07157d",
+      "post": "902df9ff3623ba71e62df30ef50d82878099b4ede13e5c777846c3b8992e0359",
       "role": "edited"
     },
     "rebuild/m3/w6/local/source-platform.mjs": {
@@ -657,7 +662,7 @@
     },
     "rebuild/m3/w6/local/today-bindings.mjs": {
       "pre": "23c1179794b12259c027f9b30780186211e7ac4b6f2770eaca3fe663e59bbf12",
-      "post": "91aa980fc51e78c36f6946a3141e71e3a679ae74b8c78bfba44a805fa4b1d797",
+      "post": "3cb27682af291df91b52aecd9b299aa7714463912ad031a9560e65a6ee8befad",
       "role": "edited"
     },
     "rebuild/m3/w6/local/today-browser-entry.mjs": {
@@ -677,7 +682,7 @@
     },
     "rebuild/m3/w6/test/local-source-admission.test.mjs": {
       "pre": "6144c7863991654da3b47215ce6d2ce04f9f335c77ceb643706a3603e9ce9491",
-      "post": "bcc6df4d02a9c3cf71af50410996b5cebfee4bc830040c27eb1e0f119c53ec4e",
+      "post": "0e1a6ed7f216b5f451ccc0fd2c5e5698e54eda8f70c6f7e1b63710b2bfbf46f9",
       "role": "edited"
     },
     "rebuild/m3/w6/test/local-source-commit.test.mjs": {
@@ -692,7 +697,7 @@
     },
     "rebuild/m3/w6/test/local-today-journey.test.mjs": {
       "pre": "4a371979a8b52b03e393f3e72baf2daf536ff1474f48f2ffffa1233ef6dc8a7a",
-      "post": "99abe7443379e2de014a78e6b942c4420dbf961359f64a93788f81b3dc9eb3f4",
+      "post": "4afa0cb9e23699a53c225aba1b4e7fba536de8076c98960e50dbc3c517619363",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/browser-engine.cjs": {
@@ -727,7 +732,7 @@
     },
     "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs": {
       "pre": "bedb5c8e37186bff6221e0749a9e3896c4e1e575d4684a96aaf7807ff9eba9a9",
-      "post": "78092e3197ff02f4312b20315434aa89b23280ca5c3b0ed31a2d00ec794391bc",
+      "post": "c44d776127a3ef7d9ae0be18a559a0b0c53f3cd86190a5a2855cf54c6fb45f27",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs": {
@@ -992,7 +997,7 @@
     },
     "rebuild/m3/w7-preview/today/today-entry.mjs": {
       "pre": "8b1697582d7d9f21bda4668f590187e612d3d554b8be32a31cfc6fb82ab91276",
-      "post": "169d56585edc9cfd1b1ef43ea0fb82f93179b2c3b131a96de7f5861e2e747ef6",
+      "post": "b3de1c31801714f800c36536cf338fade41432fee297c25f563a1c0b4b29e97d",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/today-lanes.cjs": {
@@ -1045,6 +1050,11 @@
       "post": "61a4a9204985a468dbfadd5df6a87d92237a0e1587b7b1c11e10c9446c42876e",
       "role": "carried"
     },
+    "rebuild/m4/import/native-load-replay.cjs": {
+      "pre": null,
+      "post": "82cc19d52dd4ffc1feb3b67ee23cddef9e09d8fdc4a1ac37f1f5ff75c900cef7",
+      "role": "new"
+    },
     "rebuild/m4/import/prepare.cjs": {
       "pre": "2f76d35232f929edd0d9f3e2c490dc8a171a6cff63373881be5b5b703d77fd8c",
       "post": "2f76d35232f929edd0d9f3e2c490dc8a171a6cff63373881be5b5b703d77fd8c",
@@ -1052,7 +1062,7 @@
     },
     "rebuild/m4/import/production-mapping.cjs": {
       "pre": "ef405ab3294922174a8a4e8d48fa4f1492ee05b6b536e9655b39fa61bb6b73c2",
-      "post": "e662634486378a8abb698f7fc5908a22ecf6d56fe4c50d143100e4f8c666f940",
+      "post": "c178c0bd370bc12fedd66bae5488fa4434368b30966981add7cdc81d00c62648",
       "role": "edited"
     },
     "rebuild/m4/import/reading-replay.cjs": {
@@ -1067,8 +1077,8 @@
     },
     "rebuild/m4/import/replay-registry.cjs": {
       "pre": "e8f6af5d123c47b079e682cc43b0b263d9aa0a18b397e1d57bfa42c9499b8521",
-      "post": "e8f6af5d123c47b079e682cc43b0b263d9aa0a18b397e1d57bfa42c9499b8521",
-      "role": "carried"
+      "post": "fe0b95a76eb89b3a2316759955d01662cdc2fe5c2d5767cf1773fd13c30a765a",
+      "role": "edited"
     },
     "rebuild/m4/import/sleep-replay.cjs": {
       "pre": "16020d1fe1ec2af9f40aeac28d6ee2098d4c21eff46a4cda4e0f39506217035a",
@@ -1094,6 +1104,11 @@
       "pre": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
       "post": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
       "role": "carried"
+    },
+    "rebuild/m4/import/test/native-load-replay.test.cjs": {
+      "pre": null,
+      "post": "132f8b09f551a92f8987384d612f549f3674da1632bba2b8b646d2564eeed592",
+      "role": "new"
     },
     "rebuild/m4/import/test/prepare.test.cjs": {
       "pre": "8c9511d8e32ba2d52754288de301054e1a2b17111cc1c352b83f89ea1df7015c",
@@ -1132,7 +1147,7 @@
     },
     "rebuild/m4/import/test/s3/s3-portable-sources.json": {
       "pre": "58049328e57154869aa0cba0d3c0c5a346921267c3e548e6de3d60d409583fc9",
-      "post": "4f6ec7dbb6dfa258feff825c688cab8578ed9ff0400cc8edfd544402c5f2aee6",
+      "post": "71e40171b728ee5ca0b85a235e504705891b2a50fd730ec0b418d34a94adfdb5",
       "role": "edited"
     },
     "rebuild/m4/spec/b-ntc-cases.cjs": {
@@ -1222,7 +1237,7 @@
     },
     "rebuild/m4/spec/native-load-options.test.cjs": {
       "pre": null,
-      "post": "44d8466cb513d505c983a022b2450327b3f06dde3fbd8c982ea7f626f3ad4502",
+      "post": "ced439578a3a54fc13eba240cddded0583161df46f22e3b2fabb5be37f50f71b",
       "role": "new"
     },
     "rebuild/m4/workout/athlete-state.cjs": {
@@ -1252,17 +1267,17 @@
     },
     "rebuild/m4/workout/legacy-order-mapping.cjs": {
       "pre": "d85907166f910d936efee6135ed39199f51d8de9f2f311a93209bafca1f1808a",
-      "post": "d85907166f910d936efee6135ed39199f51d8de9f2f311a93209bafca1f1808a",
-      "role": "carried"
+      "post": "73bd6da7135c6f03fe01af33951560a44a2c67789cae66e4c6951e44945606f8",
+      "role": "edited"
     },
     "rebuild/m4/workout/lift-correspondence.cjs": {
       "pre": "8bec2a64bbc39dc1edd5fb8fd6a06b2a15298e323ac2b17188177319813d2e7f",
-      "post": "8bec2a64bbc39dc1edd5fb8fd6a06b2a15298e323ac2b17188177319813d2e7f",
-      "role": "carried"
+      "post": "a9640fa09c923b8fc75e95cd38934756de83e4014b87ebe2f47b379bd557d8ee",
+      "role": "edited"
     },
     "rebuild/m4/workout/native-load-effects.cjs": {
       "pre": null,
-      "post": "eb8fcfe389ee9faabfdbfdb6a46f9212c9fa86968c047142e885e96a85f7457d",
+      "post": "80393920303653edb799b48a371eed2d2a761822a44584f561674bcb2a5f6973",
       "role": "new"
     },
     "rebuild/m4/workout/native-trend-context.cjs": {
@@ -1337,8 +1352,8 @@
     },
     "rebuild/m4/workout/test/legacy-order-mapping.test.cjs": {
       "pre": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
-      "post": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
-      "role": "carried"
+      "post": "3ff58b694011d290a83ce19a7f22f19e5ac834e90b832ce7b44c82f42a3d4491",
+      "role": "edited"
     },
     "rebuild/m4/workout/test/native-trend-context.test.cjs": {
       "pre": "cb4643af81e7a7d6082ba7c2cbd1cb51c4896aa0f82ac69d9274c683659979ab",
@@ -1824,7 +1839,8 @@
         "rebuild/m4/import/test/engine-provider.test.cjs",
         "rebuild/m4/import/test/local-source-order.test.cjs",
         "rebuild/m4/import/test/browser-parity.test.mjs",
-        "rebuild/m4/import/test/engine-pins-unprotected.test.cjs"
+        "rebuild/m4/import/test/engine-pins-unprotected.test.cjs",
+        "rebuild/m4/import/test/native-load-replay.test.cjs"
       ],
       "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 63\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
     },
@@ -1924,7 +1940,8 @@
         "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs",
         "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs",
         "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs",
-        "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs"
+        "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/native-load-import.test.mjs"
       ],
       "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 28\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
     },
@@ -2150,7 +2167,7 @@
   ],
   "notes": [
     "M2-S11-NATIVE-LOAD (the package id fixed by THEME DECISIONS:874 and GATE-SUPERSESSION DECISIONS:873) is the reseal child of the SEALED M2-S10-TODAY-SPLIT that places the NATIVE-LOAD build on its S10 parent. PARENT: the sealed S10 (rebuild/m4/spec/acceptance-s10-today-split.json 42a3eb020557d312f4e8199eebc79101154ebe4315d2a44fd7a6e5c719450ae8, ACCEPTED review 8d9132787373e9e3e9a3ee1f91be8c403867acd9b8136a6390d1029a1d6a2a0a, receipt DECISIONS:837, sealed and merged at DECISIONS:838, seal tip edb8381ea6a9f5373c8519ee7e9d7d8a303c2369 = this spec's sourceBase). BRIEF OF RECORD: rebuild/lanes/b/S11-NATIVE-LOAD-BRIEF.md rev11, sha256 4f7d431f97fc16f7d0df043fcce9a8339d70e1cfb3801ec1e3447bb7cba05465 (352743 B, committed at 1763205f9822b7d0c4e741b448d289ec5113ff14 and blob-identical at ee86334), recorded as accepted by sha at DECISIONS:855 (3) on its Fable l9 read and its Astra T5 L6 read (each ACCEPT WITH NAMED DEBTS) and FROZEN from T5: any edit is a new revision that re-enters both reads. brief.file and brief.sha256 name it, and brief.acceptedLedgerLine cites DECISIONS:875, the brief section 6 cowork line BRIEF ACCEPTED BY SHA for M2-S11-NATIVE-LOAD ending in ACCEPTED (the S10 model is DECISIONS:831; b-package.cjs :1897-1901), so status is BRIEF-ACCEPTED; DECISIONS:855 is the PM record line of the two reads. The earlier working papers (rev7 f2eecdc4 to rev10 7a8378cf) are history only. LANE: rebuild/b-s11-integration, product bytes final at ee8633484845b7878b409821746751c5fc8247f0, holding the first composition (MERGE below), the five S11 items 8709f48, 1f19d6d, 97a0aa6, 1059673 and ffcf82b, the second merge 0b8d074 and the four commits after it, f16c7d7, ad745b4, e8f89cc and ee86334 (APPLIED below). The NATIVE-LOAD input S11 composes is the T1 head 35859dc050c0e73ed103dc32094e49357958b7c0 (rounds 22..34b; NATIVE-LOAD closed at DECISIONS:870), merged as 0b8d074 (DECISIONS:871): FC12 (rebuild/m4/spec/native-load-options.test.cjs) stands at 44d8466c after e8f89cc (447/447, DECISIONS:872 (3)) and FA03 (rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs) at the T1 head's eb369300 (103/103, DECISIONS:870). Every value that exists only after a later step is a string that begins with PENDING and names its STOP; rebuild/lanes/b/S11-REGEN.cjs lists every one of them (PENDING census, uncapped) and re-measures sourceBase, the parent option hashes and receipt line, the runner pin and the product map at every --write (STOP-S11-BASE: re-run after the second merge, at ee86334, DECISIONS:872 (4)).",
-    "PRODUCT MAP (regenerated by rebuild/lanes/b/S11-REGEN.cjs at parent edb8381ea6a9f5373c8519ee7e9d7d8a303c2369). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s10-today-split.json 42a3eb020557); post is sha256 of the bytes at HEAD 6acda62657c10f9f3751d1cef5709b398c7d065e. Parent-released paths are not declared: rebuild/m3/w7-preview/today/gym-app.mjs, rebuild/m3/w7-preview/today/today-app.cjs. New paths are every path HEAD changed since the parent, inside the S11 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself; tracked Markdown under rebuild/engine/ is declared because the engine-inventory cells walk every tracked file there. Roles: {\"edited\":44,\"carried\":256,\"new\":16,\"superseded-by-child\":1}.",
+    "PRODUCT MAP (regenerated by rebuild/lanes/b/S11-REGEN.cjs at parent edb8381ea6a9f5373c8519ee7e9d7d8a303c2369). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s10-today-split.json 42a3eb020557); post is sha256 of the bytes at HEAD 9b6d2aa76c62b3a8046a7f690b7c9a8f9ddf3627. Parent-released paths are not declared: rebuild/m3/w7-preview/today/gym-app.mjs, rebuild/m3/w7-preview/today/today-app.cjs. New paths are every path HEAD changed since the parent, inside the S11 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself; tracked Markdown under rebuild/engine/ is declared because the engine-inventory cells walk every tracked file there. Roles: {\"edited\":51,\"carried\":249,\"new\":19,\"superseded-by-child\":1}.",
     "PARENT-UNPINNED PATHS (regenerated at edb8381ea6a9f5373c8519ee7e9d7d8a303c2369): 4 path(s) existed at the parent pinned by neither its product map nor its execution pins and are declared here, so they are declared role new with pre null (DECISIONS:792): rebuild/m3/w6/host/build-host.mjs, rebuild/m3/w6/t2-stage.cjs, rebuild/m3/w6/test/local-source-commit.test.mjs, rebuild/m4/import/test/s3/run.mjs.",
     "EXECUTION PIN SUPERSEDED (regenerated at edb8381ea6a9f5373c8519ee7e9d7d8a303c2369): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: rebuild/lanes/b/tooling/packages/S10.json pre 0f55a704968f89b984c976e3ab07d105f1b1461296c13b7ddf2382ae4fdb7308 post 566539de9e20b6eaf22a9bbca7aebcd6679540ac47d67c1b5400936b57a07ea3.",
     "MERGE (the composition, as recorded in git): 1193ee079080cbb8ba7a00848286f3dba5a1c96f merged the NATIVE-LOAD build rebuild/e-native-load-red bd7654a798592a7dae421b9d68fec850fb0993d1 (round 21, DECISIONS:827) --no-ff onto the S10 lane head before the S10 seal; 9288adfc782a10ea4d3de098723955db9515f3b6 then merged the sealed S10 chain tip 71cf1437e17821b89c113bff685dd35856643656 forward (DECISIONS:838 SEALED AND MERGED at edb8381; clean, 21 paths), so every S10 byte in this tree is the sealed parent's, never rebased (DECISIONS:563). The composition's one conflict was .github/workflows/rebuild.yml on the Today-step run line, resolved as the union: the S10 line (copy-lock.test.mjs and the five gss-annex files) with rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs appended, and NATIVE-LOAD's FC12 step kept (composed sha256 cdc90cf8e9dfa97b9bc685e5f99886e52ff4749391b3a0f58c07f79eb3710edb); S11's own workflow edits landed on top of it at 97a0aa6 (APPLIED), and the post declared here is the committed one. writers.cjs, engine-capture.cjs, configuration-capture.test.cjs and engine-capture.test.cjs auto-merged at 1193ee0; the per-side patch-id and three-way proofs on the committed bytes are STOP-S11-WRITERS and STOP-S11-ECAP (status in RULINGS below). SECOND MERGE: 0b8d074316995ad3dfafc1d38ebc981a78acad00 merged the NATIVE-LOAD T1 head 35859dc050c0e73ed103dc32094e49357958b7c0 (rounds 22..34b on rebuild/e-native-load-red, parent bd7654a; NATIVE-LOAD closed at DECISIONS:870) --no-ff into this lane at 1763205f9822b7d0c4e741b448d289ec5113ff14 (DECISIONS:871: merge-tree clean; the lane had not touched the five NATIVE-LOAD files since bd7654a; 33 paths under rebuild and .github between 1763205 and 0b8d074, measured), composing FC01 native-load.cjs dd197849, FC03 38c67a98, FC12 0e5ef0cb and FA03 eb369300; S10's sealed bytes stay the parent's. The commits after it are in APPLIED below.",
