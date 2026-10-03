@@ -136,12 +136,7 @@ function createLegacyOrderMapping({selection,orderMap}={}){
  // carry a map, and a record that does not is refused by name.
  const map=orderMap===undefined?(selection.order_map===undefined?null:selection.order_map):orderMap;
  if(map!==null){
-  if(!plain(map)||map.profile!==MAP_PROFILE)fail();
-  for(const k of SHARED)if(!text(map[k])||map[k]!==basis[k])fail();
-  for(const k of MAP_DIGESTS)if(!text(map[k]))fail();
-  if(!text(map.native_root_id))fail();
-  const a=map.assertion;
-  if(!plain(a)||a.kind!==ASSERTION||a.answer!==true||a.prompt_version!==PROMPT||!text(a.review_digest))fail();
+  confirmedMap(map,basis);
   // A map handed in separately must be the map this selection recorded.
   if(plain(selection.order_map)&&canonical(selection.order_map)!==canonical(map))fail();
  }else{
@@ -171,19 +166,53 @@ function createLegacyOrderMapping({selection,orderMap}={}){
  // {...state, workoutFacts: attach(state.workoutFacts, state)} so that the
  // state the engine reads and the log the baseline names are one object.
  function attach(workoutFacts,state){
-  if(!plain(state)||!plain(workoutFacts)||workoutFacts.profile!==FACTS_PROFILE)fail();
-  const order=workoutFacts.order;
-  if(!plain(order)||order.profile!==ORDER_PROFILE||!Array.isArray(order.start_ids))fail();
-  const existing=order.import_anchor;
-  // A PROVEN order already carries the anchor engine-order.cjs derived. It must
-  // be this mapping's anchor; a disagreement refuses and is never overwritten.
-  if(existing!==undefined&&existing!==null&&(!plain(existing)||
-    existing.source_generation_id!==anchor.source_generation_id||
-    existing.activation_op_id!==anchor.activation_op_id))fail();
-  return {...workoutFacts,legacy_baseline:baseline(state.sessionLog),
-   order:{...order,import_anchor:{source_generation_id:anchor.source_generation_id,
-    activation_op_id:anchor.activation_op_id}}};
+  return stamp(workoutFacts,state,anchor);
  }
  return Object.freeze({anchor,binding,digest,baseline,attach,REFUSAL});
 }
-module.exports={createLegacyOrderMapping,activeLocalSelection,REFUSAL,PROFILE,BASIS_PROFILE,MAP_PROFILE};
+/* THE ORDER MAP RULE, stated once (S11 FC09 round 5: shared by createLegacyOrderMapping above and attachAdmittedOrder below,
+   byte-for-byte the checks createLegacyOrderMapping made inline before). A map is a proof only when it is the athlete's
+   CONFIRMED prefix answer, a strict true, and agrees with the identity it is read under on all five shared fields. */
+function confirmedMap(map,identity){
+ if(!plain(map)||map.profile!==MAP_PROFILE)fail();
+ for(const k of SHARED)if(!text(map[k])||map[k]!==identity[k])fail();
+ for(const k of MAP_DIGESTS)if(!text(map[k]))fail();
+ if(!text(map.native_root_id))fail();
+ const a=map.assertion;
+ if(!plain(a)||a.kind!==ASSERTION||a.answer!==true||a.prompt_version!==PROMPT||!text(a.review_digest))fail();
+}
+/* THE STAMP, stated once: the baseline whose session_log IS the caller's own log (performed.cjs:176 compares it by
+   REFERENCE) and the anchor carrying the same two ids. Returns a NEW workoutFacts; neither argument is mutated. A PROVEN
+   order already carrying an anchor must carry THIS one; a disagreement refuses and is never overwritten. */
+function stamp(workoutFacts,state,anchor){
+ if(!plain(state)||!plain(workoutFacts)||workoutFacts.profile!==FACTS_PROFILE)fail();
+ const order=workoutFacts.order;
+ if(!plain(order)||order.profile!==ORDER_PROFILE||!Array.isArray(order.start_ids))fail();
+ const existing=order.import_anchor;
+ if(existing!==undefined&&existing!==null&&(!plain(existing)||
+   existing.source_generation_id!==anchor.source_generation_id||
+   existing.activation_op_id!==anchor.activation_op_id))fail();
+ const sessionLog=state.sessionLog;
+ if(!plain(sessionLog)||!Object.keys(sessionLog).length)fail();
+ return {...workoutFacts,legacy_baseline:{profile:PROFILE,source_generation_id:anchor.source_generation_id,
+   activation_op_id:anchor.activation_op_id,session_log:sessionLog},
+  order:{...order,import_anchor:{source_generation_id:anchor.source_generation_id,
+   activation_op_id:anchor.activation_op_id}}};
+}
+/* ADMISSION'S ONE STAMP (S11 FC09 round 5, PM ruling DECISIONS:880 (2), R1). At admission no selection is recorded yet, so
+   engine-order.cjs cannot run its import law and createLegacyOrderMapping cannot be built: its basis would need the
+   interpretation digest the native-load fold feeds. What admission DOES hold is the import order law's own output: the
+   athlete-confirmed order map it has just built (local-source-order.cjs confirm, or restored on a reopen). This stamps from
+   that map and from nothing else: no map, a map that is not a confirmed strict-true answer, a map that disagrees with the
+   identity admission reads it under, or no selection id each refuse by name. The ids are the ones the page's mapping derives
+   later from the recorded selection (source digest; the selection id, a digest that binds this map), so the page and
+   admission fold one log under one order. Its ONE caller, source-admission.mjs, uses it only on the copy the native-load
+   fold hands the engine; it is never written into the admitted view. LOM-S6-ADMISSION (lanes/d/b-lom) pins the one caller. */
+function attachAdmittedOrder(workoutFacts,state,{orderMap,identity,selectionId}={}){
+ if(orderMap===null||orderMap===undefined||!plain(identity))fail();
+ for(const k of SHARED)if(!text(identity[k]))fail();
+ confirmedMap(orderMap,identity);
+ if(!text(selectionId))fail();
+ return stamp(workoutFacts,state,{source_generation_id:identity.source_digest,activation_op_id:selectionId});
+}
+module.exports={createLegacyOrderMapping,activeLocalSelection,attachAdmittedOrder,REFUSAL,PROFILE,BASIS_PROFILE,MAP_PROFILE};

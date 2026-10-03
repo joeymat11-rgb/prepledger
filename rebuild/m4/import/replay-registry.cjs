@@ -96,23 +96,35 @@ const ENTRIES = Object.freeze([
       + 'RETAINED in their own date then device_seq order, never projected, so a night '
       + 'before the import\'s last day is neither contradicted nor absorbed; malformed '
       + 'refuses LOCAL_SOURCE_SLEEP_UNRESOLVED'}),
-  /* THE ONE WRITER IN THE PAGE THAT NO SHIPPED SCREEN REACHES. rebuild/client
-     is the page's durable client and its API carries the plan writers -
-     planEdit, respond, decision, undoRequest, acceptInitialPlan - but NO module
-     of the A1 inventory calls any of them, and the enumeration cell proves that
-     by reading the page's own modules rather than by saying so. The local era
-     is single-device and carries no authority plan lane at all: admission
-     refuses a plan operation, and a non-empty plan collection, by name. If a
-     screen ever does reach one, this entry is what has to change, and the cell
-     that reads it is what will say so. */
+  /* THE PLAN WRITER THE PAGE REACHES: THE NATIVE-LOAD YES (S11 FC09, PM ruling
+     DECISIONS:878). rebuild/client is the page's durable client and its API
+     carries the plan writers - planEdit, respond, decision, undoRequest,
+     acceptInitialPlan. Until NATIVE-LOAD no module of the A1 inventory called
+     any of them and this entry was 'not-in-generation'. The native-load Yes on
+     Today now calls respond, through the guarded native path only
+     (today-entry.mjs -> createNativeLoadHost().respond -> local-client
+     respondNativeLoad -> t2-stage.cjs nativeRespond), and writes ONE
+     proposal-response whose payload is exactly {proposal_id, answer:'accept',
+     issuance} (NATIVE-LOAD-SPEC R9.13 :101); it writes no plan,
+     planTransactions, planTxns, planHistory, suspensions or issuances record.
+     Cell P3-EN3 found it, and F9 (rebuild/m4/import/native-load-replay.cjs)
+     answers for it. The enumeration cell still PROVES that respond is the only
+     plan writer the page reaches, and only at those guarded sites, so the other
+     kinds stay out of the generation: every other plan operation, and a
+     non-empty plan collection, still refuses LOCAL_SOURCE_EFFECT_UNMAPPED by
+     name at admission. */
   Object.freeze({module: 'rebuild/client/index.cjs', class: 'plan',
-    kinds: Object.freeze(['plan-mutation', 'proposal-response', 'undo-request']),
-    profiles: Object.freeze(['earned/coach/proposal/v1']),
-    disposition: 'not-in-generation', family: null,
-    refusal: 'LOCAL_SOURCE_EFFECT_UNMAPPED',
-    rule: 'no shipped screen route reaches a plan writer, and the local era has no plan, '
-      + 'planTransactions, suspensions or issuances lane; admission refuses both a plan '
-      + 'operation and a non-empty plan collection by name'}),
+    kinds: Object.freeze(['proposal-response']),
+    profiles: Object.freeze(['earned/native-load/v1', 'earned/native-load-decision/v1']),
+    disposition: 'family', family: 'F9',
+    rule: 'programme evidence: a native-load Yes (the native-load producer\'s accept, owned by '
+      + 'its producer, its decision profile or a matching native proposal ID) is FOLDED, not '
+      + 'retained: FC03 runs once at the source cut over the admitted state as its immutable '
+      + 'base, and the fold - applied, held with its Undo, retired, or refused by FC03 by '
+      + 'name - is bound into the interpretation digest, never written back into the base; a '
+      + 'malformed native accept, a missing issuance or a decline refuses '
+      + 'LOCAL_SOURCE_NATIVE_LOAD_RECORD_INVALID (detail NATIVE_LOAD_RECORD_INVALID), and any '
+      + 'other plan operation keeps LOCAL_SOURCE_EFFECT_UNMAPPED'}),
 ]);
 
 /* The register, and the two ways the cells read it. */

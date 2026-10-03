@@ -721,3 +721,33 @@ test('LOM-S6 - attach() IS NOT AN ORDER LAW: on the real route the anchor is alr
     e => e && e.code === LegacyOrder.REFUSAL,
     'a disagreeing anchor was overwritten instead of refused');
   });
+
+/* LOM-S6 ADMISSION HALF (S11 FC09 round 5, PM ruling DECISIONS:880 (2), R1). LOM-S6 above stays byte-unchanged and still
+   holds: today-bindings.mjs is the only module that builds the mapping and calls attach(). This half proves the ONE other
+   stamping site the ruling admits, and refuses any further one. At admission no selection is recorded yet, so the page's
+   import law cannot run; admission's OWN confirmed order map (local-source-order.cjs, the athlete's Yes) is the anchor's only
+   source there, through ONE exported helper, attachAdmittedOrder, and only when that map exists. The stamp is transient: it
+   is composed onto the copy the native-load fold hands the engine and is never written into the admitted view. */
+test('LOM-S6-ADMISSION - the ONE admission stamp: attachAdmittedOrder has exactly one caller, source-admission.mjs, called '
+  + 'once, only when a confirmed order map exists, and the admitted view carries no stamped anchor', async t => {
+    const lane = await callers('attachAdmittedOrder');
+    assert.deepEqual(lane, ['rebuild/m3/w6/local/source-admission.mjs'],
+      'a module other than admission stamps an anchor, or admission stopped using the one helper: ' + lane.join(' '));
+    const admission = await readFile(new URL('../../../m3/w6/local/source-admission.mjs', import.meta.url), 'utf8');
+    assert.equal((admission.match(/LegacyOrder\.attachAdmittedOrder\(/g) || []).length, 1,
+      'admission calls the stamp from more than one place');
+    assert.match(admission, /const compose=orderMap\?[^\n]*LegacyOrder\.attachAdmittedOrder\(/,
+      'the stamp is not gated on the confirmed order map');
+    assert.equal(/mapping\.attach\(/.test(admission), false, 'admission calls the page mapping\'s attach()');
+    /* TRANSIENT, measured: a real admission with a native Start beside the imported log records no anchor on its view. */
+    const season = SUMMER;
+    const { era, scope } = await install(t, 's6-admission', season);
+    await recordWorkout(era, season.day, nativeState());   // a native Start before the import: the order map exists
+    const result = await admit(era, SEALED, { day: season.day, ...scope });
+    assert.equal(result.admitted, true, JSON.stringify(result.codes || result.code || result.stage));
+    assert.ok(result.view.order_map, 'precondition: no confirmed order map, so this measures nothing');
+    const facts = result.view.workout_facts;
+    assert.equal(facts && facts.order && facts.order.import_anchor, undefined,
+      'admission wrote a stamped anchor into the admitted view');
+    assert.equal(facts && facts.legacy_baseline, undefined, 'admission wrote a stamped baseline into the admitted view');
+  });

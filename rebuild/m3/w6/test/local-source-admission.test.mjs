@@ -10,6 +10,7 @@ import Profile from '../../../m4/import/local-source-profile.cjs';
 import Food from '../../w7-preview/today/food-commands.cjs';
 import Ops from '../../../client/ops.cjs';
 import {readLocalEra} from '../local/local-era.mjs';
+import NativeLoadEffects from '../../../m4/workout/native-load-effects.cjs';
 const fixture=async(t,options={})=>{const f=await createLocalSourceFixture({indexedDB:new IDBFactory(),crypto:webcrypto,databaseName:'s3-admission',...options});t.after(()=>f.close());return f;};
 const prepare=async f=>f.controller.prepareSource(await f.review(),{identityConfirmed:true,prefixAnswer:true});
 const controllerFor=(f,options={})=>createLocalSourceController({repository:f.repository,namespace:f.namespace,athleteId:f.athleteId,deviceId:f.deviceId,producerRegistry:f.registry,asOf:'2026-09-04',platform:f.platform,...options});
@@ -218,4 +219,49 @@ test('R913-ALV-IDEMPOTENT (NATIVE-LOAD-SPEC R9.13 (iv)): the same source admitte
  const a=await f.controller.view(await prepare(f)),b=await f.controller.view(await prepare(f));
  assert.equal(JSON.stringify(b.state),JSON.stringify(a.state));
  for(const k of ['source_digest','checkpoint_digest','material_digest','operation_digest','interpretation_digest','programme_digest'])assert.equal(b.basis[k],a.basis[k],k);
+});
+/* S11 FC09 (NATIVE-LOAD-SPEC R9.13 :175-:177, :228; PM ruling DECISIONS:878). The F9 native-load family at the admission layer.
+   T3: a malformed native accept is refused BY NAME, LOCAL_SOURCE_NATIVE_LOAD_RECORD_INVALID with NATIVE_LOAD_RECORD_INVALID as its
+   detail, and never dropped. RED at 84f8421: every one of them fell to the unknown-plan catch and refused
+   LOCAL_SOURCE_EFFECT_UNMAPPED. T4: an unrelated plan operation keeps that catch (S3-Q-UNMAPPED and S3-Q-PLAN-COLLECTION above are
+   unchanged), including a proposal-response of another producer. NOT RUN on a builder seat: this file's fixture loads a protected
+   engine file (see the R913-ALV note above), so these cells run where the protected suites run. Every value is invented. */
+const nativeAccept=(f,{reason='TEST-ONLY native reason',spend='TEST-ONLY-spend'}={})=>{
+ const body={profile:'earned/native-load-decision/v1',kind:'adopt-observed',lift_lineage_id:f.setup.exercises[0].id,spend_id:spend,basis:{athlete_id:f.athleteId},consumes:[],evidence:[]};
+ const issuance={producer:NativeLoadEffects.PRODUCER,body,reason,revision:NativeLoadEffects.PRODUCER_REVISION,source:'TEST-ONLY-source',moment:'2026-09-04T13:00:00.000Z'};
+ return {proposal_id:NativeLoadEffects.proposalDigest(issuance.producer,body,reason),answer:'accept',issuance};
+};
+const planResponse=payload=>({['cl'+'ass']:'plan',kind:'proposal-response',payload,effective:fixtureEffective()});
+test('FC09-T3 MALFORMED NATIVE ACCEPTS REFUSE BY NAME (spec :175): a tampered reason, a decline carrying an issuance, a missing issuance and an extra payload key each refuse LOCAL_SOURCE_NATIVE_LOAD_RECORD_INVALID with NATIVE_LOAD_RECORD_INVALID, none is dropped and none falls to the unknown-plan catch',async t=>{
+ const f=await fixture(t,{databaseName:'s3-fc09-malformed'});
+ const tampered=nativeAccept(f,{spend:'TEST-ONLY-a'});tampered.issuance.reason='TEST-ONLY tampered reason';
+ const decline=nativeAccept(f,{spend:'TEST-ONLY-b'});decline.answer='decline';
+ const extra=nativeAccept(f,{spend:'TEST-ONLY-c'});extra.note='TEST-ONLY extra member';
+ // A naked response is owned only through a native proposal ID this log retains (spec :175); it is never consent.
+ const missing={proposal_id:decline.proposal_id,answer:'accept'};
+ const cases={'fc09-tampered':tampered,'fc09-decline':decline,'fc09-missing':missing,'fc09-extra':extra};
+ for(const [id,payload]of Object.entries(cases))await f.append(id,planResponse(payload),1);
+ const before=(await f.repository.load()).generation,result=await prepare(f);
+ assert.equal(result.ready,false,'a malformed native accept qualified');
+ for(const id of Object.keys(cases)){
+  const named=result.issues.filter(i=>i.op_id===id);
+  assert.deepEqual(named.map(i=>[i.code,i.detail]),[['LOCAL_SOURCE_NATIVE_LOAD_RECORD_INVALID','NATIVE_LOAD_RECORD_INVALID']],id+': '+JSON.stringify(result.issues));
+ }
+ assert.equal(result.issues.some(i=>i.code==='LOCAL_SOURCE_EFFECT_UNMAPPED'),false,'a native record fell to the unknown-plan catch');
+ assert.equal(result.families.some(r=>Object.hasOwn(cases,r.op_id)),false,'a refused record was also admitted');
+ assert.deepEqual((await f.repository.load()).generation,before,'refusal wrote nothing');
+});
+test('FC09-T4 UNRELATED PLAN STILL UNMAPPED (spec :175 "Unrelated/unclassifiable plan records retain their existing refusal"): a coach-producer proposal-response and a naked response matching no native proposal both refuse LOCAL_SOURCE_EFFECT_UNMAPPED, never the native family',async t=>{
+ const f=await fixture(t,{databaseName:'s3-fc09-coach'});
+ const coachBody={profile:'earned/coach/TEST-ONLY-body/v1',change:'TEST-ONLY programme change'},producer='earned/coach/TEST-ONLY-proposal/v1';
+ const coach={proposal_id:NativeLoadEffects.proposalDigest(producer,coachBody,'TEST-ONLY coach reason'),answer:'accept',
+  issuance:{producer,body:coachBody,reason:'TEST-ONLY coach reason',revision:'TEST-ONLY-r1',source:'TEST-ONLY-source',moment:'2026-09-04T13:00:00.000Z'}};
+ await f.append('fc09-coach',planResponse(coach),1);
+ await f.append('fc09-naked',planResponse({proposal_id:'prop-TEST-ONLY-unmatched',answer:'accept'}),1);
+ const result=await prepare(f);
+ assert.equal(result.ready,false);
+ for(const id of ['fc09-coach','fc09-naked'])
+  assert.deepEqual(result.issues.filter(i=>i.op_id===id).map(i=>i.code),['LOCAL_SOURCE_EFFECT_UNMAPPED'],id+': '+JSON.stringify(result.issues));
+ assert.equal(result.issues.some(i=>i.code==='LOCAL_SOURCE_NATIVE_LOAD_RECORD_INVALID'),false);
+ assert.equal(result.families.some(r=>r.family==='F9'),false);
 });

@@ -440,7 +440,7 @@ function governorEvent(state, decision, context) {
   if (decision !== null || context.authority !== null || !Array.isArray(context.spent) || context.spent.length || context.completion !== null ||
       !(context.basis === null || map(context.basis))) refuse('RECORD_INVALID', [], 'context');
   if (!map(state) || !Array.isArray(state.exercises)) refuse('RECORD_INVALID', [], 'state');
-  const s = json(state);
+  const s = structuredClone(state);
   if (!map(s.workoutFacts)) return { status: 'unchanged', state: s, effect: null, refusal: null };
   const all = E.performedHistoryRows(s);
   let changed = false;

@@ -107,7 +107,7 @@
     },
     {
       "path": "rebuild/engine/native-load.cjs",
-      "sha256": "dd197849fe92a493dee86ed7c530bdc9e1c22d382004fa4ee6c04968de7e0a73"
+      "sha256": "ab2a1ca86d8cb2907fd537b946e82e32dd34969a471598cd0706c573e80acad6"
     },
     {
       "path": "rebuild/engine/performed.cjs",

@@ -240,3 +240,42 @@ test('LOM/11 engine-order.cjs: a DELETED order map is an unproven anchor, not a 
  assert.throws(()=>orderWorkoutStarts(historyFor(),generationFor(other),{importAnchor:ANCHOR}),
   {code:'WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN'});
 });
+
+/* S11 FC09 round 5 (PM ruling DECISIONS:880 (2), R1). ADMISSION'S ONE STAMP. At admission no selection is recorded yet, so
+   engine-order.cjs cannot run its import law and the page's mapping cannot exist; but admission has JUST run the import order
+   law itself (local-source-order.cjs confirm, on the athlete's Yes): the order map. attachAdmittedOrder is the ONE exported
+   helper that stamps from that map, and ONLY from a confirmed one: the baseline names the source digest and the selection id
+   (a digest that binds the map), and the anchor carries the same two ids. These cells pin that it refuses everything else. */
+const {attachAdmittedOrder}=require('../legacy-order-mapping.cjs');
+const admitted=(over={})=>({orderMap:orderMap(),identity:{...SHARED},selectionId:SELECTION_ID,...over});
+test('LOM/12 attachAdmittedOrder stamps from a CONFIRMED order map, sharing ONE session log, and the engine accepts it',()=>{
+ assert.equal(typeof attachAdmittedOrder,'function','RED: legacy-order-mapping.cjs exports no attachAdmittedOrder');
+ const state={sessionLog:sessionLog(),workoutFacts:facts()};
+ const composed={...state,workoutFacts:attachAdmittedOrder(state.workoutFacts,state,admitted())};
+ assert.strictEqual(composed.workoutFacts.legacy_baseline.session_log,composed.sessionLog,'performed.cjs compares by REFERENCE');
+ assert.deepEqual(composed.workoutFacts.legacy_baseline,{profile:'earned/imported-engine-history/v1',
+  source_generation_id:SHARED.source_digest,activation_op_id:SELECTION_ID,session_log:state.sessionLog});
+ assert.deepEqual(composed.workoutFacts.order.import_anchor,{source_generation_id:SHARED.source_digest,activation_op_id:SELECTION_ID});
+ assert.deepEqual(engine().performedHistoryRows(composed).map(r=>r.source),['legacy','performed']);
+ assert.equal(state.workoutFacts.legacy_baseline,undefined,'neither argument is mutated');
+ assert.equal(state.workoutFacts.order.import_anchor,undefined);
+ /* The same two ids the page's own mapping derives from the selection admission then records. */
+ const page=createLegacyOrderMapping({selection:selection()});
+ assert.deepEqual(composed.workoutFacts.order.import_anchor,{...page.anchor});
+});
+test('LOM/13 attachAdmittedOrder REFUSES without a confirmed map, on any identity mismatch, on an answer that is not a strict true, without a selection id, on an empty log and on a disagreeing anchor',()=>{
+ assert.equal(typeof attachAdmittedOrder,'function','RED: legacy-order-mapping.cjs exports no attachAdmittedOrder');
+ const state={sessionLog:sessionLog(),workoutFacts:facts()};
+ const refuses=(label,args,s=state,f=s.workoutFacts)=>assert.throws(()=>attachAdmittedOrder(f,s,args),REF,label);
+ refuses('no order map',admitted({orderMap:null}));
+ refuses('order map absent',admitted({orderMap:undefined}));
+ for(const k of Object.keys(SHARED)){const id={...SHARED,[k]:'mutant-'+k};refuses('identity disagrees on '+k,admitted({identity:id}));}
+ for(const k of Object.keys(MAP_DIGESTS)){const m=orderMap();delete m[k];refuses('map lacks '+k,admitted({orderMap:m}));}
+ for(const answer of [false,'true',1,null]){const m=orderMap();m.assertion.answer=answer;refuses('answer '+JSON.stringify(answer),admitted({orderMap:m}));}
+ {const m=orderMap();m.profile='x';refuses('map profile',admitted({orderMap:m}));}
+ refuses('no selection id',admitted({selectionId:''}));
+ refuses('empty log',admitted(),{sessionLog:{},workoutFacts:facts()});
+ refuses('not workout facts',admitted(),state,{...facts(),profile:'x'});
+ refuses('a disagreeing anchor is refused, never overwritten',admitted(),state,
+  facts({order:{profile:'earned/workout-order/v1',frontier:0,start_ids:[ROOT],import_anchor:{source_generation_id:'other',activation_op_id:SELECTION_ID}}}));
+});

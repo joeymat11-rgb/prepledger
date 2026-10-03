@@ -86,13 +86,36 @@ his own words, right before it happens (README's own rule).
    night (F8) may all be used before the import, in any order, and the import
    still admits.
 
-   **THE GYM CARD IS NOW INCLUDED, AND NOTHING REMAINS.** The instruction that
-   said "do not start a workout before importing" is WITHDRAWN too:
-   `local-capture-start-resume` landed, the admitted basis declares nothing
-   pending, and a workout recorded before the import is projected after the
-   imported history when Joe answers YES to the identity question on the Import
-   screen. There is NO ordering instruction left for him: he may use every
-   screen, including the gym card, before or after the import.
+   **THE GYM CARD IS NOW INCLUDED.** The instruction that said "do not start a
+   workout before importing" is WITHDRAWN too: `local-capture-start-resume`
+   landed, the admitted basis declares nothing pending, and a workout recorded
+   before the import is projected after the imported history when Joe answers
+   YES to the identity question on the Import screen.
+
+   **THE NATIVE-LOAD "YES" IS NAMED AGAIN, AND IT IS ADMITTED (S11 FC09).** S11
+   (NATIVE-LOAD) shipped a writer this list did not have: tapping **Yes** on a
+   new-weight offer on Today ("Check next weight" after a saved workout) writes
+   one plan operation (a `proposal-response`) into the same record admission
+   replays. Until FC09 the import refused that record
+   `LOCAL_SOURCE_EFFECT_UNMAPPED`, so a Yes before the import blocked it; cell
+   P3-EN3 (`rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs`) caught
+   that. FC09 adds the native-load family F9
+   (`rebuild/m4/import/native-load-replay.cjs`): the Yes is admitted and folded
+   at the import, in either order. What Joe then sees on that lift is the
+   spec's own rule (NATIVE-LOAD-SPEC R9.13 :156-:158): if the import moved the
+   weight the Yes was agreed against, the lift is HELD by name, its card asks
+   for the weight, and the Yes's Undo is offered; nothing is lost and nothing
+   is applied twice. Its cells: `writer-order.test.mjs` (the Yes beside every
+   other writer, both orders) and
+   `rebuild/lanes/d/p3-replay-all/native-load-import.test.mjs` (FC09-T1, -T2,
+   -T5). A native-load record that is malformed refuses
+   `LOCAL_SOURCE_NATIVE_LOAD_RECORD_INVALID` by name and commits nothing; the
+   Import screen shows that bare code (no sentence has been approved for it,
+   debt D-S11-EN3-COPY). **Run gate: this paragraph is true only once the PM's
+   runs of those cells are green; until then the ordering line is "import
+   first, then tap Yes on a new weight".** With that, there is no ordering
+   instruction left for him: he may use every screen, including the gym card
+   and the native-load Yes, before or after the import.
 
    **THE ONE THING THAT STILL MATTERS IS THE ANSWER, and it is a question he is
    asked rather than an instruction to remember.** "Did every workout in this
@@ -140,18 +163,21 @@ withdrawn:** `P3-REPLAY-MEASURE-FAMILY` landed the F7 family
 Measure - and answered its markers pick - now ADMITS. Executed on one store,
 from the Measure link itself, by `refusal-route.test.mjs` P3-X9.
 
-**Before step 2, do not open Sleep on this phone.** The sleep lane writes its
-nights with `class: "sleep"` (`today/sleep-commands.cjs` `OP_CLASS`), and that
-class is exactly where Measure's was: `source-admission.mjs` replay() hands
-`reading`, `session`, the measure family, `food-day`, `steps`, `plan`, the
-setup, settings and check-in profiles to a family each, and answers everything
-else `LOCAL_SOURCE_CONTEXT_UNRESOLVED`. So a night recorded before the import
-refuses it the same way Measure used to. A family for it is in flight in lane
-D; until it lands, import first and record sleep after. Nothing is lost if it
-happens - a refused import retracts itself and writes nothing - but the history
-cannot be admitted on that phone until the family lands. (This one is a reading
-of the two files named, not an executed cell: no cell in this lane records a
-sleep night before an import. Said plainly so nobody takes it for proof.)
+**SLEEP IS NO LONGER A PRE-CHECK EITHER.** This paragraph used to read "before
+step 2, do not open Sleep on this phone", because a recorded night (class
+`sleep`, `today/sleep-commands.cjs` `OP_CLASS`) had no replay family and fell to
+admission's catch-all, `LOCAL_SOURCE_CONTEXT_UNRESOLVED`. **That is fixed and the
+caution is withdrawn:** P3-REPLAY-ALL-FAMILIES landed the F8 family
+(`rebuild/m4/import/sleep-replay.cjs`), and a night recorded before the import
+now ADMITS, proved on a real installation in both orders by
+`rebuild/lanes/d/p3-replay-all/writer-order.test.mjs` and by
+`sleep-family.test.mjs` beside it (pre-check 8 above). The old paragraph also
+said `source-admission.mjs` replay() hands `plan` to a family; it did not. A
+plan operation fell to the unknown-plan catch and refused
+`LOCAL_SOURCE_EFFECT_UNMAPPED`. Since S11 FC09 the native-load Yes, the one plan
+operation a shipped screen writes, is answered by F9; every other plan
+operation, and a non-empty plan collection, still refuses
+`LOCAL_SOURCE_EFFECT_UNMAPPED` by name (pre-check 8 above).
 
 1. Move only `earned-port-<date>.json` to the phone (any route - sealed).
    Keep `earned-port-<date>-PASSPHRASE.txt` on the PC.

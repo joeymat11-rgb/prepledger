@@ -85,7 +85,17 @@ const ROUTE_MODULES = Object.freeze(['rebuild/coach/engine-revision.cjs',
      evidence that neither family brought a new leaf with it. */
   'rebuild/m4/import/body-composition-class.cjs', 'rebuild/m4/import/sleep-replay.cjs',
   'rebuild/m4/import/production-mapping.cjs', 'rebuild/m4/import/replay-core.cjs',
-  /* NINETEENTH, WITH P3-REAL-SHAPE (DECISIONS:521): the shared lift
+  /* TWENTIETH, WITH S11 FC09 (PM ruling DECISIONS:878): the F9 native-load family.
+     source-admission.mjs imports it, it requires nothing at all (FC03 is
+     injected), and the two other modules this ticket's admission hunk imports,
+     native-load-effects.cjs and native-trend-context.cjs, are already on the
+     Today BOOT path through today-bindings.mjs, so the route grows by exactly
+     this one. Named here rather than folded into a wildcard. The builder
+     derived it from the import edges and could NOT build the page (the bundle
+     carries a protected engine file); the PM's run of this file is the
+     measurement, and a different figure is a red cell, not a pin to edit. */
+  'rebuild/m4/import/native-load-replay.cjs']);
+  /* (WAS) NINETEENTH, WITH P3-REAL-SHAPE (DECISIONS:521): the shared lift
      correspondence helper. source-admission.mjs imports it for the programme
      rule and the capture block, and m4/workout/plan-edit-model.cjs imports it
      for the companion - but the companion is not on the Today BOOT path, so
@@ -93,8 +103,13 @@ const ROUTE_MODULES = Object.freeze(['rebuild/coach/engine-revision.cjs',
      carries it while the boot path still does not. It is 42 lines of pure
      function, imports nothing at all, brings no forbidden name and adds no
      leaf. Named here rather than folded into a wildcard, and MEASURED on this
-     tree rather than added by arithmetic: the graph moved by exactly one. */
-  'rebuild/m4/workout/lift-correspondence.cjs']);
+     tree rather than added by arithmetic: the graph moved by exactly one.
+     S11 FC09 ROUND 6 (PM ruling DECISIONS:881 and its round-6 ruling, option (b')) TAKES IT OFF THIS LIST: the native-load
+     lineage resolver is built here, and rebuild/m3/w6/local/today-bindings.mjs imports it on boot, so it now stands in the
+     Today BOOT graph and is no longer route-only. The route-only set goes 20 -> 19; the page's graph does not grow (the
+     module was already in it), and today-bindings.mjs's two other new imports, setup-commands.mjs and setup-model.mjs, were
+     already on the boot path through today-entry.mjs:34-35. DERIVED by the builder from the import edges, NOT measured on a
+     builder seat (this build bundles a protected engine file); the PM's run of this file is the measurement. */
 const tripped = (list, paths) => list.filter(([, m]) => paths.some(m)).map(([label]) => label);
 const graphOf = outfile => JSON.parse(fs.readFileSync(outfile + '.meta.json', 'utf8')).metafile;
 
@@ -196,14 +211,23 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
        and the route-only set is UNMOVED at 19 (P3-B4's deepEqual below still
        holds name for name). RE-MEASURED on the composed S11 candidate rather
        than summed (S11 T3c): 148. */
-    assert.equal(withAdmission.inventory.length, 148,
+    /* S11 FC09 (PM ruling DECISIONS:878) is the NINTH ticket to move it, by ONE:
+       rebuild/m4/import/native-load-replay.cjs, the F9 native-load family, reached
+       only from source-admission.mjs and requiring nothing. Its admission hunk also
+       imports native-load-effects.cjs and native-trend-context.cjs, both already
+       in this graph through today-bindings.mjs. DERIVED by the builder from the
+       import edges, NOT measured on a builder seat (this build bundles a
+       protected engine file): 149, which the PM's run of this cell measures. */
+    /* S11 FC09 ROUND 6 does NOT move it: today-bindings.mjs's new imports (lift-correspondence.cjs, setup-commands.mjs,
+       setup-model.mjs) were all already in this graph. 149 stands; P3-B4 and P3-B5 carry the route-to-boot move. */
+    assert.equal(withAdmission.inventory.length, 149,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 148 (the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'measured 149 (the brief\'s 133, the F7 family\'s one, the F8 family and '
       + 'the shared-class router\'s two, the route\'s own four, B-LOM\'s '
       + 'order-mapping provider, P3-REAL-SHAPE\'s lift-correspondence '
       + 'helper, PASSPHRASE-NORMALIZE\'s shared passphrase form, S10\'s '
-      + 'three Today writer lanes, and S11\'s two native-load modules): '
-      + 're-measure and say so');
+      + 'three Today writer lanes, S11\'s two native-load modules, and S11 '
+      + 'FC09\'s F9 family): re-measure and say so');
     assert.ok(paths.includes('rebuild/m4/workout/legacy-order-mapping.cjs'),
       'B-LOM\'s order-mapping provider is not in this graph at all');
     /* S11: the two modules the figure above moved by, named, so that a graph
@@ -285,6 +309,10 @@ test('P3-B3 - the input law no longer bans the three names outright, and '
            producer's validate() by injection). The list stays EXACT: the law is
            not widened, the measured names are named. */
         'rebuild/m4/import/measure-replay.cjs',
+        /* S11 FC09: the F9 native-load family, reached only from
+           source-admission.mjs and requiring nothing (FC03 is injected). Eleven,
+           and the list stays EXACT. */
+        'rebuild/m4/import/native-load-replay.cjs',
         /* And the whole point of DECISIONS:475 (3): the ONE production execution
            calendar, reached through the route and never through a TEST-ONLY
            registry. */
@@ -421,14 +449,24 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
      writer lanes and these two. BASE_PINNED_INPUTS stays the frozen 121 of the
      base commit it names. Measured on the composed S11 candidate (S11 T3c),
      not summed. */
+  /* S11 FC09 (PM ruling DECISIONS:878) moves the ROUTE, not the boot graph:
+     rebuild/m4/import/native-load-replay.cjs, the F9 family, is reached only
+     from source-admission.mjs, so the route-only set goes 19 -> 20 and the delta
+     27 is 20 route modules plus the same SEVEN boot modules. DERIVED by the
+     builder from the import edges, NOT measured on a builder seat; the PM's run
+     of this cell is the measurement. */
   const BASE_PINNED_INPUTS = 121;
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 26,
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 27,
     'the delta is ' + (today.inventory.length - BASE_PINNED_INPUTS) + ' modules, not the '
-    + 'measured 26 (the route\'s 19 plus the seven boot modules, B-LOM\'s order '
+    + 'measured 27 (the route\'s 19 plus the eight boot modules, B-LOM\'s order '
     + 'mapping, the shared passphrase form, S10\'s three Today writer '
-    + 'lanes and S11\'s two native-load modules): re-measure and say so');
+    + 'lanes, S11\'s two native-load modules and S11 FC09 round 6\'s lift-correspondence '
+    + 'helper): re-measure and say so');
+  /* S11 FC09 ROUND 6 moves the BOOT graph, not the total: lift-correspondence.cjs leaves the route-only set for the Today
+     boot path (today-bindings.mjs imports it), so the delta 27 is now 19 route modules plus EIGHT boot modules (the seven
+     above and this one). DERIVED, not measured on a builder seat; the PM's run of this cell is the measurement. */
   assert.equal(ROUTE_MODULES.length, 19,
-    'the ROUTE-ONLY count moved; the delta above is no longer 19 route plus 1 boot');
+    'the ROUTE-ONLY count moved; the delta above is no longer 19 route plus 8 boot');
 });
 
 test('P3-B6 - the route is LAZY in the built asset: its module bodies are behind '

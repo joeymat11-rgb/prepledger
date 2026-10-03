@@ -8649,3 +8649,455 @@ test("R34-BR34C1-TWO-REMOVED-ROOTS-KEEPS-LATER-YES spec :155 ORIGINAL CUT ('a la
  assert.deepEqual(after.spent.map(x=>[x.spend_id===spend,x.cancelled]).sort(),[[false,false],[true,false]],'both yeses kept (two spends)');
  assert.deepEqual(log.find(x=>x.what==='undo-check earn').offers,['demo-press compensate'],"the earn's Undo is offered (:160)");
 });
+// S11 FC09 round 3 (PM ruling DECISIONS:879, option (iii); s11-fc09-scratch/Q1-SEAM-DESIGN.md 1.D). The governor event over a state
+// carrying an imported log. E/performed.cjs:176-180 requires workoutFacts.legacy_baseline.session_log to BE state.sessionLog;
+// E/native-load.cjs:303-304 copies with structuredClone for exactly that reason ("keeps the imported-log alias"), but
+// governorEvent copied with json(state) at :443, so the governor refused PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED on every
+// projection of an athlete who trained before importing (FC09-Q1-A, PM seat). RED at :443 json(state); green at structuredClone.
+// The second half is the guard: a state whose baseline is a COPY of the log still refuses, so the same-object rule is not weakened.
+test('FC09-ENGINE-GOVERNOR-ALIAS (spec :155 FC03 on every projection; R8 :135 governor once per projection; E/native-load.cjs:303 "keeps the imported-log alias"): with an imported log whose baseline IS state.sessionLog the governor applies exactly as without one; with a copied log it still refuses PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED',()=>{
+ const {s,E}=n23([X(0),X(0)]);
+ nativeGate(E);
+ const plain=E.applyNativeLoadDecision(s,null,structuredClone(GOV));
+ assert.deepEqual([plain.status,plain.refusal],['applied',null],'control: no imported log');
+ const withLog=()=>{const l=structuredClone(s);l.sessionLog={[dayAt(-30)]:{entries:[{id:'fx-row',w:50,reps:[10,10,10]}]}};
+  l.workoutFacts.legacy_baseline={profile:'earned/imported-engine-history/v1',session_log:l.sessionLog,source_generation_id:'fx-gen',activation_op_id:'fx-act'};
+  l.workoutFacts.order.import_anchor={source_generation_id:'fx-gen',activation_op_id:'fx-act'};return l;};
+ const shared=withLog();
+ assert.equal(shared.workoutFacts.legacy_baseline.session_log,shared.sessionLog,'precondition: ONE object');
+ const before=JSON.stringify(shared),t=E.applyNativeLoadDecision(shared,null,structuredClone(GOV));
+ assert.equal(JSON.stringify(shared),before,'input never modified');
+ assert.deepEqual([t.status,t.effect,t.refusal],['applied',null,null],'the governor over an imported log: '+JSON.stringify(t.refusal));
+ const want=JSON.parse(before);exOf(want).holdFlag=true;
+ assert.deepEqual(t.state,want,'ONLY holdFlag changes; the imported log and its baseline ride through unchanged');
+ const copied=JSON.parse(JSON.stringify(withLog()));
+ assert.notEqual(copied.workoutFacts.legacy_baseline.session_log,copied.sessionLog,'precondition: TWO objects');
+ const r=E.applyNativeLoadDecision(copied,null,structuredClone(GOV));
+ assert.deepEqual([r.status,r.refusal],['refused',{code:'PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED',refs:[],field:null}],
+  'the same-object rule still binds a copied log');
+});
+
+// ======================================================================
+// S11 FC09 ROUND 6 (PM ruling DECISIONS:881 and its round-6 ruling: option (b') of s11-fc09-scratch/Q3-SEAM-DESIGN.md 7.4).
+// LINEAGE RESOLUTION. After a real-shape import (P3-REAL-SHAPE option A, DECISIONS:520-521) the base names fx-press by the
+// FILE's id (fx-file here); a record issued before the import keeps fx-press for ever (spec I4). FC03 resolves every lift
+// JOIN through the caller's ONE correspondence (lift-correspondence.cjs liftResolver: record lift -> base lift) at read time,
+// and runs FC01 for such a record on a record-space VIEW. RED FIRST at the pre-round-6 FC03, which ignores `lineage`: every
+// row below that needs the correspondence fails there (s11-fc09-scratch PM-RUN K). Each FC09-LINEAGE-Sxx row is the row that
+// kills the scratch mutant of that join site (the site's resolution left out); the mutant runs are PM-RUN K.
+// ======================================================================
+const FILE='fx-file',CORR='earned/engine-workout-capture/v2';
+const LCORR=require(path.join(ROOT,'rebuild/m4/workout/lift-correspondence.cjs'));
+const lineageOf=pairs=>({profile:'earned/lift-resolver/v1',pairs,refused:null});
+const LINEAGE=Object.freeze(lineageOf({[LIFT]:FILE}));
+const exAt=(s,id=FILE)=>s&&s.exercises.find(x=>x.id===id);
+// The base after the import: the same lift (same name) under the file's id, with the file's own working values (patch).
+function imported(base,patch={}){const b=structuredClone(base);for(const x of b.exercises)if(x.id===LIFT){x.id=FILE;Object.assign(x,patch);}return b;}
+// A projected entry as engine-history.cjs:91 writes it: with its correspondence_profile (the fixture's C() omits it).
+function real(c){const x=structuredClone(c);for(const en of x.session.record.entries)en.correspondence_profile=CORR;return x;}
+// Admission's re-keyed entry (source-admission.mjs:759-764), its facts moved with it; slot keys stay as written.
+function rekeyed(c){const x=real(c);for(const en of x.session.record.entries)if(en.lift_lineage_id===LIFT){en.lift_lineage_id=FILE;
+ for(const sl of en.slots){if(sl.fact)sl.fact.lift_lineage_id=FILE;for(const r of sl.removed_facts||[])r.lift_lineage_id=FILE;}}return x;}
+// A completion written AFTER the import: the file's id in its entry, facts, slot keys and (fc16Capture) its Start capture.
+function CF(n,opts){const x=real(C(n,opts));for(const en of x.session.record.entries){en.lift_lineage_id=FILE;
+ for(const sl of en.slots){sl.logical_set_slot=JSON.stringify([FILE,sl.position]);if(sl.fact){sl.fact.lift_lineage_id=FILE;sl.fact.logical_set_slot=sl.logical_set_slot;}}}return x;}
+// One generation across the import: pre-import Starts captured under the document's id over preBase, later ones over base.
+// facts 'page': the page's projection (entries keep the id they were written under); 'admission': admission's re-keyed one.
+function lineageArgs({pre=[],post=[],extra=[],preBase=F0(),base=imported(F0()),revision='fx-revision-1',facts='page',lineage=LINEAGE}={}){
+ const gen=opsFor([...pre,...post],extra);fc16Capture(gen,pre,preBase);fc16Capture(gen,post,base);
+ const shown=[...pre.map(facts==='admission'?rekeyed:real),...post];
+ return {base,generation:gen,workoutFacts:withFacts(base,shown).workoutFacts,engine:engineR(revision),source:SOURCE,athleteId:ATH,...(lineage===null?{}:{lineage})};
+}
+const issueRows=f=>f.issues.filter(i=>!i.superseded_by).map(i=>[i.code,i.field,i.lift]);
+// A pre-import adopt-observed Yes (heldAdoption's shape): C1 lifted 105 over a card of 100.
+function yesBeforeImport(){
+ const c1=C(1,{reps:TOP,loads:105,effort:e(2,1,1)});
+ const checked=checkOf(foldArgs([c1],[]),LIFT,c1);
+ assert.equal(checked.status,'offer',JSON.stringify(checked.refusal));
+ const offer=checked.offers[0];assert.equal(decisionOf(offer).kind,'adopt-observed');
+ return {c1,offer,spend:decisionOf(offer).spend_id,resp:acceptOp(offer,{after:1})};
+}
+
+test('FC09-LINEAGE-RESOLVER (lift-correspondence.cjs liftResolver; DECISIONS:520-521): the closed, refusing map from the setup document and the admitted state, DOCUMENT id -> STATE id; the identity before any import',()=>{
+ const doc=[{id:'fx-press',n:'Fx Press'},{id:'fx-row',n:'Fx Row'},{id:'fx-dip',n:'Fx Dip'}];
+ const before=LCORR.liftResolver(doc.map(x=>({...x,w:100})),doc);
+ assert.deepEqual(before,{profile:'earned/lift-resolver/v1',pairs:{},refused:null},'the document state itself: the identity');
+ assert.ok(Object.isFrozen(before)&&Object.isFrozen(before.pairs));
+ const state=[{id:'fx-file',n:'fx  PRESS!'},{id:'fx-row',n:'Fx Row'},{id:'fx-dip',n:'Fx Dip'}];
+ assert.deepEqual(LCORR.liftResolver(state,doc).pairs,{'fx-press':'fx-file'},'renamed by the file, matched by normalised NAME');
+ assert.deepEqual(LCORR.liftResolver(state,null).pairs,{},'no document: the identity');
+ assert.deepEqual(LCORR.liftResolver(state,[...doc,{id:'fx-press-2',n:'Fx Press.'}]).pairs,{},'a name two document lifts share corresponds to nothing');
+ const refused=(s,d)=>LCORR.liftResolver(s,d).refused;
+ assert.deepEqual(LCORR.liftResolver([{id:'fx-press',n:'Fx Other'}],doc).pairs,{},'an id the state carries is itself (a rename in Edit My Week; admission refuses the cross-space collision first)');
+ assert.deepEqual(LCORR.liftResolver([{id:'fx-press',n:'Fx Bench'},{id:'fx-file',n:'Fx Press'}],[{id:'fx-press',n:'Fx Press'}]).pairs,{},'even when another state lift now carries its old name');
+ assert.deepEqual(refused([{id:'fx-row',n:'Fx Press'},{id:'fx-dip',n:'Fx Dip'}],doc),{code:'LIFT_RESOLVER_REFUSED',field:'ambiguous',lift:'fx-press'},'a target that is another document lift\'s own id would merge two lineages');
+ assert.deepEqual(refused([...state,{id:'fx-row',n:'Fx Row'}],doc),{code:'LIFT_RESOLVER_REFUSED',field:'state',lift:'fx-row'});
+ assert.deepEqual(refused(state,[...doc,{id:'fx-dip',n:'Fx Dip'}]),{code:'LIFT_RESOLVER_REFUSED',field:'document',lift:'fx-dip'});
+ assert.deepEqual(refused(state,false),{code:'LIFT_RESOLVER_REFUSED',field:'document',lift:null},'a document that cannot be read (several setups, a refused constructor)');
+ assert.deepEqual(refused(null,doc),{code:'LIFT_RESOLVER_REFUSED',field:'state',lift:null});
+ assert.equal(LCORR.liftResolver(state,doc).refused,null);
+});
+
+test('FC09-LINEAGE-REFUSED (spec :175 refused by name; the round-6 ruling "an unknown or ambiguous correspondence refuses by name"): a correspondence FC03 cannot use refuses the fold RECORD_INVALID field lineage; it never falls back to the identity',()=>{
+ effectsGate();
+ const y=yesBeforeImport();
+ const at=lineage=>EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[y.resp],lineage}));
+ const LINEAGE_REFUSED={status:'refused',state:null,effects:[],spent:[],issues:[{code:'NATIVE_LOAD_RECORD_INVALID',refs:[],field:'lineage'}],coverage:[]};
+ for(const bad of [lineageOf({[LIFT]:'fx-nowhere'}),lineageOf({[FILE]:FILE}),lineageOf({[LIFT]:FILE,'fx-other':FILE}),lineageOf({'fx-row':FILE,[LIFT]:FILE}),
+   {profile:'earned/lift-resolver/v1',pairs:null,refused:{code:'LIFT_RESOLVER_REFUSED',field:'document',lift:null}},{profile:'x',pairs:{[LIFT]:FILE},refused:null},'fx-press'])
+  assert.deepEqual(at(bad),LINEAGE_REFUSED,JSON.stringify(bad));
+ assert.deepEqual(checkOf(lineageArgs({pre:[y.c1],extra:[y.resp],lineage:lineageOf({[LIFT]:'fx-nowhere'})}),FILE,y.c1).refusal,{code:'NATIVE_LOAD_RECORD_INVALID',refs:[],field:'lineage'});
+});
+
+test('FC09-LINEAGE-S07 S1 RESOLVES IN THE BASE, and FC09-LINEAGE-S22 FC01 JUDGES THE RECORD IN ITS OWN ID SPACE (spec :155 S1 "lineage resolution", :156 DERIVABLE; I4): a Yes given before the import applies on the file\'s lift; with no correspondence it is the lift-less RECORD_INVALID that holds every check (FC09-Q3, measured)',()=>{
+ effectsGate();
+ const y=yesBeforeImport();
+ for(const facts of ['page','admission']){
+  const bare=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[y.resp],facts,lineage:null}));
+  assert.deepEqual(issueRows(bare),[['NATIVE_LOAD_RECORD_INVALID','lift_lineage_id',null]],'control: the FC09-Q3 seam, '+facts);
+  const f=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[y.resp],facts}));
+  assert.equal(f.status,'ready');
+  assert.deepEqual(issueRows(f),[],facts+': '+JSON.stringify(f.issues));
+  assert.equal(exAt(f.state).w,105,'the adoption lands on the file\'s lift ('+facts+')');
+  assert.equal(exAt(f.state,LIFT),undefined,'no second lift appears');
+  assert.deepEqual(exAt(f.state).native_load_authority,{kind:'adopted',spend_id:y.spend,response_refs:[ref('fx-resp-1')],prior:exAt(f.state).native_load_authority.prior});
+  assert.deepEqual(f.spent.map(x=>x.spend_id),[y.spend]);assert.deepEqual(f.effects.map(x=>x.kind),['adopted']);
+ }
+});
+
+test('FC09-LINEAGE-S01 S3/S4 FIND THE COMPLETION UNDER EITHER ID (spec :155 S3 authentic work, S4 evidence): on admission\'s re-keyed facts the record\'s consumed completion names the file\'s lift and is still its own',()=>{
+ effectsGate();
+ const y=yesBeforeImport();
+ // Revision absent (R2): never re-evaluated, so S1-S8 alone decide.
+ const f=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[y.resp],facts:'admission',revision:'fx-revision-2'}));
+ assert.deepEqual(issueRows(f),[['NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED',null,FILE]]);
+ assert.equal(exAt(f.state).w,105);
+});
+
+test('FC09-LINEAGE-S20 THE ACCEPT IS JUDGED ON THE BASE LIFT, FC09-LINEAGE-S28/S30 ITS UNDO IS OFFERED AND ISSUED UNDER THE RECORD\'S ID, FC09-LINEAGE-S24 AND RE-VALIDATED (spec :156 UNPROVABLE ORDER, :153, :154; the round-6 ruling: "the Undo of a corresponded spend is issued under the record\'s id"): the import moved the base, so the Yes is held EFFECT_CONFLICT on the file\'s lift; its retire-only Undo is offered for the file\'s lift and applies',()=>{
+ effectsGate();
+ const y=yesBeforeImport(),base=imported(F0({w:102.5}));
+ for(const facts of ['page','admission']){
+  const args=lineageArgs({pre:[y.c1],extra:[y.resp],base,facts});
+  const f=EFFECTS.m.foldNativeLoad(args);
+  assert.deepEqual(issueRows(f),[['NATIVE_LOAD_EFFECT_CONFLICT','load_basis',FILE]],facts);
+  assert.equal(exAt(f.state).w,102.5,'held, never applied');
+  for(const asked of [FILE,LIFT]){
+   const undo=checkOf(args,asked,y.c1,{compensate:y.spend});
+   assert.equal(undo.status,'offer',facts+' '+asked+': '+JSON.stringify(undo.refusal));
+   const d=decisionOf(undo.offers[0]);
+   assert.deepEqual([d.kind,d.lift_lineage_id,d.compensates,d.spend_id],['compensate',LIFT,y.spend,JSON.stringify(['native-load-compensation',LIFT,y.spend])],'issued under the record\'s own id');
+   assert.deepEqual(d.target_load.vector,Loads(102.5,102.5,102.5),'retire-only: the current load stands');
+   assert.deepEqual(d.base_load.fields.w,{present:true,value:102.5},'the file lift\'s own working weight');
+   // FC09-LINEAGE-S06: the basis binds every capture of this lineage, the pre-import one under the document's id included.
+   assert.equal(d.basis.plan.capture_sha256,'sha256:'+EFFECTS.m.sha256Hex(JSON.stringify([[y.c1.session.record.entries[0].slots.map(s=>s.prescribed_load)]])),'capture_sha256 over this lineage\'s captures');
+   if(asked===LIFT)assert.deepEqual(undo,checkOf(args,FILE,y.c1,{compensate:y.spend}),'FC09-LINEAGE-S27: asked by either id, the same Undo');
+  }
+  const undo=checkOf(args,FILE,y.c1,{compensate:y.spend});
+  for(const rev of ['fx-revision-1','fx-revision-2']){
+   const g=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[y.resp,acceptOp(undo.offers[0],{op_id:'fx-resp-2',after:1})],base,facts,revision:rev}));
+   assert.deepEqual(issueRows(g).filter(r=>r[0]!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'),[],facts+' '+rev+': '+JSON.stringify(g.issues));
+   assert.equal(exAt(g.state).w,102.5,'no w write');
+   assert.equal(g.spent.find(x=>x.spend_id===y.spend).cancelled_by,decisionOf(undo.offers[0]).spend_id,'the Yes is retired');
+  }
+ }
+});
+
+test('FC09-LINEAGE-S29 A SPOILED UNDO IS FOUND UNDER THE RECORD\'S ID (Fable l8 D-L8F-3, spec :158 NO TRAP): an Undo record the fold refused is named by its own spend, which encodes the record\'s lift; its Undo is not offered again',()=>{
+ effectsGate();
+ const y=yesBeforeImport(),base=imported(F0({w:102.5}));
+ const undo=checkOf(lineageArgs({pre:[y.c1],extra:[y.resp],base}),FILE,y.c1,{compensate:y.spend});
+ assert.equal(undo.status,'offer',JSON.stringify(undo.refusal));
+ const bad=structuredClone(decisionOf(undo.offers[0]));bad.target_load={scalar:lb(80),vector:Loads(80,80,80)};
+ const spoiled=acceptOp({body:bad,reason:undo.offers[0].reason},{op_id:'fx-resp-2',after:1});
+ const args=lineageArgs({pre:[y.c1],extra:[y.resp,spoiled],base});
+ const f=EFFECTS.m.foldNativeLoad(args);
+ assert.ok(issueRows(f).some(r=>r[0]==='NATIVE_LOAD_RECORD_INVALID'&&r[2]===FILE),JSON.stringify(f.issues));
+ const again=checkOf(args,FILE,y.c1,{compensate:y.spend});
+ assert.equal(again.status,'refused','a cancellation that can never apply is not offered again: '+JSON.stringify(again.offers&&again.offers.length));
+ assert.equal(again.refusal.code,'NATIVE_LOAD_RECORD_INVALID');assert.deepEqual(again.refusal.refs,[ref('fx-resp-2')]);
+});
+
+test('FC09-LINEAGE-S14 A RECORD THAT FAILS ITS SHAPE HOLDS ITS BASE LIFT, never no lift (spec :155 per lift, :158): a pre-import record whose proposal id does not digest is refused on the file\'s lift',()=>{
+ effectsGate();
+ const y=yesBeforeImport(),bad=structuredClone(y.resp);bad.payload.proposal_id='prop-0000000000000000';
+ const f=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[bad]}));
+ assert.deepEqual(issueRows(f),[['NATIVE_LOAD_RECORD_INVALID','payload',FILE]]);
+});
+
+test('FC09-LINEAGE-S17 A RECORD WHOSE JUDGEMENT THROWS HOLDS ITS BASE LIFT (round 31 containment, spec :175): the per-record containment refuses it on the file\'s lift',()=>{
+ effectsGate();
+ const y=yesBeforeImport(),args=lineageArgs({pre:[y.c1],extra:[y.resp]});
+ const throwing={revision:'fx-revision-1',at:day=>{const E=engineAt(day);return {evaluateNativeLoad:E.evaluateNativeLoad,
+  applyNativeLoadDecision:(s,d,c)=>{if(d&&d.spend_id===y.spend)throw new Error('fx-throw');return E.applyNativeLoadDecision(s,d,c);}};}};
+ const f=EFFECTS.m.foldNativeLoad({...args,engine:throwing});
+ assert.deepEqual(issueRows(f),[['NATIVE_LOAD_RECORD_INVALID','payload',FILE]]);
+});
+
+test('FC09-LINEAGE-S18/S19 ONE COMPLETION, TWO IDS, IS ONE COMPLETION (spec :156 incompatible accepts refused together, :121 spent once): a pre-import Yes and a post-import Yes over the same completion conflict on the file\'s lift alone, and neither applies',()=>{
+ effectsGate();
+ const y=yesBeforeImport();
+ const second=checkOf(lineageArgs({pre:[y.c1],facts:'admission'}),FILE,y.c1);
+ assert.equal(second.status,'offer',JSON.stringify(second.refusal));
+ const d2=decisionOf(second.offers[0]);assert.deepEqual([d2.kind,d2.lift_lineage_id],['adopt-observed',FILE]);
+ assert.notDeepEqual(d2.consumes,decisionOf(y.offer).consumes,'precondition: the same completion, written under two ids');
+ const f=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[y.resp,acceptOp(second.offers[0],{op_id:'fx-resp-2',after:1})],facts:'admission'}));
+ assert.deepEqual(issueRows(f),[['NATIVE_LOAD_EFFECT_CONFLICT',null,FILE]]);
+ assert.deepEqual(f.issues[0].refs,[ref('fx-resp-1'),ref('fx-resp-2')]);
+ assert.equal(exAt(f.state).w,100,'neither applies');assert.deepEqual(f.spent,[]);
+});
+
+test('FC09-LINEAGE-S10/S11 ONE LINEAGE UNDER TWO IDS INSIDE ONE RECORD (spec :155 S1 "the lift of every consumes root", by lineage; the ruling\'s :482/:493): a record whose roots name the document id and whose lift names the file\'s is judged as one lineage; FC01 then decides its own clauses',()=>{
+ effectsGate();
+ const y=yesBeforeImport(),body=structuredClone(decisionOf(y.offer));
+ body.lift_lineage_id=FILE;body.spend_id=JSON.stringify(['native-load',FILE,...JSON.parse(body.spend_id).slice(2)]);
+ const mixed=acceptOp({body,reason:y.offer.reason},{after:1});
+ const f=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[mixed],revision:'fx-revision-2'}));
+ assert.deepEqual(issueRows(f),[['NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED',null,FILE]]);assert.equal(exAt(f.state).w,105);
+ // A compensation whose lift is the file's over a spend that encodes the document's: S1 passes by lineage, and FC01's own
+ // DERIVABLE clause (E/native-load.cjs:513) refuses it, field compensates (FC01 never issues such a record).
+ const base=imported(F0({w:102.5}));
+ const undo=checkOf(lineageArgs({pre:[y.c1],extra:[y.resp],base}),FILE,y.c1,{compensate:y.spend});
+ const cross=structuredClone(decisionOf(undo.offers[0]));cross.lift_lineage_id=FILE;cross.spend_id=JSON.stringify(['native-load-compensation',FILE,y.spend]);
+ const g=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[y.resp,acceptOp({body:cross,reason:undo.offers[0].reason},{op_id:'fx-resp-2',after:1})],base,revision:'fx-revision-2'}));
+ assert.ok(g.issues.some(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'&&i.field==='compensates'&&i.lift===FILE),JSON.stringify(g.issues));
+});
+
+test('FC09-LINEAGE-S23 THE OWNER OF A LIFT MISMATCH IS THE ROOT\'S BASE LIFT (spec :155 S1, round-9 owner rule): a record naming another lift over roots of the document\'s id holds the file\'s lift',()=>{
+ effectsGate();
+ const y=yesBeforeImport(),body=structuredClone(decisionOf(y.offer));body.lift_lineage_id=ROW;
+ const base=imported(withRow());
+ const f=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[acceptOp({body,reason:y.offer.reason},{after:1})],base,revision:'fx-revision-2'}));
+ assert.deepEqual(issueRows(f),[['NATIVE_LOAD_RECORD_INVALID','lift_lineage_id',FILE]]);
+});
+
+test('FC09-LINEAGE-S25/S26 A PRE-IMPORT DEBUT LANDS ON THE FILE\'S LIFT, FC09-LINEAGE-S03 AND A LATER START THAT CAPTURED IT BARS ITS UNDO (spec :151-:153): the Yes to 105, its debut Close at 105, then the import; and the same Yes with only a post-import Start that captured 105',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1');
+ const f=EFFECTS.m.foldNativeLoad(lineageArgs({pre:s.all,extra:[s.resp]}));
+ assert.deepEqual(issueRows(f),[]);
+ assert.equal(exAt(f.state).w,105,'landed on the file\'s lift');assert.deepEqual(f.effects.map(x=>x.kind),['landed']);
+ const q=f.state.queue.find(x=>x.native_load_spend===decisionOf(s.offer).spend_id);
+ assert.deepEqual([q.exId,q.done,q.state],[FILE,true,'ESTABLISH'],'the native entry is the file lift\'s');
+ // Not landed: the Yes alone before the import; after it a Start under the file's id captured 105 (no Close yet).
+ const args=lineageArgs({pre:s.cs,extra:[s.resp]});
+ const held=EFFECTS.m.foldNativeLoad(args);
+ assert.deepEqual(held.state.queue.filter(x=>!x.done).map(x=>[x.exId,x.state]),[[FILE,'DEBUT']]);
+ assert.equal(checkOf(args,FILE,s.cs[1],{compensate:decisionOf(s.offer).spend_id}).status,'offer','control: nothing captured it yet');
+ const ops=args.generation.collections.ops,seq=Math.max(...Object.values(ops).map(o=>o.device_seq))+1;
+ ops['fx-start-9']={op_id:'fx-start-9',athlete_id:ATH,device_id:DEVICE,device_seq:seq,class:'session',kind:'session-start',payload:{},canonical_content_commitment:commit('fx-start-9'),
+  prescription_capture:{slots:[1,2,3].map(p=>({logical_set_slot:JSON.stringify([FILE,p]),lift_lineage_id:FILE,load:{state:'specified',display:'105 lb',source_json:JSON.stringify({value:105,unit:'lb'})}}))}};
+ const barred=checkOf(args,FILE,s.cs[1],{compensate:decisionOf(s.offer).spend_id});
+ assert.deepEqual([barred.status,barred.refusal&&barred.refusal.code],['refused','NATIVE_LOAD_COMPENSATION_DESCENDANTS'],JSON.stringify(barred.refusal));
+});
+
+test('FC09-LINEAGE-S12 THE MISSED-DEBUT ANCHOR FINDS THE PRE-IMPORT EARN (spec R9.9 :155, :152): a Yes to 105 before the import, a post-import Close that captured 105 and lifted 95, then its adopt-observed claim applies under every revision',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1');
+ const c3=CF(3,{date:'2026-10-12',reps:TOP,loads:95,prescribed:105,effort:e(2,1,1)});
+ const args=lineageArgs({pre:s.cs,post:[c3],extra:[s.resp]});
+ const f=EFFECTS.m.foldNativeLoad(args);
+ const q=f.state.queue.find(x=>x.native_load_spend===decisionOf(s.offer).spend_id);
+ assert.deepEqual([q.exId,q.state,q.native_load_missed_by],[FILE,'MISSED',c3.close],'a missed debut on the file\'s lift');
+ const claim=checkOf(args,FILE,c3);
+ assert.equal(claim.status,'offer',JSON.stringify(claim.refusal));
+ const d=decisionOf(claim.offers[0]);assert.deepEqual([d.kind,d.lift_lineage_id,d.basis.load_basis.authority_refs],['adopt-observed',FILE,[ref(c3.close)]]);
+ for(const rev of ['fx-revision-1','fx-revision-2']){
+  const g=EFFECTS.m.foldNativeLoad(lineageArgs({pre:s.cs,post:[c3],extra:[s.resp,acceptOp(claim.offers[0],{op_id:'fx-resp-2',after:3})],revision:rev}));
+  assert.deepEqual(issueRows(g).filter(r=>r[0]!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'),[],rev+': '+JSON.stringify(g.issues));
+  assert.equal(exAt(g.state).w,95,rev);
+ }
+});
+
+test('FC09-LINEAGE-S04 STEP 2 READS THE START\'S OWN CAPTURE UNDER EITHER ID (spec :127 step 2, :126; review B22): a host-v1 completion admission re-keyed, checked after the import moved the plan, refuses PLAN_CHANGED [Close]',()=>{
+ effectsGate();
+ const c1=v1Of(C(1,{reps:TOP,loads:100,effort:e(2,1,1)}));
+ const args=lineageArgs({pre:[c1],facts:'admission',base:imported(F0({w:110}))});
+ captureOn(args.generation,c1,[100,100,100]);
+ const ev=checkOf(args,FILE,c1);
+ expectRefusal(ev,'PLAN_CHANGED',[ref(c1.close)]);
+});
+
+test('FC09-LINEAGE-S05 THE WINDOW IS PROVEN FROM THE START\'S OWN CAPTURE UNDER EITHER ID (spec R9.1 :127 WINDOW BINDING): an earn checked on admission\'s re-keyed facts is offered',()=>{
+ effectsGate();
+ const {cs,oracle}=n02cY();
+ const ev=checkOf(lineageArgs({pre:cs,facts:'admission'}),FILE,cs[1]);
+ assert.equal(ev.status,'offer',JSON.stringify(ev.refusal));
+ const d=decisionOf(ev.offers[0]);assert.deepEqual([d.kind,d.lift_lineage_id,d.candidate.newW],['earn',FILE,oracle[0].newW]);
+});
+
+test('FC09-LINEAGE-S02/S09 THE EXIT\'S REFS-ARM READS ITS CAPTURE AND ITS HOLD RECORD UNDER EITHER ID (spec R9.12 (1b), R9.13 (i) REFS-ARM, :158 exit (b)): a Yes, a host-v1 workout on its new card, the import moves the base; the held lift\'s adoption exit applies and supersedes the hold',()=>{
+ effectsGate();
+ const y=yesBeforeImport();
+ const c2=v1Of(C(2,{reps:TOP,loads:105,effort:e(2,1,1)}));
+ const base=imported(F0({w:102.5})),pre=[y.c1,c2];
+ const capture=a=>{captureOn(a.generation,c2,[105,105,105]);return a;};
+ const args=capture(lineageArgs({pre,extra:[y.resp],base,facts:'admission'}));
+ const f=EFFECTS.m.foldNativeLoad(args);
+ assert.deepEqual(issueRows(f),[['NATIVE_LOAD_EFFECT_CONFLICT','load_basis',FILE]]);
+ const exit=checkOf(args,FILE,c2);
+ assert.equal(exit.status,'offer',JSON.stringify(exit.refusal));
+ const d=decisionOf(exit.offers[0]);assert.deepEqual([d.kind,d.basis.load_basis.authority_refs],['adopt-baseline',[ref('fx-resp-1')]]);
+ const g=EFFECTS.m.foldNativeLoad(capture(lineageArgs({pre,extra:[y.resp,acceptOp(exit.offers[0],{op_id:'fx-resp-2',after:2})],base,facts:'admission'})));
+ assert.deepEqual(issueRows(g),[],JSON.stringify(g.issues));
+ assert.equal(exAt(g.state).w,105,'the adopted loads');
+ assert.ok(g.issues.some(i=>i.code==='NATIVE_LOAD_EFFECT_CONFLICT'&&i.superseded_by===d.spend_id),'the hold is superseded, kept as history');
+});
+
+test('FC09-LINEAGE-S02 S8 READS THE START\'S OWN CAPTURE UNDER EITHER ID (spec :155 S8 "base_load equals the latest consumed Start\'s capture"; :122 the immutable Start capture): a host-v1 Yes before the import, judged on admission\'s re-keyed facts, applies',()=>{
+ effectsGate();
+ const c1=v1Of(C(1,{reps:TOP,loads:105,effort:e(2,1,1)})),cap=a=>{captureOn(a.generation,c1,[100,100,100]);return a;};
+ const checked=checkOf(cap(foldArgs([c1],[])),LIFT,c1);
+ assert.equal(checked.status,'offer',JSON.stringify(checked.refusal));assert.equal(decisionOf(checked.offers[0]).kind,'adopt-observed');
+ const f=EFFECTS.m.foldNativeLoad(cap(lineageArgs({pre:[c1],extra:[acceptOp(checked.offers[0],{after:1})],facts:'admission',revision:'fx-revision-2'})));
+ assert.deepEqual(issueRows(f),[['NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED',null,FILE]]);
+ assert.equal(exAt(f.state).w,105);
+});
+// The genuine held-lift exit of FC09-LINEAGE-S02/S09 (a host-v1 workout after the Yes; the import moved the base).
+function exitScenario({device}={}){
+ const y=yesBeforeImport();if(device)y.resp={...y.resp,device};
+ const c2=v1Of(C(2,{reps:TOP,loads:105,effort:e(2,1,1)})),pre=[y.c1,c2];
+ const capture=a=>{captureOn(a.generation,c2,[105,105,105]);return a;};
+ const at=(base,extra)=>capture(lineageArgs({pre,extra:[y.resp,...extra],base,facts:'admission',revision:'fx-revision-2'}));
+ const exit=checkOf(capture(lineageArgs({pre,extra:[yesBeforeImport().resp],base:imported(F0({w:102.5})),facts:'admission'})),FILE,c2);
+ assert.equal(exit.status,'offer',JSON.stringify(exit.refusal));
+ return {y,c2,at,exit,d:decisionOf(exit.offers[0])};
+}
+// The same record re-addressed to the document's id (its consumes roots and spend_id with it) and re-issued.
+function inDocumentSpace(d,reason,opts){
+ const b=structuredClone(d);b.lift_lineage_id=LIFT;b.consumes=b.consumes.map(c=>{const k=JSON.parse(c);return JSON.stringify([k[0],LIFT,k[2]]);});
+ b.spend_id=JSON.stringify(['native-load',LIFT,...JSON.parse(b.spend_id).slice(2,4),b.consumes]);
+ return acceptOp({body:b,reason},opts);
+}
+test('FC09-LINEAGE-S15/S16 A DISSOLVED EXIT\'S AUTHORITY RECORD IS OF ITS LINEAGE UNDER EITHER ID (spec R9.12 (1b) ONE ANCHOR, :157 RESIDUAL (iv), :158): an adoption exit naming a pre-import Yes that no hold ever named keeps its exit meaning',()=>{
+ effectsGate();
+ const x=exitScenario();
+ const f=EFFECTS.m.foldNativeLoad(x.at(imported(F0()),[acceptOp(x.exit.offers[0],{op_id:'fx-resp-2',after:2})]));
+ assert.deepEqual(issueRows(f).filter(r=>r[0]!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'),[],JSON.stringify(f.issues));
+ assert.equal(exAt(f.state).w,105);
+ assert.ok(f.spent.some(s=>s.spend_id===x.d.spend_id),'the exit is applied, never held as an unordered base change');
+ // FC09-LINEAGE-S15: the same exit written under the document's id is judged on its base lift, and keeps its exit meaning too.
+ const doc=inDocumentSpace(x.d,x.exit.offers[0].reason,{op_id:'fx-resp-2',after:2});
+ const g=EFFECTS.m.foldNativeLoad(x.at(imported(F0()),[doc]));
+ assert.deepEqual(issueRows(g).filter(r=>r[0]!=='NATIVE_LOAD_PRODUCER_REVISION_ABSENT_APPLIED'),[],JSON.stringify(g.issues));
+ assert.ok(g.spent.some(s=>s.spend_id===doc.payload.issuance.body.spend_id));
+});
+test('FC09-LINEAGE-S08 REFS-ARM NAMES A HOLD BY ITS BASE LIFT (spec R9.13 (i) REFS-ARM: "an ACTIVE hold issue of the lift names it"): an exit written under the document\'s id over a Yes held on the file\'s lift that no causal order puts before its Start is held as accepted history, never RECORD_INVALID',()=>{
+ effectsGate();
+ const x=exitScenario({device:'fx-device-B'});
+ const exit=inDocumentSpace(x.d,x.exit.offers[0].reason,{op_id:'fx-resp-2',after:2});
+ const f=EFFECTS.m.foldNativeLoad(x.at(imported(F0({w:102.5})),[exit]));
+ assert.ok(!f.issues.some(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'),JSON.stringify(f.issues));
+ assert.ok(f.spent.some(s=>s.spend_id===exit.payload.issuance.body.spend_id),'kept in the spend index');
+ assert.ok(f.issues.some(i=>i.code==='NATIVE_LOAD_EFFECT_CONFLICT'&&i.lift===FILE&&!i.superseded_by),'the Yes still holds the file\'s lift');
+});
+
+test('FC09-LINEAGE-IDENTITY (the round-6 ruling\'s first condition: "with shared ids the bytes FC03 produces are identical to now"): over the existing fixtures, a fold and a check with no correspondence, with the empty one, and with one no record and no base lift uses produce the same bytes',()=>{
+ effectsGate();
+ const variants=[null,lineageOf({}),lineageOf({'fx-doc-only':LIFT})];
+ const s=landingScenario('fx-revision-1'),n=n11Checked(),h=heldAdoption({baseline:false}),hb=heldAdoption({baseline:true}),cr=correctedScenario();
+ const A=decisionOf(s.offer).spend_id;
+ const undoA=checkOf(foldArgs(s.cs,[s.resp]),LIFT,s.cs[1],{compensate:A});
+ const hUndo=checkOf(foldArgs([h.c1],[h.resp],'fx-revision-1',h.moved()),LIFT,h.c1,{compensate:h.spend});
+ const cases=[
+  ['N05 landing R1',()=>foldArgs(s.all,[s.resp],'fx-revision-1'),[[LIFT,s.c3,'check'],[LIFT,s.cs[1],{compensate:A}]]],
+  ['N05 landing R2',()=>foldArgs(s.all,[s.resp],'fx-revision-2'),[[LIFT,s.c3,'check']]],
+  ['N05 yes, undo offered',()=>foldArgs(s.cs,[s.resp]),[[LIFT,s.cs[1],{compensate:A}],[LIFT,s.cs[1],'check']]],
+  ['N05 yes and its undo',()=>foldArgs(s.cs,[s.resp,acceptOp(undoA.offers[0],{op_id:'fx-resp-2',after:2})]),[[LIFT,s.cs[1],'check']]],
+  ['N05 bare',()=>foldArgs(s.cs,[]),[[LIFT,s.cs[1],'check']]],
+  ['N11 two bodies',()=>foldArgs(n.cs,[acceptOp(n.offers[0],{after:2,op_id:'fx-resp-a'}),acceptOp(n.offers[1],{after:2,op_id:'fx-resp-b'})],'fx-revision-1',n.base),[[LIFT,n.cs[1],'check']]],
+  ['N11 checked',()=>foldArgs(n.cs,[],'fx-revision-1',n.base),[[LIFT,n.cs[1],'check']]],
+  ['B12 held adoption',()=>foldArgs([h.c1],[h.resp],'fx-revision-1',h.moved()),[[LIFT,h.c1,{compensate:h.spend}],[LIFT,h.c1,'check']]],
+  ['B12 held adoption undone',()=>foldArgs([h.c1],[h.resp,acceptOp(hUndo.offers[0],{op_id:'fx-resp-2',after:1})],'fx-revision-1',h.moved()),[[LIFT,h.c1,'check']]],
+  ['B12b held baseline',()=>foldArgs([hb.c1],[hb.resp],'fx-revision-2',hb.moved()),[[LIFT,hb.c1,{compensate:hb.spend}]]],
+  ['B2 corrected basis',()=>foldArgs(cr.cs2,[cr.resp]),[[LIFT,cr.c2x,'check'],[LIFT,cr.c2x,{compensate:cr.spend}]]],
+  ['R2 device B',()=>foldArgs(s.all,[{...s.resp,device:'fx-device-B'}]),[[LIFT,s.c3,'check']]],
+  ['a lift no record names',()=>foldArgs(s.all,[s.resp]),[[ROW,s.c3,'check']]],
+ ];
+ for(const [name,mk,checks] of cases){
+  const run=l=>{const out=[];const a=mk();if(l)a.lineage=l;out.push(EFFECTS.m.foldNativeLoad(a));
+   for(const [lift,c,intent] of checks)out.push(EFFECTS.m.checkNativeLoad({...mk(),...(l?{lineage:l}:{}),request:{lift_lineage_id:lift,completion_op_id:c.close,intent}}));
+   return JSON.stringify(out);};
+  const want=run(null);
+  for(const l of variants.slice(1))assert.equal(run(l),want,name+' under '+JSON.stringify(l.pairs));
+ }
+});
+
+test('FC09-LINEAGE-BOUNDARY (the round-6 ruling: "at each FC01 call made for a record, FC01 sees a state copy with that lift renamed to the record\'s lift over a closed field list, and the result is renamed back. Unknown lift-keyed fields refuse by name. No record or op is rewritten"): the round trip, member by member, and every refusal by name',()=>{
+ effectsGate();
+ const base=imported(F0());
+ const c1=real(C(1,{reps:TOP,loads:105,effort:e(2,1,1)})),c2=CF(2,{reps:TOP,loads:100,effort:e(2,1,1)});
+ const make=()=>{const s=withFacts(base,[c1,c2]);
+  s.queue=[{id:'fx-q1',kind:'debut',exId:FILE,newW:110,done:false,native_load_spend:'fx-spend'},{id:'fx-q0',kind:'debut',exId:'fx-other',done:true}];
+  s.exOrder={U:[FILE,'fx-other']};s.retirements={[FILE]:{at:'2026-09-01'}};s.insertions={};
+  s.sessionLog={[dayAt(-30)]:{entries:[{id:FILE,w:50,reps:[10,10,10]},{id:'fx-other',w:20,reps:[8]}]}};
+  s.proposals=[{apply:{exId:FILE}}];return s;};
+ const state=make(),before=JSON.stringify(state);
+ let seen=null,result=null;
+ const stub={evaluateNativeLoad:(s,q)=>{seen={s:structuredClone(s),q:structuredClone(q)};return {profile:'earned/native-load/v1',status:'refused',basis:null,offers:[],refusal:{code:'NATIVE_LOAD_X',refs:[],field:null}};},
+  applyNativeLoadDecision:(s,d,c)=>{seen={s:structuredClone(s),d:structuredClone(d),c:structuredClone(c)};const r=JSON.parse(JSON.stringify(s));
+   r.exercises.find(x=>x.id===LIFT).w=999;r.queue.push({id:'fx-q2',exId:LIFT,done:false});if(result)result(r);return {status:'applied',state:r,effect:{kind:'adopted'},refusal:null};}};
+ const rt=EFFECTS.m.lineageRuntime(stub,LIFT,LINEAGE,base);
+ const ev=rt.evaluateNativeLoad(state,{lift_lineage_id:LIFT,completion_op_id:c2.close,intent:'check',basis:{x:1}});
+ assert.equal(ev.refusal.code,'NATIVE_LOAD_X','the evaluation comes back unchanged');
+ assert.equal(JSON.stringify(state),before,'the input is never modified');
+ assert.deepEqual(seen.q,{lift_lineage_id:LIFT,completion_op_id:c2.close,intent:'check',basis:{x:1}},'the request reaches FC01 as it is');
+ const v=seen.s;
+ assert.ok(!JSON.stringify(v).includes(JSON.stringify(FILE)),'FC01 never sees the base id: '+JSON.stringify(v).match(/.{60}"fx-file".{20}/));
+ assert.deepEqual(v.exercises.filter(x=>x.id===LIFT).length,1);
+ assert.deepEqual(v.queue.map(q=>q.exId),[LIFT,'fx-other']);assert.deepEqual(v.exOrder,{U:[LIFT,'fx-other']});
+ assert.deepEqual(Object.keys(v.retirements),[LIFT]);assert.deepEqual(v.proposals,[{apply:{exId:LIFT}}]);
+ assert.deepEqual(Object.values(v.sessionLog)[0].entries.map(x=>x.id),[LIFT,'fx-other']);
+ const entries=v.workoutFacts.sessions.map(x=>x.record.entries[0]);
+ assert.deepEqual(entries.map(x=>x.lift_lineage_id),[LIFT,LIFT],'the pre-import and the post-import completion, one lineage');
+ assert.deepEqual(entries.flatMap(x=>x.slots.map(sl=>sl.fact.lift_lineage_id)),[LIFT,LIFT,LIFT,LIFT,LIFT,LIFT]);
+ assert.deepEqual(entries.map(x=>x.slots[0].logical_set_slot),[JSON.stringify([LIFT,1]),JSON.stringify([FILE,1])],'slot keys stay as written (the capture\'s own address)');
+ // The landing completion entry FC03 hands in the context is renamed with the state; the decision is not touched.
+ const decision={profile:'x',lift_lineage_id:LIFT,spend_id:JSON.stringify(['native-load',LIFT,null,null,[]])};
+ const t=rt.applyNativeLoadDecision(state,decision,{event:'close',completion:{entry:structuredClone(c2.session.record.entries[0])}});
+ assert.equal(JSON.stringify(state),before);
+ assert.deepEqual(seen.d,decision,'the record reaches FC01 exactly as written');
+ assert.equal(seen.c.completion.entry.lift_lineage_id,LIFT);
+ assert.equal(t.status,'applied');assert.deepEqual(t.effect,{kind:'adopted'});
+ const back=t.state,orig=JSON.parse(before);
+ assert.deepEqual(back.exercises.map(x=>x.id),orig.exercises.map(x=>x.id),'renamed back');
+ assert.equal(exAt(back).w,999,'FC01\'s own write survives the trip');
+ assert.deepEqual(back.queue.map(q=>[q.id,q.exId]),[['fx-q1',FILE],['fx-q0','fx-other'],['fx-q2',FILE]]);
+ for(const k of ['workoutFacts','sessionLog','exOrder','retirements','proposals','insertions'])assert.deepEqual(back[k],orig[k],k+' comes back as the input had it');
+ // Refusals, by name; the state handed back is the input's.
+ const refusal={code:'NATIVE_LOAD_RECORD_INVALID',refs:[],field:'lineage'};
+ result=r=>{r.split=[];};
+ const changed=rt.applyNativeLoadDecision(state,decision,{event:'accept'});
+ assert.deepEqual([changed.status,changed.refusal,changed.effect],['refused',refusal,null],'FC01 changed a member outside exercises and queue');
+ assert.equal(JSON.stringify(changed.state),before);
+ result=null;
+ for(const [where,put] of [['a liftId',s=>{s.feed=[{liftId:FILE}];}],['a lift_lineage_id outside the facts',s=>{s.dailyLogs={'2026-09-01':{lift_lineage_id:FILE}};}],['a lift',s=>{s.trials=[{lift:FILE}];}],['an exercise_id',s=>{s.photos=[{exercise_id:FILE}];}]]){
+  const odd=make();put(odd);
+  assert.deepEqual(rt.evaluateNativeLoad(odd,{basis:{x:1}}).refusal,refusal,'the base id under '+where+', a lift-keyed field the list does not rename');
+  assert.deepEqual(rt.applyNativeLoadDecision(odd,decision,{event:'accept'}).refusal,refusal);
+ }
+ // FC09-LINEAGE-S31: a string that merely EQUALS the id under any other name is no lift reference; it reaches FC01 as it is.
+ const vocab=make();exAt(vocab).mg=FILE;vocab.priority_muscles=[FILE];vocab.weekly={[FILE]:3};seen=null;
+ rt.evaluateNativeLoad(vocab,{});
+ assert.deepEqual([exAt(seen.s,LIFT).mg,seen.s.priority_muscles,seen.s.weekly],[FILE,[FILE],{[FILE]:3}],'a muscle group, a list of them, a map keyed by one');
+ const twice=make();twice.exercises.push({...structuredClone(exAt(twice)),id:LIFT});
+ assert.deepEqual(rt.evaluateNativeLoad(twice,{}).refusal,refusal,'a record lift the base already carries');
+ const clash=make();clash.retirements[LIFT]={at:'2026-09-02'};
+ assert.deepEqual(rt.evaluateNativeLoad(clash,{}).refusal,refusal,'a retirement under both ids');
+ // A record whose lift IS the base lift: FC01 is handed the state itself.
+ let same=null;const direct={evaluateNativeLoad:s=>{same=s;return {};},applyNativeLoadDecision:s=>{same=s;return {};}};
+ EFFECTS.m.lineageRuntime(direct,FILE,LINEAGE,base).evaluateNativeLoad(state,{});assert.equal(same,state);
+ EFFECTS.m.lineageRuntime(direct,'fx-other',LINEAGE,base).applyNativeLoadDecision(state,decision,{});assert.equal(same,state);
+ assert.throws(()=>EFFECTS.m.lineageRuntime(stub,LIFT,lineageOf({[LIFT]:'fx-nowhere'}),base),/NATIVE_LOAD_LINEAGE_REFUSED/);
+});
+
+test('FC09-LINEAGE-S31 A MUSCLE GROUP THAT SHARES THE FILE LIFT\'S ID IS NOT A LIFT REFERENCE (FC09-Q3-B measured: the real-shape file names the lift abs in muscle group abs): the pre-import Yes\'s Undo is still offered under the record\'s id, and applies',()=>{
+ effectsGate();
+ const y=yesBeforeImport(),base=imported(F0({w:102.5}),{mg:FILE});base.priority_muscles=[FILE];
+ const undo=checkOf(lineageArgs({pre:[y.c1],extra:[y.resp],base}),FILE,y.c1,{compensate:y.spend});
+ assert.equal(undo.status,'offer',JSON.stringify(undo.refusal));
+ assert.equal(decisionOf(undo.offers[0]).lift_lineage_id,LIFT);
+ const g=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[y.resp,acceptOp(undo.offers[0],{op_id:'fx-resp-2',after:1})],base}));
+ assert.deepEqual(issueRows(g),[],JSON.stringify(g.issues));
+ assert.equal(g.spent.find(x=>x.spend_id===y.spend).cancelled_by,decisionOf(undo.offers[0]).spend_id);
+});

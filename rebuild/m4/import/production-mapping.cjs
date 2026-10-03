@@ -60,7 +60,12 @@ const ENGINE = Object.freeze({
      progression.cjs and writers.cjs from byte-exact extractions at 0b8d074. Calibrated first: the same procedure gives
      S10's 9c135054 over edb8381 and the previous S11 value 2939ccfe over 1763205. Not read from any assertion; P3-M1
      confirms it at the PM seat. */
-  treeSha256: 'b8e8eb3d3b66fe97a849a6891ac576cfd2fac59403db7dde299047df9b6d83cf',
+  /* S11 FC09 round 3 re-pin (PM ruling DECISIONS:879, option (iii)): ONE engine line moves, native-load.cjs:443
+     json(state) -> structuredClone(state) (native-load.cjs dd197849 -> ab2a1ca8). Value computed OFF-SEAT by the same
+     join (port.cjs:222-226) over the 19 names: the 14 unprotected files hashed from this tree, the protected five taken
+     by their sealed per-file sha256 from rebuild/lanes/b/tooling/receipts/S10.json (never opened). Calibrated first: the
+     same procedure over the round-2 tree gives the b8e8eb3d above exactly. P3-M1 confirms it at the PM seat. */
+  treeSha256: 'bc45ca73a6183c4b083217ca079788f8f09d50aeaf2814ccf60dfd7d8a53291c',
   schemaV: 60,
   path: 'rebuild/engine/oracle-shim.cjs' });
 

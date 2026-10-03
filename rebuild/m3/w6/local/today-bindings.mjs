@@ -75,6 +75,10 @@ import HostRuntime from "../host/engine-runtime-host.cjs";
 import NativeTrend from "../../../m4/workout/native-trend-context.cjs";
 import LegacyOrder from "../../../m4/workout/legacy-order-mapping.cjs";
 import NativeLoadEffects from "../../../m4/workout/native-load-effects.cjs";
+// S11 FC09 round 6: the lineage resolver FC03 resolves lift joins through, built from the setup document as admission builds it.
+import LiftCorrespondence from "../../../m4/workout/lift-correspondence.cjs";
+import Setup from "../../w7-preview/today/setup-commands.mjs";
+import { createCleanInitState } from "../../w7-preview/today/setup-model.mjs";
 
 const { createNullLaneWorkoutBasis } = WorkoutBasis;
 const { createWorkoutResumePolicy } = ResumePolicy;
@@ -489,6 +493,21 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     const engine = Object.freeze({
       genSession: (s, iso, slp) => scoped(s && s.workoutFacts, () => runtime.genSession(composed(s), iso, slp)),
       rirPlan: (s, ex, slp) => scoped(s && s.workoutFacts, () => runtime.rirPlan(composed(s), ex, slp)) });
+    /* S11 FC09 round 3 (PM ruling DECISIONS:879, option (i); s11-fc09-scratch/Q1-SEAM-DESIGN.md). THE NATIVE-LOAD ENGINE
+       READS THE SAME COMPOSITION. The native-load fold and check (FC03) hand the engine their OWN copy of the state and the
+       facts (native-load-effects.cjs withFacts), and before this they reached the runtime directly, with no legacy-order
+       baseline, so every native-load read over an imported log beside a native Start refused
+       PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED (FC09-Q1-A, measured): no offer after the import, no Undo for a held Yes.
+       This wraps the runtime FC03 is handed at the ENGINE SEAM, after FC03's copy, with the very `composed` the gym card's
+       own reads use, so the baseline's session_log IS the state's log inside the engine call. A mapping that cannot be
+       proved is not invented: the engine is handed the state as it was and refuses by its own name, exactly as before. */
+    const nativeRead = s => {
+      try { return composed(s); }
+      catch (error) { if (error && error.code === LegacyOrder.REFUSAL) return s; throw error; }
+    };
+    const nativeRuntime = rt => Object.freeze({
+      evaluateNativeLoad: (s, request) => rt.evaluateNativeLoad(nativeRead(s), request),
+      applyNativeLoadDecision: (s, decision, context) => rt.applyNativeLoadDecision(nativeRead(s), decision, context) });
 
     /* The ORDER the engine reads has to be a PROVEN one, not one this module
        asserts. composeWorkoutHost's projectWorkoutHistory calls project() with
@@ -514,8 +533,8 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
        read the accepted native effects and their landings, and a refused fold refuses
        the new prescription by name. No captured Start is touched. */
     const nativeEngine = Object.freeze({ revision: NativeLoadEffects.PRODUCER_REVISION,
-      at: d => HostRuntime.createEngineRuntime({ clock: engineClockFor(d, live),
-        nativeTrendContext: nativeTrendContext || trendBinding.resolve }) });
+      at: d => nativeRuntime(HostRuntime.createEngineRuntime({ clock: engineClockFor(d, live),
+        nativeTrendContext: nativeTrendContext || trendBinding.resolve })) });
     const nativeNullSource = Source.basis({ W: 0, log_digest: Source.createPrefixHasher().digest(), selection_id: null });
     const nativeLoadRegistrar = config => {
       const real = SourceProjection.createNullSelectionRegistrar(config);
@@ -524,7 +543,8 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
            basis as project() and check() (nullSource below), so S7 binds here too and both new
            captures and Today read one projection of one log. */
         const fold = NativeLoadEffects.foldNativeLoad({ base: args.state, generation: args.generation,
-          workoutFacts: args.workoutFacts, engine: nativeEngine, athleteId, source: nativeNullSource });
+          workoutFacts: args.workoutFacts, engine: nativeEngine, athleteId, source: nativeNullSource,
+          lineage: nativeLineage(args.state, args.generation) });
         if (fold.status !== "ready") {
           const issue = fold.issues.find(x => NativeLoadEffects.BLOCKING_CODES.includes(x.code)) || { code: "NATIVE_LOAD_RECORD_INVALID" };
           const error = new Error(issue.code); error.code = issue.code; throw error;
@@ -585,6 +605,8 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     }
 
     return Object.freeze({ host, repository: bindings.repository, engine, day, plannedSplitSlotId,
+      // S11 FC09 round 3: the one native-load engine wrap (above), for createNativeLoadHost's own engine.
+      nativeRuntime,
       device: null, deviceKeyCustody: "local-keys.mjs", bindings,
       trendBinding, trendDayReader: () => Object.freeze({
         enginePredicates: dayReader.enginePredicates,
@@ -598,6 +620,24 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
 
   /* The ONE held-lift projection (spec :156/:157, R9.2 :158; D-B2-1, D10), shared by the
      decorated registrar and createNativeLoadHost().project(). */
+  /* S11 FC09 round 6 (PM ruling DECISIONS:881 and its round-6 ruling, option (b')). THE LINEAGE RESOLVER for every FC03 fold
+     and check on this page: lift-correspondence.cjs liftResolver over the immutable base's lifts and the setup document's,
+     built exactly as source-admission.mjs builds it (its programme(): the ONE op of this log whose payload profile is the
+     first-run setup's, through createCleanInitState). Before any import the base IS that document's state, so the pairs are
+     empty and FC03 runs exactly as before. No setup op at all: no document, the identity. Several, or one its own constructor
+     refuses: refused, and FC03 refuses the fold by name (RECORD_INVALID, field 'lineage'). */
+  function nativeLineage(state, generation) {
+    const setups = Object.values(generation?.collections?.ops || {}).filter(op => op && op.payload && op.payload.profile === Setup.PROFILE);
+    const lifts = state && Array.isArray(state.exercises) ? state.exercises : null;
+    if (!setups.length) return LiftCorrespondence.liftResolver(lifts, []);
+    if (setups.length !== 1) return LiftCorrespondence.liftResolver(lifts, false);
+    let documentLifts;
+    try { documentLifts = createCleanInitState({ setup: setups[0].payload.setup }).exercises; } catch { documentLifts = false; }
+    return LiftCorrespondence.liftResolver(lifts, documentLifts);
+  }
+  // The lift a page shows for a record's or a completion's lift: the base lift its lineage resolves to.
+  function shownLift(lineage, id) { return lineage && lineage.pairs && Object.hasOwn(lineage.pairs, id) ? lineage.pairs[id] : id; }
+
   function heldProjection(fold, runtime, day) {
     // Spec R9.2 :158: FC03's one held-lift projection (w/wSets null, held native entries not
     // prescribed), shared by the decorated registrar and createNativeLoadHost().project().
@@ -631,9 +671,12 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     let alive = true;
     const handles = new WeakMap();
     const nullSource = Source.basis({ W: 0, log_digest: Source.createPrefixHasher().digest(), selection_id: null });
+    /* S11 FC09 round 3 (PM ruling DECISIONS:879, option (i)): the same engine-seam composition the gym's registrar fold
+       now reads through (createGymHost nativeRuntime), so check, project and the pre-commit re-evaluation read an imported
+       log with its legacy-order baseline, from this host's own gym and its own recorded selection. */
     const engine = Object.freeze({ revision: NativeLoadEffects.PRODUCER_REVISION,
-      at: d => HostRuntime.createEngineRuntime({ clock: engineClockFor(d, live),
-        nativeTrendContext: nativeTrendContext || gym.trendBinding.resolve }) });
+      at: d => gym.nativeRuntime(HostRuntime.createEngineRuntime({ clock: engineClockFor(d, live),
+        nativeTrendContext: nativeTrendContext || gym.trendBinding.resolve })) });
     const refused = (code, extra = {}) => ({ acknowledged: false, state: 3, code, copy: null, ...extra });
     // `base` lets the page fold from ITS immutable basis (spec B: the fold always reloads
     // its immutable source base, never a state already handed to adoptBasis).
@@ -648,12 +691,12 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       if (read.source_revision !== snap.revision) return { ok: false, code: "NATIVE_LOAD_STALE_OFFER" };
       const workoutFacts = gym.host.historyProjector.project(read.history, snap.generation, { sourceRevision: read.source_revision });
       const args = { base, generation: snap.generation, workoutFacts, engine, source: nullSource, athleteId,
-        plan: { plan_basis: planBasis, input_basis: inputBasis } };
+        plan: { plan_basis: planBasis, input_basis: inputBasis }, lineage: nativeLineage(base, snap.generation) };
       const fold = gym.trendBinding.withFacts(workoutFacts, () => NativeLoadEffects.foldNativeLoad(args));
       const newest = new Map();
       for (const id of (workoutFacts && workoutFacts.order ? workoutFacts.order.start_ids : [])) {
         const session = workoutFacts.sessions.find(s => s.start_op_id === id);
-        for (const e of (session ? session.record.entries : [])) if (e && e.completion) newest.set(e.lift_lineage_id, { lift_lineage_id: e.lift_lineage_id,
+        for (const e of (session ? session.record.entries : [])) if (e && e.completion) newest.set(shownLift(args.lineage, e.lift_lineage_id), { lift_lineage_id: shownLift(args.lineage, e.lift_lineage_id),
           completion_op_id: e.completion.op_id, normal: e.completion.kind === "normal", date: session.effective.local_date });
       }
       return { ok: true, snap, workoutFacts, args, fold, lifts: [...newest.values()] };
@@ -693,7 +736,8 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
           handles.set(handle, { proposal_id, issuance, request: structuredClone({ lift_lineage_id: request.lift_lineage_id,
             completion_op_id: request.completion_op_id, intent: request.intent === undefined ? "check" : request.intent }) });
           const body = offer.body;
-          return Object.freeze({ handle, proposalId: proposal_id, lift: body.lift_lineage_id, kind: body.kind,
+          // S11 FC09 round 6: an Undo of a corresponded record is issued under the record's own lift; the page shows the base lift.
+          return Object.freeze({ handle, proposalId: proposal_id, lift: shownLift(p.args.lineage, body.lift_lineage_id), kind: body.kind,
             state: body.candidate ? body.candidate.state : null, unit: "lb",
             // Spec :109/:110: a null position is "not prescribed"; only a compensation may carry
             // one (the prior image of a baseline had no working weight). Review B10.

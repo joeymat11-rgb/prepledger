@@ -29,6 +29,130 @@ const canon = (x) => (Array.isArray(x) ? x.map(canon) : map(x) ? Object.fromEntr
 const same = (a, b) => JSON.stringify(canon(a)) === JSON.stringify(canon(b));
 const text = (x) => typeof x === 'string' && x.length > 0;
 const byOp = (a, b) => (a.op_id < b.op_id ? -1 : a.op_id > b.op_id ? 1 : 0);
+// S11 FC09 round 6 (PM ruling DECISIONS:881 and its round-6 ruling, option (b') of s11-fc09-scratch/Q3-SEAM-DESIGN.md 7.4):
+// LINEAGE RESOLUTION. A native record keeps the lift id it was issued under (spec I4: records are never rewritten). After a
+// real-shape import (P3-REAL-SHAPE option A, DECISIONS:520-521) the base may name the same lift by the file's id. The caller
+// hands ONE closed correspondence, built by lift-correspondence.cjs liftResolver from the setup document and the admitted
+// state: record lift -> base lift. Every lift JOIN below compares LK(a) with LK(b), at read time only. With no correspondence
+// (shared ids) PAIRS is null, LK is the identity and every byte this module produces is what it was (FC09-LINEAGE-IDENTITY).
+const LINEAGE_PROFILE = 'earned/lift-resolver/v1';
+let PAIRS = null;
+const LK = (id) => (PAIRS !== null && typeof id === 'string' && Object.hasOwn(PAIRS, id) ? PAIRS[id] : id);
+const sameLift = (a, b) => LK(a) === LK(b);
+// A consumes root, compared by lineage: ['start', lift, 'close'] or the legacy ['legacy', day, lift] (E/native-load.cjs rootOf).
+function rootKey(c) {
+  if (PAIRS === null) return c;
+  try { const k = JSON.parse(c); if (Array.isArray(k) && k.length === 3) return JSON.stringify(k[0] === 'legacy' ? [k[0], k[1], LK(k[2])] : [k[0], LK(k[1]), k[2]]); } catch (_) { /* not a root */ }
+  return c;
+}
+const sameRoots = (xs, ys) => xs.some((c) => ys.some((d) => rootKey(c) === rootKey(d)));
+// The closed, refusing check of a handed correspondence against the base it resolves into: a liftResolver result that is not
+// refused, plain text -> text pairs, no key a base lift, every target a base lift, injective. Anything else refuses the fold by
+// name (RECORD_INVALID, field 'lineage'); nothing falls back. Returns null (identity), the pairs, or false (refused).
+function lineagePairs(lineage, base) {
+  if (lineage === undefined || lineage === null) return null;
+  if (!map(lineage) || lineage.profile !== LINEAGE_PROFILE || lineage.refused !== null || !map(lineage.pairs)) return false;
+  const ids = new Set(base.exercises.filter((x) => x && text(x.id)).map((x) => x.id)), seen = new Set(), out = {};
+  for (const [k, v] of Object.entries(lineage.pairs)) {
+    if (!text(k) || !text(v) || k === v || ids.has(k) || !ids.has(v) || seen.has(v)) return false;
+    seen.add(v); out[k] = v;
+  }
+  return Object.keys(out).length ? out : null;
+}
+function withLineage(pairs, fn) { const was = PAIRS; PAIRS = pairs; try { return fn(); } finally { PAIRS = was; } }
+// THE ENGINE BOUNDARY (Q3-SEAM-DESIGN 7.1-7.2, measured by the scratch cell Q3-ENGINE-SEAM): FC01 finds the exercise by the
+// decision's lift (E/native-load.cjs:553) and binds a request's or a compensation's lift to the lift its spend_id encodes (:386,
+// :513). So a call FC03 makes FOR A RECORD, or for the Undo of one, whose lift the base names by another id runs on a VIEW: a
+// copy of the state (and of a landing's completion entry) in which that ONE base lift is renamed to the record's lift over a
+// CLOSED member list, and FC01's result is renamed back. Records, operations and requests reach FC01 exactly as they are. A
+// record lift the base already carries, the base lift left anywhere outside the list, or FC01 changing any member but
+// exercises and queue refuses by name: RECORD_INVALID, field 'lineage'.
+class LineageRefused extends Error { constructor(where) { super('NATIVE_LOAD_LINEAGE_VIEW ' + where); this.where = where; } }
+const LINEAGE_REFUSAL = Object.freeze({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [], field: 'lineage' });
+// Every lift_lineage_id under a facts value (entries, their facts, removed facts, capture slots) whose lineage is `from`.
+function renameLineage(x, from, to) {
+  if (Array.isArray(x)) { for (const y of x) renameLineage(y, from, to); return; }
+  if (!map(x)) return;
+  for (const [k, v] of Object.entries(x)) { if (k === 'lift_lineage_id' && typeof v === 'string' && LK(v) === from) x[k] = to; else renameLineage(v, from, to); }
+}
+// Any exId at any depth (queue, proposals[].apply, agentProposals, adjustments' exUndo, suggestionLog[].apply).
+function renameExId(x, from, to) {
+  if (Array.isArray(x)) { for (const y of x) renameExId(y, from, to); return; }
+  if (!map(x)) return;
+  for (const [k, v] of Object.entries(x)) { if (k === 'exId' && v === from) x[k] = to; else renameExId(v, from, to); }
+}
+// The names under which this codebase carries a lift id (W/ and E/: exId, lift_lineage_id, and the id of an exercise or a legacy
+// log entry, which the list renames). A lift id left under one of these names outside the list is an UNKNOWN lift-keyed field and
+// refuses. A string that merely EQUALS the id under any other name is not a lift reference and is left alone: a muscle group
+// 'abs' beside the lift 'abs' (the real-shape file's mg; FC09-Q3-B measured), a name, a note (FC09-LINEAGE-S31).
+const LIFT_KEYS = new Set(['exId', 'lift_lineage_id', 'liftId', 'lift_id', 'exerciseId', 'exercise_id', 'lift']);
+function leftover(x, from, at) {
+  if (Array.isArray(x)) { for (let i = 0; i < x.length; i++) { const h = leftover(x[i], from, at + '[' + i + ']'); if (h) return h; } return null; }
+  if (!map(x)) return null;
+  for (const [k, v] of Object.entries(x)) { if (LIFT_KEYS.has(k) && v === from) return at + '.' + k; const h = leftover(v, from, at + '.' + k); if (h) return h; }
+  return null;
+}
+function lineageView(state, from, to) {
+  if (!map(state) || !Array.isArray(state.exercises)) return state; // FC01 refuses a malformed state by its own name
+  if (state.exercises.some((x) => x && x.id === to)) throw new LineageRefused('exercises');
+  const s = structuredClone(state); // keeps the imported-log alias (workoutFacts.legacy_baseline.session_log IS sessionLog)
+  for (const x of s.exercises) if (map(x) && x.id === from) x.id = to;
+  renameExId(s, from, to);
+  if (map(s.exOrder)) for (const ids of Object.values(s.exOrder)) if (Array.isArray(ids)) for (let i = 0; i < ids.length; i++) if (ids[i] === from) ids[i] = to;
+  for (const book of ['retirements', 'insertions']) if (map(s[book]) && Object.hasOwn(s[book], from)) {
+    if (Object.hasOwn(s[book], to)) throw new LineageRefused(book);
+    s[book][to] = s[book][from]; delete s[book][from];
+  }
+  if (map(s.sessionLog)) for (const day of Object.values(s.sessionLog)) if (map(day) && Array.isArray(day.entries)) for (const e of day.entries) if (map(e) && e.id === from) e.id = to;
+  if (map(s.workoutFacts)) renameLineage(s.workoutFacts, from, to);
+  const left = leftover(s, from, 'state');
+  if (left) throw new LineageRefused(left);
+  return s;
+}
+function lineageContext(context, from, to) {
+  if (!map(context) || !map(context.completion) || !map(context.completion.entry)) return context;
+  const entry = structuredClone(context.completion.entry);
+  renameLineage(entry, from, to);
+  return { ...context, completion: { ...context.completion, entry } };
+}
+function lineageBack(input, result, view, from, to) {
+  if (!map(result) || !map(result.state)) return result;
+  const r = result.state, out = {};
+  for (const k of new Set([...Object.keys(r), ...Object.keys(view)])) {
+    if (k === 'exercises' || k === 'queue' || k === 'workoutFacts') continue;
+    if (!same(view[k], r[k])) throw new LineageRefused('state.' + k);
+  }
+  for (const k of Object.keys(r)) {
+    if (k === 'exercises') out[k] = r[k].map((x) => (map(x) && x.id === to ? { ...x, id: from } : x));
+    else if (k === 'queue') out[k] = r[k].map((q) => (map(q) && q.exId === to ? { ...q, exId: from } : q));
+    else out[k] = Object.hasOwn(input, k) ? json(input[k]) : r[k];
+  }
+  return { ...result, state: out };
+}
+// The runtime FC03 hands FC01 for one record lift: the injected runtime itself when the base carries that lift (always, with
+// shared ids), else the view above around each of its two functions.
+function atLift(rt, recordLift) {
+  const from = LK(recordLift);
+  if (PAIRS === null || from === recordLift || !text(recordLift)) return rt;
+  return Object.freeze({
+    evaluateNativeLoad: (s, request) => {
+      let v;
+      try { v = lineageView(s, from, recordLift); } catch (error) {
+        if (!(error instanceof LineageRefused)) throw error;
+        let basis = null; try { basis = map(request) && request.basis !== undefined ? json(request.basis) : null; } catch (_) { basis = null; }
+        return { profile: PRODUCER, status: 'refused', basis, offers: [], refusal: { ...LINEAGE_REFUSAL } };
+      }
+      return rt.evaluateNativeLoad(v, request);
+    },
+    applyNativeLoadDecision: (s, decision, context) => {
+      try { const v = lineageView(s, from, recordLift); return lineageBack(s, rt.applyNativeLoadDecision(v, decision, lineageContext(context, from, recordLift)), v, from, recordLift); }
+      catch (error) {
+        if (!(error instanceof LineageRefused)) throw error;
+        let kept = null; try { kept = json(s); } catch (_) { kept = null; }
+        return { status: 'refused', state: kept, effect: null, refusal: { ...LINEAGE_REFUSAL } };
+      }
+    } });
+}
 
 // The client's own digest, byte for byte (rebuild/client/index.cjs:48-93, which does
 // not export it): a dependency-free synchronous SHA-256 and the proposal digest
@@ -100,7 +224,7 @@ function withFacts(state, facts) { const s = json(state); delete s.workoutFacts;
 // pair (Close, lift) and never the first entry that names the Close (review B4).
 function sessionOf(facts, closeId, lift) {
   for (const s of (facts && facts.sessions) || []) for (const e of s.record.entries || [])
-    if (e && e.completion && e.completion.op_id === closeId && (lift === undefined || e.lift_lineage_id === lift)) return { session: s, entry: e };
+    if (e && e.completion && e.completion.op_id === closeId && (lift === undefined || sameLift(e.lift_lineage_id, lift))) return { session: s, entry: e };
   return null;
 }
 // The prescription a Start captured for one lift, per ORIGINAL position (spec :122
@@ -115,7 +239,7 @@ function cellValue(load) {
 function captureOf(start, entry) {
   const cells = new Map();
   const pc = start && map(start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
-  for (const cell of pc) if (map(cell) && cell.lift_lineage_id === entry.lift_lineage_id && text(cell.logical_set_slot)) cells.set(cell.logical_set_slot, cell.load);
+  for (const cell of pc) if (map(cell) && sameLift(cell.lift_lineage_id, entry.lift_lineage_id) && text(cell.logical_set_slot)) cells.set(cell.logical_set_slot, cell.load);
   return entry.slots.filter((s) => s.origin !== 'added').map((s) => (cells.has(s.logical_set_slot) ? cellValue(cells.get(s.logical_set_slot))
     : s.prescribed_load && s.prescribed_load.state === 'specified' && s.prescribed_load.source ? s.prescribed_load.source.value : null));
 }
@@ -124,9 +248,9 @@ function startCapture(start, lift) {
   const pc = map(start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
   const cells = [];
   for (const cell of pc) {
-    if (!map(cell) || cell.lift_lineage_id !== lift || !text(cell.logical_set_slot)) continue;
+    if (!map(cell) || !sameLift(cell.lift_lineage_id, lift) || !text(cell.logical_set_slot)) continue;
     let at = null;
-    try { const k = JSON.parse(cell.logical_set_slot); at = Array.isArray(k) && k[0] === lift && Number.isSafeInteger(k[1]) ? k[1] : null; } catch (_) { at = null; }
+    try { const k = JSON.parse(cell.logical_set_slot); at = Array.isArray(k) && sameLift(k[0], lift) && Number.isSafeInteger(k[1]) ? k[1] : null; } catch (_) { at = null; }
     if (at !== null) cells.push([at, cellValue(cell.load)]);
   }
   return cells.sort((a, b) => a[0] - b[0]).map((c) => c[1]);
@@ -190,9 +314,9 @@ function startPlanCapture(start, lift) {
   const pc = map(start && start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
   const cells = [];
   for (const cell of pc) {
-    if (!map(cell) || cell.lift_lineage_id !== lift || !text(cell.logical_set_slot)) continue;
+    if (!map(cell) || !sameLift(cell.lift_lineage_id, lift) || !text(cell.logical_set_slot)) continue;
     let at = null, v = null;
-    try { const k = JSON.parse(cell.logical_set_slot); at = Array.isArray(k) && k[0] === lift && Number.isSafeInteger(k[1]) ? k[1] : null; } catch (_) { at = null; }
+    try { const k = JSON.parse(cell.logical_set_slot); at = Array.isArray(k) && sameLift(k[0], lift) && Number.isSafeInteger(k[1]) ? k[1] : null; } catch (_) { at = null; }
     const load = cell.load;
     if (map(load) && load.state === 'specified' && text(load.source_json)) {
       try { const s = JSON.parse(load.source_json); v = map(s) && s.unit === 'lb' && Number.isFinite(s.value) ? s.value : map(s) && s.kind === 'configuration' ? s.configuration_key : null; } catch (_) { v = null; }
@@ -207,7 +331,7 @@ function startWindowCapture(start, lift) {
   const pc = map(start && start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
   const out = [];
   for (const cell of pc) {
-    if (!map(cell) || cell.lift_lineage_id !== lift || !map(cell.reps) || cell.reps.state !== 'specified' || !text(cell.reps.source_json)) continue;
+    if (!map(cell) || !sameLift(cell.lift_lineage_id, lift) || !map(cell.reps) || cell.reps.state !== 'specified' || !text(cell.reps.source_json)) continue;
     try {
       const v = JSON.parse(cell.reps.source_json);
       if (map(v) && v.unit === 'rep' && Number.isFinite(v.value)) out.push({ value: v.value, window_hi: Number.isSafeInteger(v.window_hi) && v.window_hi > 0 ? v.window_hi : null });
@@ -320,7 +444,7 @@ function basisOf({ state, generation, workoutFacts, source, athleteId, plan = {}
     .map((op) => ({ op_id: op.op_id, commitment: op.canonical_content_commitment,
       disposition: map(dispositions[op.op_id]) && text(dispositions[op.op_id].status) ? dispositions[op.op_id].status : 'stored-on-this-device', source_member: null }))
     .sort(byOp);
-  const captures = ((workoutFacts && workoutFacts.sessions) || []).map((s) => (s.record.entries || []).filter((e) => e && e.lift_lineage_id === lift)
+  const captures = ((workoutFacts && workoutFacts.sessions) || []).map((s) => (s.record.entries || []).filter((e) => e && sameLift(e.lift_lineage_id, lift))
     .map((e) => e.slots.map((slot) => slot.prescribed_load || null)));
   return {
     athlete_id: athleteId, source: json(source),
@@ -347,7 +471,7 @@ function structural(op, byId, athleteId, base) {
   if (!map(body) || body.profile !== DECISION || !text(body.spend_id) || !Array.isArray(body.consumes) || !Array.isArray(body.evidence) || !map(body.basis)) return 'decision shape';
   if (proposalDigest(iss.producer, iss.body, iss.reason) !== p.proposal_id) return 'proposal digest';
   if (body.basis.athlete_id !== athleteId) return 'athlete scope';
-  if (!base.exercises.some((x) => x && x.id === body.lift_lineage_id)) return 'lineage';
+  if (!base.exercises.some((x) => x && x.id === LK(body.lift_lineage_id))) return 'lineage';
   const shape = recordShape(p); // round 30: the ONE total record validator, below
   if (shape) return 'field ' + shape;
   for (const item of body.evidence) {
@@ -439,12 +563,12 @@ function refsArm(body, { facts, byId, issues = [] }) {
   const cap = captureOf(start, { ...hit.entry, slots: hit.entry.slots.filter((x) => x.origin !== 'added') });
   if (!cap.some((v) => typeof v === 'number')) return true;
   const ar = map(body.basis) && map(body.basis.load_basis) && Array.isArray(body.basis.load_basis.authority_refs) ? body.basis.load_basis.authority_refs : [];
-  const names = (i, id) => !!i && i.lift === lift && isHold(i) && (i.refs || []).some((x) => map(x) && x.op_id === id);
+  const names = (i, id) => !!i && i.lift === LK(lift) && isHold(i) && (i.refs || []).some((x) => map(x) && x.op_id === id);
   const holding = (id) => (issues || []).some((i) => names(i, id) && !i.superseded_by);
   const dissolved = (id) => !(issues || []).some((i) => names(i, id));
   const ok = (r) => { if (!map(r) || !byId.has(r.op_id) || byId.get(r.op_id).canonical_content_commitment !== r.commitment) return false; const o = byId.get(r.op_id);
     return o.class === 'plan' && o.kind === 'proposal-response' && map(o.payload) && map(o.payload.issuance) && map(o.payload.issuance.body) &&
-      o.payload.issuance.body.lift_lineage_id === lift && (holding(r.op_id) || (dissolved(r.op_id) && provenBefore([o], start, byId))); };
+      sameLift(o.payload.issuance.body.lift_lineage_id, lift) && (holding(r.op_id) || (dissolved(r.op_id) && provenBefore([o], start, byId))); };
   return ar.length > 0 && ar.every(ok);
 }
 // Round 31 (Astra L21-B2; :155 S4): the typed edit fold (rebuild/m4/workout/edit-history.cjs fold) replayed for ONE fact over the
@@ -479,7 +603,7 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
   if (body.kind === 'compensate') {
     let target = null;
     try { target = JSON.parse(body.compensates); } catch (_) { target = null; }
-    if (!Array.isArray(target) || target[1] !== lift) return 'lift_lineage_id';
+    if (!Array.isArray(target) || !sameLift(target[1], lift)) return 'lift_lineage_id';
     if (body.spend_id !== JSON.stringify(['native-load-compensation', lift, body.compensates])) return 'spend_id';
     if (body.consumes.length) return 'consumes';
     if (body.evidence.length) return 'evidence';
@@ -490,7 +614,7 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
   }
   const roots = body.consumes.map((r) => { try { const k = JSON.parse(r); return Array.isArray(k) && k.length === 3 && text(k[0]) && text(k[2]) ? { start: k[0], lift: k[1], close: k[2] } : null; } catch (_) { return null; } });
   // S1 lift: the lift of every consumes root.
-  if (roots.some((r) => !r || r.lift !== lift)) return 'lift_lineage_id';
+  if (roots.some((r) => !r || !sameLift(r.lift, lift))) return 'lift_lineage_id';
   // S2 spend: the canonical encoding from the body's own lift, authority, technique, consumes.
   let d = null;
   try { d = JSON.parse(body.spend_id); } catch (_) { d = null; }
@@ -608,7 +732,7 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
       const startOp = byId.get(latest.start);
       const picks = (spent || []).filter((x) => x && !x.cancelled_by && (!x.close_ref || (map(x.close_ref) && x.close_ref.op_id === latest.close)))
         .map((x) => (groups && groups.get(x.spend_id) ? groups.get(x.spend_id) : null))
-        .filter((g) => g && g.body.kind === 'earn' && g.body.lift_lineage_id === lift && map(g.body.candidate) && selectedEntry(cap, g.body.candidate) &&
+        .filter((g) => g && g.body.kind === 'earn' && sameLift(g.body.lift_lineage_id, lift) && map(g.body.candidate) && selectedEntry(cap, g.body.candidate) &&
           !!startOp && provenBefore(g.ops, startOp, byId));
       const pick = picks.length ? picks[picks.length - 1] : null;
       if (!pick) return 'base_load';
@@ -659,7 +783,7 @@ function checkedCompletion(body, facts) {
   const ids = ((facts && facts.order && facts.order.start_ids) || []);
   for (let i = ids.length - 1; i >= 0; i--) {
     const s = facts.sessions.find((x) => x.start_op_id === ids[i]);
-    const e = s && s.record.entries.find((x) => x && x.lift_lineage_id === body.lift_lineage_id);
+    const e = s && s.record.entries.find((x) => x && sameLift(x.lift_lineage_id, body.lift_lineage_id));
     if (e) return e.completion.op_id;
   }
   return '';
@@ -675,13 +799,17 @@ const refusedFold = (issue) => ({ status: 'refused', state: null, effects: [], s
 // record, so the replays end (at most once per record).
 class Contained extends Error { constructor(ids) { super('NATIVE_LOAD_CONTAINED'); this.ids = ids; } }
 function foldNativeLoad(args = {}) {
-  const excluded = new Set();
-  for (;;) {
-    try { return foldOnce(args, excluded); } catch (error) {
-      if (!(error instanceof Contained) || error.ids.every((id) => excluded.has(id))) throw error;
-      for (const id of error.ids) excluded.add(id);
+  const pairs = map(args.base) && Array.isArray(args.base.exercises) ? lineagePairs(args.lineage, args.base) : null;
+  if (pairs === false) return refusedFold({ ...LINEAGE_REFUSAL });
+  return withLineage(pairs, () => {
+    const excluded = new Set();
+    for (;;) {
+      try { return foldOnce(args, excluded); } catch (error) {
+        if (!(error instanceof Contained) || error.ids.every((id) => excluded.has(id))) throw error;
+        for (const id of error.ids) excluded.add(id);
+      }
     }
-  }
+  });
 }
 function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } = {}, excluded = new Set()) {
   if (!map(base) || !Array.isArray(base.exercises) || !Array.isArray(base.queue)) return refusedFold({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [], field: 'base' });
@@ -711,7 +839,8 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
   // any other named refusal holds every later record of the lift.
   const disputed = new Map();
   const liftOf = (op) => { const b = map(op.payload) && map(op.payload.issuance) && map(op.payload.issuance.body) ? op.payload.issuance.body : null;
-    return b && text(b.lift_lineage_id) && base.exercises.some((x) => x && x.id === b.lift_lineage_id) ? b.lift_lineage_id : null; };
+    const l = b && text(b.lift_lineage_id) ? LK(b.lift_lineage_id) : null;
+    return l && base.exercises.some((x) => x && x.id === l) ? l : null; };
   const dispute = (issue) => {
     issues.push(issue);
     if (!issue.lift) return;
@@ -730,7 +859,7 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
   // A ref that no hold ever named passes the same test: RESIDUAL (iv) (:157). A null and a numeric capture alike.
   const dissolvedExit = (body, holdIssues) => {
     if (body.kind !== 'adopt-baseline' || holdIssues.length || !facts) return false;
-    const lift = body.lift_lineage_id;
+    const lift = LK(body.lift_lineage_id);
     const ar = map(body.basis) && map(body.basis.load_basis) && Array.isArray(body.basis.load_basis.authority_refs) ? body.basis.load_basis.authority_refs : [];
     if (!ar.length) return false;
     const rank = new Map(((facts.order && facts.order.start_ids) || []).map((id, k) => [id, k]));
@@ -742,7 +871,7 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
       if (!map(r) || !byId.has(r.op_id) || byId.get(r.op_id).canonical_content_commitment !== r.commitment) return false;
       const o = byId.get(r.op_id);
       return o.class === 'plan' && o.kind === 'proposal-response' && map(o.payload) && map(o.payload.issuance) && map(o.payload.issuance.body) &&
-        o.payload.issuance.body.lift_lineage_id === lift && provenBefore([o], anchor, byId) &&
+        LK(o.payload.issuance.body.lift_lineage_id) === lift && provenBefore([o], anchor, byId) &&
         !issues.some((i) => i && i.lift === lift && isHold(i) && (i.refs || []).some((x) => map(x) && x.op_id === r.op_id));
     });
   };
@@ -784,20 +913,20 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
   // anything applies: RECORD_INVALID, field payload, refs = all its records, its own lift only; it takes no part in this pass.
   for (const g of [...groups.values()]) if ([...g.ops, ...g.alt].some((op) => excluded.has(op.op_id))) {
     groups.delete(g.body.spend_id);
-    dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [...g.ops, ...g.alt].map(refOf).sort(byOp), field: 'payload', reason: 'unexpected exception', lift: g.body.lift_lineage_id });
+    dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs: [...g.ops, ...g.alt].map(refOf).sort(byOp), field: 'payload', reason: 'unexpected exception', lift: LK(g.body.lift_lineage_id) });
   }
   // Incompatible accepts are refused TOGETHER before anything applies: same spend with
   // different bodies, or different spends over overlapping evidence. Never a clock winner.
   const all = [...groups.values()];
-  for (const g of all) for (const h of all) if (g !== h && g.body.spend_id < h.body.spend_id && g.body.lift_lineage_id === h.body.lift_lineage_id &&
-    g.body.consumes.some((c) => h.body.consumes.includes(c))) { g.conflict = true; h.conflict = true; g.others = (g.others || []).concat(h.ops); h.others = (h.others || []).concat(g.ops); }
+  for (const g of all) for (const h of all) if (g !== h && g.body.spend_id < h.body.spend_id && sameLift(g.body.lift_lineage_id, h.body.lift_lineage_id) &&
+    sameRoots(g.body.consumes, h.body.consumes)) { g.conflict = true; h.conflict = true; g.others = (g.others || []).concat(h.ops); h.others = (h.others || []).concat(g.ops); }
   // Every lift any conflicting body names is held, never the lift of whichever record the
   // log happened to list first (round 11, property seed 1003155: bodies of one spend naming
   // different lifts made the delivery order choose the held lift).
   for (const g of all) if (g.conflict) {
     const members = [...g.ops, ...(g.others || [])];
     const refs = [...new Map(members.map((op) => [op.op_id, refOf(op)])).values()].sort(byOp);
-    const lifts = [...new Set(members.map((op) => op.payload.issuance.body.lift_lineage_id))].sort();
+    const lifts = [...new Set(members.map((op) => LK(op.payload.issuance.body.lift_lineage_id)))].sort();
     for (const lift of lifts) if (!issues.some((i) => i.code === 'NATIVE_LOAD_EFFECT_CONFLICT' && i.lift === lift && same(i.refs, refs))) dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs, field: null, lift });
   }
   // SOURCE ORDER, never a device-local counter (review B6; spec :150 "established causal
@@ -858,7 +987,7 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
     judging = ev.type === 'accept' ? ev.g : null;
     try {
     if (ev.type === 'accept') {
-      const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = [...g.ops, ...(g.alt || [])].map(refOf).sort(byOp), lift = body.lift_lineage_id;
+      const g = ev.g, body = g.body, iss = g.ops[0].payload.issuance, refs = [...g.ops, ...(g.alt || [])].map(refOf).sort(byOp), lift = LK(body.lift_lineage_id);
       // Same-lift records wait behind a named refusal (the hold stands; nothing guesses past
       // it), but spec R9.1 :158 NO TRAP: a VALID record behind the hold is still accepted
       // history (kept in the spend index, never applied), so its undo stays reachable, and a
@@ -879,9 +1008,9 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
         dissolvedExit(body, holdIssues);
       const V = exitB ? projectHeld(state, [lift]) : state;
       const behind = !exitB && behindHolds(lift, g.ops);
-      const overlap = spent.filter((x) => x.spend_id !== body.spend_id && x.consumes.some((c) => body.consumes.includes(c)));
+      const overlap = spent.filter((x) => x.spend_id !== body.spend_id && sameRoots(x.consumes, body.consumes));
       if (overlap.length) { dispute({ code: 'NATIVE_LOAD_EFFECT_CONFLICT', refs: [...refs, ...overlap.flatMap((x) => x.response_refs)].sort(byOp), field: null, lift }); continue; }
-      const rt = engine.at(dayOf(body, facts));
+      const rt0 = engine.at(dayOf(body, facts)), rt = atLift(rt0, body.lift_lineage_id);
       // Spec :153 (review B9): compensation is offered "only if no later Start captured the
       // accepted effect". A compensation recorded while such a Start exists is not applied;
       // that captured debut keeps its landing on its own Close.
@@ -920,7 +1049,7 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
       if (!reproducible) {
         const field = correspondence(body, { facts, byId, source, issues, spent, groups });
         if (field) {
-          const owner = field === 'lift_lineage_id' ? (() => { try { const k = JSON.parse(body.consumes[0]); return base.exercises.some((x) => x && x.id === k[1]) ? k[1] : lift; } catch (_) { return lift; } })() : lift;
+          const owner = field === 'lift_lineage_id' ? (() => { try { const k = JSON.parse(body.consumes[0]); return base.exercises.some((x) => x && x.id === LK(k[1])) ? LK(k[1]) : lift; } catch (_) { return lift; } })() : lift;
           dispute({ code: 'NATIVE_LOAD_RECORD_INVALID', refs, field, lift: owner }); continue;
         }
       }
@@ -1058,7 +1187,7 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
       continue;
     }
     // A later Close: land the SAME native entry its Start captured, accepted before that Start.
-    const lift = ev.entry.lift_lineage_id;
+    const lift = LK(ev.entry.lift_lineage_id);
     for (const q of state.queue.filter((x) => x && x.exId === lift && !x.done && typeof x.native_load_spend === 'string')) {
       const g = groups.get(q.native_load_spend);
       if (!g) continue;
@@ -1080,7 +1209,7 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
         issues.push({ code: 'NATIVE_LOAD_DEBUT_BASIS_UNPROVEN', refs: [refOf(close), ...g.ops.map(refOf).sort(byOp)], field: 'causality', lift });
         continue;
       }
-      const t = engine.at(ev.session.effective.local_date).applyNativeLoadDecision(state, g.body, { event: 'close', basis: g.body.basis, spent: json(spent),
+      const t = atLift(engine.at(ev.session.effective.local_date), g.body.lift_lineage_id).applyNativeLoadDecision(state, g.body, { event: 'close', basis: g.body.basis, spent: json(spent),
         authority: { response_refs: g.ops.map(refOf).sort(byOp), issuance: g.ops[0].payload.issuance, source_cut: g.ops[0].payload.issuance.source },
         completion: { start: refOf(ev.start), close: refOf(close), capture: got, entry: ev.entry, source_basis: g.body.basis.source } });
       if (t.status === 'applied') {
@@ -1114,6 +1243,10 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
 
 // ---------- check at the current cut and the exact issuance ----------
 function checkNativeLoad(args = {}) {
+  const pairs = map(args.base) && Array.isArray(args.base.exercises) ? lineagePairs(args.lineage, args.base) : null;
+  return withLineage(pairs === false ? null : pairs, () => checkOnce(args));
+}
+function checkOnce(args = {}) {
   const { generation, workoutFacts, engine, source, athleteId, plan, request } = args;
   const fold = foldNativeLoad(args);
   const refused = (refusal) => ({ fold, evaluation: { profile: PRODUCER, status: 'refused', basis: null, offers: [], refusal } });
@@ -1123,7 +1256,7 @@ function checkNativeLoad(args = {}) {
   // Spec R8 :156: an unprovable-order conflict keeps its own compensation reachable
   // ("dispatched before this refusal"), so only that spend's undo passes it.
   const undoOf = map(request.intent) && text(request.intent.compensate) ? request.intent.compensate : null;
-  const lift = request.lift_lineage_id;
+  const lift = LK(request.lift_lineage_id);
   // An unattributable refusal (lift null) still holds back every check.
   const unattributed = fold.issues.find((x) => BLOCKING.has(x.code) && (x.lift === null || x.lift === undefined));
   if (unattributed) return refused({ code: unattributed.code, refs: unattributed.refs, field: unattributed.field || null });
@@ -1138,13 +1271,14 @@ function checkNativeLoad(args = {}) {
   // Exit (a): the undo of every genuine accepted spend of the lift (kept in the spend index,
   // not yet cancelled) is dispatched before the hold refusal; FC01 and the capture guard
   // below judge it (COMPENSATION_DESCENDANTS unchanged).
-  const undoable = !!undoOf && fold.spent.some((x) => x.spend_id === undoOf && !x.cancelled_by && decodeLift(undoOf) === lift);
+  const undoable = !!undoOf && fold.spent.some((x) => x.spend_id === undoOf && !x.cancelled_by && sameLift(decodeLift(undoOf), lift));
+  const evalLift = undoOf && text(decodeLift(undoOf)) && sameLift(decodeLift(undoOf), lift) ? decodeLift(undoOf) : lift;
   // Fable l8 D-L8F-3 (spec :158 NO TRAP, I7): a cancellation group the fold refused (an active
   // RECORD_INVALID naming a record of this very cancellation) can never apply, so its Undo is
   // not offered again (a yes that could never take effect); that hold's own refusal is shown and
   // exit (b) stays the way out.
   if (undoOf) {
-    const undoSpend = JSON.stringify(['native-load-compensation', lift, undoOf]), { byId: byId0 } = operationsOf(generation);
+    const undoSpend = JSON.stringify(['native-load-compensation', evalLift, undoOf]), { byId: byId0 } = operationsOf(generation);
     const spoiled = holds.find((x) => x.code === 'NATIVE_LOAD_RECORD_INVALID' && (x.refs || []).some((r) => { const op = map(r) ? byId0.get(r.op_id) : null;
       return !!op && map(op.payload) && map(op.payload.issuance) && map(op.payload.issuance.body) && op.payload.issuance.body.spend_id === undoSpend; }));
     if (spoiled) return refused({ code: spoiled.code, refs: spoiled.refs, field: spoiled.field || null });
@@ -1201,18 +1335,18 @@ function checkNativeLoad(args = {}) {
     return holdRefusal();
   }
   if (!map(workoutFacts) || !map(workoutFacts.order)) return refused({ code: 'NATIVE_LOAD_COMPLETION_REQUIRED', refs: [], field: 'workoutFacts' });
-  const basis = basisOf({ state: fold.state, generation, workoutFacts, source, athleteId, plan, lift: request.lift_lineage_id, spent: fold.spent });
+  const basis = basisOf({ state: fold.state, generation, workoutFacts, source, athleteId, plan, lift, spent: fold.spent });
   // Spec R9.9 :152 MISSED CLOSE / :155 MISSED-DEBUT ANCHOR (l11 A1): when the fold marks a native
   // entry of this lift consumed MISSED by this very Close, the check claims it: authority_refs =
   // [that Close's Ref], as an exit carries its hold refs. Filled for a check only; FC01 judges the
   // Close as the MISSED CLOSE with both the mark and this claim. Every other request keeps [].
-  const missedQ = fold.state.queue.find((q) => q && q.exId === request.lift_lineage_id && q.done === true && q.state === 'MISSED' &&
+  const missedQ = fold.state.queue.find((q) => q && q.exId === lift && q.done === true && q.state === 'MISSED' &&
     typeof q.native_load_spend === 'string' && q.native_load_missed_by === request.completion_op_id);
   const claimCov = missedQ ? basis.coverage.find((c) => map(c) && c.op_id === request.completion_op_id) : null;
   if (claimCov && (request.intent === undefined || request.intent === 'check')) basis.load_basis.authority_refs = [{ op_id: claimCov.op_id, commitment: claimCov.commitment }];
-  const hit = sessionOf(workoutFacts, request.completion_op_id, request.lift_lineage_id);
+  const hit = sessionOf(workoutFacts, request.completion_op_id, lift);
   const day = hit ? hit.session.effective.local_date : dayOf({ evidence: [] }, workoutFacts);
-  const evaluation = engine.at(day).evaluateNativeLoad(fold.state, { lift_lineage_id: request.lift_lineage_id,
+  const evaluation = atLift(engine.at(day), evalLift).evaluateNativeLoad(fold.state, { lift_lineage_id: evalLift,
     completion_op_id: request.completion_op_id, intent: request.intent === undefined ? 'check' : request.intent, basis });
   // Step 2 (spec :126 "an older completion cannot silently replace a newer athlete
   // choice"; :127, :148; review B22): FC01 compares the captured vector with the current plan
@@ -1230,7 +1364,7 @@ function checkNativeLoad(args = {}) {
   const judged = evaluation.status === 'offer' || (evaluation.status === 'refused' && map(evaluation.refusal) && AFTER_STEP_2.has(evaluation.refusal.code));
   if (judged && (request.intent === undefined || request.intent === 'check') && hit) {
     const { byId } = operationsOf(generation), start = byId.get(hit.session.start_op_id);
-    const originals = hit.entry.slots.filter((s) => s.origin !== 'added'), ex = fold.state.exercises.find((x) => x && x.id === request.lift_lineage_id);
+    const originals = hit.entry.slots.filter((s) => s.origin !== 'added'), ex = fold.state.exercises.find((x) => x && x.id === lift);
     // Spec :176 refs = [Close Ref], read from the basis coverage exactly as FC01 reads it;
     // never an empty list (review D-B6-2).
     const cov = basis.coverage.find((c) => map(c) && c.op_id === request.completion_op_id);
@@ -1238,7 +1372,7 @@ function checkNativeLoad(args = {}) {
       // Spec R9.10 L (3) FIT GUARD (:146): the same guard as FC01 step 2 (b), first, before the comparison below and
       // step3Earn, with the same code, refs and field (typed v2 and host v1 slots agree, N20).
       if (Array.isArray(ex.wSets) && ex.wSets.length !== originals.length) return refused({ code: 'NATIVE_LOAD_SET_COUNT_BASIS_UNPROVEN', refs: [{ op_id: cov.op_id, commitment: cov.commitment }], field: null });
-      const cap = originals.every((s) => s.prescribed_load === undefined) ? startPlanCapture(start, request.lift_lineage_id) : [];
+      const cap = originals.every((s) => s.prescribed_load === undefined) ? startPlanCapture(start, lift) : [];
       // Spec R9.10 L READER (DECISIONS:804 (f)): planVector's rule, as E/progression.cjs:80-82 (a position beyond a
       // non-empty wSets reads its last entry).
       const planNow = Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => { const k = Array.isArray(ex.wSets) && ex.wSets.length > 0 ? Math.min(i, ex.wSets.length - 1) : -1; return ex.w == null ? null : k >= 0 && ex.wSets[k] != null ? ex.wSets[k] : ex.w; });
@@ -1246,7 +1380,7 @@ function checkNativeLoad(args = {}) {
       // debut is compared with the missed entry's target (newWSets, else newW on every captured
       // slot, whatever their number) instead of the plan; FC01 already refused its earn branch.
       const want = missedQ ? entryTargetOf(missedQ, cap.length) : planNow;
-      const window = startWindowCapture(start, request.lift_lineage_id), hi = ex.hi === undefined ? null : ex.hi;
+      const window = startWindowCapture(start, lift), hi = ex.hi === undefined ? null : ex.hi;
       // Spec R9.1 :127: the window binds only the earn branch (FC01 steps 4-10). Adoption
       // (step 3: w null, or a performed load unlike the plan) and compensation never are.
       // An offer names its branch; a refusal is placed by FC01's own step-3 predicate.
@@ -1288,7 +1422,12 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:a860376d520777767d5311c6dcde80f5ac4d60e07e188df82897d325830f95e9';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:f4955594d9532949789cd7031b650a7eb84c84f499dee69330a2d220290d7366';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf,
-  heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]), isHold };
+  heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]), isHold, LINEAGE_PROFILE,
+  // S11 FC09 round 6: FC01 as one record lift sees it under a correspondence (the engine boundary), for FC09-LINEAGE-BOUNDARY.
+  lineageRuntime: (rt, recordLift, lineage, base) => { const pairs = lineagePairs(lineage, base);
+    if (pairs === false) throw new TypeError('NATIVE_LOAD_LINEAGE_REFUSED');
+    return Object.freeze({ evaluateNativeLoad: (s, q) => withLineage(pairs, () => atLift(rt, recordLift).evaluateNativeLoad(s, q)),
+      applyNativeLoadDecision: (s, d, c) => withLineage(pairs, () => atLift(rt, recordLift).applyNativeLoadDecision(s, d, c)) }); } };

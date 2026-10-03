@@ -100,4 +100,39 @@ function matchByName(baseLifts, row) {
   return found || null;
 }
 
-module.exports = { normaliseName, correspondence, idCollisions, matchByName };
+/* S11 FC09 round 6 (PM ruling DECISIONS:881 and its round-6 ruling, option (b') of the FC09 Q3 seam design). THE LINEAGE
+   RESOLVER: the FOURTH reader of this one rule. A native-load record (NATIVE-LOAD-SPEC) keeps the lift id it was issued
+   under, forever; after option A the admitted state may carry that same lift under the FILE's id. The native-load fold
+   (m4/workout/native-load-effects.cjs, FC03) resolves every lift JOIN through this one closed map, at read time, and never
+   rewrites a record. It is built HERE, from the setup document's lifts and the admitted state's lifts, and both callers
+   (m3/w6/local/today-bindings.mjs and m3/w6/local/source-admission.mjs) build it with exactly these two lists.
+   AN ID THE STATE CARRIES IS ITSELF: before any import the state IS the document's (its ids are the document's slugs, and a
+   lift the athlete later renamed in Edit My Week keeps its id), and after one the file's ids are the state's. Only a
+   document id the state does NOT carry is corresponded, by `correspondence` above: DOCUMENT id -> STATE id. With no
+   document, or no such id, the pairs are empty: the identity. (An id two different lifts share across the file and the
+   document never reaches here: admission refuses it by name, `idCollisions`, before anything is admitted.)
+   CLOSED AND REFUSING: a list that is not a list of lifts with unique non-empty ids is refused BY NAME (refused:
+   {code, field, lift}); FC03 then refuses its fold, field 'lineage'. A record whose id is neither carried nor corresponded
+   is FC03's own S1 refusal, by name. Nothing is resolved by a guess. */
+const RESOLVER_PROFILE = 'earned/lift-resolver/v1';
+function liftResolver(stateLifts, documentLifts) {
+  const refuse = (field, lift = null) => Object.freeze({ profile: RESOLVER_PROFILE, pairs: null,
+    refused: Object.freeze({ code: 'LIFT_RESOLVER_REFUSED', field, lift }) });
+  const idOf = (row) => (row && typeof row.id === 'string' && row.id ? row.id : null);
+  if (!Array.isArray(stateLifts)) return refuse('state');
+  if (documentLifts === null || documentLifts === undefined) documentLifts = [];
+  if (!Array.isArray(documentLifts)) return refuse('document');
+  const ids = new Set(), documentIds = new Set();
+  for (const row of stateLifts) { const id = idOf(row); if (!id || ids.has(id)) return refuse('state', id); ids.add(id); }
+  for (const row of documentLifts) { const id = idOf(row); if (!id || documentIds.has(id)) return refuse('document', id); documentIds.add(id); }
+  const pairs = {}, targets = new Set();
+  for (const [doc, file] of Object.entries(correspondence(stateLifts, documentLifts))) {
+    if (doc === file || ids.has(doc)) continue;
+    // A target that is ANOTHER document lift's own id would merge two lineages into one: ambiguous, refused by name.
+    if (!ids.has(file) || targets.has(file) || documentIds.has(file)) return refuse('ambiguous', doc);
+    targets.add(file); pairs[doc] = file;
+  }
+  return Object.freeze({ profile: RESOLVER_PROFILE, pairs: Object.freeze(pairs), refused: null });
+}
+
+module.exports = { normaliseName, correspondence, idCollisions, matchByName, liftResolver, RESOLVER_PROFILE };

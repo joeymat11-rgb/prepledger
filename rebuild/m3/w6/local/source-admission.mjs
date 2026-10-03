@@ -28,6 +28,17 @@ import BodyComposition from '../../../m4/import/body-composition-class.cjs';
 // reproduced through the real host before this was built.
 import Sleep from '../../w7-preview/today/sleep-commands.cjs';
 import SleepReplay from '../../../m4/import/sleep-replay.cjs';
+// S11 FC09 (PM ruling DECISIONS:878; NATIVE-LOAD-SPEC R9.13 :175-:177, :228). The
+// native-load Yes on Today writes one plan/proposal-response into the very
+// generation admission replays; without a family it fell to the unknown-plan
+// catch and refused LOCAL_SOURCE_EFFECT_UNMAPPED (cell P3-EN3). F9 answers for
+// it, and FC03 - READ here, never edited - is the one fold it is folded with,
+// inside the same native trend window the page's own fold runs in.
+import NativeLoadEffects from '../../../m4/workout/native-load-effects.cjs';
+import NativeTrend from '../../../m4/workout/native-trend-context.cjs';
+import NativeLoadReplay from '../../../m4/import/native-load-replay.cjs';
+// S11 FC09 round 5 (DECISIONS:880 (2)): the one admission stamp, from this preparation's own confirmed order map.
+import LegacyOrder from '../../../m4/workout/legacy-order-mapping.cjs';
 import Setup from '../../w7-preview/today/setup-commands.mjs';
 import {createCleanInitState} from '../../w7-preview/today/setup-model.mjs';
 import Settings from '../../../coach/machine-settings-commands.cjs';
@@ -86,6 +97,11 @@ const bodyComposition=BodyComposition.createBodyCompositionClass({members:[{fami
 // clock, no engine and no platform.
 const sleepFamily=SleepReplay.createSleepReplayFamily({commands:Sleep.createSleepCommands(),
  profile:Sleep.PROFILE});
+// F9, the native-load family ('F9'). Pure, on the same terms as F7 and F8: built
+// once from FC03, holding no clock, engine or platform. It owns a plan
+// proposal-response only when it is the native-load producer's (spec :175), so
+// every other plan operation still reaches the unknown-plan catch below.
+const nativeLoadFamily=NativeLoadReplay.createNativeLoadReplayFamily({effects:NativeLoadEffects});
 const fail=(code,detail)=>{const e=new Error(code);e.code=code;if(detail)Object.assign(e,detail);throw e;};
 /* THE CODES THIS MODULE RAISES (P3-PORT-FIX, spec 3.4). The recorded-workout
    `try` at :270 also encloses storedWorkoutHistory, projector.project and the
@@ -96,7 +112,7 @@ const fail=(code,detail)=>{const e=new Error(code);e.code=code;if(detail)Object.
 const KNOWN_REPLAY_CODES=Object.freeze(new Set(['LOCAL_SOURCE_AUTHORITY_CONTEXT',
  'LOCAL_SOURCE_CAUSAL_CYCLE','LOCAL_SOURCE_COMMIT_UNPROVEN','LOCAL_SOURCE_COVERAGE_UNKNOWN',
  'LOCAL_SOURCE_EFFECT_UNMAPPED','LOCAL_SOURCE_IDENTITY_CONFIRMATION_REQUIRED',
- 'LOCAL_SOURCE_MATERIAL_MISMATCH','LOCAL_SOURCE_ORDER_MAP_REQUIRED','LOCAL_SOURCE_ORIGINAL_CHANGED',
+ 'LOCAL_SOURCE_MATERIAL_MISMATCH','LOCAL_SOURCE_NATIVE_LOAD_RECORD_INVALID','LOCAL_SOURCE_ORDER_MAP_REQUIRED','LOCAL_SOURCE_ORIGINAL_CHANGED',
  'LOCAL_SOURCE_ORIGINAL_INVALID','LOCAL_SOURCE_PROGRAMME_UNRESOLVED','LOCAL_SOURCE_QUALIFICATION_UNOWNED',
  'LOCAL_SOURCE_REOPEN_UNPROVEN','LOCAL_SOURCE_REVIEW_UNOWNED','LOCAL_SOURCE_ROLLBACK_UNPROVEN',
  'LOCAL_SOURCE_SCOPE','LOCAL_SOURCE_SELECTION_CONFLICT','LOCAL_SOURCE_SELECTION_UNPROVEN',
@@ -502,7 +518,8 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    families.push({family:'F1',state:row.local.state==='removed'?'retained':'projected',op_id:row.op_id,effect_ids:row.local.effect_ids});
   }
   for(const row of facts.records)if(row.original.kind!=='fact'&&row.local.state==='unresolved')issue('LOCAL_SOURCE_READING_UNRESOLVED',row.op_id);
-  const food=[];const checkDates=new Set();const measureRows=[];const sleepRows=[];
+  const food=[];const checkDates=new Set();const measureRows=[];const sleepRows=[];const nativeRows=[];
+  const nativeProposals=nativeLoadFamily.proposals(rows);
   for(const op of rows){
    if(op.class==='reading'||op.class==='session')continue;
    // THE OWNED CLASSES FIRST, so that EVERY record of one gets an answer from
@@ -511,6 +528,9 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    // loop, because each one's ordering rule is over its whole set.
    if(bodyComposition.owns(op)){measureRows.push(op);continue;}
    if(sleepFamily.owns(op)){sleepRows.push(op);continue;}
+   // F9 BEFORE THE UNKNOWN-PLAN CATCH (spec :176). It is folded after F3 below,
+   // because FC03 needs the projected workout facts the yes consumed.
+   if(nativeLoadFamily.owns(op,nativeProposals)){nativeRows.push(op);continue;}
    const p=op.payload,day=op.effective?.local_date;
    if(!validDay(day)||day>currentDay()){issue('LOCAL_SOURCE_CONTEXT_UNRESOLVED',op.op_id);continue;}
    if(op.class==='food-day'&&op.schema_version===2&&Food.validate(op,id=>ops[id])){food.push({op_id:op.op_id,date:day,day:copy(p.day)});continue;}
@@ -569,7 +589,7 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   // import could not be admitted at all (P3-REPLAY-ALL-FAMILIES, RV-INNER-CAUSE).
   // read() is a CLOSED historical dispatch, so the source-aware reader still
   // reads a v1 capture exactly as before; nothing is relaxed by installing it.
-  const captures=Capture.createPrescriptionCapture({parseStrictJson,profile:Capture.SOURCE_PROFILE,sourceCodec:SourceCodec});let workoutFacts=null;
+  const captures=Capture.createPrescriptionCapture({parseStrictJson,profile:Capture.SOURCE_PROFILE,sourceCodec:SourceCodec});let workoutFacts=null,projectedWorkoutFacts=null;
   // The adapter below only READS a layout, but the source-aware adapter refuses
   // to exist without a registered projection consumer. This is the accepted one
   // the page itself composes (today-bindings.mjs), not a stub: the NULL lane,
@@ -736,6 +756,11 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
       FILE's lift and its slot key still encodes the DOCUMENT's slug, on
       purpose; D-RS-R1-n5 pins both halves so the next reader does not assume
       the two agree. */
+   /* S11 FC09 round 6. The facts AS PROJECTED, before the re-key below, are kept for F9's fold (foldNative): they are
+      the facts the page's own native-load fold reads (today-bindings.mjs projects the same log and never re-keys), and the
+      re-key moves an entry's lift but not its facts' (performed.cjs:53 then refuses PERFORMED_ENTRY_INVALID on any engine
+      read: FC09-Q3-E, measured). F9 resolves the two ids through the lineage resolver instead. */
+   projectedWorkoutFacts=workoutFacts;
    if(workoutFacts&&programmeBasis&&Object.keys(programmeBasis.lift_correspondence||{}).length){
     const rekey=s=>({...s,record:{...s.record,
      entries:s.record.entries.map(e=>({...e,lift_lineage_id:liftAttach(e.lift_lineage_id)??e.lift_lineage_id}))}});
@@ -749,10 +774,61 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
      the wrong thing. Only a code this module itself raises may pass; anything
      else keeps LOCAL_SOURCE_WORKOUT_UNRESOLVED, exactly as today. */
   }catch(e){issue(KNOWN_REPLAY_CODES.has(e?.code)?e.code:'LOCAL_SOURCE_WORKOUT_UNRESOLVED',null,detailOf(e));}
+  /* F9, THE NATIVE-LOAD YES (S11 FC09; NATIVE-LOAD-SPEC R9.13 :175-:177, :228; PM
+     ruling DECISIONS:878). Every record F9 owns is READ here: a malformed one
+     refuses LOCAL_SOURCE_NATIVE_LOAD_RECORD_INVALID by name, with
+     NATIVE_LOAD_RECORD_INVALID as its detail. The well-formed ones are FOLDED in
+     prepareSource (foldNative below), once the selection id the legacy-order
+     baseline names exists (round 3, DECISIONS:879). */
+  const nativeRead=nativeLoadFamily.replay(nativeRows,{asOf:currentDay(),athleteId});
+  for(const row of nativeRead.issues)issue(row.code,row.op_id,{detail:row.detail,field:row.field});
   // Historical decisions remain original state, without turning into new consent.
   families.push({family:'F6',state:'retained',source_fields:['accepted','decisions','feed'].filter(k=>Object.hasOwn(state,k))});
   let calculation=null;try{calculation={trend:state.trend,rate:engineFor(currentDay(),12).currentRate(state)};}catch{issue('LOCAL_SOURCE_CALCULATION_UNRESOLVED');}
-  return {state,calculation,facts,workoutFacts,families,issues,programmeBasis,retained:rows.filter(op=>families.some(f=>f.state==='retained'&&f.op_id===op.op_id)).map(op=>copy(op))};
+  return {state,calculation,facts,workoutFacts,projectedWorkoutFacts,documentLifts:documentProgramme.state?documentProgramme.state.exercises:null,families,issues,programmeBasis,nativeAccepted:nativeRead.accepted,retained:rows.filter(op=>families.some(f=>f.state==='retained'&&f.op_id===op.op_id)).map(op=>copy(op))};
+ }
+ /* F9'S FOLD (S11 FC09; PM rulings DECISIONS:878 and, for its place and its baseline, :879). FOLDED, not retained:
+    FC03 runs ONCE per preparation, at this source's cut, after the facts (F3) and the correspondence (programme())
+    exist and before the basis digests (spec :176; :228 "folded output before :781"), with the very inputs the page's
+    own fold takes (today-bindings.mjs createNativeLoadHost and its decorated registrar): the replayed state as the
+    IMMUTABLE base, this generation, the projected facts inside a native trend window over that state, an engine on
+    this source's own clock, the installation's null source basis and this athlete. The fold binds into the
+    interpretation digest through F9's rows; it is NOT written back into the state, which stays the base the page
+    folds from (spec B :96), so no yes is ever applied twice. A hold is admitted as a hold (spec :158 NO TRAP).
+    THE LEGACY-ORDER BASELINE (round 3, Q1-SEAM-DESIGN option (i); round 5, PM ruling DECISIONS:880 (2), R1).
+    E/performed.cjs:176-183 will not read an imported log beside a native Start unless
+    workoutFacts.legacy_baseline.session_log IS the state's log and the order carries the matching import anchor. At
+    this point no selection is recorded, so the page's import law cannot run; this preparation's OWN confirmed order
+    map M (the athlete's Yes, local-source-order.cjs) is the anchor's ONLY source, through legacy-order-mapping.cjs's one
+    exported admission helper, and ONLY when M exists: an imported log beside a native Start is exactly when M is
+    confirmed, and with no M there is nothing to order and nothing is stamped. The stamp goes on the copy FC03 hands
+    the engine, at the engine seam, and never into the admitted view (LOM-S6-ADMISSION). Its ids equal those the page's
+    mapping later derives from the recorded selection (source digest, this selection's id), so both fold one order. */
+ function foldNative(held,replayed,selectionId,orderMap){
+  if(!replayed.nativeAccepted.length)return {families:[],issues:[]};
+  /* S11 FC09 round 6 (PM ruling DECISIONS:881 and its round-6 ruling, option (b')): the lineage resolver, built exactly as the
+     page builds it (lift-correspondence.cjs liftResolver over the admitted state's lifts and the setup document's, here the
+     document programme() built), and the facts as projected (replay(), above). */
+  const state=replayed.state,workoutFacts=replayed.projectedWorkoutFacts;
+  const lineage=LiftCorrespondence.liftResolver(state.exercises,replayed.documentLifts);
+  const identity={installation_id:namespace,era_id:held.eraId,athlete_id:athleteId,source_digest:held.sourceDigest,checkpoint_digest:held.checkpointDigest};
+  const imported=s=>!!(s&&s.workoutFacts&&s.sessionLog&&typeof s.sessionLog==='object'&&Object.keys(s.sessionLog).length);
+  const compose=orderMap?s=>(imported(s)?{...s,workoutFacts:LegacyOrder.attachAdmittedOrder(s.workoutFacts,s,{orderMap,identity,selectionId})}:s):s=>s;
+  const composed=rt=>Object.freeze({evaluateNativeLoad:(s,request)=>rt.evaluateNativeLoad(compose(s),request),
+   applyNativeLoadDecision:(s,decision,context)=>rt.applyNativeLoadDecision(compose(s),decision,context)});
+  // Built LAZILY, as the page builds its own, so anything that cannot be composed on this source's clock throws
+  // INSIDE the fold, where F9 refuses every accepted yes by name rather than letting preparation throw.
+  const nativeClock=d=>sourceEngineContext(engineContextAt(held.engineContext,d,12)).clock;
+  let dayReader=null;
+  const trend=NativeTrend.createNativeTrendContextBinding({dayFacts:iso=>{
+   if(!dayReader)dayReader=NativeTrend.createDayFactsReader({state,engine:Runtime.createEngineRuntime({clock:nativeClock(currentDay()),nativeTrendContext:trend.resolve})});
+   return dayReader.dayFacts(iso);}});
+  const engine=Object.freeze({revision:NativeLoadEffects.PRODUCER_REVISION,
+   at:d=>composed(Runtime.createEngineRuntime({clock:nativeClock(d),nativeTrendContext:trend.resolve}))});
+  const folded=nativeLoadFamily.fold(replayed.nativeAccepted,{base:state,generation:held.generation,workoutFacts,engine,athleteId,lineage,
+   source:SourceCodec.basis({W:0,log_digest:SourceCodec.createPrefixHasher().digest(),selection_id:null}),
+   within:run=>workoutFacts?trend.withFacts(workoutFacts,run):run()});
+  return {families:folded.families,issues:folded.issues.map(row=>({code:row.code,op_id:row.op_id,detail:row.detail,field:row.field}))};
  }
  async function prepareSource(review,{identityConfirmed=false,prefixAnswer}={},internal=null){
   const existingSelection=internal?.selection;
@@ -781,6 +857,11 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   const mixed=Object.keys(orderInput.legacyLog).length>0&&Object.values(operations).some(op=>op.class==='session'&&op.kind==='session-start');
   if(mixed){if(existingSelection?.order_map){M=order.restore(existingSelection.order_map,existingSelection.order_input);order.validate(M,orderInput);}else M=order.confirm(order.review(orderInput),{answer:prefixAnswer});}
   const selectionId=internal?.action==='reopen'?existingSelection.id:'local-source:'+digest(platform.hash,'earned/local-source-selection/v1',{name:held.name,material:held.materialDigest,revision:held.expected.revision,token:held.expected.token,order:M,action:internal?.action||'select'});
+  /* F9's fold, here and not in replay(): its legacy-order baseline names THIS selection's id (foldNative above). A
+     yes it cannot account for refuses the preparation by name and nothing is written, as a replay issue does. */
+  const nativeFold=foldNative(held,replayed,selectionId,M);
+  replayed.families.push(...nativeFold.families);
+  if(nativeFold.issues.length)return freeze({ready:false,pending:true,issues:nativeFold.issues,families:replayed.families});
   const interpretedWorkouts=copy(replayed.workoutFacts);if(interpretedWorkouts)delete interpretedWorkouts.source_revision;
   const interpretation={families:replayed.families,reading:replayed.facts,workout:interpretedWorkouts,collections:Object.fromEntries(Object.entries(held.generation.collections).filter(([k])=>k!=='derived'))};
   const Q=freeze({profile:'earned/local-source-basis/v1',installation_id:namespace,era_id:held.eraId,athlete_id:athleteId,device_id:deviceId,source_digest:held.sourceDigest,material_digest:held.materialDigest,checkpoint_digest:held.checkpointDigest,local_selection_id:selectionId,

@@ -150,6 +150,48 @@ const WRITERS = {
     ok('the night', await host.save(NIGHT));
     return { close: () => host.close(), read: async () => (await host.all()).map(r => r.night.date) };
   } },
+  /* S11 FC09 (PM ruling DECISIONS:878). THE NATIVE-LOAD YES, the writer cell
+     P3-EN3 found: one whole session with the first lift the card shows lifted 5 lb
+     above it, Finish, then the shipped native-load host's check and its respond
+     (today-entry.mjs:245's call), which writes ONE plan/proposal-response through
+     the guarded path. RED at 84f8421 in WO1: admission refused it
+     LOCAL_SOURCE_EFFECT_UNMAPPED at its unknown-plan catch. F9
+     (rebuild/m4/import/native-load-replay.cjs) answers for it now. The cells in
+     native-load-import.test.mjs measure what the fold makes of it. */
+  'native-load (the Yes to a new weight)': { family: 'F9', async use(era) {
+    const engineState = nativeState();
+    const open = day => era.createGymHost({ day, engineState, plannedSplitSlotId: 'earned-today-preview/' + day });
+    const gymHost = await open(DAY);
+    const gym = createGymModel({ gymHost, sessionTitle: null, hostForDay: open });
+    assert.equal((await gym.read()).phase, 'ready', 'the gym card would not prepare');
+    ok('the start', await gym.start());
+    let view = await gym.read();
+    const startId = view.startId, total = view.total;
+    let lift = null;
+    for (let n = 0; n <= total; n += 1) {
+      if (view.phase === 'saved' && view.complete !== true) { gym.forget(); view = await gym.read(); }
+      if (view.phase !== 'active') break;
+      if (lift === null) lift = view.set.lift;
+      ok('the set', await gym.logSet({ startId, slot: view.set.slot, lift: view.set.lift,
+        load: view.set.lift === lift ? String(Number(view.entry.load) + 5) : view.entry.load,
+        reps: view.entry.reps, effort: EFFORT }));
+      view = await gym.read();
+    }
+    ok('the close', await gym.finish({ startId }));
+    gymHost.close();
+    const host = await era.createNativeLoadHost({ day: DAY, engineState });
+    const projected = await host.project();
+    assert.equal(projected.ok, true, 'the native-load host would not project: ' + projected.code);
+    const done = projected.lifts.find(l => l.lift_lineage_id === lift);
+    const check = await host.check({ lift_lineage_id: lift, completion_op_id: done.completion_op_id });
+    const offer = (check.offers || []).find(o => o.lift === lift && o.kind === 'adopt-observed');
+    assert.ok(offer, 'no adopt-observed offer: ' + JSON.stringify(check.refusal || check.offers));
+    const yes = await host.respond({ handle: offer.handle, proposal_id: offer.proposalId, answer: 'accept' });
+    assert.equal(yes.acknowledged, true, 'the Yes was not saved: ' + (yes.code || JSON.stringify(yes)));
+    const responses = async () => Object.values((await era.generation()).generation.collections.ops || {})
+      .filter(op => op.kind === 'proposal-response').map(op => op.op_id).sort();
+    return { close: () => host.close(), read: responses };
+  } },
 };
 
 const importedState = async era => admittedLocalSourceBasis(

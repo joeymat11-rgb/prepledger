@@ -235,33 +235,94 @@ test('P3-EN2 - every entry either names a family that ADMISSION REALLY RUNS, or 
     }
     /* The families this ticket closes the page with. F6 answers for the SOURCE
        state's own historical decisions rather than for a writer, so it is not a
-       register entry; it is asserted here so that it cannot quietly leave. */
-    assert.deepEqual(Registry.FAMILIES, ['F1', 'F2', 'F3', 'F4', 'F5', 'F7', 'F8']);
+       register entry; it is asserted here so that it cannot quietly leave.
+       S11 FC09 (PM ruling DECISIONS:878): F9, the native-load family, answers for
+       the one plan writer a shipped screen reaches, the native-load Yes. */
+    assert.deepEqual(Registry.FAMILIES, ['F1', 'F2', 'F3', 'F4', 'F5', 'F7', 'F8', 'F9']);
     assert.ok(admission.includes("family:'F6'"), 'F6 stopped answering');
+    /* F9 is not a label either: admission imports the family and dispatches it
+       BEFORE its unknown-plan catch (NATIVE-LOAD-SPEC R9.13 :176), so a plan
+       operation reaches the catch only when F9 has declined it. */
+    assert.ok(admission.includes("from '../../../m4/import/native-load-replay.cjs'"), 'admission does not import F9');
+    const dispatch = admission.indexOf('nativeLoadFamily.owns(');
+    const unknownPlan = admission.indexOf("op.class==='plan'?'LOCAL_SOURCE_EFFECT_UNMAPPED'");
+    assert.ok(dispatch > 0 && unknownPlan > 0 && dispatch < unknownPlan,
+      'F9 is not dispatched before the unknown-plan catch');
   });
 
-test('P3-EN3 - the ONE not-in-generation entry is proved, not asserted: no module of the '
-  + 'shipped page calls a plan writer on the durable client', async () => {
+/* P3-EN3, THE PLAN WRITERS, rewritten for S11 FC09 (PM ruling DECISIONS:878).
+   Until NATIVE-LOAD this cell proved that NO page module calls a plan writer. The
+   native-load Yes is now one, by design, and the register answers for it with
+   F9; what must still be PROVED is that it is the ONLY one, and that it is
+   reached only through the guarded native path:
+     today-entry.mjs:245      h.respond({ handle, proposal_id, answer })  - the
+                              native-load HOST's respond (today-bindings.mjs
+                              createNativeLoadHost), which re-evaluates, issues a
+                              one-time ticket and calls respondNativeLoad;
+     local-client.mjs:412     bridge.execute("respond", args) - the one string
+                              dispatch of a plan-writer name on the page;
+     t2-stage.cjs:34          client.respond(owned.proposalId, "accept",
+                              clone(owned.issuance)) - inside nativeRespond, after
+                              the trusted capability validated the request.
+   So the reach is computed, module by module, and PINNED: every `.name(` call of
+   the five plan-writer names outside the client (comments included, so the count
+   can only over-read, never under-read), every string dispatch of one through
+   execute(), and the T2 stage's generic command set. A new caller of planEdit,
+   decision, undoRequest or acceptInitialPlan, a new respond caller, a second
+   respond site in either known module, a new string dispatch or a plan-writer
+   name in the generic command set each turns this cell red.
+   planWriterReach is a pure function of (module list, source reader) so that a
+   scratch mutant can run it over a page with one injected call (FC09 report). */
+const PLAN_WRITERS = ['planEdit', 'respond', 'decision', 'undoRequest', 'acceptInitialPlan'];
+const KNOWN_CALLS = Object.freeze({
+  'rebuild/m3/w6/t2-stage.cjs': { respond: 2 },
+  'rebuild/m3/w7-preview/today/today-entry.mjs': { respond: 1 },
+});
+const GUARDED_SITES = Object.freeze([
+  ['rebuild/m3/w6/t2-stage.cjs', 'return client.respond(owned.proposalId, "accept", clone(owned.issuance));'],
+  ['rebuild/m3/w7-preview/today/today-entry.mjs',
+    'const result = await h.respond({ handle: offer.handle, proposal_id: proposalId, answer: word });'],
+]);
+const KNOWN_DISPATCH = Object.freeze({ 'rebuild/m3/w6/local/local-client.mjs': { respond: 1 } });
+function planWriterReach(inputs, read) {
+  const CLIENT = 'rebuild/client/index.cjs';
+  const call = new RegExp('\\.\\s*(' + PLAN_WRITERS.join('|') + ')\\s*\\(', 'g');
+  const dispatch = new RegExp('execute\\s*\\(\\s*["\'](' + PLAN_WRITERS.join('|') + ')["\']', 'g');
+  const calls = {}, dispatches = {}, sources = {};
+  for (const rel of inputs) {
+    if (rel === CLIENT) continue;
+    const src = read(rel);
+    sources[rel] = src;
+    for (const m of src.matchAll(call)) ((calls[rel] = calls[rel] || {})[m[1]] = (calls[rel][m[1]] || 0) + 1);
+    for (const m of src.matchAll(dispatch)) ((dispatches[rel] = dispatches[rel] || {})[m[1]] = (dispatches[rel][m[1]] || 0) + 1);
+  }
+  const stage = sources['rebuild/m3/w6/t2-stage.cjs'] || '';
+  const commandSet = (stage.match(/const COMMANDS = new Set\(\[([^\]]*)\]\)/) || [])[1];
+  const generic = commandSet === undefined ? null : [...commandSet.matchAll(/["']([^"']+)["']/g)].map(m => m[1]);
+  const guarded = GUARDED_SITES.filter(([rel, site]) => !(sources[rel] || '').includes(site)).map(([rel]) => rel);
+  return { calls, dispatches, generic, guarded, client: read(CLIENT) };
+}
+
+test('P3-EN3 - the plan writers are proved, not asserted: the ONLY plan-writer call the shipped page reaches is '
+  + 'respond, at its two guarded native-load sites, and no module calls planEdit, decision, undoRequest or '
+  + 'acceptInitialPlan', async () => {
     /* The WHOLE page, boot graph and route chunk alike: the Import screen is a
-       shipped screen route too, and the entry says no shipped screen route
-       reaches a plan writer. */
+       shipped screen route too. */
     const inputs = (await pageGraph()).pinned;
-    const CLIENT = 'rebuild/client/index.cjs';
-    assert.ok(inputs.includes(CLIENT), 'the page stopped carrying the durable client');
-    /* The five plan-writing names rebuild/client's API exposes. A call is a name
-       after a dot and an open bracket; the definitions inside the client itself
-       are not calls, so the client is the one module excluded. */
-    const writers = ['planEdit', 'respond', 'decision', 'undoRequest', 'acceptInitialPlan'];
-    const call = new RegExp('\\.\\s*(' + writers.join('|') + ')\\s*\\(');
-    const callers = inputs.filter(rel => rel !== CLIENT
-      && call.test(fs.readFileSync(path.join(REPO, rel), 'utf8')));
-    assert.deepEqual(callers, [],
-      'a shipped screen now reaches a plan writer: the register entry for '
-      + CLIENT + '#plan must become a family, and the runbook must name it again');
+    assert.ok(inputs.includes('rebuild/client/index.cjs'), 'the page stopped carrying the durable client');
+    const reach = planWriterReach(inputs, rel => fs.readFileSync(path.join(REPO, rel), 'utf8'));
+    assert.deepEqual(reach.calls, KNOWN_CALLS,
+      'a shipped screen now reaches a plan writer other than the guarded native-load Yes, or the Yes gained a '
+      + 'caller: a new writer needs a family in the register (and a line in the runbook), never a quiet pass');
+    assert.deepEqual(reach.guarded, [], 'a known respond site is no longer the guarded native-load call');
+    assert.deepEqual(reach.dispatches, KNOWN_DISPATCH,
+      'a page module dispatches a plan-writer name by string other than respondNativeLoad');
+    assert.ok(Array.isArray(reach.generic) && reach.generic.length > 0, 'the T2 stage command set was not found');
+    assert.deepEqual(reach.generic.filter(name => PLAN_WRITERS.includes(name)), [],
+      'the T2 stage dispatches a plan writer generically, bypassing the native-load capability');
     /* And the client really does still carry them, so this cell is not passing
        because the names were renamed under it. */
-    const client = fs.readFileSync(path.join(REPO, CLIENT), 'utf8');
-    for (const name of writers) assert.ok(new RegExp('(^|[^\\w.])' + name + '\\s*:').test(client),
+    for (const name of PLAN_WRITERS) assert.ok(new RegExp('(^|[^\\w.])' + name + '\\s*:').test(reach.client),
       'rebuild/client no longer exposes ' + name + ', so this cell stopped proving anything');
   });
 
