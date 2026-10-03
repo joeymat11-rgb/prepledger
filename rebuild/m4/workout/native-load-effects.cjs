@@ -129,29 +129,80 @@ function lineageBack(input, result, view, from, to) {
   }
   return { ...result, state: out };
 }
-// The runtime FC03 hands FC01 for one record lift: the injected runtime itself when the base carries that lift (always, with
-// shared ids), else the view above around each of its two functions.
+// THE BASE VIEW (S11 FC09 round 7, PM ruling DECISIONS:882 B1/B2). Under a correspondence EVERY FC01 call FC03 makes - a current
+// check, exit (b), a record's judgement, a landing, the governor - reads the COMPLETE registered history of each lineage: the
+// projected facts COPY, its lift_lineage_id members re-addressed into the base (state) id space through the same resolver. No
+// durable operation, capture or record is touched: a projected entry keeps its own slot keys and correspondence_profile
+// (engine-history.cjs:91), and only this copy moves. With shared ids (PAIRS null) nothing here is built.
+function baseFacts(facts) {
+  if (PAIRS === null || !map(facts)) return facts;
+  const f = structuredClone(facts);
+  const visit = (x) => {
+    if (Array.isArray(x)) { for (const y of x) visit(y); return; }
+    if (!map(x)) return;
+    for (const [k, v] of Object.entries(x)) { if (k === 'lift_lineage_id' && typeof v === 'string') x[k] = LK(v); else visit(v); }
+  };
+  visit(f);
+  return f;
+}
+const inBase = (s) => (PAIRS === null || !map(s) || !map(s.workoutFacts) ? s : { ...s, workoutFacts: baseFacts(s.workoutFacts) });
+// The spends FC01 reads off the request's effect frontier (spent completions, prior earns, the Undo's own target) in the id
+// space of the view it evaluates on: a spend of a lineage written under its other id is re-addressed with its consumes roots, so
+// FC01 counts it (E/native-load.cjs decodeSpend :91, :270, :324, :385). `at` maps a lift id to that space.
+function spendIn(id, at) {
+  let d;
+  try { d = JSON.parse(id); } catch (_) { return id; }
+  const root = (c) => { let k; try { k = JSON.parse(c); } catch (_) { return c; }
+    return Array.isArray(k) && k.length === 3 ? JSON.stringify(k[0] === 'legacy' ? [k[0], k[1], at(k[2])] : [k[0], at(k[1]), k[2]]) : c; };
+  if (Array.isArray(d) && d.length === 5 && d[0] === 'native-load' && typeof d[1] === 'string' && Array.isArray(d[4]))
+    return JSON.stringify([d[0], at(d[1]), d[2], d[3], d[4].map(root)]);
+  if (Array.isArray(d) && d.length === 3 && d[0] === 'native-load-compensation' && typeof d[1] === 'string' && typeof d[2] === 'string')
+    return JSON.stringify([d[0], at(d[1]), spendIn(d[2], at)]);
+  return id;
+}
+// The runtime FC03 hands FC01 for one record (or requested) lift: the injected runtime itself with shared ids; under a
+// correspondence, the base view, and for a record whose lift the base names by another id, that view renamed into the
+// record's own id space (the record view above). FC01 answers against the re-addressed frontier; the basis it echoes into an
+// evaluation and into every offer is mapped back to the request FC03 issued, byte for byte, so the issued body is FC03's own.
 function atLift(rt, recordLift) {
-  const from = LK(recordLift);
-  if (PAIRS === null || from === recordLift || !text(recordLift)) return rt;
+  if (PAIRS === null) return rt;
+  const named = text(recordLift), from = named ? LK(recordLift) : null, to = named ? recordLift : null, renamed = named && from !== recordLift;
+  const at = (l) => { const b = LK(l); return renamed && b === from ? to : b; };
+  const viewOf = (s) => (renamed ? lineageView(inBase(s), from, to) : inBase(s));
+  const requestOf = (q) => (!map(q) || !map(q.basis) || !Array.isArray(q.basis.effect_frontier) ? q
+    : { ...q, basis: { ...q.basis, effect_frontier: q.basis.effect_frontier.map((f) => (map(f) && typeof f.spend_id === 'string' ? { ...f, spend_id: spendIn(f.spend_id, at) } : f)) } });
+  const answerOf = (ev, q) => {
+    if (!map(ev) || !map(q) || q.basis === undefined) return ev;
+    let basis; try { basis = json(q.basis); } catch (_) { return ev; }
+    return { ...ev, basis, offers: Array.isArray(ev.offers) ? ev.offers.map((o) => (map(o) && map(o.body) && Object.hasOwn(o.body, 'basis') ? { ...o, body: { ...o.body, basis: json(q.basis) } } : o)) : ev.offers };
+  };
   return Object.freeze({
     evaluateNativeLoad: (s, request) => {
       let v;
-      try { v = lineageView(s, from, recordLift); } catch (error) {
+      try { v = viewOf(s); } catch (error) {
         if (!(error instanceof LineageRefused)) throw error;
         let basis = null; try { basis = map(request) && request.basis !== undefined ? json(request.basis) : null; } catch (_) { basis = null; }
         return { profile: PRODUCER, status: 'refused', basis, offers: [], refusal: { ...LINEAGE_REFUSAL } };
       }
-      return rt.evaluateNativeLoad(v, request);
+      return answerOf(rt.evaluateNativeLoad(v, requestOf(request)), request);
     },
     applyNativeLoadDecision: (s, decision, context) => {
-      try { const v = lineageView(s, from, recordLift); return lineageBack(s, rt.applyNativeLoadDecision(v, decision, lineageContext(context, from, recordLift)), v, from, recordLift); }
+      try { const v = viewOf(s); return lineageBack(s, rt.applyNativeLoadDecision(v, decision, named ? lineageContext(context, from, to) : context), v, from, to); }
       catch (error) {
         if (!(error instanceof LineageRefused)) throw error;
         let kept = null; try { kept = json(s); } catch (_) { kept = null; }
         return { status: 'refused', state: kept, effect: null, refusal: { ...LINEAGE_REFUSAL } };
       }
     } });
+}
+// THE GOVERNOR (DECISIONS:882 B2; spec R8 :135 "governor once per projection", E/native-load.cjs:449-453): it replays every lift's
+// native original openers off the facts it is handed, so under a correspondence it is handed the base view and the opener of a
+// pre-import workout under the document's id counts for its lift. The facts on the returned state are the caller's own: only
+// holdFlag moves (governorEvent's own contract).
+function governed(rt, s, context) {
+  if (PAIRS === null) return rt.applyNativeLoadDecision(s, null, context);
+  const t = rt.applyNativeLoadDecision(inBase(s), null, context);
+  return map(t) && map(t.state) && map(s) && Object.hasOwn(s, 'workoutFacts') ? { ...t, state: { ...t.state, workoutFacts: json(s.workoutFacts) } } : t;
 }
 
 // The client's own digest, byte for byte (rebuild/client/index.cjs:48-93, which does
@@ -959,7 +1010,7 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
     if (sha(S.queue) !== p.structural_queue_sha256) return false;
     let s0 = withFacts(S, cut);
     try {
-      const gv = engine.at(dayOf({ evidence: [] }, cut)).applyNativeLoadDecision(s0, null, { event: 'governor', basis: null, spent: [], authority: null, completion: null });
+      const gv = governed(engine.at(dayOf({ evidence: [] }, cut)), s0, { event: 'governor', basis: null, spent: [], authority: null, completion: null });
       if (gv && gv.status === 'applied' && map(gv.state)) s0 = gv.state;
     } catch (_) { return false; }
     if (sha(s0.exercises) !== p.programme_sha256) return false;
@@ -1229,7 +1280,7 @@ function foldOnce({ base, generation, workoutFacts, engine, athleteId, source } 
   // effects and before registration, seeded by this projection's immutable base (no
   // transition above writes holdFlag), so a re-projection never replays its own output.
   if (facts) {
-    const gv = engine.at(dayOf({ evidence: [] }, facts)).applyNativeLoadDecision(state, null, { event: 'governor', basis: null, spent: [], authority: null, completion: null });
+    const gv = governed(engine.at(dayOf({ evidence: [] }, facts)), state, { event: 'governor', basis: null, spent: [], authority: null, completion: null });
     if (gv.status === 'applied') state = gv.state;
     else if (gv.status === 'refused' && gv.refusal) issues.push({ code: gv.refusal.code, refs: [], field: 'governor', lift: null });
   }
@@ -1324,7 +1375,7 @@ function checkOnce(args = {}) {
     const holdRefs = new Map();
     for (const x of holds) for (const r of x.refs || []) if (map(r) && text(r.op_id)) holdRefs.set(r.op_id, { op_id: r.op_id, commitment: r.commitment });
     pb.load_basis.authority_refs = [...holdRefs.values()].sort(byOp);
-    const ev = engine.at(hit0.session.effective.local_date).evaluateNativeLoad(shown, { lift_lineage_id: lift, completion_op_id: request.completion_op_id, intent: 'check', basis: pb });
+    const ev = atLift(engine.at(hit0.session.effective.local_date), lift).evaluateNativeLoad(shown, { lift_lineage_id: lift, completion_op_id: request.completion_op_id, intent: 'check', basis: pb });
     if (ev.status === 'offer' && ev.offers.length && ev.offers.every((o) => map(o.body) && (o.body.kind === 'adopt-baseline' || o.body.kind === 'adopt-observed'))) return { fold, evaluation: ev };
     // Spec R9.4 :162: a lift with a legacy PROPOSED entry keeps LEGACY_PENDING (the check sees
     // legacy entries; only the registered projection hides them, :159), by FC01's own refusal.

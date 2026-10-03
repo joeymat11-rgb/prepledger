@@ -267,14 +267,16 @@ test('FC09-T5 AFTER ADMISSION (spec :156-:158, I4): the shipped native-load host
    sequence (review, the identity Yes with the prefix answer, publish, reconcile), and the host is handed the admitted state,
    which is what today-entry.mjs hostBase() hands it once Today has adopted the import (local-source-basis.mjs).
    Q1-A is T5 WITHOUT THE YES: the same observed workout before the import, then the host's check over the admitted basis.
-   Spec :156-:158 (and the page's own promise that the native-load check works after a saved workout) say it offers. If it
-   refuses PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED, the refusal is the import plus a native workout alone, not F9.
+   The host must project with no performed-order issue; if it refuses PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED, the refusal is
+   the import plus a native workout alone, not F9. Its check of that pre-import completion then refuses PLAN_CHANGED [Close]:
+   the import changed the working load (SPEC:127/:185; report 11.1, accepted at DECISIONS:880 (1)).
    Q1-B is the import with NO native workout: the engine has no native Start to order against the imported log, so the host
    projects with no performed-order issue. Together they locate the cause at the native-load host over a basis carrying an
    imported log AND a native Start. */
 const performedIssues = p => p.issues.filter(i => /^PERFORMED_/.test(i.code)).map(i => [i.code, i.field, i.lift]);
 test('FC09-Q1-A CONTROL, T5 WITHOUT THE YES: the same observed workout before the import, no Yes, the genuine import; the '
-  + 'native-load host over the admitted basis still offers for that completion (spec :156-:158)', async t => {
+  + 'native-load host over the admitted basis projects with no performed-order issue, and its check of that completion '
+  + 'refuses PLAN_CHANGED [Close] (spec :127, :185, :156-:158)', async t => {
   const { era, scope } = await open(t, 'q1a');
   const engineState = nativeState();
   const openGym = d => era.createGymHost({ day: d, engineState, plannedSplitSlotId: 'earned-today-preview/' + d });
@@ -362,7 +364,7 @@ const activeCodes = issues => [...new Set((issues || []).filter(i => i && !i.sup
    number into that box, so the fixture now does the same - 20 lb, and the window's 8 reps - and RECORDS every empty box
    in `blank`, so a cell can prove the box was empty for a lift that genuinely has no working weight, not for one that
    has (a defect in core logging, which a cell must report rather than type past). */
-async function observedWorkout(era, day, engineState, pick = () => true) {
+async function observedWorkout(era, day, engineState, pick = () => true, { effort = EFFORT } = {}) {
   const openGym = d => era.createGymHost({ day: d, engineState, plannedSplitSlotId: 'earned-today-preview/' + d });
   const gymHost = await openGym(day);
   const gym = createGymModel({ gymHost, sessionTitle: null, hostForDay: openGym });
@@ -384,7 +386,8 @@ async function observedWorkout(era, day, engineState, pick = () => true) {
     const load = view.set.lift === lift ? String(shown === null ? 20 : shown + 5) : shown === null ? '20' : view.entry.load;
     const reps = empty(view.entry.reps) ? '8' : view.entry.reps;
     if (view.set.lift === lift) lifted.push(Number(load));
-    ok('the set', await gym.logSet({ startId, slot: view.set.slot, lift: view.set.lift, load, reps, effort: EFFORT }));
+    ok('the set', await gym.logSet({ startId, slot: view.set.slot, lift: view.set.lift, load, reps,
+      effort: view.set.lift === lift ? effort : EFFORT }));
     view = await gym.read();
   }
   ok('the close', await gym.finish({ startId }));
@@ -668,4 +671,145 @@ test('FC09-Q3-E ADMISSION AND PAGE FOLD THE SAME ON THE REAL SHAPE (spec :176-:1
   assert.deepEqual(row.fold_codes, activeCodes(p.issues), 'admission and the page folded the Yes differently');
   assert.deepEqual(p.issues.filter(i => !i.superseded_by && (i.refs || []).some(x => x && x.op_id === r.opId) && i.lift !== r.fileLift)
     .map(i => [i.code, i.lift]), [], 'the Yes is judged on no lift, or not on ' + r.fileLift);
+});
+
+/* ROUND 7 (PM ruling DECISIONS:882, B1 and B2 BLOCKING; Astra S11-FC09-REVIEW-L1). The REAL-PAGE AND ADMISSION FORMS of the
+   seam FC12's FC09-LINEAGE-B1A/B1B/B2 rows pin over FC03 directly: the person trains the phone's lift BEFORE the import, the
+   file names it by another id, and every native-load judgement after the import must read those workouts as the file lift's
+   own (the page projects them under the phone's id and never re-keys; admission's F9 folds the same projection). RED at the
+   round-6 FC03 (19ae7efc). */
+async function realShapeHistory(t, tag, { workouts, importDay }) {
+  const fileLifts = variant(1).exercises, fileIds = new Set(fileLifts.map(e => e.id));
+  const scope = { databaseName: 'p3-fc09-' + tag, namespace: 'joe/p3-fc09-' + tag, athleteId: 'ath-p3-fc09', deviceId: 'dev-p3-fc09' };
+  const era = await eraFor({ indexedDB: new IDBFactory(), live: liveAt(AT(workouts[0].day)), ...scope });
+  t.after(() => era.close());
+  await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
+  const engineState = phoneState();
+  let lift = null;
+  const done = [];
+  for (const w of workouts) {
+    const r = await observedWorkout(era, w.day, engineState, id => (lift === null ? !fileIds.has(id) : id === lift), { effort: w.effort });
+    assert.ok(r.lift, 'precondition: no lift on the ' + w.day + ' card is named differently by the file: ' + JSON.stringify(r.seen));
+    lift = r.lift;
+    const host = await era.createNativeLoadHost({ day: w.day, engineState });
+    const p = await host.project();
+    const completion = p.lifts.find(l => l.lift_lineage_id === lift);
+    let opId = null;
+    if (w.yes) {
+      const check = await host.check({ lift_lineage_id: lift, completion_op_id: completion.completion_op_id });
+      assert.equal(check.status, 'offer', 'no offer before the import: ' + JSON.stringify(check.refusal));
+      const offer = check.offers.find(o => o.lift === lift && o.kind === 'adopt-observed');
+      assert.ok(offer, 'no adopt-observed offer: ' + JSON.stringify(check.offers.map(o => [o.lift, o.kind])));
+      const saved = await host.respond({ handle: offer.handle, proposal_id: offer.proposalId, answer: 'accept' });
+      assert.equal(saved.acknowledged, true, 'the Yes was not saved: ' + (saved.code || JSON.stringify(saved)));
+      opId = saved.op_id;
+    }
+    host.close();
+    done.push({ ...r, close: completion.completion_op_id, opId });
+  }
+  const phoneName = PHONE.setup.exercises.find(e => e.id === lift).n;
+  const fileLift = fileLifts.filter(e => LiftCorrespondence.normaliseName(e.n) === LiftCorrespondence.normaliseName(phoneName));
+  assert.equal(fileLift.length, 1, 'precondition: ' + lift + ' corresponds to exactly one file lift');
+  const { carried, platform } = await carry(era, sealed(1));
+  assert.equal(carried.imported, true, 'custody refused: ' + carried.code);
+  const held = await material(era, platform, carried.name);
+  const controller = createLocalSourceController({ repository: held.repository, ...scope,
+    producerRegistry: producerRegistryFor({ platform, context: held.context, materialDigest: held.materialDigest }, { days: CTRL_DAYS }),
+    asOf: () => importDay, platform });
+  const prepared = await controller.prepareSource(await controller.reviewSource(carried.name), { identityConfirmed: true, prefixAnswer: true });
+  assert.equal(prepared.profile, 'earned/local-source-qualification/v1', 'the import refused: ' + JSON.stringify(prepared.issues));
+  const view = await controller.view(prepared);
+  const capability = localSourceCommitCapability(prepared);
+  await capability.publish(); await capability.reconcile();
+  const imported = await importedState(era, scope);
+  const host = await era.createNativeLoadHost({ day: importDay, engineState: imported });
+  t.after(() => host.close());
+  const p = await host.project();
+  assert.equal(p.ok, true, p.code);
+  return { era, lift, fileLift: fileLift[0].id, done, view, imported, host, p };
+}
+const HOT = { tag: 'exact', value: 0, unit: 'rep' };
+
+test('FC09-Q3-F A PRE-IMPORT WORKOUT IS CHECKED ON THE FILE\'S LIFT, NEVER LOST (DECISIONS:882 B1a; spec :127-:128): the '
+  + 'check of the saved pre-import completion answers by the file lift\'s own plan: adopt-observed when the import kept the '
+  + 'card, PLAN_CHANGED [Close] when it moved it; never COMPLETION_REQUIRED', async t => {
+  const r = await realShapeHistory(t, 'q3f', { workouts: [{ day: '2026-09-18' }], importDay: '2026-09-19' });
+  const pre = r.done[0], listed = r.p.lifts.find(l => l.lift_lineage_id === r.fileLift);
+  assert.equal(listed && listed.completion_op_id, pre.close, 'the page lists the pre-import completion under the file\'s lift');
+  const c = await r.host.check({ lift_lineage_id: r.fileLift, completion_op_id: pre.close });
+  const w = r.imported.exercises.find(e => e.id === r.fileLift).w;
+  t.diagnostic('Q3-F ' + r.lift + ' -> ' + r.fileLift + ' card ' + pre.card + ' file w ' + JSON.stringify(w) + ': ' + c.status + ' '
+    + JSON.stringify(c.refusal) + ' ' + JSON.stringify((c.offers || []).map(o => [o.lift, o.kind, o.loads])));
+  assert.notEqual(c.refusal && c.refusal.code, 'NATIVE_LOAD_COMPLETION_REQUIRED', 'THE B1a SEAM: the pre-import completion is lost');
+  if (w === pre.card) {
+    assert.deepEqual(c.offers.map(o => [o.lift, o.kind]), [[r.fileLift, 'adopt-observed']]);
+    assert.deepEqual(c.offers[0].loads, pre.lifted);
+  } else {
+    assert.equal(c.refusal && c.refusal.code, 'NATIVE_LOAD_PLAN_CHANGED', JSON.stringify(c.refusal));
+    assert.deepEqual(c.refusal.refs.map(x => x.op_id), [pre.close]);
+    assert.equal(c.refusal.field, null);
+  }
+});
+
+test('FC09-Q3-G NO TRAP AFTER MORE PRE-IMPORT TRAINING (DECISIONS:882 B1b; spec :158 exit (b), :153): a Yes, a second '
+  + 'workout on its new card, then the import: the Undo is barred by that workout and the adoption exit IS offered on the '
+  + 'file\'s lift', async t => {
+  const r = await realShapeHistory(t, 'q3g', { workouts: [{ day: '2026-09-18', yes: true }, { day: '2026-09-25' }], importDay: '2026-09-26' });
+  const yes = r.done[0], later = r.done[1];
+  const held = r.p.issues.some(i => !i.superseded_by && i.lift === r.fileLift && i.code === 'NATIVE_LOAD_EFFECT_CONFLICT'
+    && (i.refs || []).some(x => x && x.op_id === yes.opId));
+  t.diagnostic('Q3-G held by the Yes: ' + held + '; issues ' + JSON.stringify(r.p.issues.map(i => [i.code, i.field, i.lift])));
+  assert.ok(held, 'precondition: the import moved the base, so the pre-import Yes holds the file\'s lift (spec :156)');
+  const body = (await responsesOf(r.era)).find(op => op.op_id === yes.opId).payload.issuance.body;
+  const undo = await r.host.check({ lift_lineage_id: r.fileLift, completion_op_id: yes.close, intent: { compensate: body.spend_id } });
+  t.diagnostic('Q3-G undo ' + undo.status + ' ' + JSON.stringify(undo.refusal));
+  assert.equal(undo.refusal && undo.refusal.code, 'NATIVE_LOAD_COMPENSATION_DESCENDANTS', 'the later workout captured the Yes');
+  const exit = await r.host.check({ lift_lineage_id: r.fileLift, completion_op_id: later.close });
+  t.diagnostic('Q3-G exit ' + exit.status + ' ' + JSON.stringify(exit.refusal) + ' ' + JSON.stringify((exit.offers || []).map(o => [o.lift, o.kind, o.loads, o.current])));
+  assert.notEqual(exit.refusal && exit.refusal.code, 'NATIVE_LOAD_COMPLETION_REQUIRED', 'THE B1b SEAM: the pre-import completion is lost');
+  /* ROUND 8 (PM section N, M9 15/16), ASSERTION CHANGED BY NAME. The round-7 draft expected this pre-import completion's exit
+     unconditionally. The real file's lift has its own set count (legacy-fixture.cjs: abs sets 2; the phone's first run
+     shippedSetup sets 3), so the completion is no longer the plan under ANY id: FC01 step 2 (E/native-load.cjs:253) refuses
+     PLAN_CHANGED inside exit (b), and FC03 shows the hold's own refusal, the Yes (spec :162). The one-id twin answers the
+     same (FC12 FC09-LINEAGE-B1B-COUNT). When the file keeps the count the round-7 assertion stands exactly; either way the
+     next workout on the held card is the way out (spec :158 TRAINABLE WHILE HELD), asserted below. */
+  const fileSets = r.imported.exercises.find(e => e.id === r.fileLift).sets;
+  t.diagnostic('Q3-G file sets ' + fileSets + ', the pre-import completion ' + later.lifted.length);
+  if (fileSets === later.lifted.length) {
+    assert.equal(exit.status, 'offer', 'THE B1b SEAM, neither way out: ' + JSON.stringify(exit.refusal));
+    assert.deepEqual(exit.offers.map(o => [o.lift, o.kind]), [[r.fileLift, 'adopt-baseline']]);
+    assert.deepEqual(exit.offers[0].loads, later.lifted);
+    assert.ok(exit.offers[0].current.every(x => x === null), 'the exit is judged on the held projection');
+  } else {
+    assert.equal(exit.refusal && exit.refusal.code, 'NATIVE_LOAD_EFFECT_CONFLICT', JSON.stringify(exit.refusal));
+    assert.ok(exit.refusal.refs.some(x => x && x.op_id === yes.opId), 'the hold\'s own refusal names the Yes');
+  }
+  const NEXT = '2026-10-02';   // the same weekday a week after the second workout
+  const next = await observedWorkout(r.era, NEXT, r.imported, id => id === r.fileLift);
+  assert.equal(next.lift, r.fileLift, 'precondition: the card after the import prescribes ' + r.fileLift);
+  assert.equal(next.card, null, 'SPEC :158: a held lift\'s card asks for a baseline');
+  const host = await r.era.createNativeLoadHost({ day: NEXT, engineState: r.imported });
+  t.after(() => host.close());
+  const p = await host.project();
+  assert.equal(p.ok, true, p.code);
+  const done = p.lifts.find(l => l.lift_lineage_id === r.fileLift);
+  const way = await host.check({ lift_lineage_id: r.fileLift, completion_op_id: done.completion_op_id });
+  t.diagnostic('Q3-G next ' + way.status + ' ' + JSON.stringify(way.refusal) + ' ' + JSON.stringify((way.offers || []).map(o => [o.lift, o.kind, o.loads, o.current])));
+  assert.equal(way.status, 'offer', 'NO TRAP: the next workout on the held card is not the way out: ' + JSON.stringify(way.refusal));
+  assert.deepEqual(way.offers.filter(o => o.lift === r.fileLift).map(o => o.kind), ['adopt-baseline']);
+  assert.deepEqual(way.offers.find(o => o.lift === r.fileLift).loads, next.lifted);
+});
+
+test('FC09-Q3-H THE GOVERNOR READS THE PRE-IMPORT OPENERS, ON THE PAGE AND IN ADMISSION (DECISIONS:882 B2; spec R8 :135): two '
+  + 'pre-import workouts with a hot opener (reserve 0) on the corresponded lift, a Yes on the second, the import: the page\'s '
+  + 'projection holds the file\'s lift, and admission\'s F9 folds the same history to the page\'s codes', async t => {
+  const r = await realShapeHistory(t, 'q3h', { workouts: [{ day: '2026-09-18', effort: HOT }, { day: '2026-09-25', effort: HOT, yes: true }],
+    importDay: '2026-09-26' });
+  const ex = r.p.state.exercises.find(e => e.id === r.fileLift);
+  t.diagnostic('Q3-H ' + r.fileLift + ' holdFlag ' + ex.holdFlag + '; page issues ' + JSON.stringify(r.p.issues.map(i => [i.code, i.field, i.lift])));
+  assert.equal(ex.holdFlag, true, 'THE B2 SEAM: the governor never read the two hot pre-import openers');
+  const row = f9(r.view, r.done[1].opId)[0];
+  assert.ok(row, 'F9 did not answer for the Yes');
+  t.diagnostic('Q3-H admission ' + JSON.stringify(row.fold_codes) + ' ' + row.outcome + '; page ' + JSON.stringify(activeCodes(r.p.issues)));
+  assert.deepEqual(row.fold_codes, activeCodes(r.p.issues), 'admission and the page folded the history differently');
 });

@@ -191,6 +191,38 @@ async function callers(symbol) {
   return found.sort();
 }
 
+/* ONE YES before the import (round 7): the card's first lift logged 5 lb above it, Finish, and the shipped host's offer
+   to adopt that load accepted through host.respond - today-entry.mjs's own call. Returns the Yes's op id. */
+async function yesBefore(era, day, state) {
+  const { gymHost, gym, view: ready } = await openCard(era, day, state);
+  assert.equal(ready.phase, 'ready', day + ': ' + (ready.code || ready.phase));
+  ok(await gym.start());
+  let view = await gym.read(), lift = null;
+  const startId = view.startId;
+  for (let n = 0; n <= view.total; n += 1) {
+    if (view.phase === 'saved' && view.complete !== true) { gym.forget(); view = await gym.read(); }
+    if (view.phase !== 'active') break;
+    if (lift === null) lift = view.set.lift;
+    ok(await gym.logSet({ startId, slot: view.set.slot, lift: view.set.lift,
+      load: view.set.lift === lift ? String(Number(view.entry.load) + 5) : view.entry.load, reps: view.entry.reps, effort: EFFORT }));
+    view = await gym.read();
+  }
+  ok(await gym.finish({ startId }));
+  gymHost.close();
+  const host = await era.createNativeLoadHost({ day, engineState: state });
+  const p = await host.project();
+  const done = p.lifts.find(l => l.lift_lineage_id === lift);
+  assert.ok(done, 'no completion for ' + lift);
+  const check = await host.check({ lift_lineage_id: lift, completion_op_id: done.completion_op_id });
+  assert.equal(check.status, 'offer', 'no offer: ' + JSON.stringify(check.refusal));
+  const offer = check.offers.find(o => o.lift === lift && o.kind === 'adopt-observed');
+  assert.ok(offer, 'no adopt-observed offer');
+  const saved = await host.respond({ handle: offer.handle, proposal_id: offer.proposalId, answer: 'accept' });
+  assert.equal(saved.acknowledged, true, 'the Yes was not saved: ' + (saved.code || JSON.stringify(saved)));
+  host.close();
+  return saved.op_id;
+}
+
 /* The native order, read off the card's own host on a day it prepared. */
 async function orderOn(era, day, state) {
   const { gymHost, view } = await openCard(era, day, state);
@@ -739,15 +771,61 @@ test('LOM-S6-ADMISSION - the ONE admission stamp: attachAdmittedOrder has exactl
     assert.match(admission, /const compose=orderMap\?[^\n]*LegacyOrder\.attachAdmittedOrder\(/,
       'the stamp is not gated on the confirmed order map');
     assert.equal(/mapping\.attach\(/.test(admission), false, 'admission calls the page mapping\'s attach()');
-    /* TRANSIENT, measured: a real admission with a native Start beside the imported log records no anchor on its view. */
+    /* TRANSIENT, measured, and the stamp EXECUTED (round 7, Astra L1 Q6): a real admission with a native Start beside the
+       imported log AND a real Yes on it, so F9's fold runs (foldNative returns early with no accepted Yes) and the one stamp is
+       actually called. The call is observed through the shared module object source-admission.mjs reads it from (a test seam,
+       no product hook, restored after): every stamp is the CONFIRMED map's - its anchor the source digest and this selection's
+       id, its baseline the state's own log - and the admitted view still records none. */
     const season = SUMMER;
     const { era, scope } = await install(t, 's6-admission', season);
-    await recordWorkout(era, season.day, nativeState());   // a native Start before the import: the order map exists
-    const result = await admit(era, SEALED, { day: season.day, ...scope });
+    const yes = await yesBefore(era, season.day, nativeState());   // a native Start and a Yes before the import
+    const calls = [], realStamp = LegacyOrder.attachAdmittedOrder;
+    LegacyOrder.attachAdmittedOrder = (facts, state, options) => {
+      const out = realStamp(facts, state, options); calls.push({ out, state, options }); return out; };
+    let result;
+    try { result = await admit(era, SEALED, { day: season.day, ...scope }); }
+    finally { LegacyOrder.attachAdmittedOrder = realStamp; }
     assert.equal(result.admitted, true, JSON.stringify(result.codes || result.code || result.stage));
     assert.ok(result.view.order_map, 'precondition: no confirmed order map, so this measures nothing');
+    assert.ok(result.view.families.some(r => r.family === 'F9' && r.op_id === yes), 'precondition: F9 never folded the Yes');
+    assert.ok(calls.length > 0, 'the admission stamp never ran: foldNative did not reach the engine with the order map');
+    for (const c of calls) {
+      assert.equal(c.out.legacy_baseline.session_log, c.state.sessionLog, 'the stamp names a copy, not the state\'s own log');
+      assert.deepEqual(c.out.order.import_anchor, { source_generation_id: result.view.basis.source_digest,
+        activation_op_id: result.view.basis.local_selection_id }, 'the stamp is not the confirmed map\'s anchor');
+      assert.deepEqual(JSON.parse(JSON.stringify(c.options.orderMap)), JSON.parse(JSON.stringify(result.view.order_map)),
+        'the stamp was made from a map other than the one admission confirmed');
+    }
     const facts = result.view.workout_facts;
     assert.equal(facts && facts.order && facts.order.import_anchor, undefined,
       'admission wrote a stamped anchor into the admitted view');
     assert.equal(facts && facts.legacy_baseline, undefined, 'admission wrote a stamped baseline into the admitted view');
+  });
+
+/* LOM-S6 LITERAL HALF (S11 FC09 round 7; Claude Opus review N1). LOM-S6 and LOM-S6-ADMISSION find a stamping site by the
+   helper it names. A NEW site that writes the stamp BY HAND - an object literal with a legacy_baseline or import_anchor
+   member - names neither helper and would pass both. This half reads every runtime module of the two product trees (the
+   same trees and exclusions as callers(), plus soak paths) and refuses any literal of either member outside the sites that
+   exist today: the order law that DERIVES the anchor (engine-order.cjs), the one stamp helper module
+   (legacy-order-mapping.cjs, its baseline and its anchor), and the spec-side proposal checker
+   (rebuild/m4/spec/performed-proposal/check.cjs, a harness that composes its own engine copy; present at 84f8421). */
+test('LOM-S6-LITERAL - no new site writes legacy_baseline or import_anchor as an object literal; the only literals are the '
+  + 'order law\'s derived anchor, the stamp helper\'s own pair, and the spec checker that predates this seam', async () => {
+    const found = {}, roots = ['rebuild/m3', 'rebuild/m4'];
+    const skip = /(^|\/)(test|node_modules|\.tmp|ledger)(\/|$)|soak|\.test\.(c|m)?js$|-mutants\.(c|m)?js$|(^|\/)app\.js$/i;
+    const literal = /['"]?\b(legacy_baseline|import_anchor)['"]?\s*:/g;
+    while (roots.length) {
+      const dir = roots.shift();
+      for (const entry of await readdir(fileURLToPath(new URL(dir, REPO)), { withFileTypes: true })) {
+        const rel = dir + '/' + entry.name;
+        if (skip.test(rel)) continue;
+        if (entry.isDirectory()) { roots.push(rel); continue; }
+        if (!/\.(cjs|mjs|js)$/.test(entry.name)) continue;
+        const n = ((await readFile(fileURLToPath(new URL(rel, REPO)), 'utf8')).match(literal) || []).length;
+        if (n) found[rel] = n;
+      }
+    }
+    assert.deepEqual(found, { 'rebuild/m4/spec/performed-proposal/check.cjs': 1, 'rebuild/m4/workout/engine-order.cjs': 1,
+      'rebuild/m4/workout/legacy-order-mapping.cjs': 2 },
+    'a module writes the legacy-order stamp by hand: ' + JSON.stringify(found));
   });

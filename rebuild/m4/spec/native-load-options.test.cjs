@@ -9084,10 +9084,17 @@ test('FC09-LINEAGE-BOUNDARY (the round-6 ruling: "at each FC01 call made for a r
  assert.deepEqual(rt.evaluateNativeLoad(twice,{}).refusal,refusal,'a record lift the base already carries');
  const clash=make();clash.retirements[LIFT]={at:'2026-09-02'};
  assert.deepEqual(rt.evaluateNativeLoad(clash,{}).refusal,refusal,'a retirement under both ids');
- // A record whose lift IS the base lift: FC01 is handed the state itself.
+ // A record (or check) whose lift IS the base lift. ASSERTION CHANGED IN ROUND 7 (PM ruling DECISIONS:882 B1/B2): FC01 is no
+ // longer handed the state itself but the BASE VIEW: the same members, its facts copy re-addressed into the base id space, so the
+ // pre-import completion (written under the document's id) is this lineage's own history. The input is never modified.
  let same=null;const direct={evaluateNativeLoad:s=>{same=s;return {};},applyNativeLoadDecision:s=>{same=s;return {};}};
- EFFECTS.m.lineageRuntime(direct,FILE,LINEAGE,base).evaluateNativeLoad(state,{});assert.equal(same,state);
- EFFECTS.m.lineageRuntime(direct,'fx-other',LINEAGE,base).applyNativeLoadDecision(state,decision,{});assert.equal(same,state);
+ for(const run of [()=>EFFECTS.m.lineageRuntime(direct,FILE,LINEAGE,base).evaluateNativeLoad(state,{}),()=>EFFECTS.m.lineageRuntime(direct,'fx-other',LINEAGE,base).applyNativeLoadDecision(state,decision,{})]){
+  same=null;run();
+  assert.notEqual(same,state);assert.equal(JSON.stringify(state),before,'the input is never modified');
+  for(const k of Object.keys(state))if(k!=='workoutFacts')assert.equal(same[k],state[k],k+' is the input\'s own member');
+  assert.deepEqual(same.workoutFacts.sessions.map(x=>x.record.entries[0].lift_lineage_id),[FILE,FILE],'both completions under the base id');
+  assert.deepEqual(same.workoutFacts.sessions.map(x=>x.record.entries[0].slots[0].logical_set_slot),[JSON.stringify([LIFT,1]),JSON.stringify([FILE,1])],'slot keys as written');
+ }
  assert.throws(()=>EFFECTS.m.lineageRuntime(stub,LIFT,lineageOf({[LIFT]:'fx-nowhere'}),base),/NATIVE_LOAD_LINEAGE_REFUSED/);
 });
 
@@ -9100,4 +9107,204 @@ test('FC09-LINEAGE-S31 A MUSCLE GROUP THAT SHARES THE FILE LIFT\'S ID IS NOT A L
  const g=EFFECTS.m.foldNativeLoad(lineageArgs({pre:[y.c1],extra:[y.resp,acceptOp(undo.offers[0],{op_id:'fx-resp-2',after:1})],base}));
  assert.deepEqual(issueRows(g),[],JSON.stringify(g.issues));
  assert.equal(g.spent.find(x=>x.spend_id===y.spend).cancelled_by,decisionOf(undo.offers[0]).spend_id);
+});
+
+// ======================================================================
+// S11 FC09 ROUND 7 (PM ruling DECISIONS:882, B1 and B2 BLOCKING; Astra S11-FC09-REVIEW-L1 probe.cjs/probe2.cjs sequences,
+// turned into rows). THE INVARIANT: every FC01 current check, exit (b) included, and every governor call reads the complete
+// history of its resolved lineage. ORACLES: (1) the same history with the projected facts ALREADY in the base id space
+// (admission's re-keyed form, `facts:'admission'`), and (2) the SAME history trained and checked under ONE id, with no import at
+// all (`sharedTwin`): a corresponded lineage must judge exactly as that one. RED at the round-6 FC03 (19ae7efc): the page form
+// (facts as projected, the document's id kept) loses the pre-import workouts.
+// ======================================================================
+const LOM_R7=require(path.join(ROOT,'rebuild/m4/workout/legacy-order-mapping.cjs'));
+const verdictOf=q=>[q.status,q.refusal?q.refusal.code:null,(q.offers||[]).map(o=>decisionOf(o).kind)];
+// An imported legacy prefix (the file's own log, under the file's id) beside native Starts, with the admission order stamp.
+function withImportedLog(a){
+ const identity={installation_id:'fx-installation',era_id:'fx-era',athlete_id:ATH,source_digest:'fx-source',checkpoint_digest:'fx-checkpoint'};
+ const orderMap={profile:'earned/local-source-order-map/v1',...identity,legacy_members_digest:'fx-legacy',native_members_digest:'fx-native',root_interpretation_digest:'fx-root',
+  native_root_id:'fx-start-1',assertion:{kind:'athlete-confirmed-legacy-prefix',answer:true,prompt_version:'earned/legacy-prefix-prompt/v1',review_digest:'fx-review'}};
+ a.base.sessionLog={'2026-09-01':{type:'U',entries:[{id:FILE,w:100,reps:[7,7,7],rir:2,sets:3}]}};
+ const rt=a.engine;
+ a.engine={revision:rt.revision,at:d=>{const r=rt.at(d),compose=s=>({...s,workoutFacts:LOM_R7.attachAdmittedOrder(s.workoutFacts,s,{orderMap,identity,selectionId:'local-source:fx'})});
+  return {evaluateNativeLoad:(s,q)=>r.evaluateNativeLoad(compose(s),q),applyNativeLoadDecision:(s,q,c)=>r.applyNativeLoadDecision(compose(s),q,c)};}};
+ return a;
+}
+// Host-v1 entries: no prescribed_load on any slot (the page's own projection), captures on the Starts.
+function hostV1(a){for(const s of a.workoutFacts.sessions)for(const en of s.record.entries){en.profile='earned/performed-lift/v1';for(const sl of en.slots)delete sl.prescribed_load;}return a;}
+// The same history trained under ONE id with no import: `pre` and `post` both under fx-press, the base patched the same.
+function sharedTwin({pre=[],post=[],extra=[],patch={},revision='fx-revision-1'}={}){
+ const twin=post.map(c=>{const x=structuredClone(c);for(const en of x.session.record.entries){en.lift_lineage_id=LIFT;delete en.correspondence_profile;
+  for(const sl of en.slots){sl.logical_set_slot=JSON.stringify([LIFT,sl.position]);if(sl.fact){sl.fact.lift_lineage_id=LIFT;sl.fact.logical_set_slot=sl.logical_set_slot;}}}return x;});
+ return foldArgs([...pre,...twin],extra,revision,F0(patch));
+}
+// A body's address-free shape: its kind and what it consumes, the file's id read as the document's.
+const shapeOf=q=>({verdict:verdictOf(q),bodies:(q.offers||[]).map(o=>{const d=decisionOf(o);return {kind:d.kind,consumes:d.consumes.map(c=>c.split(JSON.stringify(FILE)).join(JSON.stringify(LIFT))),
+ target:d.target_load,candidate:d.candidate&&d.candidate.newW};})});
+
+test('FC09-LINEAGE-B1A A PRE-IMPORT COMPLETION IS CHECKED ON THE FILE\'S LIFT (DECISIONS:882 B1a; spec :127-:128, :164): typed and host-v1, unchanged and moved base: the page form answers as the base-addressed facts do, and as one id would',()=>{
+ effectsGate();
+ const y=yesBeforeImport();
+ for(const w of [100,102.5])for(const kind of ['typed','host-v1']){
+  const c=kind==='typed'?y.c1:v1Of(y.c1);
+  const at=facts=>{const a=lineageArgs({pre:[c],base:imported(F0({w})),facts});if(kind==='host-v1')captureOn(a.generation,c,[100,100,100]);return a;};
+  const page=checkOf(at('page'),FILE,c),control=checkOf(at('admission'),FILE,c);
+  const twinArgs=sharedTwin({pre:[c],patch:{w}});if(kind==='host-v1')captureOn(twinArgs.generation,c,[100,100,100]);
+  const twin=checkOf(twinArgs,LIFT,c);
+  const name=kind+' w '+w+': ';
+  assert.deepEqual(verdictOf(page),w===100?['offer',null,['adopt-observed']]:['refused','NATIVE_LOAD_PLAN_CHANGED',[]],name+JSON.stringify(page.refusal));
+  assert.deepEqual(verdictOf(page),verdictOf(control),name+'the page form and the base-addressed facts');
+  assert.deepEqual(shapeOf(page),shapeOf(twin),name+'and one id');
+  if(w!==100)assert.deepEqual(page.refusal.refs,[ref(c.close)]);
+  else assert.equal(decisionOf(page.offers[0]).lift_lineage_id,FILE,'a new record is written under the base id');
+ }
+});
+
+test('FC09-LINEAGE-B1B NO TRAP AFTER LATER PRE-IMPORT TRAINING (DECISIONS:882 B1b; spec :158 exit (b), :153): a Yes, a host-v1 workout on its new card, the import moves the base: the Undo is barred by that workout, and the adoption exit IS offered, with and without an imported legacy prefix',()=>{
+ effectsGate();
+ for(const log of [false,true])for(const facts of ['page','admission']){
+  const y=yesBeforeImport(),c2=v1Of(C(2,{reps:TOP,loads:105,prescribed:105,effort:e(2,1,1)}));
+  let a=lineageArgs({pre:[y.c1,c2],extra:[y.resp],base:imported(F0({w:102.5})),facts});captureOn(a.generation,c2,[105,105,105]);if(log)a=withImportedLog(a);
+  const name='log '+log+' '+facts+': ';
+  assert.deepEqual(verdictOf(checkOf(a,FILE,c2,{compensate:y.spend})),['refused','NATIVE_LOAD_COMPENSATION_DESCENDANTS',[]],name+'Undo');
+  const exit=checkOf(a,FILE,c2);
+  assert.deepEqual(verdictOf(exit),['offer',null,['adopt-baseline']],name+JSON.stringify(exit.refusal));
+  assert.deepEqual(decisionOf(exit.offers[0]).basis.load_basis.authority_refs,[ref('fx-resp-1')],name+'its authority is the holding Yes');
+ }
+});
+
+test('FC09-LINEAGE-B1C THE SAME WORKOUTS JUDGE THE SAME UNDER EITHER ID (DECISIONS:882 B1c; spec :126 earn branch, I5): two pre-import workouts and one after the import, every opener, terminal and rep line of the walk, typed and host-v1 with an imported prefix: the page form equals the base-addressed facts and the one-id twin, check and governor alike',()=>{
+ effectsGate();
+ let cases=0;
+ for(const host of [false,true])for(let reps=7;reps<=11;reps++)for(const opener of [0,1,2])for(const last of [0,1,2]){
+  const pre=[C(1,{reps:[reps,reps,reps],loads:100,effort:e(opener,1,last)}),C(2,{reps:[reps,reps,reps],loads:100,effort:e(1,1,last)})];
+  const post=[CF(3,{date:'2026-10-12',reps:TOP,loads:100,effort:e(2,1,1)})];
+  const form=facts=>{let a=lineageArgs({pre,post,facts});if(host){a=withImportedLog(a);hostV1(a);}return a;};
+  const twinArgs=()=>{let a=sharedTwin({pre,post});if(host){a.base.sessionLog={'2026-09-01':{type:'U',entries:[{id:LIFT,w:100,reps:[7,7,7],rir:2,sets:3}]}};hostV1(a);}return a;};
+  const name=(host?'host-v1 ':'typed ')+[reps,opener,last].join('/')+': ';
+  const page=form('page'),control=form('admission');
+  const pq=checkOf(page,FILE,post[0]),cq=checkOf(control,FILE,post[0]);
+  assert.deepEqual(shapeOf(pq),shapeOf(cq),name+'check: page '+JSON.stringify(verdictOf(pq))+' control '+JSON.stringify(verdictOf(cq)));
+  assert.equal(exAt(EFFECTS.m.foldNativeLoad(page).state).holdFlag,exAt(EFFECTS.m.foldNativeLoad(control).state).holdFlag,name+'governor');
+  if(!host){const tq=checkOf(twinArgs(),LIFT,{close:post[0].close});assert.deepEqual(shapeOf(pq),shapeOf(tq),name+'one-id twin '+JSON.stringify(verdictOf(tq)));
+   assert.equal(exAt(EFFECTS.m.foldNativeLoad(page).state).holdFlag,exOf(EFFECTS.m.foldNativeLoad(twinArgs()).state).holdFlag,name+'governor twin');}
+  cases++;
+ }
+ assert.equal(cases,90);
+ // Astra's witness: the earn the page form offered (and F9 then applied) is PROVISIONAL once the history is whole.
+ const pre=[C(1,{reps:[9,9,9],loads:100,effort:e(0,1,0)}),C(2,{reps:[9,9,9],loads:100,effort:e(1,1,0)})],post=[CF(3,{date:'2026-10-12',reps:TOP,loads:100,effort:e(2,1,1)})];
+ const q=checkOf(hostV1(withImportedLog(lineageArgs({pre,post}))),FILE,post[0]);
+ assert.deepEqual(verdictOf(q),['refused','NATIVE_LOAD_PROVISIONAL',[]],JSON.stringify(q.offers&&q.offers.map(o=>decisionOf(o).kind)));
+});
+
+test('FC09-LINEAGE-B2 THE GOVERNOR READS EVERY PRE-IMPORT OPENER OF ITS LINEAGE (DECISIONS:882 B2; spec R8 :135, :92 governor once per projection): two hot pre-import openers hold the file\'s lift, with and without an imported prefix, in the fold and in a record\'s cut',()=>{
+ effectsGate();
+ for(const log of [false,true])for(const facts of ['page','admission']){
+  const hot=[1,2].map(n=>C(n,{reps:TOP,loads:100,effort:e(0,1,1)}));
+  let a=lineageArgs({pre:hot,facts});if(log)a=withImportedLog(a);
+  const f=EFFECTS.m.foldNativeLoad(a);
+  assert.equal(exAt(f.state).holdFlag,true,'log '+log+' '+facts+': '+JSON.stringify(f.issues));
+  assert.deepEqual(issueRows(f),[]);
+  assert.deepEqual(f.state.workoutFacts,a.workoutFacts,'the facts the fold hands back are the caller\'s own');
+ }
+ const twin=EFFECTS.m.foldNativeLoad(sharedTwin({pre:[1,2].map(n=>C(n,{reps:TOP,loads:100,effort:e(0,1,1)}))}));
+ assert.equal(exOf(twin.state).holdFlag,true,'control: one id');
+ // The cut governor (sameCut, :957-:965): a post-import record's programme digest was taken over the WHOLE lineage's openers, so
+ // its present-revision re-validation reproduces that digest only when the governor at its cut reads them too. A record whose
+ // reason was altered and re-digested passes S1-S8 (which never read the reason) and is caught only by that re-validation.
+ const hot=[1,2].map(n=>C(n,{reps:TOP,loads:100,effort:e(0,1,1)})),c3=CF(3,{date:'2026-10-12',reps:TOP,loads:105,effort:e(0,1,1)});
+ const offer=checkOf(lineageArgs({pre:hot,post:[c3]}),FILE,c3);
+ assert.equal(exAt(EFFECTS.m.foldNativeLoad(lineageArgs({pre:hot,post:[c3]})).state).holdFlag,true,'precondition: three hot openers of one lineage hold it');
+ assert.deepEqual(verdictOf(offer),['offer',null,['adopt-observed']],JSON.stringify(offer.refusal));
+ const genuine=EFFECTS.m.foldNativeLoad(lineageArgs({pre:hot,post:[c3],extra:[acceptOp(offer.offers[0],{after:3})]}));
+ assert.deepEqual(issueRows(genuine),[],'the genuine record is re-validated at its cut and applies');assert.equal(exAt(genuine.state).w,105);
+ const altered=EFFECTS.m.foldNativeLoad(lineageArgs({pre:hot,post:[c3],extra:[acceptOp({body:decisionOf(offer.offers[0]),reason:'ALTERED AFTER ISSUANCE'},{after:3})]}));
+ assert.deepEqual(issueRows(altered),[['NATIVE_LOAD_RECORD_INVALID','issuance',FILE]],'re-validated at its cut, the altered reason is not the issued one');
+});
+
+test('FC09-LINEAGE-FRONTIER A SPEND WRITTEN UNDER THE DOCUMENT\'S ID IS SPENT FOR ITS LINEAGE (spec :121 spent once, :154; the same invariant, the effect frontier FC01 reads): a pre-import earn missed at its debut, then two post-import tops: the check judges exactly as one id, never re-consuming the spent sightings',()=>{
+ effectsGate();
+ const s=landingScenario('fx-revision-1');
+ const c3=C(3,{date:'2026-10-12',reps:TOP,loads:100,prescribed:105,effort:e(2,1,1)});
+ const post=[CF(4,{date:'2026-10-14',reps:TOP,loads:100,effort:e(2,1,1)}),CF(5,{date:'2026-10-16',reps:TOP,loads:100,effort:e(2,1,1)})];
+ const page=lineageArgs({pre:[...s.cs,c3],post,extra:[s.resp]});
+ const f=EFFECTS.m.foldNativeLoad(page);
+ const q=f.state.queue.find(x=>x.native_load_spend===decisionOf(s.offer).spend_id);
+ assert.deepEqual([q.exId,q.state],[FILE,'MISSED'],'precondition: the debut was missed');
+ const twin=sharedTwin({pre:[...s.cs,c3],post,extra:[s.resp]});
+ for(const at of [post[0],post[1]]){
+  const pq=checkOf(page,FILE,at),tq=checkOf(twin,LIFT,{close:at.close});
+  assert.deepEqual(shapeOf(pq),shapeOf(tq),at.close+': page '+JSON.stringify(verdictOf(pq))+' one id '+JSON.stringify(verdictOf(tq)));
+  for(const o of pq.offers||[])for(const c of decisionOf(o).consumes)
+   assert.ok(!decisionOf(s.offer).consumes.includes(c.split(JSON.stringify(FILE)).join(JSON.stringify(LIFT))),'re-consumes a sighting the pre-import Yes spent: '+c);
+  // The issued body's basis is FC03's own (the frontier as FC03 wrote it), never the re-addressed copy FC01 read.
+  for(const o of pq.offers||[])assert.deepEqual(decisionOf(o).basis.effect_frontier.map(x=>x.spend_id),f.spent.map(x=>x.spend_id).sort());
+ }
+});
+
+test('FC09-LINEAGE-B1B-COUNT THE REAL FILE CHANGES THE SET COUNT (PM section N, M9 FC09-Q3-G; spec :158 exit (b) and TRAINABLE WHILE HELD, :162; E/native-load.cjs:253 step 2): a Yes, a host-v1 workout on its new card, then an import whose lift has 2 sets where the phone had 3. The pre-import completion is no longer the plan under ANY id, so its exit is the hold\'s own refusal, exactly as one id; the way out is the next workout on the held card',()=>{
+ effectsGate();
+ const twinY=yesBeforeImport(),twinC2=v1Of(C(2,{reps:TOP,loads:105,prescribed:105,effort:e(2,1,1)}));
+ const twin=sharedTwin({pre:[twinY.c1,twinC2],extra:[twinY.resp],patch:{w:102.5,sets:2}});captureOn(twin.generation,twinC2,[105,105,105]);
+ const tq=checkOf(twin,LIFT,twinC2);
+ assert.deepEqual(verdictOf(tq),['refused','NATIVE_LOAD_EFFECT_CONFLICT',[]],'control: one id, the count changed after the workout');
+ assert.deepEqual(tq.refusal.refs,[ref('fx-resp-1')]);
+ for(const log of [false,true])for(const facts of ['page','admission']){
+  const y=yesBeforeImport(),c2=v1Of(C(2,{reps:TOP,loads:105,prescribed:105,effort:e(2,1,1)}));
+  const c3=v1Of(CF(3,{date:'2026-10-12',reps:[10,9],loads:110,prescribed:null,effort:e(2,1)}));
+  const at=post=>{let a=lineageArgs({pre:[y.c1,c2],post,extra:[y.resp],base:imported(F0({w:102.5,sets:2})),facts});captureOn(a.generation,c2,[105,105,105]);
+   if(post.length)captureOn(a.generation,c3,[null,null]);if(log)a=withImportedLog(a);return a;};
+  const name='log '+log+' '+facts+': ',a=at([]);
+  assert.deepEqual(issueRows(EFFECTS.m.foldNativeLoad(a)),[['NATIVE_LOAD_EFFECT_CONFLICT','load_basis',FILE]],name+'the pre-import Yes holds the file\'s lift');
+  assert.deepEqual(verdictOf(checkOf(a,FILE,c2,{compensate:y.spend})),['refused','NATIVE_LOAD_COMPENSATION_DESCENDANTS',[]],name+'Undo');
+  const exit=checkOf(a,FILE,c2);
+  assert.deepEqual(verdictOf(exit),verdictOf(tq),name+'the page form answers as one id: '+JSON.stringify(exit.refusal));
+  assert.deepEqual(exit.refusal.refs,tq.refusal.refs,name+'by the holding Yes');
+  // NO TRAP (spec :158 TRAINABLE WHILE HELD): the next workout, on the held card (baseline ask, the file's 2 sets), is the exit.
+  const b=at([c3]),way=checkOf(b,FILE,c3);
+  assert.deepEqual(verdictOf(way),['offer',null,['adopt-baseline']],name+'the way out: '+JSON.stringify(way.refusal));
+  const d=decisionOf(way.offers[0]);
+  assert.equal(d.lift_lineage_id,FILE);
+  assert.deepEqual(d.target_load.vector.map(x=>x.value),[110,110]);
+  assert.deepEqual(d.basis.load_basis.authority_refs,[ref('fx-resp-1')],name+'its authority is the holding Yes');
+ }
+});
+
+// Admission's OWN re-key (source-admission.mjs:764-768): the entry's lift moves to the state's id; its facts' lift ids and slot
+// keys do not (the form PM caller mutant C5 hands F9's fold instead of the projected facts).
+const entriesForm=a=>{const b={...a,workoutFacts:structuredClone(a.workoutFacts)};
+ for(const s of b.workoutFacts.sessions)for(const en of s.record.entries)if(en.lift_lineage_id===LIFT)en.lift_lineage_id=FILE;return b;};
+// What F9 reads off a fold (native-load-replay.cjs fold): status, issues, effects, spent, coverage and the folded programme
+// WITHOUT the facts copy its digest drops.
+const f9View=f=>({status:f.status,issues:f.issues,effects:f.effects,spent:f.spent,coverage:f.coverage,
+ state:f.state&&Object.fromEntries(Object.entries(f.state).filter(([k])=>k!=='workoutFacts'))});
+test('FC09-LINEAGE-C5 ADMISSION\'S RE-KEYED FACTS FOLD EXACTLY AS THE PROJECTED ONES (PM section N, caller mutant C5; the DECISIONS:882 invariant): the entries-only re-key and the page\'s projection give F9 the same fold and every check the same answer, byte for byte, with and without an imported prefix, so feeding F9 either form is not observable. Without the base view the entries-only form is refused PERFORMED_ENTRY_INVALID (FC09-Q3-E, round 6)',()=>{
+ effectsGate();
+ const y=yesBeforeImport(),c2=v1Of(C(2,{reps:TOP,loads:105,prescribed:105,effort:e(2,1,1)}));
+ const hot=[1,2].map(n=>C(n,{reps:TOP,loads:100,effort:e(0,1,1)})),c3h=CF(3,{date:'2026-10-12',reps:TOP,loads:105,effort:e(0,1,1)});
+ const s=landingScenario('fx-revision-1'),c3=C(3,{date:'2026-10-12',reps:TOP,loads:100,prescribed:105,effort:e(2,1,1)});
+ const post=[CF(4,{date:'2026-10-14',reps:TOP,loads:100,effort:e(2,1,1)}),CF(5,{date:'2026-10-16',reps:TOP,loads:100,effort:e(2,1,1)})];
+ const cap=a=>{captureOn(a.generation,c2,[105,105,105]);return a;};
+ const cases=[
+  ['B1A kept',()=>lineageArgs({pre:[y.c1]}),[[FILE,y.c1]]],
+  ['B1A moved',()=>lineageArgs({pre:[y.c1],base:imported(F0({w:102.5}))}),[[FILE,y.c1]]],
+  ['B1B',()=>cap(lineageArgs({pre:[y.c1,c2],extra:[y.resp],base:imported(F0({w:102.5}))})),[[FILE,c2],[FILE,c2,{compensate:y.spend}]]],
+  ['B1B count',()=>cap(lineageArgs({pre:[y.c1,c2],extra:[y.resp],base:imported(F0({w:102.5,sets:2}))})),[[FILE,c2],[FILE,c2,{compensate:y.spend}]]],
+  ['B2',()=>lineageArgs({pre:hot,post:[c3h]}),[[FILE,c3h]]],
+  ['FRONTIER',()=>lineageArgs({pre:[...s.cs,c3],post,extra:[s.resp]}),[[FILE,post[0]],[FILE,post[1]]]],
+ ];
+ let n=0;
+ for(const [label,make,checks] of cases)for(const log of [false,true]){
+  const page=log?withImportedLog(make()):make(),adm=entriesForm(log?withImportedLog(make()):make());
+  assert.ok(adm.workoutFacts.sessions.some(x=>x.record.entries.some(en=>en.lift_lineage_id===FILE&&en.slots.some(sl=>sl.fact&&sl.fact.lift_lineage_id===LIFT))),label+': precondition, a mixed entry');
+  const name=label+' log '+log+': ',fp=EFFECTS.m.foldNativeLoad(page),fa=EFFECTS.m.foldNativeLoad(adm);
+  assert.equal(fp.status,'ready',name+JSON.stringify(fp.issues));
+  assert.deepEqual(f9View(fa),f9View(fp),name+'the fold F9 reads');
+  for(const [lift,c,intent] of checks){
+   const q=k=>EFFECTS.m.checkNativeLoad({...k,request:{lift_lineage_id:lift,completion_op_id:c.close,intent:intent===undefined?'check':intent}}).evaluation;
+   assert.deepEqual(q(adm),q(page),name+'check '+c.close+' '+JSON.stringify(intent||'check'));
+  }
+  n++;
+ }
+ assert.equal(n,12);
 });
