@@ -1,0 +1,310 @@
+name: s11-observe
+
+# S11 step T5b, the PRE-T6 HOSTED OBSERVATION (brief of record rev11 4f7d431f, section 11 T5b;
+# DECISIONS:851-853, :855 (4)). Pushed by the PM on a NEW branch obs/s11-<n> that nothing merges; the only file commit O
+# adds to H5. One job, both OS: every step line of rebuild.yml :33-68 copied byte-equal and in order
+# (its comment lines :42-55, :58-60 and :63-66 dropped, as T5b (3) allows; :66 holds a non-ASCII dash),
+# then one step that runs each of the 39 S11.json children's exact argv as b-package.cjs children()
+# does and publishes per child ONLY the header, the rev11 (b1)/(b2) grammar lines (node:test TAP counts,
+# one line per key; child 35: its one ENGINE FILES DIFFERENTIAL sentence) or rev11's "summary withheld"
+# text, and, for a red child, the tail b-package.cjs childDiagnosticTail() itself would
+# print. Nothing else of any child's output is printed, written or uploaded. Written by a builder;
+# Fable reads these exact bytes before first use (T5b (5)).
+on:
+  push:
+    branches: ['obs/s11-*']
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    name: s11-observe (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    # SIZED FROM EVIDENCE (T5b (3), D-L4-MEASURE): rebuild.yml's public-gates job, timeout 30, ran all
+    # 36 S10 children inside its package step plus its other steps green on both OS at CI-2 run
+    # 36224004547 (DECISIONS:838), so the S10 children and this setup fit in 30 minutes. 60 adds the
+    # three new S11 children and leaves room for one child to reach the runner's own 30-minute spawn
+    # timeout (b-package.cjs :2823) and still be recorded with every later child. The per-child wall
+    # of each header line measures the next attempt.
+    timeout-minutes: 60
+    env:
+      MEASURED_TEST_NOW: '2026-09-03'
+      TZ: America/New_York
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund --include=dev
+      - name: Install pnpm 9 (the version both W6 and W5 lockfiles were written with)
+        run: npm install -g pnpm@9
+      - name: Install the pinned W6 browser-build dependencies
+        run: pnpm --dir rebuild/m3/w6 install --frozen-lockfile
+      - name: Install the pinned W5 source and reconciliation dependencies
+        run: pnpm --dir rebuild/m3/w5 install --frozen-lockfile --ignore-scripts --ignore-workspace
+      - name: S11 T5b observation of the 39 children, published lines only (T5b (3))
+        shell: node {0}
+        run: |
+          'use strict';
+          // S11 step T5b observation driver (brief rev11 section 11 T5b (3)(i)-(vi); DECISIONS:851-853, :855 (4)).
+          // HOSTED: .github/workflows/s11-observe.yml runs THIS TEXT as its one observation step (shell: node {0},
+          // no arguments). LOCAL: `node s11-observe-driver.cjs --list` prints what would run and spawns nothing;
+          // require() of this file (the unit test) returns the pure functions and runs nothing.
+          // PUBLICATION CONTRACT (T5b (3)(iv)): a child's stdout and stderr stay in this process's memory. Per child
+          // the ONLY text printed is: (a) the header line; (b) the (b1)/(b2) grammar lines (node:test TAP counts, one
+          // line per key; child 35's one ENGINE FILES DIFFERENTIAL sentence) or rev11's "summary withheld (...)" text;
+          // every other byte of the child is diagnostic output and leaves only through (c): for a RED child only,
+          // childDiagnosticTail() exactly as b-package.cjs builds it; (d) the end line.
+          // The only file written is the printed-blocks file in RUNNER_TEMP (T5b (3)(v)), after the last child.
+          const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process');
+
+          const ID = 'S11'; // b-package.cjs args[2] under rebuild.yml :186 `--ci --package S11`
+          const SPEC = 'rebuild/lanes/b/tooling/packages/S11.json';
+          const RUNNER = 'rebuild/lanes/b/tooling/b-package.cjs';
+          const REFERENCE = 'rebuild/m4/spec/load-write-reference.cjs';
+          const CHILD_COUNT = 39;
+          const DIFFERENTIAL = 's11-engine-files-differential';
+          // T5b (3)(iv)(b1), brief rev11 4f7d431f (DECISIONS:853 (4), :855 (4)): its two regexes character for
+          // character; a published TAP summary line is at most SUMMARY_MAX_BYTES = 34 bytes.
+          const COUNT_RE = /^# (tests|suites|pass|fail|cancelled|skipped|todo) (0|[1-9][0-9]{0,8})$/;
+          const DURATION_RE = /^# duration_ms [0-9]{1,12}(\.[0-9]{1,6})?$/;
+          const SUMMARY_MAX_BYTES = 34;
+          // (b2): child 35's one sentence (rebuild/m4/workout/test/s11-engine-files-differential.cjs :162-163),
+          // rev11's regex character for character; a matching line is 218 to 233 bytes (fixed text 215 bytes,
+          // three counts of at most six digits), so DIFFERENTIAL_MAX_BYTES = 233.
+          const DIFFERENTIAL_RE = /^ENGINE FILES DIFFERENTIAL: (0|[1-9][0-9]{0,5}) tracked rebuild\/engine file\(s\) outside this package's declared product, all byte-identical to the parent; (0|[1-9][0-9]{0,5}) named files move, each by its declared hunks only, and (0|[1-9][0-9]{0,5}) named file\(s\) are added;$/;
+          const DIFFERENTIAL_MAX_BYTES = 233;
+          // The withheld texts rev11 names ((b1), (b2) and the record field (4)(b)).
+          const WITHHELD_GRAMMAR = 'summary withheld (grammar)';
+          const withheldRepeated = key => 'summary withheld (repeated key ' + key + ')';
+
+          // COPIED BY CONTENT from b-package.cjs :580-583 and :588; copyCheck() refuses to run unless these
+          // declarations stand byte-identical in the runner at the checked-out head.
+          const PUBLIC_TAIL_ROOTS = ['rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m4/workout/test/',
+            'rebuild/lanes/d/p3-replay-measure/', 'rebuild/lanes/d/p3-replay-all/', 'rebuild/lanes/c/ui-port/'];
+          const TAIL_DENYLIST = ['conform/private', 'golden', 'live.json', 'ledger/'];
+          const TAIL_LINES = 60;
+          const TAIL_BYTES = 16 * 1024;
+
+          // COPIED BY CONTENT from b-package.cjs :2773-2806 (the whole function text, checked by copyCheck()).
+          function childDiagnosticTail(c, targets, r, wall) {
+            // RV17 (S6-B round-2 review, finding 5): r.status is null on a spawnSync timeout or
+            // ENOENT (r.error set), and the bare word "null" reads as a passed exit code rather than
+            // the hang this diagnostic exists to surface. Print "timeout" (plus the error code, when
+            // one is present) instead, and leave a real exit code exactly as before.
+            const exitLabel = r.status === null ? 'timeout' + (r.error && r.error.code ? ' ' + r.error.code : '') : r.status;
+            const header = 'B PACKAGE ' + ID + ' CHILD ' + c.name + ' DIAGNOSTIC exit ' + exitLabel + ' wall ' + wall + ' ms; ';
+            const combined = (r.stdout || '') + (r.stderr || '');
+            const lines = combined.split(/\r?\n/);
+            const isPublic = targets.length > 0 && targets.every(t => PUBLIC_TAIL_ROOTS.some(root => t.startsWith(root)));
+            // RV17 finding 1 (BLOCKING): TAIL_DENYLIST's needles are '/'-spelled, so on Windows a
+            // child that prints a backslash path (path.join's native separator) matched none of them
+            // and its tail printed uncensored. Scan a '/'-normalized copy of the WHOLE stream (same
+            // scope as before, not only the printed 60 lines) and keep printing the ORIGINAL lines.
+            // RV18-13/14/15/16 (S6-B round-3 review, finding 1, BLOCKING): a bare replace(/\\/g,'/')
+            // turns a DOUBLED backslash -- the shape node:test's own reporter emits for a failing
+            // string value via JSON.stringify (each '\' becomes '\\') -- into a DOUBLED slash, so
+            // 'conform\\private' (the literal two-backslash text a JSON.stringify'd private path
+            // prints) normalized to 'conform//private', which does not contain the single-slash
+            // needle 'conform/private' at all. Collapsing repeated slashes after the backslash swap
+            // closes that gap without touching a real single-slash path, which already had none to
+            // collapse.
+            const normalized = combined.replace(/\\/g, '/').replace(/\/{2,}/g, '/');
+            const denylisted = TAIL_DENYLIST.some(needle => normalized.includes(needle));
+            if (!isPublic || denylisted) return header + 'tail withheld (path policy)';
+            // S6-B round-3 review, finding 3 (MINOR): also cap by bytes, not only by line count --
+            // see TAIL_BYTES' own definition. Printed lines are unchanged when the tail already fits.
+            const tail = lines.slice(-TAIL_LINES).join('\n');
+            const tailBuf = Buffer.from(tail, 'utf8');
+            const byteCapped = tailBuf.length > TAIL_BYTES;
+            const printed = byteCapped ? tailBuf.slice(-TAIL_BYTES).toString('utf8') : tail;
+            return header + 'last ' + TAIL_LINES + ' lines of stdout+stderr follow' +
+              (byteCapped ? ' (last ' + TAIL_BYTES + ' bytes of that)' : '') + '\n' + printed;
+          }
+
+          // b-package.cjs laws() :2705-2706, the two lines byte-identical (checked by copyCheck()): the child env.
+          function childEnv(bundles, root) {
+            const env = { ...process.env, NODE_OPTIONS: '', NODE_V8_COVERAGE: '', TZ: 'America/New_York', MEASURED_TEST_NOW: '2026-09-03', ENGINE_MAIN: bundles.main, ENGINE_OLD: bundles.old, EARNED_CLIENT_DIR: path.join(root, 'rebuild/client') };
+            for (const key of ['PL_ENGINE', 'PL_LAWS_LIB', 'CONFORM_MUTATE_LAWS', 'CONFORM_ADAPTERS_DIR']) delete env[key];
+            return env;
+          }
+
+          // b-package.cjs children() :2823, the spawn line byte-identical (checked by copyCheck()), stdout and
+          // stderr piped (spawnSync's default), the wall clock taken as :2822/:2824 take it.
+          function spawnChild(c, root, env) {
+            const wallStart = Date.now();
+            const r = cp.spawnSync(process.execPath, c.argv, { cwd: root, env, encoding: 'utf8', windowsHide: true, timeout: 1800000, maxBuffer: 32 * 1024 * 1024 });
+            const wall = Date.now() - wallStart;
+            return { r, wall };
+          }
+
+          class DriverError extends Error {}
+          function fail(message) { throw new DriverError(message); }
+
+          // b-package.cjs childArgv() :741-748, the target half only: the argv after its leading flags. The
+          // runner's argv validation (flag allow-list, CHILD_ROOTS, file existence) is not repeated here.
+          function targetsOf(c) {
+            let i = 0;
+            for (; i < c.argv.length && c.argv[i].startsWith('-'); i++);
+            return c.argv.slice(i);
+          }
+          function isTestChild(c) { return c.argv.slice(0, c.argv.length - targetsOf(c).length).includes('--test'); }
+          // The runner's PATH gate (:2782), used only to label a child in --list and in the record.
+          function inPublicRoots(c) { const t = targetsOf(c); return t.length > 0 && t.every(f => PUBLIC_TAIL_ROOTS.some(root => f.startsWith(root))); }
+          // The runner's CHILD-REQUIRED-EXIT-ZERO condition (:2834): green is !r.error && r.status === 0.
+          function isRed(r) { return !!r.error || r.status !== 0; }
+
+          // The key of a (b1)/(b2) grammar line, or null; each line is tested WHOLE. Grammar lines hold only fixed
+          // words and digits, so rev11 withdrew rev10's per-line denylist gate here.
+          function summaryKey(c, line) {
+            if (!isTestChild(c)) return DIFFERENTIAL_RE.test(line) && Buffer.byteLength(line) <= DIFFERENTIAL_MAX_BYTES ? 'differential' : null;
+            if (Buffer.byteLength(line) > SUMMARY_MAX_BYTES) return null;
+            const m = COUNT_RE.exec(line);
+            return m ? m[1] : DURATION_RE.test(line) ? 'duration_ms' : null;
+          }
+          // (b1)/(b2): STDOUT only, split on /\r?\n/ before any match (D-S11R10-1). A --test child whose stdout
+          // matches one key on more than one line publishes NO summary line, only the repeated-key text (naming
+          // the first key whose repeat is met in stdout order); child 35 publishes its sentence only when exactly
+          // one line matches, else the grammar text. Every other line is diagnostic output: only a red child's
+          // runner-rule tail (block (c)) ever carries it.
+          function summaryLines(c, stdout) {
+            const hits = stdout.split(/\r?\n/).map(line => ({ line, key: summaryKey(c, line) })).filter(h => h.key !== null);
+            if (!isTestChild(c)) return hits.length === 1 ? [hits[0].line] : [WITHHELD_GRAMMAR];
+            const seen = new Set();
+            for (const h of hits) { if (seen.has(h.key)) return [withheldRepeated(h.key)]; seen.add(h.key); }
+            return hits.map(h => h.line);
+          }
+
+          // T5b (3)(iv)(a)-(d): one block per child. The error field is :2835's code||message form (D-S11R10-2).
+          function block(index, c, r, wall, os) {
+            const out = ['S11-OBSERVE ' + index + ' ' + c.name + ' os=' + os + ' status=' + r.status + ' signal=' + (r.signal || 'none') +
+              ' error=' + (r.error ? String(r.error.code || r.error.message).slice(0, 40) : 'none') + ' wall=' + wall];
+            for (const line of summaryLines(c, r.stdout || '')) out.push(line);
+            if (isRed(r)) out.push(childDiagnosticTail(c, targetsOf(c), r, wall));
+            out.push('S11-OBSERVE-END ' + index);
+            return out.join('\n') + '\n';
+          }
+
+          // T5b (5)(v): the copies above are compared with the runner's own bytes before anything runs. Each
+          // piece is cut from THIS file's text (or the function's own source text) and must occur verbatim in
+          // b-package.cjs at the checked-out head; line endings are compared LF-normalized.
+          function between(text, from, to) {
+            const i = text.indexOf(from), j = i < 0 ? -1 : text.indexOf(to, i);
+            return i < 0 || j < 0 ? null : text.slice(i, j + to.length);
+          }
+          function copyCheck(runnerText, selfText) {
+            const bp = runnerText.replace(/\r\n/g, '\n'), me = selfText.replace(/\r\n/g, '\n');
+            const pieces = [
+              ['PUBLIC_TAIL_ROOTS..TAIL_LINES :580-583', between(me, 'const PUBLIC_TAIL_ROOTS = [', 'const TAIL_LINES = 60;')],
+              ['TAIL_BYTES :588', between(me, 'const TAIL_BYTES = ', ';')],
+              ['childDiagnosticTail :2773-2806', childDiagnosticTail.toString().replace(/\r\n/g, '\n')],
+              ['laws() env :2705-2706', between(me, 'const env = { ...process.env, ', 'delete env[key];')],
+              ['children() spawn :2823', between(me, 'const r = cp.spawnSync(process.execPath, c.argv, ', '});')]
+            ];
+            for (const [what, piece] of pieces)
+              if (!piece || !bp.includes(piece)) fail('COPY-CHECK ' + what + ' is not byte-identical to ' + RUNNER);
+            return pieces.length;
+          }
+
+          // T5b (3)(i): S11.json from the checked-out tree, children in array order.
+          function loadChildren(root) {
+            const spec = JSON.parse(fs.readFileSync(path.join(root, SPEC), 'utf8'));
+            const children = spec && spec.children;
+            if (!Array.isArray(children) || children.length !== CHILD_COUNT) fail(SPEC + ' does not declare exactly ' + CHILD_COUNT + ' children');
+            const names = new Set();
+            children.forEach((c, k) => {
+              if (!c || typeof c.name !== 'string' || !/^[a-z0-9-]+$/.test(c.name) || names.has(c.name)) fail('child ' + (k + 1) + ' has no unique plain name');
+              names.add(c.name);
+              if (!Array.isArray(c.argv) || !c.argv.length || !c.argv.every(a => typeof a === 'string' && a.length)) fail('child ' + c.name + ' has no argv');
+              if (!targetsOf(c).length) fail('child ' + c.name + ' names no file');
+              if (!isTestChild(c) && c.name !== DIFFERENTIAL) fail('child ' + c.name + ' is neither a --test child nor ' + DIFFERENTIAL);
+            });
+            const differential = children.find(c => c.name === DIFFERENTIAL);
+            if (!differential || isTestChild(differential)) fail(DIFFERENTIAL + ' is missing or runs under --test');
+            return children;
+          }
+
+          // LOCAL --list: what the job would run. Stats the argv files; spawns nothing, loads nothing.
+          function list(children, root) {
+            const files = new Set(), rows = [];
+            let outside = 0, missing = 0;
+            children.forEach((c, k) => {
+              const t = targetsOf(c);
+              for (const f of t) { files.add(f); if (!fs.existsSync(path.join(root, f))) missing++; }
+              if (!inPublicRoots(c)) outside++;
+              rows.push('S11-OBSERVE-LIST ' + (k + 1) + ' ' + c.name + ' mode=' + (isTestChild(c) ? 'test summary=tap' : 'script summary=differential-prefix') +
+                ' tail=' + (inPublicRoots(c) ? 'public-root' : 'outside-roots') + ' files=' + t.length + ' argv=' + c.argv.join(' '));
+            });
+            console.log('S11-OBSERVE-LIST-HEAD spec=' + SPEC + ' children=' + children.length + ' argvFiles=' + files.size + ' missingFiles=' + missing +
+              ' outsideRoots=' + outside + ' copyCheck=ok spawned=0');
+            console.log('S11-OBSERVE-LIST-ENV spawn=process.execPath cwd=repo-root env=process.env plus NODE_OPTIONS NODE_V8_COVERAGE TZ MEASURED_TEST_NOW' +
+              ' ENGINE_MAIN ENGINE_OLD EARNED_CLIENT_DIR, minus PL_ENGINE PL_LAWS_LIB CONFORM_MUTATE_LAWS CONFORM_ADAPTERS_DIR');
+            for (const row of rows) console.log(row);
+          }
+
+          function main() {
+            const root = path.resolve(process.cwd());
+            if (!fs.existsSync(path.join(root, RUNNER)) || !fs.existsSync(path.join(root, SPEC))) fail('the working directory is not the repository root: ' + root);
+            copyCheck(fs.readFileSync(path.join(root, RUNNER), 'utf8'), fs.readFileSync(__filename, 'utf8'));
+            const children = loadChildren(root);
+            const args = process.argv.slice(2);
+            if (args.length === 1 && args[0] === '--list') return list(children, root);
+            if (args.length) fail('the only argument is --list');
+            // Hosted observation only (T5b (2), (3), (3)(v)).
+            if (process.env.GITHUB_ACTIONS !== 'true') fail('observe mode runs only in GitHub Actions; use --list locally');
+            if (process.env.GITHUB_EVENT_NAME !== 'push' || !/^refs\/heads\/obs\/s11-[^/]+$/.test(process.env.GITHUB_REF || '')) fail('not a push to an obs/s11-* branch');
+            if (process.env.RUNNER_DEBUG === '1') fail('step debug logging is enabled; the job refuses to run with it');
+            if (!process.env.GITHUB_WORKSPACE || path.resolve(process.env.GITHUB_WORKSPACE) !== root) fail('the working directory is not GITHUB_WORKSPACE');
+            const os = process.env.RUNNER_OS, temp = process.env.RUNNER_TEMP;
+            if (!/^(Linux|Windows)$/.test(os || '') || !temp) fail('RUNNER_OS or RUNNER_TEMP is not usable');
+            const artifact = path.join(temp, 's11-t5b-' + os + '.txt');
+            // b-package.cjs :3873: the pinned public reference bundles, built before any child runs.
+            let bundles;
+            try { bundles = require(path.join(root, REFERENCE)).create(root); }
+            catch (e) { fail('the reference bundles could not be built (' + REFERENCE + '); diagnostics withheld'); }
+            const env = childEnv(bundles, root);
+            let printed = '', red = 0;
+            try {
+              children.forEach((c, k) => {
+                const { r, wall } = spawnChild(c, root, env);
+                if (isRed(r)) red++;
+                const text = block(k + 1, c, r, wall, os);
+                process.stdout.write(text);
+                printed += text;
+              });
+            } finally {
+              fs.writeFileSync(artifact, printed);
+            }
+            // T5b (3)(vi): non-zero after all 39 when any child is red.
+            process.exitCode = red ? 1 : 0;
+          }
+
+          function run() {
+            try { main(); }
+            catch (e) {
+              process.stderr.write('S11-OBSERVE-FATAL ' + (e instanceof DriverError ? e.message : 'driver error; diagnostics withheld') + '\n');
+              process.exitCode = 1;
+            }
+          }
+
+          if (require.main === module) run();
+          else module.exports = { ID, SPEC, RUNNER, CHILD_COUNT, DIFFERENTIAL, COUNT_RE, DURATION_RE, SUMMARY_MAX_BYTES, DIFFERENTIAL_RE,
+            DIFFERENTIAL_MAX_BYTES, WITHHELD_GRAMMAR, withheldRepeated, PUBLIC_TAIL_ROOTS, TAIL_DENYLIST, TAIL_LINES, TAIL_BYTES, childDiagnosticTail,
+            childEnv, targetsOf, isTestChild, inPublicRoots, isRed, summaryKey, summaryLines, block, between, copyCheck, loadChildren, DriverError };
+
+      - name: Upload the printed blocks, the only artifact (T5b (3)(v))
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: s11-t5b-${{ runner.os }}
+          path: ${{ runner.temp }}/s11-t5b-${{ runner.os }}.txt
+          if-no-files-found: error
