@@ -1786,7 +1786,7 @@
         "rebuild/m3/w7-preview/measure/test/boundary.test.mjs",
         "rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: FA03 native-load-panel.test.mjs joins this argv (brief 5.1, the S10 precedent for the gss-annex files); PREDICTED the sealed S10 needle \"# pass 726\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838) plus the FA03 count at the T1 head, if no other today-17 file moves (FA03 count PENDING until T1 commits NATIVE-LOAD rounds 22-23b: 47 at round 21 bd7654a is the last committed count, DECISIONS:827; the later rounds are uncommitted and under review, so no uncommitted count is recorded here); guard-tripped as a whole (DECISIONS:832): observed on the PM seat under grant (g) and in CI only"
+      "needle": "# pass 829"
     },
     {
       "name": "measure-hermetic",
@@ -1796,7 +1796,7 @@
         "rebuild/m3/w7-preview/measure/test/model.test.mjs",
         "rebuild/m3/w7-preview/measure/test/adherence.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 11\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 11"
     },
     {
       "name": "s4-real-day",
@@ -1805,7 +1805,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/local-real-day.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 15\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 15"
     },
     {
       "name": "a0-journeys",
@@ -1815,7 +1815,7 @@
         "rebuild/m3/w6/host/test/journey.test.mjs",
         "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 23\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 23"
     },
     {
       "name": "d-plan-edit",
@@ -1827,7 +1827,7 @@
         "rebuild/lanes/d/plan-edit/browser-build.test.mjs",
         "rebuild/lanes/d/plan-edit/client-p6.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 90\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 90"
     },
     {
       "name": "m4-import",
@@ -1842,7 +1842,7 @@
         "rebuild/m4/import/test/engine-pins-unprotected.test.cjs",
         "rebuild/m4/import/test/native-load-replay.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 63\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 74"
     },
     {
       "name": "m4-import-production",
@@ -1852,7 +1852,7 @@
         "rebuild/m4/import/test/production-mapping.test.cjs",
         "rebuild/m4/import/test/production-admission.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 28\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 28"
     },
     {
       "name": "d-import-retract",
@@ -1861,7 +1861,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/import-retract/retract.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 13\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 13"
     },
     {
       "name": "d-admission-swap",
@@ -1870,7 +1870,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/p3-followons/admission-swap.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 4\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 4"
     },
     {
       "name": "d-replay-measure",
@@ -1880,7 +1880,7 @@
         "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs",
         "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 9\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 9"
     },
     {
       "name": "d-capture-start",
@@ -1889,7 +1889,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 14\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 14"
     },
     {
       "name": "food-live-save",
@@ -1898,7 +1898,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/food-live-save.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 6\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 6"
     },
     {
       "name": "w7-import",
@@ -1911,7 +1911,7 @@
         "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs",
         "rebuild/m3/w7-preview/import/test/refusals.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 35\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 35"
     },
     {
       "name": "w6-host-seams",
@@ -1920,7 +1920,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/host-seams.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 9\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 9"
     },
     {
       "name": "w6-local-source",
@@ -1930,7 +1930,7 @@
         "rebuild/m3/w6/test/local-source-admission.test.mjs",
         "rebuild/m3/w6/test/local-source-consumer.test.mjs"
       ],
-      "needle": "PENDING STOP-R21B-1 and STOP-S11-W6ADM: runs ONLY in hosted CI and on the PM seat under grant (g), never on a builder or reviewer seat (its fixture loads the protected migrate.cjs through m4/import/test/s3/engine.cjs:16, and FC09 through m4/import/engine-provider.cjs:3); S10 \"# pass 26\" is void here; PREDICTED 29 with the three R913-ALV admission cells [MEASURE at T4]"
+      "needle": "# pass 31"
     },
     {
       "name": "d-replay-all",
@@ -1943,7 +1943,7 @@
         "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs",
         "rebuild/lanes/d/p3-replay-all/native-load-import.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 28\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 48"
     },
     {
       "name": "d-port-admission",
@@ -1954,7 +1954,7 @@
         "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs",
         "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 35\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 35"
     },
     {
       "name": "d-real-shape",
@@ -1970,7 +1970,7 @@
         "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs",
         "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 62\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 62"
     },
     {
       "name": "sealed-inventory-fence",
@@ -1979,7 +1979,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 58\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 62"
     },
     {
       "name": "ui-pack-pins",
@@ -1989,7 +1989,7 @@
         "rebuild/lanes/c/ui-port/pack-pin.test.mjs",
         "rebuild/lanes/c/ui-port/approved-pin.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# tests 121\" (packages/S10.json 0f55a704 at edb8381: the S9 form that spec r3 restored after hosted run 36214720524 stopped ubuntu at ui-pack-pins, whose ubuntu step prints tests 121, pass 118, skipped 3, DECISIONS:835; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine; S11 inherits the '# tests N' form (brief 5.1, STOP-S11-NEEDLEFORM): the r2 form '# pass 121' is the one DECISIONS:835 replaced"
+      "needle": "# tests 121"
     },
     {
       "name": "reference-closure",
@@ -1998,7 +1998,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/reference-closure.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 5\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 5"
     },
     {
       "name": "release-object",
@@ -2007,7 +2007,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/release-object.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# tests 14\" (packages/S10.json 0f55a704 at edb8381: the S9 form that spec r3 restored with ui-pack-pins, DECISIONS:835; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine; S11 inherits the '# tests N' form (brief 5.1, STOP-S11-NEEDLEFORM): the r2 form '# pass 14' is the one DECISIONS:835 replaced"
+      "needle": "# tests 14"
     },
     {
       "name": "today-carry",
@@ -2017,7 +2017,7 @@
         "rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs",
         "rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 9\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 9"
     },
     {
       "name": "passphrase-normalize",
@@ -2028,7 +2028,7 @@
         "rebuild/lanes/c/passphrase-normalize/route.test.mjs",
         "rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 29\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 29"
     },
     {
       "name": "w6-local-import",
@@ -2037,7 +2037,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-import.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 22\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 22"
     },
     {
       "name": "f2-land",
@@ -2047,7 +2047,7 @@
         "rebuild/lanes/d/f2/projector.test.mjs",
         "rebuild/lanes/d/f2/guard-coverage.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 81\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 81"
     },
     {
       "name": "epp-proposed-pick",
@@ -2056,7 +2056,7 @@
         "--test-reporter=tap",
         "rebuild/engine/test/proposed-pick.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 9\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 9"
     },
     {
       "name": "d-epp-2-capture",
@@ -2065,7 +2065,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/engine-capture-proposed.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 13\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 13"
     },
     {
       "name": "today-split-fence",
@@ -2074,7 +2074,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/today-split/writer-fence.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-T4: re-observe at the composed S11 candidate on the last product byte (brief 5.1); the sealed S10 needle is \"# pass 404\" (packages/S10.json 0f55a704 at edb8381; both OS green at CI-2 run 36224004547, DECISIONS:838), void on the composed engine"
+      "needle": "# pass 404"
     },
     {
       "name": "s11-sup-source-carriers",
@@ -2083,7 +2083,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s11-supersede-source-carriers.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: a NEW value, not a re-observation (STOP-S11-SUP6: this child replaces the sealed S10 child 30 s10-sup-source-carriers, whose file and product pin are kept, unedited and no longer executed); PREDICTED by the cell's builder \"# pass 4\" (4 tests, SUP-1..SUP-4; builder-predicted, never observed whole: SUP-2 and SUP-3 load the engine or spawn a gate programme and run only in hosted CI and on the PM seat under grant (g)); observed at the last product byte on BOTH OS in hosted CI before the spec is frozen (T4/T6), confirmed at CI-M1"
+      "needle": "# pass 4"
     },
     {
       "name": "s11-sup-inherited-carriers",
@@ -2092,7 +2092,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s11-supersede-inherited-carriers.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: a NEW value, not a re-observation (STOP-S11-SUP6: this child replaces the sealed S10 child 31 s10-sup-inherited-carriers, whose file and product pin are kept, unedited and no longer executed); PREDICTED by the cell's builder \"# pass 3\" (3 tests, SUP-5..SUP-7; builder-predicted, never observed whole: SUP-5, the SUP-6 mutation control and SUP-7 load the engine and run only in hosted CI and on the PM seat under grant (g)); observed at the last product byte on BOTH OS in hosted CI before the spec is frozen (T4/T6), confirmed at CI-M1"
+      "needle": "# pass 3"
     },
     {
       "name": "s11-sup-defect-witnesses",
@@ -2101,7 +2101,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s11-supersede-defect-witnesses.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: a NEW value, not a re-observation (STOP-S11-SUP6: this child replaces the sealed S10 child 32 s10-sup-defect-witnesses, whose file and product pin are kept, unedited and no longer executed); PREDICTED by the cell's builder \"# pass 3\" (3 tests, SUP-8..SUP-10; builder-predicted, never observed: every row loads the engine and runs only in hosted CI and on the PM seat under grant (g)); observed at the last product byte on BOTH OS in hosted CI before the spec is frozen (T4/T6), confirmed at CI-M1"
+      "needle": "# pass 3"
     },
     {
       "name": "s11-sup-writers-differential",
@@ -2110,7 +2110,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s11-supersede-writers-differential.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: a NEW value, not a re-observation (STOP-S11-SUP6: this child replaces the sealed S10 child 33 s10-sup-writers-differential, whose file and product pin are kept, unedited and no longer executed); PREDICTED by the cell's builder \"# pass 3\" (3 tests, SUP-11..SUP-13; builder-predicted, never observed: every row loads the engine and runs only in hosted CI and on the PM seat under grant (g)); observed at the last product byte on BOTH OS in hosted CI before the spec is frozen (T4/T6), confirmed at CI-M1"
+      "needle": "# pass 3"
     },
     {
       "name": "s11-sup-second-gate",
@@ -2119,14 +2119,14 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s11-supersede-second-gate.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: a NEW value, not a re-observation (STOP-S11-SUP6: this child replaces the sealed S10 child 34 s10-sup-second-gate, whose file and product pin are kept, unedited and no longer executed); PREDICTED by the cell's builder \"# pass 3\" (3 tests, SUP-14..SUP-16; builder-predicted, never observed: every row loads the engine and runs only in hosted CI and on the PM seat under grant (g)); observed at the last product byte on BOTH OS in hosted CI before the spec is frozen (T4/T6), confirmed at CI-M1"
+      "needle": "# pass 3"
     },
     {
       "name": "s11-engine-files-differential",
       "argv": [
         "rebuild/m4/workout/test/s11-engine-files-differential.cjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: a NEW value, not a re-observation (STOP-S11-SUP6: this child replaces the sealed S10 child 35 s10-engine-files-differential, whose file and product pin are kept, unedited and no longer executed); PREDICTED by the cell's builder: the terminal-line prefix \"ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 2 named files move, each\" (the sealed S10 needle's own cut point; 27 = the runner's count, 48 tracked minus the 21 rebuild/engine keys of this spec; the builder's guarded probe printed the whole line green on the S11 tree, with no protected byte read); observed at the last product byte on BOTH OS in hosted CI before the spec is frozen (T4/T6), confirmed at CI-M1"
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 2 named files move, each"
     },
     {
       "name": "s10-copy-lock",
@@ -2135,7 +2135,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: a NEW value, not a re-observation: copy-lock.test.mjs and its corpus moved at 1059673 (the corpus regenerated with the approved strings, DECISIONS:842 (2); CORPUS_SHA256 re-pinned; the S11 delta and engine explanation template pin tests added, D-S11R6-3), so the sealed S10 needle \"# pass 6\" (packages/S10.json 0f55a704 at edb8381) no longer holds (D-S11T3l-1); candidate \"# pass 9\" (tests 9 on a guarded Windows builder seat, builder-reported); the value is observed at the last product byte (T4) and taken on BOTH OS in hosted CI before the spec is frozen (T6)"
+      "needle": "# pass 11"
     },
     {
       "name": "native-load-fc12",
@@ -2144,7 +2144,7 @@
         "--test-reporter=tap",
         "rebuild/m4/spec/native-load-options.test.cjs"
       ],
-      "needle": "PENDING STOP-S11-FC12N: native-load-options.test.cjs is MOVING (round 21 235/235 at bd7654a is the last committed count, DECISIONS:827; rounds 22-23b are uncommitted and under review, so the count is PENDING until T1 commits them at the T1 head and no uncommitted count is recorded here); observe \"# pass N\" at the composed candidate at T4 (builder seat guarded, the PM seat and the CI FC12 step)"
+      "needle": "# pass 478"
     },
     {
       "name": "w6-local-source-commit",
@@ -2153,7 +2153,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-source-commit.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: child for local-source-commit.test.mjs (in no S10 child and, at the parent, no rebuild.yml step, MEASURED), kept as its own child so that w6-local-source keeps S10's argv; its CI home was ruled at STOP-S11-W6ADM (A), 2026-09-26: the W6 local-source step, conditioned if: ${{ !cancelled() }}, with this file appended to its run line (its fence row in rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs, committed at 97a0aa6, is the one titled \"the W6 local-source step exists and carries the not-cancelled condition\"); it runs ONLY in hosted CI and on the PM seat under grant (g), never on a builder or reviewer seat (STOP-R21B-1: its fixture family loads the protected migrate.cjs); observe \"# pass N\" at the last product byte (T4) and take the value on BOTH OS in hosted CI before the spec is frozen (T6)"
+      "needle": "# pass 9"
     },
     {
       "name": "w6-local-today-journey",
@@ -2162,7 +2162,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-today-journey.test.mjs"
       ],
-      "needle": "PENDING STOP-S11-NEEDLEFORM: NEW child, ruled at STOP-S11-C4B (A), 2026-09-26 (rebuild/m3/w6/test/ is already a CHILD_ROOT, so no runner hunk; its CI home is the conditioned rebuild.yml step for this file, whose fence row in rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs, committed at 97a0aa6, is the one titled \"the W6 local Today journey step exists and carries the not-cancelled condition\"); the file holds the FA02 today-entry.mjs pin in PAGE_PINS (8b169758 at the parent; the successor-pin item of brief 5.2 moved it red-first to the composed 169d5658 at 1f19d6d); CANDIDATE \"# pass 51\" (tests 51, pass 51 on a guarded Windows builder seat after that move, 0 guard lines, builder-reported, not yet observed at these bytes); the value is observed at the last product byte (T4) and taken on BOTH OS in hosted CI before the spec is frozen (T6)"
+      "needle": "# pass 51"
     }
   ],
   "notes": [
@@ -2179,6 +2179,7 @@
     "D-S3-PORTABLE-STALE, CARRIED (DECISIONS:841, a named debt; named again in VERDICT-S11): eight entries of the S3 portable manifest rebuild/m4/import/test/s3/s3-portable-sources.json were already stale at the sealed parent edb8381, each pinning bytes that differ from its file there: rebuild/client/copy.cjs, rebuild/client/index.cjs, rebuild/m3/w6/local/import-bundle.mjs, rebuild/m4/workout/engine-history.cjs and rebuild/m4/workout/engine-order.cjs, which are blob-identical at edb8381 and here; and rebuild/m3/w6/local/local-client.mjs, rebuild/m3/w6/local/source-admission.mjs and rebuild/m3/w6/test/local-source-admission.test.mjs, which move AGAIN in S11 (the NATIVE-LOAD build), so whoever pays this debt re-baselines those three to their S11 posts, never to the S10 post. rebuild/m4/spec/configured-history-candidate/run.cjs :23 (engine-history.cjs) and :25 (engine-order.cjs) are stale the same way. Neither harness runs in any child or CI step, and a full re-baseline needs protected reads, so none of these pins is edited here (the manifest entries S11 itself moves were re-pinned at 1f19d6d).",
     "D-S11-NNT, CARRIED (DECISIONS:841: the native-next-targets family is decided by a static read of the runner, successor carriers if its gate still executes, else a named debt; the static read by the successor-pin builder and its Fable l1 found no executor; named again in VERDICT-S11): rebuild/m4/workout/test/native-next-targets.test.cjs (:41/:43, an immutable original pinned by rebuild/m4/spec/b-ntc-native-next-targets.test.cjs:8 and rebuild/m4/spec/native-carriers-source.cjs:32), rebuild/m4/spec/native-next-target-candidate/fixture.cjs :70 and reach.cjs :8/:12 (support-pinned in m4/spec) and b-ntc-native-next-targets.test.cjs are red on the composed engine (builder-measured) and are not edited: no immutable original is edited in place. No S11 child executes the family: no argv of this spec names any of these files, the postfix gates the runner spawns (rebuild/conform/v4/postfix/run.cjs:9-21) name none of them, and no rebuild.yml run line does (only the comments at :44 and :48). Carried, not paid; it re-opens if a later package re-adds an executor of the family.",
     "D-S11-LSP-PORT-PINS, CARRIED (PM ruling 2026-09-26: a named debt, not moved in S11; named again in VERDICT-S11): rebuild/m4/import/local-source-profile.cjs SOURCE_PINS :6 (rebuild/m3/setup/port/port.cjs, 08f877c7) and :7 (rebuild/m3/setup/port/unseal.cjs, 515822a1) differ from those files' bytes (b83bfd0f and 1f837ef7, blob-identical at edb8381 and here: stale since C2, before the sealed parent). No test compares either entry to disk (engine-pins-unprotected.test.cjs checks today.cjs and engine-runtime.cjs; S3-PROVIDER-ENGINE-PINS checks merge.cjs, today.cjs and engine-runtime.cjs), and qualify() compares SOURCE_PINS to the production mapping by identity only, so the profile's byte pin is not enforced for these two entries. S11 moved :17 only (engine-runtime.cjs, LSP (A), 1f19d6d). Whoever pays this moves :6 and :7 in ONE engine_digest rotation, red first through a new cell that compares them to disk.",
-    "D-S11-COPY-PANEL-MOUNT, CARRIED (ONE NAME, with D-COPYLOCK-TODAY-MOUNT its alias, per brief T6 (a) citing DECISIONS:846 (3) and :848 (4) PANEL-NAME; its disposition is the PM's, owed at T6; named again in VERDICT-S11): rebuild/m3/w7-preview/today/test/copy-lock-states.mjs mounts gym-app.mjs, machine-settings-host.mjs and design.cjs only; it never mounts today-entry.mjs open() or the native-load panel, so CL-COMPOSED says nothing about the panel. The approved copy of classes A-E (DECISIONS:798 (3), :804, :842 (2)) is held by the static scan (CL-HOLDS on the regenerated corpus 58dc7a74, 1059673) and the engine explanation templates by CL-ENGINE-COPY; a mounted panel state, declared and red first, is later work. The stale comments today-entry.mjs :169 and native-load.cjs :170 (at dd197849; it was :162 at 92a4a0b4) (wording PROPOSED, not approved) are product bytes that a later NATIVE-LOAD product round re-words with a re-measure."
+    "D-S11-COPY-PANEL-MOUNT, CARRIED (ONE NAME, with D-COPYLOCK-TODAY-MOUNT its alias, per brief T6 (a) citing DECISIONS:846 (3) and :848 (4) PANEL-NAME; its disposition is the PM's, owed at T6; named again in VERDICT-S11): rebuild/m3/w7-preview/today/test/copy-lock-states.mjs mounts gym-app.mjs, machine-settings-host.mjs and design.cjs only; it never mounts today-entry.mjs open() or the native-load panel, so CL-COMPOSED says nothing about the panel. The approved copy of classes A-E (DECISIONS:798 (3), :804, :842 (2)) is held by the static scan (CL-HOLDS on the regenerated corpus 58dc7a74, 1059673) and the engine explanation templates by CL-ENGINE-COPY; a mounted panel state, declared and red first, is later work. The stale comments today-entry.mjs :169 and native-load.cjs :170 (at dd197849; it was :162 at 92a4a0b4) (wording PROPOSED, not approved) are product bytes that a later NATIVE-LOAD product round re-words with a re-measure.",
+    "OBSERVATION (T5b, needles of record): the 39 children[i].needle values are set at T6 (brief rev11 section 11 T6 (g)(4) and T5b (6); DECISIONS:886) from the published summary lines of hosted run 37102082564 attempt 1 (repository joeymat11-rgb/prepledger, workflow .github/workflows/s11-observe.yml, trigger push, branch obs/s11-2, head O 8bd959f = H5 7b1668c plus the observation workflow only; H 7b1668c): job s11-observe (ubuntu-latest) conclusion success and job s11-observe (windows-latest) conclusion success, all 39 children green (status 0, no signal, no error) on both OS. Record file S11-T5B-OBSERVATION-37102082564.md sha256 a96550dca460037d1ee86280027f31444cdb79149bcc3a30fa190915fce4032a; downloaded artifacts s11-t5b-Linux.txt sha256 756552a3d1797025112640f9d8683a56483690bd2044c31662c71204114a4ed3 and s11-t5b-Windows.txt sha256 de9f3b41aaa5d91cd9bdff37363e92eb5476d7788437c640977cb0a6f82b6c24. Each needle begins a published summary line identically on BOTH OS in that run, inside that child's block, in the child's needle form: '# pass N' for every TAP child except 20 ui-pack-pins and 22 release-object, which keep the S10 form '# tests N'; child 35 s11-engine-files-differential is its one published grammar sentence cut after \"; 2 named files move, each\", the sealed S10 needle's cut point (PM ruling at T6 (e)). No needle is taken from a tail or a withheld block; none was withheld or red. Child 20 prints '# pass 118' (skipped 3) on Linux and '# pass 121' on Windows, so its '# tests 121' line is the one equal on both. Children (number name: needle): 1 today-17: \"# pass 829\"; 2 measure-hermetic: \"# pass 11\"; 3 s4-real-day: \"# pass 15\"; 4 a0-journeys: \"# pass 23\"; 5 d-plan-edit: \"# pass 90\"; 6 m4-import: \"# pass 74\"; 7 m4-import-production: \"# pass 28\"; 8 d-import-retract: \"# pass 13\"; 9 d-admission-swap: \"# pass 4\"; 10 d-replay-measure: \"# pass 9\"; 11 d-capture-start: \"# pass 14\"; 12 food-live-save: \"# pass 6\"; 13 w7-import: \"# pass 35\"; 14 w6-host-seams: \"# pass 9\"; 15 w6-local-source: \"# pass 31\"; 16 d-replay-all: \"# pass 48\"; 17 d-port-admission: \"# pass 35\"; 18 d-real-shape: \"# pass 62\"; 19 sealed-inventory-fence: \"# pass 62\"; 20 ui-pack-pins: \"# tests 121\"; 21 reference-closure: \"# pass 5\"; 22 release-object: \"# tests 14\"; 23 today-carry: \"# pass 9\"; 24 passphrase-normalize: \"# pass 29\"; 25 w6-local-import: \"# pass 22\"; 26 f2-land: \"# pass 81\"; 27 epp-proposed-pick: \"# pass 9\"; 28 d-epp-2-capture: \"# pass 13\"; 29 today-split-fence: \"# pass 404\"; 30 s11-sup-source-carriers: \"# pass 4\"; 31 s11-sup-inherited-carriers: \"# pass 3\"; 32 s11-sup-defect-witnesses: \"# pass 3\"; 33 s11-sup-writers-differential: \"# pass 3\"; 34 s11-sup-second-gate: \"# pass 3\"; 35 s11-engine-files-differential: \"ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 2 named files move, each\"; 36 s10-copy-lock: \"# pass 11\"; 37 native-load-fc12: \"# pass 478\"; 38 w6-local-source-commit: \"# pass 9\"; 39 w6-local-today-journey: \"# pass 51\"."
   ]
 }
