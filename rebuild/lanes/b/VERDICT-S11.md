@@ -60,7 +60,7 @@ against `DECISIONS:896` (terminal T20 below).
   as V `f501ecd`; merge-forward #2 is M2 `fd3637f` (parents V and R); the sealed-run receipt was committed as C1 `1c300907501ccb5e62bb2f760369dbccdcfdedc0` (parent M2;
   that one file).
 - Fable T16 seal read at A: REVIEW-S11-SEAL-T16-FABLE-l2.md (e82d85a4), ACCEPT WITH NAMED DEBTS D-T16S11b-1..8 (a Fable read, not a stand-in, `DECISIONS:843 (2)`; Astra is not a gate at T16 or T22,
-  `:844 (3)`; brief rev8 PART B NOTES, line 295). Its debts are carried below by id. Fable T22 read of this file: PENDING at C2, named at C4.
+  `:844 (3)`; brief rev8 PART B NOTES, line 295). Its debts are carried below by id. Fable T22 read of this file: REVIEW-S11-VERDICT-C2-FABLE-l2.md (0eb3ead9), ACCEPT WITH NAMED DEBTS D-T22S11b-1..4 (D-T22S11b-1 paid before C2).
 
 ## The evidence hashes this seal stands on
 - Artifact `rebuild/m4/spec/acceptance-s11-native-load.json` sha256 **`bde69f156c4f88e15c65ae79790d0e7ad34c522af058e22438c7ea1fef5ccac4`** (121134 B; exporter s11 v1, run `s11-final-3`; hashed on the W11 disk before A).
@@ -202,6 +202,12 @@ and D-TM-3 carried below). Tests run by the builder on the final bytes: shared-p
 - The timeout builder ran `production-admission.test.mjs` once, which loads the protected oracle shim (pass/fail only, nothing
   printed, no bytes moved; D-TM-3; `:894`).
 
+### The lone C1 push (recorded, not excused)
+- Runbook T25 says the lane is pushed at C4, never C1-C3 alone. The PM pushed C1 `1c30090` alone right after committing it. It
+  started the hosted runs at C1 (rebuild run 37808838712, completed failure: rebuild-public on ubuntu and windows red at step 13, `B PACKAGE S11 FAIL CHILD-REQUIRED-EXIT-ZERO`, child m4-import-production exit 1 on both OS (tail withheld by path policy); C font transport success on both. That child is the production pair, which binds the coach literal to the standing receipt: at C1 the receipt existed and the literal was still S10's, the same window that turns the coach step red. The same pair passed 28/28 at C3 (T23) and all 39 children exited 0 at C3 (T24). RECORDED, NOT EXCUSED as a slip). Between C1 and C3 the coach step is red by
+  design (T21), so that rebuild run is not evidence for this seal and is not CI-2; with the rebuild concurrency group
+  (cancel-in-progress false) CI-2 at C4 queued behind it. No product byte moved; C2 and C3 were pushed only with C4.
+
 ### The PC outage, the cleaner, and the restoration
 - The PC was off the bridge from about 13:30Z on 2026-10-03 to 2026-10-08; nothing ran (`:894`).
 - While it was off, a PC-side cleaner deleted about 240 tracked binary and log files in W11 (git status showed deletions only).
@@ -233,7 +239,7 @@ carries the prefix `B PACKAGE S11 `, dropped here. The cmd files carry both git'
    The junction stays until T24.
 7. T20 full at M2 `fd3637f` (review ACCEPTED on `DECISIONS:896`, tip merged, node's folder on PATH): SEAL BASE ON THE TIP 82eaabf, ENVELOPE AUTHORIZED bde69f15 reviewed at A, PRIVATE ORACLE PRESENT, FULL EVIDENCE 10 + 9 SUPERSEDED under :873, SEALED RUN RECORDED receipts/S11.json (artifact=bde69f156c4f spec=728c31961a74 runner=bdbb8a938a9f over 320 pinned product files), 39 CHILD OBSERVED, POSTFIX PACKAGE PASS M2-S11-NATIVE-LOAD, EXIT=0
    The receipt it wrote was committed unmodified as C1 `1c300907501ccb5e62bb2f760369dbccdcfdedc0` (T21).
-8. T24, `--full --package S11` at C3 (the byte-identity re-verify; C2 carries this verdict): PENDING at C2, filled at C4
+8. T24, `--full --package S11` at C3 (the byte-identity re-verify; C2 carries this verdict): at C3 `710d329`: AUTHORIZED mode=--full, SEAL BASE ON THE TIP 82eaabf, ENVELOPE AUTHORIZED bde69f15 reviewed at A, AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY (DECISIONS:136 (3)): artifact, runner, spec and all 320 pinned product files byte-identical to the sealed run recorded in receipts/S11.json 48574b8d8f252e87c56de8b1159dae008865343571d1b31cfa05cbed70624064, no new SEALED RUN RECORDED, 39 CHILD OBSERVED, POSTFIX PACKAGE PASS M2-S11-NATIVE-LOAD, EXIT=0
    S11 has 0 released paths, so the S10 sentence's "plus 2 released and NOT re-verified here" clause is absent (runbook T24). The
    private census junction is removed after this run. Terminal 7 stands as the evidence for the private oracle, the historical
    audit and the 19 original gates; T24 does not re-run them.
@@ -462,7 +468,7 @@ STOP-S11-PHONE and STOP-S11-R20B1 until T29/T30).
 
 ## Carried debts (each CARRIED by id, with why it is not reachable from genuine use or why it is carried)
 ### This seal chain: the T16 reads, the exporter read and the distfix read
-- The debts named by the restarted chain's T16 read (REVIEW-S11-SEAL-T16-FABLE-l2.md (e82d85a4), ACCEPT WITH NAMED DEBTS D-T16S11b-1..8) and by the T22 read of this file (PENDING at C2, named at C4): carried by id as
+- The debts named by the restarted chain's T16 read (REVIEW-S11-SEAL-T16-FABLE-l2.md (e82d85a4), ACCEPT WITH NAMED DEBTS D-T16S11b-1..8) and by the T22 read of this file (REVIEW-S11-VERDICT-C2-FABLE-l2.md (0eb3ead9), ACCEPT WITH NAMED DEBTS D-T22S11b-1..4 (D-T22S11b-1 paid before C2)): carried by id as
   those reads name them.
 - D-T16S11b-1 (record): the first seal attempt is part of this package's record: L5 `:892` and receipt `6ead5e9e` for A `24982cf1`
   stay in history unmerged (V, M2, C1-C4, `4949d82`, `d7b4cc2`); this verdict and L6 name them, `:893` and `:894` by line (`:835`).
@@ -483,6 +489,16 @@ STOP-S11-PHONE and STOP-S11-R20B1 until T29/T30).
   and D-TM-3 carried below; P-MEASURE D1/D2 paid in v2 (PAID); the today-17 l2 RISKY list and the deliver() no-handoff note carried.
 - D-T16S11b-8 (environment, record): the PC-side cleaner (`:894`) removed the root `node_modules` target and about 240 tracked
   files; both restored (junction; `git checkout` from HEAD; status empty); no product byte moved (the 415 re-hashes); D-NODE-MODULES-HOME.
+- D-T22S11b-1 (omission, PAID before C2): the reviewer's own text fix naming this chain's CI at H `509398e` (run 37793594764) and
+  CI-M1 at M1 `6b69407` (run 37793721986) under CI was applied before C2; the read was of sha256 `2b0a468c...`, C2 is that file
+  plus exactly that fix (`3e597a68...`).
+- D-T22S11b-2 (prose, answered): the PM's FILTER counts only `B PACKAGE S11 `-prefixed lines, so it printed "LEGACY PASS/OBSERVED
+  count: 0"; the T20 log carries 10 unprefixed runner lines `LEGACY <gate>` (witnesses-1, -3, -4, -6, merge-differential,
+  merge-laws, migrate-full, conformance, selftest, strict), each PASS (counted by the PM, line kinds only). The LEGACY wording at
+  D-T16S11-5 stands; L6 says 10 legacy PASS.
+- D-T22S11b-3 (cosmetic): the T7-T16 record line referred to without its number is `DECISIONS:895`.
+- D-T22S11b-4 (environment, record): the coach literal sat modified on the W11 disk while C2 was read; C2 staged VERDICT-S11.md
+  alone and C3 committed the literal alone (T23 counts in the coach section below).
 - D-T16S11-1..7 were named by the first attempt's T16 read REVIEW-S11-SEAL-T16-FABLE-l1 (`3834565d`); each is restated for this chain:
 - D-T16S11-1 (record + hygiene): in the first attempt T14 full2 ran with the PENDING review envelope on the lane disk (ENVELOPE PENDING,
   not the predicted ENVELOPE ABSENT); same verdict path, EXIT=2. In this chain the PENDING review (61 B, `5c2811a4`) was again on the
@@ -827,7 +843,7 @@ hosted-blom packet (notes[8]).
 `M2-S11-NATIVE-LOAD@6ead5e9e87c0ec84`) to `M2-S11-NATIVE-LOAD@` followed by the first 16 hex of `48574b8d8f252e87c56de8b1159dae008865343571d1b31cfa05cbed70624064` (this receipt), in
 commit C3 after this verdict. S11.json declares no `rebuild/coach` path, so C3 does not void the receipt. The coach suite
 (`rebuild/coach/test/*.test.cjs`, the `rebuild.yml` glob) and the production pair (production-mapping and production-admission;
-child 7's needle is `# pass 28`, notes[14]) at T23: PENDING at C2, filled at C4
+child 7's needle is `# pass 28`, notes[14]) at T23: at C3 `710d329` (literal `M2-S11-NATIVE-LOAD@48574b8d8f252e87`, recomputed from the receipt on disk): coach tests 377, pass 377, fail 0, EXIT=0; production pair tests 28, pass 28, fail 0, EXIT=0
 
 ## What this seal carries for the athlete
 What the owner gets, in plain words: when the app has a next weight ready for a lift, the Today screen can offer it, and nothing
