@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "82eaabf7c1e9a8d7978ace4884579667bf405ff1",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-10-08 · cowork · POSTFIX-ACCEPTANCE M2-S11-NATIVE-LOAD 834dd3e43e169f6a28abd6b52e6ee3966edb1d74 rebuild/m4/spec/acceptance-s11-native-load.json bde69f156c4f88e15c65ae79790d0e7ad34c522af058e22438c7ea1fef5ccac4 ACCEPTED",
+    "lineSha256": "654fc120675b09b4104dffcac18d63619ad91416252cff8248e190ae5e3d1e87"
+  }
+}
