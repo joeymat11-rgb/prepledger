@@ -22,6 +22,6 @@
  * updated by the reseal's own ticket - a stale revision can never ship
  * silently.
  */
-const ENGINE_REVISION = "M2-S10-TODAY-SPLIT@3c6d1f5d1fba7699";
+const ENGINE_REVISION = "M2-S11-NATIVE-LOAD@48574b8d8f252e87";
 
 module.exports = { ENGINE_REVISION };
