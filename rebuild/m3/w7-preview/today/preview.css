@@ -290,3 +290,75 @@
   .scene-frame.screen-workout .numerals .value input { field-sizing: content; }
 }
 /* ===== C-UI-4 (look lane, S12) · INSIDE THE WORKOUT: END ===== */
+
+/* ===== S12 C-2 (STOP-S12-NLMOUNT, SC-19) . THE NATIVE-LOAD MOUNT: BEGIN =====
+   S11's sealed native-load mount (today-entry.mjs open(), FA02) gives the live host two
+   children on the Workout route, section[data-native-load="region"] (the native-load panel)
+   and div[data-native-load="gym"], and mounts the gym view INSIDE the div. That structure is
+   behaviour and stays; the look follows it here, with attribute selectors only (no class
+   is added) and no colour, type size or spacing of its own: every value is the pinned
+   pack's, restated rule for rule where the pack's direct-child selectors (`.ui > .body`,
+   `.ui > .stack`) cannot reach one level down, or the C-UI-3 card's.
+   1. THE HOST takes the two values the C-UI-2 rule gives a host whose .stack is a direct
+      child and which the C-UI-4 workout rule does not restate (absolute over the frame,
+      inset 0); the column flex, the inset, the 0 bottom padding and the hidden overflow
+      still come from the C-UI-4 rule, as on the plain mount. A gym screen that is not a
+      chassis (the legacy recorded/refusal page) keeps `.view`'s own scroll, so a panel with
+      offers below it can always be reached. */
+.scene-frame > .view.ui:has(> [data-native-load="gym"] > .stack) { position: absolute; inset: 0; }
+.scene-frame > .view.ui:has(> [data-native-load="gym"] > .page) { overflow: auto; }
+/* 2. S11's child box steps aside for layout (display: contents): its .body and .stack lay
+      out as the host's own flex items, exactly as the plain mount lays them out. The node,
+      its listeners, its w-rest class and every mount it receives are untouched. */
+.scene-frame > .view.ui > [data-native-load="gym"] { display: contents; }
+/* 3. The pinned chassis (app.css:854-868) and the rest-screen label (states-workout.css:44),
+      restated for the gym child, value for value and in the pack's order. */
+.screen .ui > [data-native-load="gym"] > .body { overflow-y: auto; overflow-x: hidden; min-height: 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.screen .ui > [data-native-load="gym"] > .body::-webkit-scrollbar { display: none; }
+.screen .ui > [data-native-load="gym"] > .body { flex: 1 1 auto; display: flex; flex-direction: column; margin: 0 calc(-1 * var(--inset)); padding: 0 var(--inset); }
+.screen .ui > [data-native-load="gym"] > .body > * { flex: 0 0 auto; }
+.screen .ui > [data-native-load="gym"] > .body { padding-bottom: 22px; --fade-bot-inset: 22px; }
+.screen .ui > [data-native-load="gym"] > .stack { flex: 0 0 auto; display: flex; flex-direction: column; position: relative; z-index: 2; margin-top: -22px; }
+.screen .ui > [data-native-load="gym"] > .stack > * { flex: 0 0 auto; }
+.screen-workout .ui > [data-native-load="gym"] > .stack { --stack-lift: 60.5px; padding-bottom: calc(max(24px, env(safe-area-inset-bottom, 0px)) + var(--stack-lift)); }
+.screen .ui > [data-native-load="gym"] > .body.can-scroll { --fade-top: 0px; --fade-top-end: 0px; --fade-bot: 100%; --fade-bot-end: 100%; -webkit-mask-image: linear-gradient(to bottom, transparent var(--fade-top), #000 var(--fade-top-end), #000 var(--fade-bot), transparent var(--fade-bot-end)); mask-image: linear-gradient(to bottom, transparent var(--fade-top), #000 var(--fade-top-end), #000 var(--fade-bot), transparent var(--fade-bot-end)); }
+.screen .ui > [data-native-load="gym"] > .body.can-scroll:not(.at-end) { --fade-bot: calc(100% - 20px - var(--fade-bot-inset, 0px)); --fade-bot-end: calc(100% - var(--fade-bot-inset, 0px)); }
+.screen .ui > [data-native-load="gym"] > .body.can-scroll:not(.at-start) { --fade-top: 40px; --fade-top-end: 72px; }
+.ui > [data-native-load="gym"].w-rest .log { font-size: 24px; }
+/* 4. WHERE THE PANEL SITS. It follows the scrolling body and stands above the fixed stack
+      (flex order 1; the stack is order 1 too and comes after it), so the header, the
+      lift and the set card keep the board's places at the top and Log keeps its edge at
+      the bottom. On the chassis it keeps the pack's 22 px rhythm: it starts in the body's
+      22 px bottom room (-22 px) and leaves 22 px of empty room under itself for the
+      stack's own -22 px overlap, so nothing of the panel ever passes under the stack; it
+      holds at most 45% of the screen and scrolls inside itself past that. On the legacy
+      page it simply follows the page. */
+.scene-frame > .view.ui > [data-native-load="region"] { order: 1; position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: stretch; margin: 0; padding: 0 0 24px; }
+.scene-frame > .view.ui > [data-native-load="gym"] > .stack { order: 1; }
+.scene-frame > .view.ui:has(> [data-native-load="gym"] > .stack) > [data-native-load="region"] { margin-top: -22px;
+  margin-bottom: 22px; padding-bottom: 0; max-height: 45%; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+.scene-frame > .view.ui > [data-native-load="region"]::-webkit-scrollbar { display: none; }
+/* The legacy recorded/refusal page (t-workout, not yet ported) fills the screen on its own
+   (min-height: 100%); beside the panel it takes its content's height, so the offers that
+   route B shows right after a saved Close follow its sentence on the first screen, at the
+   page's own side inset (25px 23px 20px), instead of a screen further down. */
+.scene-frame > .view.ui > [data-native-load="gym"] > .page { min-height: 0; }
+.scene-frame > .view.ui:has(> [data-native-load="gym"] > .page) > [data-native-load="region"] { padding: 0 23px 24px; }
+/* 5. THE PANEL'S PARTS, in the design language of the boards (DECISIONS:817 "Builder styles
+      it": like the proposal card). Check next weight is the screen's quiet action, the
+      pack's .link (app.css:202, the workout's :646/:662 colour and weight, no underline);
+      the status line is the proposal card's reason line (.proposal .reason, app.css:233);
+      a held lift is a card in the proposal card's frame with the answered, soft edge
+      (.tcard :207, .proposal :838, .is-* :831), its sentence in the reason line's size; the
+      offer cards (the Undo card among them) keep C-UI-3's styling above, gold edge and all. */
+.scene-frame [data-native-load="region"] > [data-native-load="check"] { display: inline-flex; align-items: center;
+  align-self: flex-start; min-height: var(--hit); min-width: var(--hit); margin: 0; padding: 0; border: 0;
+  border-radius: 0; background: none; font-family: var(--sans); font-size: 13.5px; font-weight: 460;
+  color: var(--text-soft); text-decoration: none; }
+.scene-frame [data-native-load="region"] > [data-native-load="status"] { margin: 4px 0 0; font-size: 13px;
+  line-height: 1.3; color: var(--muted); }
+.scene-frame [data-native-load="region"] > [data-native-load="notice"] { margin: 10px 0 0; padding: 7px 14px 8px;
+  background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius-card);
+  font-family: var(--sans); font-size: 13px; line-height: 1.3; color: var(--text-soft); }
+/* ===== S12 C-2 (STOP-S12-NLMOUNT, SC-19) . THE NATIVE-LOAD MOUNT: END ===== */

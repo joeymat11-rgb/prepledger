@@ -362,11 +362,17 @@ function installScene(view, doc) {
     const target = host.querySelector('[data-slot="date"]');
     if (target && target.textContent !== "Wed, Sep 16") target.textContent = "Wed, Sep 16";
   };
+  /* S12 C-2 (STOP-S12-NLMOUNT, SC-19). S11's sealed native-load mount (today-entry.mjs
+     open(), FA02) splits the host before the gym view mounts: a check region and a
+     div[data-native-load="gym"] that the gym view then fills. Where that child is present,
+     the screen's chassis (.body / .stack) is the child's, so the look reads it there; with
+     no child the chassis is the host's own, exactly as before. */
+  const chassisRoot = () => host.querySelector(':scope > [data-native-load="gym"]') || host;
   const currentScreen = () => {
     if (host.querySelector('[data-slot="workout-detail"]')) return "workout";
     /* C-UI-4 (S12): the gym card's set and rest screens carry the pack's #log, which no
        other screen draws, so a card opened from Today's Start is dressed as Workout. */
-    if (host.querySelector(":scope > .stack #log")) return "workout";
+    if (chassisRoot().querySelector(":scope > .stack #log")) return "workout";
     /* ==== C-UI-6 COACH (begin) ==== the coach screen is the pack's own markup now, so it
        is known by the pack's headline element, not by the stub's old h1 words. */
     if (host.querySelector(".coach-title")) return "coach";
@@ -387,8 +393,9 @@ function installScene(view, doc) {
        C-UI-4 (S12): a chassis screen's scrolling body fades only while there is more to
        see (ruling 4, app.css ".screen .ui > .body.can-scroll"), as app.js's scrollFades
        does for every .body; scrollFades installs once per element.
-       S12 composition: both tickets added these same two lines; they are kept once. */
-    const body = host.querySelector(":scope > .body");
+       S12 composition: both tickets added these same two lines; they are kept once.
+       S12 C-2: under S11's native-load mount the .body is the gym child's (chassisRoot). */
+    const body = chassisRoot().querySelector(":scope > .body");
     if (body) scrollFades(body, view);
     const screen = currentScreen();
     if (screen === live.screen) return;

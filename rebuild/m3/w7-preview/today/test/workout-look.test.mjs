@@ -7,12 +7,16 @@
    Log button in the stack with nothing below it but the one link row on BOTH the set and
    the rest screen (so Log keeps its edge), and the label carrying the multiplication sign.
    Fix round 2 (REVIEW-LOOK-C-UI-4-l1 F1 to F7) adds one cell per finding.
-   It reads files only: no DOM, no engine, no store. */
+   It reads files only: no DOM, no engine, no store. The S12 C-2 cells at the end are the
+   one exception: they run the real scene.mjs over the real shell and templates in jsdom
+   (still no engine, no store, no network). */
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { JSDOM } from "jsdom";
+import design from "../design.cjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TODAY = path.join(HERE, "..");
@@ -261,4 +265,252 @@ test("C-UI-4 R3-6 each new board string is declared approved copy citing DECISIO
     "The layer’s own reason: "]) assert(runtime.includes('"' + s + '"'), s);
   assert.match(approved, /DECISIONS:820/);
   assert.match(runtime, /DECISIONS:820/);
+});
+
+/* ---------------- S12 C-2 (STOP-S12-NLMOUNT, SC-19): THE NATIVE-LOAD MOUNT ----------------
+   S11 (FA02, sealed) opens the Workout screen through today-entry.mjs open(): #phone gets a
+   section[data-native-load="region"] (the native-load panel: Check next weight, its status,
+   the held-lift notice and the offer cards with Yes / Not now, the Undo card among them) and
+   a div[data-native-load="gym"], and the gym view is mounted INSIDE that div. That is sealed
+   BEHAVIOUR and wins (owner priority); the look adapts its own files. These cells run the
+   real scene.mjs over the real shell and templates in jsdom, build #phone exactly as open()
+   :451-459 does, mount the chassis into the child exactly as gym-app.mjs show() does, and
+   then require the look to apply: the frame is dressed as Workout, the gym view's .body
+   gets the scroll fades, and every declaration the cascade gives the screen's elements on
+   the plain mount (chassis directly under #phone) is the declaration it gives them under
+   the S11 mount. No engine, no store, no today-entry.mjs import: S11's bytes are only READ,
+   to pin that the replica below is still the shape open() and show() mount. */
+const ENTRY_SOURCE = fs.readFileSync(path.join(TODAY, "today-entry.mjs"), "utf8");
+const SCENE_SOURCE = fs.readFileSync(path.join(TODAY, "scene.mjs"), "utf8");
+const NL_COPY = (() => {
+  const block = ENTRY_SOURCE.slice(ENTRY_SOURCE.indexOf("export const NATIVE_LOAD_COPY"),
+    ENTRY_SOURCE.indexOf("export const NATIVE_LOAD_PROPOSED_COPY"));
+  const copy = {};
+  for (const m of block.matchAll(/^\s+(\w+): "([^"]*)",?\r?$/gm)) copy[m[1]] = m[2];
+  return copy;
+})();
+
+test("S12 C-2 the replica is S11's mount: open() pre-splits #phone, show() mounts into the child", () => {
+  const open = ENTRY_SOURCE.slice(ENTRY_SOURCE.indexOf("open({ doc, phone, back, checkIn }) {"));
+  for (const line of ['const region = doc.createElement("section");',
+    'region.setAttribute("data-native-load", "region");',
+    'const child = doc.createElement("div");',
+    'child.setAttribute("data-native-load", "gym");',
+    "phone.replaceChildren(region, child);",
+    "nativeLoad.mount(doc, region);",
+    "return mountGym(doc, child, {"]) assert(open.includes(line), "today-entry.mjs open(): " + line);
+  for (const line of ['make("button", { type: "button", "data-native-load": "check", class: "btn" }, NATIVE_LOAD_COPY.check);',
+    'make("div", { "data-native-load": "offer", "data-lift": offer.lift, "data-kind": offer.kind, "data-proposal": offer.proposalId });',
+    'make("p", { "data-native-load": "notice", "data-lift": notice.lift }',
+    'make("p", { "data-native-load": "status", role: "status" }, view.copy)']) {
+    assert(ENTRY_SOURCE.includes(line), "today-entry.mjs paint(): " + line);
+  }
+  assert(gymApp.includes("phone.replaceChildren(root);"), "gym-app.mjs show() replaces its container");
+  assert(gymApp.includes("phone.classList.toggle('w-rest', rest === true);"), "the rest class sits on the container");
+  assert.equal(NL_COPY.check, "Check next weight");
+});
+
+/* The cascade, as the browser resolves it for the declarations these cells compare: every
+   rule of the shipped stylesheet (design.composeStyles, in order), each selector matched by
+   jsdom, the winner by !important, then specificity, then order. */
+const COMPOSED = design.composeStyles(design.readApproved(), design.chromeCss(), design.readFonts(),
+  design.readSceneAssets());
+function splitTop(text) {
+  const out = []; let depth = 0, from = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === "(" || ch === "[") depth += 1;
+    else if (ch === ")" || ch === "]") depth -= 1;
+    else if (ch === "," && depth === 0) { out.push(text.slice(from, i)); from = i + 1; }
+  }
+  out.push(text.slice(from));
+  return out.map((s) => s.trim()).filter(Boolean);
+}
+function specificity(selector) {
+  let a = 0, b = 0, c = 0, i = 0;
+  const s = selector;
+  const add = (x) => { a += x[0]; b += x[1]; c += x[2]; };
+  const max = (list) => list.map(specificity).reduce((m, x) =>
+    (x[0] > m[0] || (x[0] === m[0] && (x[1] > m[1] || (x[1] === m[1] && x[2] > m[2])))) ? x : m, [0, 0, 0]);
+  while (i < s.length) {
+    const ch = s[i];
+    if (ch === "#") { a += 1; i += 1; while (i < s.length && /[\w-]/.test(s[i])) i += 1; }
+    else if (ch === ".") { b += 1; i += 1; while (i < s.length && /[\w-]/.test(s[i])) i += 1; }
+    else if (ch === "[") { b += 1; let d = 0; for (; i < s.length; i += 1) { if (s[i] === "[") d += 1; if (s[i] === "]") { d -= 1; if (d === 0) { i += 1; break; } } } }
+    else if (ch === ":") {
+      if (s[i + 1] === ":") { c += 1; i += 2; while (i < s.length && /[\w-]/.test(s[i])) i += 1; continue; }
+      i += 1; let name = "";
+      while (i < s.length && /[\w-]/.test(s[i])) { name += s[i]; i += 1; }
+      if (s[i] === "(") {
+        let d = 0, start = i + 1;
+        for (; i < s.length; i += 1) { if (s[i] === "(") d += 1; if (s[i] === ")") { d -= 1; if (d === 0) break; } }
+        const inner = s.slice(start, i); i += 1;
+        if (name === "where") continue;
+        if (name === "is" || name === "not" || name === "has") add(max(splitTop(inner)));
+        else b += 1;
+      } else b += 1;
+    } else if (/[a-zA-Z]/.test(ch)) { c += 1; while (i < s.length && /[\w-]/.test(s[i])) i += 1; }
+    else i += 1;
+  }
+  return [a, b, c];
+}
+const RULES = (() => {
+  const out = [];
+  let order = 0;
+  for (const m of COMPOSED.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selectors = splitTop(m[1].replace(/\s+/g, " ")).filter((s) => !s.startsWith("@") && !s.includes("::"));
+    if (!selectors.length) continue;
+    const decls = [];
+    for (const part of m[2].split(";")) {
+      const at = part.indexOf(":");
+      if (at <= 0) continue;
+      let value = part.slice(at + 1).trim();
+      const important = /!important$/.test(value);
+      if (important) value = value.replace(/\s*!important$/, "");
+      decls.push([part.slice(0, at).trim(), value.replace(/\s+/g, " "), important]);
+    }
+    order += 1;
+    out.push({ selectors, decls, order });
+  }
+  return out;
+})();
+function compareKeys(x, y) {
+  for (let n = 0; n < x.length; n += 1) if (x[n] !== y[n]) return x[n] - y[n];
+  return 0;
+}
+function winners(el) {
+  const won = new Map();
+  for (const rule of RULES) for (const selector of rule.selectors) {
+    let hit = false;
+    try { hit = el.matches(selector); } catch { continue; }
+    if (!hit) continue;
+    const sp = specificity(selector);
+    for (const [prop, value, important] of rule.decls) {
+      const key = [important ? 1 : 0, ...sp, rule.order];
+      const prev = won.get(prop);
+      if (!prev || compareKeys(key, prev.key) >= 0) won.set(prop, { value, key, selector });
+    }
+  }
+  return won;
+}
+
+/* The page: the real shell and templates, the real scene installed first (as the shipped
+   app.js does), then the Workout screen mounted plain or under S11's pre-split. */
+async function workoutPage({ native, screen }) {
+  const dom = new JSDOM(design.shellHtml().replace("<!-- APPROVED_TEMPLATES -->", design.templateHtml()),
+    { url: "http://127.0.0.1:4178/" });
+  const win = dom.window, doc = win.document;
+  win.__earnedSceneAssets = { mist: "data:image/png;base64,AA", grain: "data:image/png;base64,AA",
+    plateInk: "data:image/jpeg;base64,AA", plateDawn: "data:image/jpeg;base64,AA" };
+  win.matchMedia = () => ({ matches: true });   /* reduced motion: one still, nothing scheduled */
+  win.HTMLCanvasElement.prototype.getContext = () => ({});
+  const PreviousImage = globalThis.Image;
+  globalThis.Image = class { set src(value) { this.url = value; } };
+  try {
+    const { installScene } = await import("data:text/javascript;base64,"
+      + Buffer.from(SCENE_SOURCE + "\nexport { installScene };\n").toString("base64"));
+    assert(installScene(win, doc), "the scene installs");
+  } finally {
+    globalThis.Image = PreviousImage;
+  }
+  const phone = doc.getElementById("phone");
+  const make = (tag, attrs = {}, text) => {
+    const el = doc.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    if (text !== undefined) el.textContent = text;
+    return el;
+  };
+  let container = phone, region = null;
+  if (native) {
+    /* today-entry.mjs open() :451-459 */
+    region = make("section", { "data-native-load": "region", "aria-label": NL_COPY.check });
+    container = make("div", { "data-native-load": "gym" });
+    phone.replaceChildren(region, container);
+    /* paint() :268-296: the check, a status line, a held-lift notice, an offer card */
+    const offer = make("div", { "data-native-load": "offer", "data-lift": "lift-a", "data-kind": "earn", "data-proposal": "p1" });
+    const list = make("ul", { "aria-label": "Offered weight for each set" });
+    const item = make("li", {}, "Set 1: ");
+    item.append(make("span", { "data-native-load": "set-load" }, "45 lb"));
+    list.append(item);
+    offer.append(make("h3", {}, "Lift A: next weight"), list, make("p", { "data-native-load": "reason" }, "Reason."),
+      make("button", { type: "button", "data-native-load": "yes", class: "btn" }, NL_COPY.yes),
+      make("button", { type: "button", "data-native-load": "decline", class: "btn" }, NL_COPY.decline));
+    region.replaceChildren(make("button", { type: "button", "data-native-load": "check", class: "btn" }, NL_COPY.check),
+      make("p", { "data-native-load": "status", role: "status" }, NL_COPY.none),
+      make("p", { "data-native-load": "notice", "data-lift": "lift-b" }, "Lift B: held."), offer);
+  }
+  /* gym-app.mjs chassis(id) then show(root, rest) */
+  container.replaceChildren(doc.getElementById(screen).content.cloneNode(true));
+  container.classList.toggle("w-rest", screen === "t-rest");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  return { doc, phone, container, region, frame: doc.querySelector(".scene-frame") };
+}
+
+for (const screen of ["t-gym", "t-rest"]) {
+  test(`S12 C-2 ${screen} under S11's native-load mount is dressed as Workout, with the .body's scroll fades`, async () => {
+    const { doc, container, frame } = await workoutPage({ native: true, screen });
+    assert.equal(container.parentElement, doc.getElementById("phone"), "the gym view sits in S11's child, not under #phone");
+    assert.equal(doc.documentElement.dataset.screen, "workout", "the page is the workout screen");
+    assert(frame.classList.contains("screen-workout"), "the frame wears .screen-workout");
+    assert(!frame.classList.contains("screen-today"), "and not Today's dress");
+    const body = container.querySelector(":scope > .body");
+    assert.equal(typeof body.__earnedFades, "function", "the gym view's scrolling .body has the ruled fades");
+  });
+}
+
+/* The elements whose dress the gate and the boards read on the set and rest screens. */
+const TARGETS = {
+  "t-gym": [".body", ".stack", ".header", ".header .back", ".wordmark", "h1.screen-title", ".session-row",
+    "#setcard", "#gym-weight", "#rir", "#log", "#log-label", ".links.bottom .link", "#machine"],
+  "t-rest": [".body", ".stack", ".header .back", "h1.screen-title", "#setcard", ".w-rest-line", "#log",
+    "#log-label", "#edit", ".links.bottom .link"],
+};
+for (const screen of ["t-gym", "t-rest"]) {
+  test(`S12 C-2 ${screen}: every declaration the plain mount resolves is the one S11's mount resolves`, async () => {
+    const plain = await workoutPage({ native: false, screen });
+    const nl = await workoutPage({ native: true, screen });
+    const missing = [];
+    const compare = (label, a, b) => {
+      const wa = winners(a), wb = winners(b);
+      for (const [prop, { value, selector }] of wa) {
+        const got = wb.get(prop);
+        if (!got || got.value !== value) missing.push(`${label} ${prop}: ${value} (${selector}) -> ${got ? got.value + " (" + got.selector + ")" : "nothing"}`);
+      }
+    };
+    compare("#phone", plain.phone, nl.phone);
+    for (const scroll of [false, true]) {
+      for (const page of [plain, nl]) {
+        const body = page.container.querySelector(":scope > .body");
+        body.classList.toggle("can-scroll", scroll);
+        body.classList.toggle("at-start", false);
+        body.classList.toggle("at-end", false);
+      }
+      for (const sel of TARGETS[screen]) {
+        const a = plain.container.querySelector(sel), b = nl.container.querySelector(sel);
+        assert(a && b, sel + " is on both mounts");
+        compare((scroll ? "[scrolling] " : "") + sel, a, b);
+      }
+    }
+    assert.deepEqual(missing, [], "the look misses under S11's mount:\n" + missing.join("\n"));
+  });
+}
+
+test("S12 C-2 the panel sits between the scrolling body and the fixed stack, dressed in the pack's own values", async () => {
+  const { container, region } = await workoutPage({ native: true, screen: "t-gym" });
+  const w = (el) => winners(el);
+  assert.equal(w(container).get("display")?.value, "contents", "S11's child box gives its two chassis parts to the host");
+  assert.equal(w(region).get("order")?.value, "1", "the panel follows the scrolling body");
+  assert.equal(w(container.querySelector(":scope > .stack")).get("order")?.value, "1", "and Log keeps its edge below it");
+  assert.equal(w(container.querySelector(":scope > .body")).get("order"), undefined, "the body stays first");
+  const check = region.querySelector('[data-native-load="check"]');
+  for (const [prop, value] of [["min-height", "var(--hit)"], ["font-size", "13.5px"], ["color", "var(--text-soft)"]]) {
+    assert.equal(w(check).get(prop)?.value, value, "Check next weight is the pack's quiet link: " + prop);
+  }
+  const notice = region.querySelector('[data-native-load="notice"]');
+  assert.equal(w(notice).get("border")?.value, "1px solid var(--line-soft)", "a held lift is a card with the answered edge");
+  assert.equal(w(notice).get("border-radius")?.value, "var(--radius-card)");
+  const offer = region.querySelector('[data-native-load="offer"]');
+  assert.equal(w(offer).get("border")?.value, "1px solid var(--line-gold)", "the open offer keeps C-UI-3's gold edge");
+  const status = region.querySelector('[data-native-load="status"]');
+  assert.equal(w(status).get("color")?.value, "var(--muted)", "the status line is the reason line's quiet text");
 });
