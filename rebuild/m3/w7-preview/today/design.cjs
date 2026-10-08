@@ -1,6 +1,6 @@
 "use strict";
 
-/* design.cjs — the binding to the owner-approved 2026-09-08 design of record.
+/* design.cjs - the binding to the owner-approved 2026-09-18 design of record.
 
    Three things live here and nowhere else:
      THE PINS      — the sha256 of each approved reference, and the byte-for-byte copy of
@@ -8,7 +8,7 @@
      THE BINDING   — every class the page can render must be a selector in those
                      stylesheets, and every static sentence it shows must occur verbatim
                      in that approved HTML, except short, named preview-owned lists.
-     THE TYPEFACES — the two pinned local Instrument fonts, inlined, so the page needs no
+     THE TYPEFACES - the two pinned local fonts, inlined, so the page needs no
                      network at all (review F9: a phone build must launch offline).
    A design change upstream, or a builder quietly inventing a class or a phrase or
    copying one of the prototype's fictional figures, fails this file.
@@ -41,19 +41,57 @@ const ROOT = path.resolve(__dirname, "../../../..");
    NOT MOCK.md line 14: that line is about the B-stage PNGs losing to the C HTML, which
    says nothing about Refinement A (review D-3). */
 const APPROVED = Object.freeze([
-  { file: "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html",
-    sha256: "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031" },
-  { file: "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html",
-    sha256: "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45" },
+  { file: "rebuild/m1/approved-2026-09-18/app/app.css",
+    sha256: "bf4924e74fc4edc5cebf7fba6519613d9eec7f44397db990396fe402c124edc2" },
+  { file: "rebuild/m1/approved-2026-09-18/app/states.css",
+    sha256: "eae53de1838338a76a416052a381494602c5fc9545c330afce2438a19a2ca219" },
+  { file: "rebuild/m1/approved-2026-09-18/app/states-workout.css",
+    sha256: "5d6e4082c88e9129979f764dc992e4cbb0439c3a9b2e0d625535c524d47a4f0a" },
+  { file: "rebuild/m1/approved-2026-09-18/app/states-coach.css",
+    sha256: "d33f62e0c54004063b5fe40720f220350d9311213bf80f13d49d260061ca0686" },
 ]);
 
 /* The two typefaces the approved design names, already pinned by sha256 for the phone
    host in rebuild/m4/workout/fonts/SOURCES.json. They are inlined into the stylesheet so
    the page fetches nothing. */
-const FONT_DIR = "rebuild/m4/workout/fonts";
+const FONT_DIR = "rebuild/m1/approved-2026-09-18/app/fonts";
 const FONTS = Object.freeze([
-  { family: "Instrument Sans", name: "InstrumentSans-Variable.woff2", weight: "400 600", style: "normal" },
-  { family: "Instrument Serif", name: "InstrumentSerif-Regular.woff2", weight: "400", style: "normal" },
+  { family: "DM Sans", cssFamily: "Earned Sans", name: "earned-sans.woff2", weight: "100 1000", style: "normal",
+    sha256: "c04be0b43dc3911dd36a7cb7203c5ff6daa4f42522e2bc2e6fa3325a61c43d8b" },
+  { family: "Liberation Serif", cssFamily: "Earned Serif", name: "earned-serif.woff2", weight: "400", style: "normal",
+    sha256: "ff90213df9f50596c71ada04c34d2dee9327fe86526e713a9d49a7064b1db660" },
+]);
+
+const SCENE_ASSETS = Object.freeze([
+  { file: "rebuild/m1/approved-2026-09-18/app/assets/plate-ink-tall.jpg",
+    sha256: "e4a05e29f4e12cd763897428da63466aa7ddaa1ddf7d84264c3d6d3f04dda93e", mime: "image/jpeg", key: "plateInk" },
+  { file: "rebuild/m1/approved-2026-09-18/app/assets/plate-dawn-tall.jpg",
+    sha256: "3192f9b2d7dea8d1efda6bd37ab4c438b939c510a6c2d496fa269e5a4479bfb4", mime: "image/jpeg", key: "plateDawn" },
+  { file: "rebuild/m1/approved-2026-09-18/app/assets/mist.png",
+    sha256: "72de840ebed8524916c8ff28bf246bbcee4ffac9ab8c0e8ec53cf40ef7325bbd", mime: "image/png", key: "mist" },
+  { file: "rebuild/m1/approved-2026-09-18/app/assets/grain.png",
+    sha256: "878b291b3454fca2ec07ac2d9e2bc22fb1d06604c8209a03f066e9f9a17fb57e", mime: "image/png", key: "grain" },
+]);
+
+/* The new pack is authoritative where it speaks. Its own README keeps the
+   2026-09-08 references as the copy authority where the new pack is silent. */
+const COPY_SOURCES = Object.freeze([
+  { file: "rebuild/m1/approved-2026-09-18/app/app.html", sha256: "4c6fc3c69aabb7fcdf34ce6b2f276141f1b649ae9284b15655747ed6d6073c84" },
+  { file: "rebuild/m1/approved-2026-09-18/app/states-today.js", sha256: "6f03c468f2bc62108f622f127ec0b5c81589522dea61261e94592151ddd28cbe" },
+  { file: "rebuild/m1/approved-2026-09-18/app/states-workout.js", sha256: "20b597eef4d48ab1011490f99549b38672472d71144c9d179fa2c840dfe2a5be" },
+  { file: "rebuild/m1/approved-2026-09-18/app/states-coach.js", sha256: "6aafa06d080f7fdceaeb4f011a9dd07ea84c012802cabf53ef4dea43a5762e8b" },
+  { file: "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html", sha256: "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031" },
+  { file: "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html", sha256: "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45" },
+]);
+
+/* C-UI-1. The live Today templates move screen by screen in later tickets. Until
+   then their existing class vocabulary keeps its pinned 2026-09-08 structure,
+   laid down before the new pack so every 2026-09-18 rule wins on overlap. */
+const LEGACY_STRUCTURE = Object.freeze([
+  { file: "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html",
+    sha256: "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031" },
+  { file: "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html",
+    sha256: "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45" },
 ]);
 
 // Classes the preview owns because the approved design covers no screen for them.
@@ -77,13 +115,28 @@ const PREVIEW_COPY = Object.freeze([
 const APPROVED_COPY = Object.freeze([
   "Earned", "Your plan for today", "Eat about", "Your full nutrition plan",
   "How are you feeling today?",
-  "Ask your coach", "Your plan, progress and the reasons behind it.", "Weight (lb)",
+  /* S12 composition: "Ask your coach" left this list. C-UI-2 (DECISIONS:820 (2)) gave
+     Today's coach entry the board's Talk row words (below), and C-UI-6 retired the coach
+     stub whose "Ask your coach." was the other place the template said it, so no shipped
+     template says it now. A declaration the screen no longer says would fail the binding
+     (as C-UI-4 wrote for "Exercise "); the C-02 drawn state still says "Ask your coach."
+     and is bound by assertCoachBinding. */
+  "Your plan, progress and the reasons behind it.", "Weight (lb)",
+  /* C-UI-2 round 3, DECISIONS:820 (2): the approved board's words win on Today where the
+     app named the same thing differently. Each is on the board (app/app.html) and in the
+     shipped template: the Recovery row (board #recovery, state T-26), the Talk row (board
+     #talk-today, T-31), the header pill (board .pill, shown only over the sample athlete,
+     T-02/T-04) and the weigh-in field (board #weigh-form label and placeholder, T-42). */
+  "Recovery check in", "Optional. How are you feeling?", "Talk through today’s plan",
+  "example", "Example numbers, not your data", "Your weight in pounds", "Your weight",
   "Back to my plan", "Today", "Your food plan.",
   "Your agreed daily targets, together in one place.",
   "Targets guide your day. Any suggested change comes with a reason and your choice to accept it.",
   "A quick check-in.", "Energy right now", "Muscle soreness right now", "Stress right now",
   "Low", "Moderate", "High", "None", "Mild", "Significant",
-  "Ask your coach.", "Make sense of your plan and the progress behind it.",
+  /* C-UI-6: "Ask your coach." and its lead left this list with the coach stub they
+     were the template's words for. The stub is now the drawn state C-02, built by
+     coach-app.mjs, and its words are bound there (assertCoachBinding below). */
   /* A3 — every word of the approved recovery screen (?screen=recovery), question by
      question, choice by choice, including the conditional detail the approved notes
      enumerate. Each is asserted to occur verbatim in the approved references AND in
@@ -104,6 +157,14 @@ const APPROVED_COPY = Object.freeze([
   "About how many days away from training?", "What was the reason?",
   "Add a note, if useful", "Anything the answers missed?",
   "Add today’s context", "Your answers belong alongside your training data.",
+  /* C-UI-4 round 3 (S12), DECISIONS:820 (2): where the approved board and the app use
+     different words, the board's win. Each is the board's own, verbatim in app/app.html
+     #screen-workout: the header pill "example" (W-06), the set card's eyebrow "Today’s set"
+     and state word "Unlogged" (W-06) and "Logged" (W-22, drawn by the board's renderSet),
+     the effort row's head "RIR (clean reps left)" (W-06), the coach pill's "Earned is here"
+     (W-06 #talk-workout); and W-18's hint, verbatim in app/states-workout.js. */
+  "example", "Today’s set", "Unlogged", "Logged", "RIR (clean reps left)", "Earned is here",
+  "No load step is on file for this machine. Type the load you used.",
 ]);
 /* Approved copy the VIEW composes at runtime rather than carrying in the template,
    because it sits beside a bound value ("Weight trend 180.1 lb"). Each string is checked
@@ -113,11 +174,43 @@ const RUNTIME_COPY = Object.freeze([
   "This morning", "Weight trend", "Why this plan?", "Your set targets are ready",
   /* A2 — the gym card composes these beside bound values, exactly as A1's four are
      composed. Each occurs verbatim in Refinement A, the reviewed workout/rest
-     prototype, and each is checked against the view sources as well. */
-  "Exercise ", " of ", "What you did · Set ", "Last time: ", "Log set ", " logged",
+     prototype, and each is checked against the view sources as well.
+     C-UI-4 (S12): "Exercise N of M" is no longer on the card (the 2026-09-18 board draws
+     the session, the set dots and "Set N of M" instead), so its fragment is no longer
+     declared here: a declaration the screen no longer says would fail the binding.
+     The card composes "Set N of M" and the Log label "Log L × R" (the pack's own
+     "Set 1 of 4" and "Log 50 × 8"), so their fragments "Set " and "Log " are declared.
+     C-UI-4 round 3, DECISIONS:820 (2): the rest screen's primary is the board's "Start set N"
+     (W-22, app/states-workout.js), and a set the layer refused is said as W-21 draws it: its
+     lead sentence and the tail fragment "The layer’s own reason: ", both verbatim there. */
+  " of ", "Set ", "Log ", "What you did · Set ", "Last time: ", "Log set ", " logged",
   " reps", "Aim to finish with ", " clean reps left", "Effort unknown",
-  "Ready for set ", "Next · Set ", "Next · ", "Resume ", "Workout in progress", " complete",
+  "Start set ", "Next · Set ", "Next · ", "Resume ", "Workout in progress", " complete",
   " recorded",
+  "This set could not be recorded on this device, and no part of it was recorded.",
+  "The layer’s own reason: ",
+  /* C-UI-2 round 3, DECISIONS:820 (1): Today's status line, the prototype's own words per
+     state (app/states-today.js T-32 the owner's pattern, T-02, T-19, T-14, T-15, T-16, T-17,
+     T-12, T-13, T-11, T-06), composed beside the engine's session name. */
+  " today. Nothing to decide.", " today. Sample data.", " today. Your calorie range is not available yet.",
+  " is under way.", " logged. Nothing to decide.", "Today’s workout cannot open.",
+  "An earlier workout is still open.", "Nothing scheduled today, so there is nothing to start.",
+  "Today’s exercises are not available, so there is nothing to start.", "Nothing to decide. Next: ",
+  "This device’s record did not verify. Nothing on this screen is a value.",
+  /* DECISIONS:820 (2): the weigh-in submits with the board's word (board #save-weight, T-42). */
+  "Save",
+  /* C-UI-3 (pack README C-UI-3, DECISIONS:817, :820 (2)): the proposal card's words, each
+     the prototype's own (app/states-today.js proposal() and T-40 to T-40g): the eyebrows,
+     the recorded lines, "Change my answer", the decision and change words of the three
+     kinds the prototype draws (a one-set add T-40, a diet break T-40f, a machine ladder
+     T-40g), the two status lines T-40 and T-40b beside the engine's session name, and the
+     inline weigh-in's in-flight word (T-44). */
+  "One call needs you", "Your call", "Applied", "Withdrawn", "Nothing changes until you say yes.",
+  "You said yes.", "It applies when your plan is next built.", "You said no.", "Nothing changes.",
+  "Withdrawn.", "Your plan was rebuilt and this proposal no longer applies.", "Change my answer",
+  "Yes, add it", "No, keep it as is", "Add one set this week", "Yes, take the break", "No, keep cutting",
+  "Yes, use them", "No, keep the plan’s steps", "Use the machine’s own steps",
+  " today. One change to review.", " today. One answer recorded.", "Saving",
 ]);
 /* A3 — the approved question wording the CHECK-IN composes at runtime, beside a
    stored answer, when it reads today's recorded check-in back. Same rule as A1's and
@@ -131,10 +224,10 @@ const CHECKIN_RUNTIME_COPY = Object.freeze([
   "What was the reason?", "Anything the answers missed?",
   "Pain", "Feeling ill", "Time away",
 ]);
-/* Copy this PREVIEW owns at runtime, exactly as PREVIEW_COPY is owned in the
-   template. Each entry says something the approved prototype cannot, and each is
-   checked to be ABSENT from the approved references — so this list can never be
-   used to smuggle in approved-looking words.
+/* Copy the existing runtime owns, exactly as PREVIEW_COPY is owned in the
+   template. The newer design adopts some of these sentences while operational
+   wording outside its screens remains preview-owned. Every entry must still be
+   present in a real view source.
      * the rest length — the prototype counts down a fictional 2:30; the accepted
        engine prescribes no rest at all, so the screen says that instead;
      * the finished workout — the prototype never completes one, so it has no
@@ -142,7 +235,7 @@ const CHECKIN_RUNTIME_COPY = Object.freeze([
        that closes the session;
      * the unopenable store — the prototype saves nothing, so it can never fail
        to save. */
-const PREVIEW_RUNTIME_COPY = Object.freeze([
+const RUNTIME_COPY_CANDIDATES = Object.freeze([
   "Your plan does not set a rest length.",
   "Workout recorded",
   "Review today’s workout",
@@ -169,8 +262,7 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
      refuses nothing, so it has no words for: a recorded check-in and its provenance,
      an existing dated sleep record offered for confirmation, a blank sheet that has
      recorded nothing yet, a form bound, a device with no store, or the plain
-     statement that these answers reach no training rule. Each is checked to be
-     ABSENT from the approved references. */
+     statement that these answers reach no training rule. */
   "Nothing is recorded yet. Every answer is blank, and blank means unknown: never none, never zero.",
   "Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.",
   "Answer at least one question, or leave the check-in for today. Nothing was recorded.",
@@ -307,11 +399,329 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "Try reading it again",
   "What you typed is still here.",
 ]);
+/* These exact runtime sentences were adopted by the named pinned 2026-09-18
+   source. Every other candidate remains preview-owned and must stay absent upstream. */
+const ADOPTED_RUNTIME_COPY = Object.freeze([
+  {
+    "line": "Your plan does not set a rest length.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Workout recorded",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Finish this workout",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Your workout could not be opened on this device, and nothing was recorded.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Today’s workout is recorded on this device.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Today’s workout cannot open",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Earned could not prepare today’s workout, and nothing was recorded.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "This device could not open its encrypted local store, so nothing can be recorded here.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "An earlier workout was never finished",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-coach.js"
+  },
+  {
+    "line": "Recorded today at ",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Recorded today",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Not available on this device",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Report a problem",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Copied. Send it to Joe.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Select all and copy, then send it to Joe.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Enter what you actually ate today. Either figure on its own is enough.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Calories eaten",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Protein eaten",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "This intake could not be recorded on this device, and no part of it was recorded.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Your figures are still in the boxes above. Record them again, and if it keeps failing, report a problem from Today.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Earned could not tell whether this intake was recorded on this device. It may have been kept and it may not.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Your settings for this machine",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "No settings saved yet.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Reading your saved settings for this machine.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Settings could not be read.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Nothing was lost and nothing was changed. Log your set as usual, and open Earned again on this device to see them.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Machine settings",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Save the settings for this machine",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Anything to remember",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "To remember:",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Add another setting",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Remove this setting",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Save these settings",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Close without saving",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Add a setting or a cue before saving. Nothing was recorded.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Each setting needs a short name and a short value, and each name only once. Nothing was recorded.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "These settings could not be recorded on this device, and no part of them was recorded.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-workout.js"
+  },
+  {
+    "line": "Sleep",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "No sleep recorded for this night.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "How do you want to record it?",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Bed and wake times",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Hours asleep",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Bed time",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Wake time",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Time awake",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Time awake was not recorded.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "For a clock-change night, enter hours asleep.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "About how many hours did you sleep?",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Hours",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Entered as an approximate duration.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "From bed and wake times.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Use these hours",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Save sleep",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Sleep could not be saved on this device.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Sleep cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep it. Open Earned again on this device, or use one that allows local storage.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Nothing was recorded.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Choose times or hours asleep.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Enter both times.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Enter valid times.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "For matching times, enter hours asleep instead.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Enter whole minutes awake within the time in bed.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Enter hours from 0 to 24, with up to two decimal places.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Choose a completed night.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Night",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Change sleep",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Save correction",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Cancel",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "The date changed. Check which night this is for.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Keep this night",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "This night changed while you were editing. Review the saved record before trying again.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "The check-in changed. Review its hours again.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Checking whether sleep was saved.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Corrected ",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "Try reading it again",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  },
+  {
+    "line": "What you typed is still here.",
+    "source": "rebuild/m1/approved-2026-09-18/app/states-today.js"
+  }
+]);
+const ADOPTED_RUNTIME_LINES = new Set(ADOPTED_RUNTIME_COPY.map((entry) => entry.line));
+const PREVIEW_RUNTIME_COPY = Object.freeze(RUNTIME_COPY_CANDIDATES.filter((line) => !ADOPTED_RUNTIME_LINES.has(line)));
+
 /* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
    all, so every sentence the six screens show is preview-owned and named here,
-   exactly as PREVIEW_RUNTIME_COPY is. Each entry is checked to be ABSENT from the
-   approved references, so this list can never be used to smuggle in
-   approved-looking words, and PRESENT in a view source, so a sentence cannot be
+   exactly as PREVIEW_RUNTIME_COPY is. Each entry is checked to be PRESENT in a
+   view source, so a sentence cannot be
    declared and then quietly dropped. The words themselves are in ONE place,
    setup-model.mjs COPY, which is a view source; the list below is read out of
    that module at check time rather than retyped, so a copy edit there fails this
@@ -339,33 +749,63 @@ function readApproved(root = ROOT) {
   return APPROVED.map((pin) => {
     const bytes = fs.readFileSync(path.join(root, pin.file));
     assert.equal(sha256(bytes), pin.sha256, `APPROVED-PIN FAIL: ${pin.file}`);
+    const styles = bytes.toString("utf8");
+    assert(styles.length > 1000, `APPROVED-STYLES FAIL: ${pin.file}`);
+    return { ...pin, bytes, styles };
+  });
+}
+
+function readCopyReferences(root = ROOT) {
+  return COPY_SOURCES.map((pin) => {
+    const bytes = fs.readFileSync(path.join(root, pin.file));
+    assert.equal(sha256(bytes), pin.sha256, `COPY-SOURCE-PIN FAIL: ${pin.file}`);
+    return { ...pin, text: bytes.toString("utf8") };
+  });
+}
+
+function readLegacyStructure(root = ROOT) {
+  return LEGACY_STRUCTURE.map((pin) => {
+    const bytes = fs.readFileSync(path.join(root, pin.file));
+    assert.equal(sha256(bytes), pin.sha256, `LEGACY-STRUCTURE-PIN FAIL: ${pin.file}`);
     const html = bytes.toString("utf8");
     const style = html.match(/<style>([\s\S]*?)<\/style>/);
-    assert(style, `APPROVED-STYLES FAIL: ${pin.file}`);
-    return { ...pin, html, styles: style[1] };
+    assert(style, `LEGACY-STRUCTURE-STYLES FAIL: ${pin.file}`);
+    return { ...pin, styles: style[1] };
   });
 }
 
 /* The pinned local typefaces, as @font-face rules with the font bytes inlined. Same
    files, same hashes the phone host's build already enforces. */
 function readFonts(root = ROOT) {
-  const manifest = JSON.parse(fs.readFileSync(path.join(root, FONT_DIR, "SOURCES.json"), "utf8"));
-  assert.equal(manifest.schema, "earned/local-typography/v1", "TYPOGRAPHY-MANIFEST FAIL");
   return FONTS.map((font) => {
-    const pin = manifest.files.filter((f) => f.name === font.name);
-    assert.equal(pin.length, 1, `TYPOGRAPHY-PIN FAIL: ${font.name}`);
     const bytes = fs.readFileSync(path.join(root, FONT_DIR, font.name));
-    assert.equal(bytes.length, pin[0].size, `TYPOGRAPHY-SIZE FAIL: ${font.name}`);
-    assert.equal(sha256(bytes), pin[0].sha256, `TYPOGRAPHY-PIN FAIL: ${font.name}`);
+    assert.equal(sha256(bytes), font.sha256, `TYPOGRAPHY-PIN FAIL: ${font.name}`);
     assert.equal(bytes.subarray(0, 4).toString("latin1"), "wOF2", `TYPOGRAPHY-FORMAT FAIL: ${font.name}`);
-    return { ...font, sha256: pin[0].sha256, bytes };
+    return { ...font, bytes };
   });
 }
 function fontFaceCss(fonts) {
   return fonts.map((font) =>
-    `@font-face{font-family:'${font.family}';font-style:${font.style};font-weight:${font.weight};`
+    `@font-face{font-family:'${font.cssFamily || font.family}';font-style:${font.style};font-weight:${font.weight};`
     + `font-display:swap;src:url(data:font/woff2;base64,${font.bytes.toString("base64")}) format('woff2')}`
   ).join("\n");
+}
+
+function readSceneAssets(root = ROOT) {
+  return SCENE_ASSETS.map((pin) => {
+    const bytes = fs.readFileSync(path.join(root, pin.file));
+    assert.equal(sha256(bytes), pin.sha256, `SCENE-ASSET-PIN FAIL: ${pin.file}`);
+    return { ...pin, bytes, url: `data:${pin.mime};base64,${bytes.toString("base64")}` };
+  });
+}
+
+function sceneAssetCss(assets) {
+  const by = Object.fromEntries(assets.map((asset) => [asset.key, asset.url]));
+  for (const key of ["plateInk", "plateDawn", "mist", "grain"]) {
+    assert(by[key], `SCENE-ASSET-MISSING FAIL: ${key}`);
+  }
+  return `:root{--scene-plate-ink:url("${by.plateInk}");--scene-plate-dawn:url("${by.plateDawn}");`
+    + `--scene-mist:url("${by.mist}");--scene-grain:url("${by.grain}")}`;
 }
 
 /* ---------------------------------------------------------------------------
@@ -385,12 +825,12 @@ function fontFaceCss(fonts) {
 const RECOVERY_START = "recovery:()=>";
 const RECOVERY_END = "coach:()=>";
 function recoverySection(approved) {
-  const reference = approved.find((a) => /additions-C-approved/i.test(a.file));
+  const reference = readCopyReferences().find((a) => /additions-C-approved/i.test(a.file));
   assert(reference, "APPROVED-RECOVERY FAIL: the authoritative Additions C reference is not pinned");
-  const start = reference.html.indexOf(RECOVERY_START);
-  const end = reference.html.indexOf(RECOVERY_END, start);
+  const start = reference.text.indexOf(RECOVERY_START);
+  const end = reference.text.indexOf(RECOVERY_END, start);
   assert(start > 0 && end > start, "APPROVED-RECOVERY FAIL: the recovery screen could not be located");
-  return reference.html.slice(start, end);
+  return reference.text.slice(start, end);
 }
 function recoveryVocabulary(approved) {
   const section = recoverySection(approved);
@@ -499,9 +939,8 @@ const setupSource = (root = ROOT) => SETUP_SOURCES
    sentences, its sources or its rendered DOM, and the build refusing when one is put
    back - which is what proves P1's mechanism really covers these screens.
 
-   There is deliberately NO "absent from the approved references" clause, which is the
-   clause PREVIEW_RUNTIME_COPY carries. That clause exists to stop a builder smuggling
-   approved-looking words into a preview-owned list. It has nothing to bite on here:
+   There is deliberately NO "absent from the approved references" clause. It has
+   nothing to bite on here:
    the approved 2026-09-08 design has no first-run screen at all, so every one of
    these sentences is preview-owned by construction, and the words that do overlap
    with the approved design are the ones that SHOULD ("Earned", "Next", "Back"). */
@@ -524,8 +963,97 @@ function assertSetupBinding(approved, templateHtml, root = ROOT) {
     refusals: vocabulary.refusals.length };
 }
 
+/* ---------------------------------------------------------------------------
+   ==== C-UI-6 COACH (begin) ====
+   The coach screen's words and runtime classes, bound as tightly as Today's.
+   ---------------------------------------------------------------------------
+   Every quoted string between the two COACH-COPY markers of coach-app.mjs (the live
+   screen's words, the pack's 65 coach states and their review metadata) must occur
+   VERBATIM in the pinned approved references and carry no dash. The references are the
+   pinned COPY_SOURCES plus the pack's own app.js and states.js, pinned here by sha256:
+   the pack README names app.js with app.html as the implementation reference whose
+   "classes and copy ... the port binds to" (it alone says "Tap to stop"), and states.js
+   is the state driver whose panel words the coach's panels share. Every class the view
+   writes at runtime (coach-app.mjs COACH_CLASSES, read out of the source here) must be a
+   selector in the approved stylesheets. And the shipped template must carry the coach
+   screen's two gate font identities as the real elements the pack draws: the serif
+   headline h1.coach-title and the sans line p.coach-line (gate.py KNOWN_FACE coach). */
+const COACH_SOURCE = "coach-app.mjs";
+const COACH_EXTRA_REFERENCES = Object.freeze([
+  { file: "rebuild/m1/approved-2026-09-18/app/app.js", sha256: "0f12d829d4bcd5fd207dbd51b64d7f822ffd8034c1c0d9616fa5e9ff2daefb2b" },
+  { file: "rebuild/m1/approved-2026-09-18/app/states.js", sha256: "e299d044b5fbb3a20ca1eb8e8c808585dd92e3880b76530553e4be17a40441c9" },
+]);
+const COACH_TEMPLATE_IDENTITIES = Object.freeze([
+  '<h1 class="coach-title">Coach.</h1>',
+  '<p class="coach-line">Talk through today’s plan.</p>',
+  '<div class="prompts" id="prompts">',
+  '<button class="mic-button" type="button" id="mic"',
+  '<div class="body">',
+  '<div class="stack">',
+]);
+function coachVocabulary(root = ROOT) {
+  const source = fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", COACH_SOURCE), "utf8");
+  const start = source.indexOf("/* COACH-COPY-START */");
+  const end = source.indexOf("/* COACH-COPY-END */");
+  assert(start > 0 && end > start, `COACH-BINDING FAIL: the copy region of ${COACH_SOURCE} could not be located`);
+  const region = source.slice(start, end);
+  const lines = [...new Set([...region.matchAll(/'((?:[^'\\\n]|\\.)*)'/g)]
+    .map((m) => m[1].replace(/\\(.)/g, "$1")).filter((s) => s !== ""))];
+  assert(lines.length >= 150, `COACH-BINDING FAIL: only ${lines.length} coach strings harvested`);
+  const block = source.match(/export const COACH_CLASSES = Object\.freeze\(\[([\s\S]*?)\]\);/);
+  assert(block, `COACH-BINDING FAIL: COACH_CLASSES could not be located in ${COACH_SOURCE}`);
+  const classes = [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  assert(classes.length >= 20, `COACH-BINDING FAIL: only ${classes.length} coach classes harvested`);
+  return { lines, classes, source };
+}
+function assertCoachBinding(approved, templateHtml, root = ROOT) {
+  const extra = COACH_EXTRA_REFERENCES.map((pin) => {
+    const bytes = fs.readFileSync(path.join(root, pin.file));
+    assert.equal(sha256(bytes), pin.sha256, `COACH-SOURCE-PIN FAIL: ${pin.file}`);
+    return bytes.toString("utf8");
+  });
+  const approvedText = [...readCopyReferences(root).map((entry) => entry.text), ...extra].join("\n");
+  const { lines, classes } = coachVocabulary(root);
+  for (const line of lines) {
+    assert(approvedText.includes(line), `COACH-BINDING FAIL: "${line}" is not in the approved references`);
+    assert.equal(plainCopy(line), line, `COACH-BINDING FAIL: "${line}" carries a dash`);
+  }
+  const css = approved.map((entry) => entry.styles).join("\n");
+  for (const token of classes) {
+    const selector = new RegExp("\\." + token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w-])");
+    assert(selector.test(css), `COACH-BINDING FAIL: .${token} is not in the approved stylesheets`);
+  }
+  const at = templateHtml.indexOf('<template id="t-coach">');
+  assert(at >= 0, "COACH-BINDING FAIL: the coach screen is not in the shipped template");
+  const section = templateHtml.slice(at, templateHtml.indexOf("</template>", at));
+  for (const needle of COACH_TEMPLATE_IDENTITIES) {
+    assert(section.includes(needle), `COACH-BINDING FAIL: the coach template lacks ${needle}`);
+  }
+  return { copy: lines.length, classes: classes.length };
+}
+/* ==== C-UI-6 COACH (end) ==== */
+
+function assertRuntimeCopyBinding(appSource, references = readCopyReferences(),
+  preview = PREVIEW_RUNTIME_COPY, adopted = ADOPTED_RUNTIME_COPY) {
+  const byFile = new Map(references.map((entry) => [entry.file, entry.text]));
+  for (const entry of adopted) {
+    const source = byFile.get(entry.source);
+    assert(source && source.includes(entry.line),
+      `COPY-BINDING FAIL: adopted runtime copy missing from ${entry.source}: "${entry.line}"`);
+    assert(appSource.includes(entry.line),
+      `COPY-BINDING FAIL: adopted runtime copy missing from the view: "${entry.line}"`);
+  }
+  const approvedText = references.map((entry) => entry.text).join("\n");
+  for (const line of preview) {
+    assert(!approvedText.includes(line),
+      `COPY-BINDING FAIL: preview runtime copy is already approved: "${line}"`);
+    assert(appSource.includes(line),
+      `COPY-BINDING FAIL: declared preview runtime copy missing from the view: "${line}"`);
+  }
+}
+
 function assertDesignBinding(approved, templateHtml, appSource) {
-  const css = approved.map((a) => a.styles).join("\n");
+  const css = [...readLegacyStructure(), ...approved].map((a) => a.styles).join("\n");
   const allowed = new Set(PREVIEW_CLASSES);
   const used = new Set([...classTokens(templateHtml), ...RUNTIME_CLASSES]);
   for (const token of used) {
@@ -533,7 +1061,7 @@ function assertDesignBinding(approved, templateHtml, appSource) {
     const selector = new RegExp("\\." + token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w-])");
     assert(selector.test(css), `CLASS-BINDING FAIL: .${token} is not in the approved stylesheets`);
   }
-  const approvedText = approved.map((a) => a.html).join("\n");
+  const approvedText = readCopyReferences().map((a) => a.text).join("\n");
   const preview = new Set(PREVIEW_COPY);
   for (const line of textOf(templateHtml)) {
     if (preview.has(line)) continue;
@@ -548,11 +1076,7 @@ function assertDesignBinding(approved, templateHtml, appSource) {
       assert(approvedText.includes(line), `COPY-BINDING FAIL: declared runtime copy missing upstream: "${line}"`);
       assert(appSource.includes(line), `COPY-BINDING FAIL: declared runtime copy missing from the view: "${line}"`);
     }
-    for (const line of PREVIEW_RUNTIME_COPY) {
-      assert(!approvedText.includes(line),
-        `COPY-BINDING FAIL: preview-owned runtime copy is in the approved references and must be declared approved: "${line}"`);
-      assert(appSource.includes(line), `COPY-BINDING FAIL: declared preview runtime copy missing from the view: "${line}"`);
-    }
+    assertRuntimeCopyBinding(appSource);
   }
   // The design of record's numbers are fictional. None of them may be copied.
   for (const line of textOf(templateHtml)) {
@@ -565,14 +1089,26 @@ function assertDesignBinding(approved, templateHtml, appSource) {
   /* A4 — the first-run screens' own vocabulary, harvested from the one module
      that owns it, and the owner's no-dash rule applied to every sentence of it. */
   const setup = assertSetupBinding(approved, templateHtml);
-  return { classes: used.size, recovery, setup, copy: PREVIEW_COPY.length + APPROVED_COPY.length
-    + (appSource === undefined ? 0 : RUNTIME_COPY.length + CHECKIN_RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
+  /* C-UI-6 - the coach screen's own vocabulary and runtime classes. */
+  const coach = assertCoachBinding(approved, templateHtml);
+  return { classes: used.size, recovery, setup, coach, copy: PREVIEW_COPY.length + APPROVED_COPY.length
+    + (appSource === undefined ? 0 : RUNTIME_COPY.length + CHECKIN_RUNTIME_COPY.length
+      + ADOPTED_RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
 }
 
 // The shipped stylesheet: the inlined pinned typefaces, then the approved bytes in order,
 // then the preview's own chrome.
-function composeStyles(approved, chrome, fonts) {
-  return fontFaceCss(fonts) + "\n" + approved.map((a) => a.styles).join("\n") + "\n" + chrome;
+function composeStyles(approved, chrome, fonts, sceneAssets = readSceneAssets()) {
+  const pinned = approved.map((a) => a.styles).join("\n")
+    /* The source stylesheets are pinned above. At the offline build boundary their
+       file URLs become the four pinned data URLs and the two pinned font faces. */
+    .replace(/^@font-face[^\n]*\n?/gm, "")
+    .replace(/url\(["']?assets\/plate-ink(?:-tall)?\.jpg["']?\)/g, "var(--scene-plate-ink)")
+    .replace(/url\(["']?assets\/plate-dawn(?:-tall)?\.jpg["']?\)/g, "var(--scene-plate-dawn)")
+    .replace(/url\(["']?assets\/grain\.png["']?\)/g, "var(--scene-grain)");
+  assert(!/url\(["']?(?:fonts|assets)\//.test(pinned), "OFFLINE-ASSET-REWRITE FAIL");
+  const legacy = readLegacyStructure().map((a) => a.styles).join("\n");
+  return fontFaceCss(fonts) + "\n" + sceneAssetCss(sceneAssets) + "\n" + legacy + "\n" + pinned + "\n" + chrome;
 }
 
 /* THE HEADLINE VOCABULARY. Today's headline slot is driven by the engine's own
@@ -581,9 +1117,10 @@ function composeStyles(approved, chrome, fonts) {
    the engine source at test time and the layout is measured against ALL of them — a title
    added to the engine tomorrow is covered without anyone remembering to list it here.
 
-   This is deliberately a SUPERSET: it collects every title literal in the engine, not
-   only the ones theOneFix and policy.cjs can put on this slot. Testing the layout against
-   more strings than the slot can show is safe; missing one is not.
+   This is deliberately a SUPERSET of the title-producing public modules, not only the
+   ones theOneFix and policy.cjs can put on this slot. The exact directory census is
+   checked before any source is opened. That refuses an unknown producer instead of
+   silently omitting its title, while files outside the title closure remain unread.
 
    S9-TODAY-CARRY (DECISIONS:534 (b)) corrects two things the note above got wrong. A title
    is not always a quoted `title:` literal: the engine also writes template literals, and a
@@ -593,11 +1130,24 @@ function composeStyles(approved, chrome, fonts) {
    check (DECISIONS:533; the owner's figures are deliberately not quoted here). Captured verbatim from the source, so a template's ${...} rides along as written;
    that is the superset doing its job, not a headline anyone will read. */
 const ENGINE_DIR = "rebuild/engine";
+const ENGINE_TITLE_SOURCES = Object.freeze(["dates.cjs", "constants.cjs", "plan.cjs", "performed.cjs",
+  "progression.cjs", "sleep.cjs", "energy.cjs", "policy.cjs", "today.cjs", "volume.cjs",
+  "earn.cjs", "writers.cjs", "entered-load.cjs"]);
+const ENGINE_NON_TITLE_SOURCES = Object.freeze([
+  "seed.cjs", "migrate.cjs", "merge.cjs", "index.cjs", "oracle-shim.cjs",
+]);
 function headlineVocabulary(root = ROOT) {
   const dir = path.join(root, ENGINE_DIR);
+  const expected = [...ENGINE_TITLE_SOURCES, ...ENGINE_NON_TITLE_SOURCES];
+  const names = fs.readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".cjs"))
+    .map((entry) => entry.name);
+  const unknown = names.filter((name) => !expected.includes(name)).sort();
+  const missing = expected.filter((name) => !names.includes(name));
+  assert.equal(unknown.length, 0, "HEADLINE-SOURCE-CENSUS FAIL: unknown " + unknown.join(", "));
+  assert.equal(missing.length, 0, "HEADLINE-SOURCE-CENSUS FAIL: missing " + missing.join(", "));
   const out = new Set();
-  for (const name of fs.readdirSync(dir)) {
-    if (!name.endsWith(".cjs")) continue;
+  for (const name of ENGINE_TITLE_SOURCES) {
     const text = fs.readFileSync(path.join(dir, name), "utf8");
     for (const pattern of [/(?:^|[\s,{(])title\s*:\s*"((?:[^"\\\n]|\\.){3,140})"/g,
       /(?:^|[\s,{(])title\s*:\s*'((?:[^'\\\n]|\\.){3,140})'/g,
@@ -637,12 +1187,16 @@ const chromeCss = () => fs.readFileSync(path.join(SOURCE, "preview.css"), "utf8"
 const shellHtml = () => fs.readFileSync(path.join(SOURCE, "index.shell.html"), "utf8");
 
 module.exports = {
-  ROOT, SOURCE, APPROVED, FONTS, FONT_DIR, PREVIEW_CLASSES, RUNTIME_CLASSES, PREVIEW_COPY, APPROVED_COPY, RUNTIME_COPY,
-  CHECKIN_RUNTIME_COPY, PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
-  readApproved, readFonts, fontFaceCss, assertDesignBinding, composeStyles, textOf, classTokens, sha256,
-  recoverySection, recoveryVocabulary, assertRecoveryBinding,
+  ROOT, SOURCE, APPROVED, FONTS, FONT_DIR, SCENE_ASSETS, COPY_SOURCES, LEGACY_STRUCTURE,
+  PREVIEW_CLASSES, RUNTIME_CLASSES, PREVIEW_COPY, APPROVED_COPY, RUNTIME_COPY,
+  CHECKIN_RUNTIME_COPY, ADOPTED_RUNTIME_COPY, PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
+  readApproved, readCopyReferences, readLegacyStructure, readFonts, fontFaceCss, readSceneAssets, sceneAssetCss,
+  assertDesignBinding, composeStyles, textOf, classTokens, sha256,
+  recoverySection, recoveryVocabulary, assertRecoveryBinding, assertRuntimeCopyBinding,
   setupVocabulary, assertSetupBinding, setupSource,
+  /* C-UI-6 COACH */
+  COACH_SOURCE, COACH_EXTRA_REFERENCES, COACH_TEMPLATE_IDENTITIES, coachVocabulary, assertCoachBinding,
   SETUP_MODEL_SOURCE, SETUP_SOURCES,
-  headlineVocabulary, ENGINE_DIR,
+  headlineVocabulary, ENGINE_DIR, ENGINE_TITLE_SOURCES, ENGINE_NON_TITLE_SOURCES,
   templateHtml, appSource, chromeCss, shellHtml,
 };

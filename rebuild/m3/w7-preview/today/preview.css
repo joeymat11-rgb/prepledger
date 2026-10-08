@@ -1,4 +1,4 @@
-/* Preview-owned chrome, appended AFTER the two pinned approved stylesheets.
+/* Preview-owned chrome, appended AFTER the four pinned approved stylesheets.
    It adds no colour, type or spacing of its own beyond the approved tokens, and it
    changes no approved rule except the one accessibility correction named below. */
 
@@ -33,13 +33,13 @@
 .sheet-panel {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  background: var(--paper);
+  background: var(--surface);
   border-top: 1px solid var(--line);
   border-radius: 18px 18px 0 0;
   padding: 24px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -12px 40px #1c1b1814;
+  box-shadow: 0 -12px 40px color-mix(in srgb, var(--text) 8%, transparent);
 }
 .sheet-panel .field { margin-top: 12px; }
 .sheet-panel .error:empty { display: none; }
@@ -47,8 +47,54 @@
    print. An empty alert must not push the primary action down. */
 .view .error:empty { display: none; }
 
-/* The preview frame around the phone. */
-.stage { min-height: 100vh; }
+/* The preview frame around the phone. These are the accepted preview-shell
+   dimensions, not a second application or a screen-specific layout. */
+.stage { min-height: 100vh; display: grid; justify-items: center; gap: 16px; padding: 24px 8px; }
+.review { width: min(390px, 100%); font-size: 13px; color: var(--muted); }
+.phone { position: relative; width: 390px; max-width: 100%; height: 844px; overflow: hidden;
+  border-radius: 30px; background: var(--screen); border: 1px solid var(--line); }
+.view { position: relative; z-index: 4; height: 100%; overflow: auto; scrollbar-width: none; }
+.view::-webkit-scrollbar { display: none; }
+.scene-frame { position: absolute; inset: 0; display: block; overflow: hidden; pointer-events: none; }
+.scene-frame .plate, .scene-frame .embers, .scene-frame .surface, .scene-frame .grain { pointer-events: none; }
+/* CUI1 B1 (7e25a69): scene.mjs makes the real live host the active screen's .ui, so the
+   pack gate probes the actual application. The host keeps its existing accepted
+   geometry and interaction: this restates .view's own values over the pinned .ui and
+   .screen .ui layout declarations and the frame's pointer-events. No colour, type or
+   spacing is added. */
+.scene-frame > .view.ui { position: relative; inset: auto; display: block; padding: 0;
+  overflow: auto; pointer-events: auto; }
+/* CUI1 review D3: the approved device chrome's "status" class collides with the pinned
+   2026-09-08 Additions C `.status` line style (14px, green, 12px margins). Inside the
+   preview-owned scene layer only, the bar takes back what the approved pack computes for
+   it: inherited type size and colour and no margin. No pinned byte changes. */
+.scene-frame > .chrome.status { font-size: inherit; color: inherit; margin: 0; }
+
+/* ==== C-UI-6 COACH (begin) ====
+   The Coach screen is the pack's own chassis (ruling 4): a scrolling .body and a fixed
+   .stack as the two children of .ui. Only on the coach frame, these lines give back what
+   the pinned app.css computes for .screen-coach .ui (position absolute over the frame,
+   the column flex, the 22 px inset, no bottom padding, no scroll of its own) where the
+   CUI1 host rule above restates .view's values instead (named debt D2). Then five
+   properties of the 2026-09-08 legacy structure layer, which reaches coach elements the
+   pinned pack never sets, are put back to what the pack computes: the h1 letter spacing,
+   the first prompt's top border, the back chevron's colour and padding, the legacy green
+   on a proposal's change line and the legacy primary's border and weight. No colour, type
+   size or spacing of its own: every value is a pinned token or the pack's computed value. */
+.scene-frame.screen-coach > .view.ui { position: absolute; inset: 0; height: auto; display: flex;
+  flex-direction: column; padding: 0 var(--inset); overflow: hidden; }
+.screen-coach .coach-title, .screen-coach .panel-title { letter-spacing: normal; }
+.screen-coach .prompts > .prompt:first-child { border-top-color: var(--line-soft); }
+.screen-coach .prompts > .prompt:first-child:active { border-top-color: var(--line); }
+.screen-coach .header .back { padding: 0; color: inherit; }
+.screen-coach .proposal .change { color: inherit; }
+.screen-coach .primary { border: 0; font-weight: inherit; }
+/* ==== C-UI-6 COACH (end) ==== */
+@media (max-width: 430px) {
+  .stage { display: block; min-height: 100dvh; padding: 0; }
+  .review { display: none; }
+  .phone { width: 100%; height: 100dvh; border: 0; border-radius: 0; }
+}
 .review .note { margin: 0; }
 #today-status { margin-top: 6px; }
 .view > .note { padding: 24px; }
@@ -68,6 +114,15 @@
    two-line title never moves. Engine text is never truncated and nothing is made
    sticky. */
 .view .intro h1 { font-size: var(--headline, 47px); line-height: 1.04; letter-spacing: -.025em; }
+
+/* At the existing 33px floor only, reclaim the measured 35px overflow: C's 23px
+   intro bottom margin and the later approved 12px primary margin. These are existing
+   Additions C spaces: normal 47px headlines and every intermediate fitted size keep
+   the approved proportions. */
+.view .page[style*="--headline: 33px"] .intro,
+.view .page[style*="--headline:33px"] .intro { margin-bottom: 0; }
+.view .page[style*="--headline: 33px"] .bottom .primary,
+.view .page[style*="--headline:33px"] .bottom .primary { margin-top: 0; }
 
 /* REPORT A PROBLEM (DECISIONS:140 (3)). Two corrections only, both from approved
    tokens and neither a new visual idea: the control is given the 44px minimum tap
@@ -119,3 +174,119 @@
   font-size: 16px;
 }
 .view [data-slot="settings-list"] .row { gap: 12px; }
+
+/* C-UI-2 BEGIN (Today face). Scoped to a host that carries the pack's chassis, so no
+   other screen moves. (1) CUI1 debt D2: `.scene-frame > .view.ui` keeps the legacy host
+   scrolling as a block; a host whose children are the pack's .body and .stack takes back
+   the pinned .ui / .screen .ui layout values (absolute, flex column, the inset, no
+   scroll), so the day scrolls in .body under the fixed stack as ruling 4 draws it.
+   (2) The 2026-09-08 `.primary` rule, laid down before the pack, still leaks a 1px ink
+   border and weight 600 onto Start; the pack draws Start with neither (`button` border 0,
+   `font: inherit`). The border reset stops at :not(:disabled) so the pack's disabled
+   Start keeps its 1px line-soft edge (app.css `.primary:disabled`). (3) The Talk row carries the product's coach entry, a label and a
+   quieter line: that line restates the pack's `.rowcard .sub` values and keeps the
+   "Not wired yet" marker whole while the sentence before it is the part that
+   shortens. (4) The weigh-in sheet is appended to this host beside the stack; the pack
+   lifts the stack to z-index 2, so the sheet takes 3 and paints over Start, Recovery
+   and Talk while it is open. No colour and no type size here is new. */
+.scene-frame > .view.ui:has(> .stack) { position: absolute; inset: 0; display: flex;
+  flex-direction: column; padding: 0 var(--inset); overflow: hidden; }
+.scene-frame > .view.ui > .stack > .primary { font-weight: inherit; }
+.scene-frame > .view.ui > .stack > .primary:not(:disabled) { border: 0; }
+.scene-frame > .view.ui:has(> .stack) > .sheet-panel { z-index: 3; }
+#talk-today .label { min-width: 0; }
+#talk-today .label > .sub { display: flex; gap: 6px; margin-top: 2px; font-size: 13px;
+  line-height: 1.3; color: var(--muted); font-weight: 430; }
+#talk-today .label > .sub > span:first-child { flex: 1 1 auto; min-width: 0; overflow: hidden;
+  white-space: nowrap; text-overflow: ellipsis; }
+#talk-today .label > .sub > [data-slot] { flex: 0 0 auto; }
+/* C-UI-2 END */
+
+/* C-UI-3 BEGIN (the earned-weight card, DECISIONS:817 "Builder styles it": styled like the
+   proposal card). The proposal card itself and the inline weigh-in need nothing here: they
+   carry the board's classes (.tcard.proposal, .weigh-row), which the pinned pack draws,
+   gold edge and all, and lowers the edge for every answered state (.is-*). The earned-weight
+   card is S11's native-load offer (today-entry.mjs paint(): a div[data-native-load="offer"]
+   holding an h3, a list of set loads, a reason and the Yes / Not now buttons); it is drawn
+   ONLY while the offer is open, so its gold edge is shown only while open. Every value is
+   the pack's own, cited per rule; no colour and no type size is new, and nothing is serif
+   (the card adds no gate.py serif identity). */
+[data-native-load="offer"] { display: grid; grid-template-columns: 1fr 1fr; column-gap: 9px;
+  position: relative; margin-top: 10px; padding: 7px 14px 8px; background: var(--card);
+  border: 1px solid var(--line-gold); border-radius: var(--radius-card);
+  font-family: var(--sans); color: var(--text); } /* .tcard, .proposal (app.css 207, 824, 838) */
+[data-native-load="offer"] > * { grid-column: 1 / -1; }
+[data-native-load="offer"] > h3 { margin: 0; font-size: 14.5px; line-height: 1.35;
+  font-weight: 480; color: var(--text); } /* .tcard .title */
+[data-native-load="offer"] > ul { list-style: none; margin: 6px 0 0; padding: 0; }
+[data-native-load="offer"] > ul > li { font-size: 15px; line-height: 1.3; font-weight: 450; } /* .proposal .change */
+[data-native-load="offer"] > [data-native-load="reason"] { margin: 4px 0 0; font-size: 13px;
+  line-height: 1.3; color: var(--muted); } /* .proposal .reason */
+[data-native-load="offer"] > button[data-native-load] { grid-column: auto; margin-top: 4px;
+  height: 44px; font-family: var(--sans); font-weight: 450; border-radius: var(--radius-pill);
+  background: var(--decision); border: 1px solid var(--decision-line); color: var(--text);
+  font-size: 15px; display: inline-flex; align-items: center; justify-content: center; } /* .decision */
+/* C-UI-3 END */
+
+/* S12 composition note (Today, Coach and Workout blocks side by side). The Today block's
+   chassis rule above matches every host that has a direct .stack child, so on the composed
+   head it also reaches the Coach and Workout hosts. Its values there are the pack's own
+   (app.css `.ui` position absolute, inset 0, the column flex, the inset, no scroll of its
+   own). The Workout block below keeps its place after it, so at the same specificity its
+   own chassis values still decide the workout host; they are the same values, and the
+   position and inset come from the Today rule. Nothing here is a new value. */
+
+/* ===== C-UI-4 (look lane, S12) · INSIDE THE WORKOUT: BEGIN =====
+   Scoped to the workout screen only (scene.mjs dresses the frame .screen-workout), so no
+   other screen's composition moves. It adds no colour, no type size and no class: each
+   rule restates the pinned pack's own value where CUI1's host geometry or a 2026-09-08
+   legacy rule (laid down first, and still loaded for the other screens) would otherwise
+   change the pack's render, or dresses the two entry boxes inside the numerals in the
+   numeral's own face.
+   1. THE CHASSIS (ruling 4). The pack's workout screen is a flex column with the page
+      inset, NO bottom padding (app.css:862 `.screen-workout .ui { padding-bottom: 0 }`)
+      and no overflow of its own (app.css:852 `.screen .ui { overflow: hidden }`): the
+      .body scrolls, and the .stack's own padding (app.css:863) holds Log at its thumb
+      edge. CUI1's host rule sets the live host to block with no padding for the screens
+      not yet ported; the workout screen takes the pack's WORKOUT values back, not the
+      base .ui ones. */
+.scene-frame.screen-workout > .view.ui { display: flex; flex-direction: column;
+  padding: 0 var(--inset) 0; overflow: hidden; }
+/* 2. LEGACY LEAKS, restored to the pack's computed values: Additions C's bare `h1`
+      letter-spacing on the serif title; the 2026-09-08 `.back` padding and muted colour on
+      the header chevron (the pack's button is unpadded and inherits the text colour);
+      Refinement A's `.bottom` top padding on the stack's bottom link row; and Refinement
+      A's `.choice:last-child` size on the Unsure chip (`.choice` is kept on the chips only
+      as the card's existing hook; the pack's `.chip` is 14 px). */
+.scene-frame.screen-workout .screen-title { letter-spacing: normal; }
+.scene-frame.screen-workout .header .back { padding: 0; color: inherit; }
+.scene-frame.screen-workout .links.bottom { padding-top: 0; }
+.scene-frame.screen-workout #rir .chip.choice { font-size: 14px; }
+/* 2b. THE REST OF THE LEAKS (fix round 2, F6), each at the specificity of the legacy rule
+      it answers (`:where()` adds none), so every pack rule that sets the same property
+      still wins. The 3 px green `button/input:focus-visible` outline of Refinement A and
+      Additions C goes back to the user agent's ring, which is what the pack (no focus
+      rule of its own) draws; Additions C's `button { min-height: 44px }` goes back to the
+      initial value the pack's buttons have; Additions C's `.link { padding: 8px 0 }` goes
+      back to the pack's `button { padding: 0 }`. The settings editor (C-UI-5's, not this
+      ticket's) keeps what it has. Two more of the same kind: this file's own
+      settings-open 44 px floor would undercut the pack's 60 px machine row (app.css
+      `.machine.rowcard`), and Refinement A's `.slot` padding would stretch the set dots,
+      which keep `slot` as the card's hook (ruling R2). */
+:where(.scene-frame.screen-workout) :is(button, input):where(:not([data-slot="settings-editor"] *)):focus-visible { outline: revert; outline-offset: revert; }
+:where(.scene-frame.screen-workout) button:where(:not([data-slot="settings-editor"] *)) { min-height: auto; }
+:where(.scene-frame.screen-workout) .link { padding: 0; }
+.scene-frame.screen-workout #machine { min-height: 60px; }
+.scene-frame.screen-workout .set-dots i { padding: 0; }
+/* 3. THE ENTRY IN THE NUMERALS. #w-value and #r-value each hold the real text box the set
+      is logged from; the box draws in the numeral's own face and size (inherited), sized
+      to its figure, never narrower than the 44 px target. An empty box is not underlined:
+      the pack's blank underline (`.value.w-blank`) is W-19's mark alone. */
+.scene-frame.screen-workout .numerals .value input { display: block; box-sizing: content-box;
+  min-width: var(--hit); height: 1em; margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: transparent; font: inherit; color: inherit; text-align: center;
+  -webkit-appearance: none; appearance: none; }
+@supports (field-sizing: content) {
+  .scene-frame.screen-workout .numerals .value input { field-sizing: content; }
+}
+/* ===== C-UI-4 (look lane, S12) · INSIDE THE WORKOUT: END ===== */

@@ -1,7 +1,7 @@
 "use strict";
 
-/* A1 — the binding to the design of record. These tests are what stop the page drifting
-   away from rebuild/m1/approved-2026-09-08/, and what stop a builder inventing a class,
+/* C-UI-1: the binding to the design of record. These tests stop the page drifting
+   away from rebuild/m1/approved-2026-09-18/, and stop a builder inventing a class,
    a phrase, or one of the prototype's fictional figures. */
 
 const assert = require("node:assert/strict");
@@ -12,18 +12,33 @@ const path = require("node:path");
 const { createHash } = require("node:crypto");
 const design = require("../design.cjs");
 
-test("both approved references are pinned by sha256 and read byte-for-byte", () => {
+const ENGINE_TITLE_SOURCES = Object.freeze(["dates.cjs", "constants.cjs", "plan.cjs", "performed.cjs",
+  "progression.cjs", "sleep.cjs", "energy.cjs", "policy.cjs", "today.cjs", "volume.cjs",
+  "earn.cjs", "writers.cjs", "entered-load.cjs"]);
+const ENGINE_NON_TITLE_SOURCES = Object.freeze([
+  "seed.cjs", "migrate.cjs", "merge.cjs", "index.cjs", "oracle-shim.cjs",
+]);
+
+test("all four approved stylesheets are pinned by sha256 and read byte-for-byte", () => {
   const approved = design.readApproved();
-  assert.equal(approved.length, 2);
+  assert.deepEqual(approved.map((entry) => entry.file), [
+    "rebuild/m1/approved-2026-09-18/app/app.css",
+    "rebuild/m1/approved-2026-09-18/app/states.css",
+    "rebuild/m1/approved-2026-09-18/app/states-workout.css",
+    "rebuild/m1/approved-2026-09-18/app/states-coach.css",
+  ]);
+  assert.deepEqual(approved.map((entry) => entry.sha256), [
+    "bf4924e74fc4edc5cebf7fba6519613d9eec7f44397db990396fe402c124edc2",
+    "eae53de1838338a76a416052a381494602c5fc9545c330afce2438a19a2ca219",
+    "5d6e4082c88e9129979f764dc992e4cbb0439c3a9b2e0d625535c524d47a4f0a",
+    "d33f62e0c54004063b5fe40720f220350d9311213bf80f13d49d260061ca0686",
+  ]);
   for (const entry of approved) {
     const bytes = fs.readFileSync(path.join(design.ROOT, entry.file));
     assert.equal(createHash("sha256").update(bytes).digest("hex"), entry.sha256, entry.file);
     assert(entry.styles.length > 1000, entry.file + " carries a stylesheet");
+    assert.equal(entry.styles, bytes.toString("utf8"), entry.file + " is copied byte-for-byte");
   }
-  /* Refinement A first, Additions C second, so the authoritative reference wins every
-     rule the two share — which is what keeps Today's primary action in one viewport. */
-  assert.match(approved[0].file, /Earned-refinement-A\.html$/);
-  assert.match(approved[1].file, /Earned-additions-C-approved\.html$/);
 });
 
 /* review F5: this replaces an assertion that could not fail. The pin is now pointed at a
@@ -38,9 +53,9 @@ test("a single changed byte in an approved reference fails the pin", () => {
     assert.doesNotThrow(() => design.readApproved(room), "an untouched copy still passes the pin");
     const victim = path.join(room, design.APPROVED[1].file);
     const bytes = fs.readFileSync(victim);
-    const index = bytes.indexOf(Buffer.from("Keep the plan."));
+    const index = bytes.indexOf(Buffer.from(".panel"));
     assert(index > 0, "the tampering target is really in the file");
-    bytes[index] = bytes[index] === 0x4b ? 0x6b : 0x4b;   // "K" <-> "k": one byte
+    bytes[index] = bytes[index] === 0x2e ? 0x23 : 0x2e;   // "." <-> "#": one byte
     fs.writeFileSync(victim, bytes);
     assert.throws(() => design.readApproved(room), /APPROVED-PIN FAIL/,
       "a one-byte change to the design of record fails the build");
@@ -51,12 +66,35 @@ test("a single changed byte in an approved reference fails the pin", () => {
 
 test("both typefaces are pinned by sha256 and inlined, so the page fetches nothing", () => {
   const fonts = design.readFonts();
-  assert.equal(fonts.length, 2);
-  const manifest = JSON.parse(fs.readFileSync(path.join(design.ROOT, design.FONT_DIR, "SOURCES.json"), "utf8"));
+  const expected = [
+    { family: "DM Sans", name: "earned-sans.woff2",
+      sha256: "c04be0b43dc3911dd36a7cb7203c5ff6daa4f42522e2bc2e6fa3325a61c43d8b" },
+    { family: "Liberation Serif", name: "earned-serif.woff2",
+      sha256: "ff90213df9f50596c71ada04c34d2dee9327fe86526e713a9d49a7064b1db660" },
+  ];
+  assert.deepEqual(fonts.map(({ family, name, sha256 }) => ({ family, name, sha256 })), expected);
   for (const font of fonts) {
-    const pin = manifest.files.find((f) => f.name === font.name);
-    assert.equal(createHash("sha256").update(font.bytes).digest("hex"), pin.sha256, font.name);
+    const pin = expected.find((entry) => entry.name === font.name);
+    assert.equal(createHash("sha256").update(font.bytes).digest("hex"), pin.sha256,
+      font.name + " actual bytes match the approved pin");
     assert.equal(font.bytes.subarray(0, 4).toString("latin1"), "wOF2", font.name);
+  }
+  const room = fs.mkdtempSync(path.join(os.tmpdir(), "cui1-font-pin-"));
+  try {
+    for (const font of design.FONTS) {
+      const from = path.join(design.ROOT, design.FONT_DIR, font.name);
+      const to = path.join(room, design.FONT_DIR, font.name);
+      fs.mkdirSync(path.dirname(to), { recursive: true });
+      fs.copyFileSync(from, to);
+    }
+    const victim = path.join(room, design.FONT_DIR, design.FONTS[0].name);
+    const bytes = fs.readFileSync(victim);
+    bytes[bytes.length - 1] ^= 1;
+    fs.writeFileSync(victim, bytes);
+    assert.throws(() => design.readFonts(room), /TYPOGRAPHY-(?:PIN|SIZE) FAIL/,
+      "one changed font byte refuses instead of trusting metadata");
+  } finally {
+    fs.rmSync(room, { recursive: true, force: true });
   }
   const css = design.fontFaceCss(fonts);
   assert.equal((css.match(/@font-face/g) || []).length, 2);
@@ -67,12 +105,36 @@ test("both typefaces are pinned by sha256 and inlined, so the page fetches nothi
     "the shipped stylesheet fetches nothing");
 });
 
+test("all four scene images are pinned by actual bytes and embedded offline", () => {
+  const expected = [
+    { file: "rebuild/m1/approved-2026-09-18/app/assets/plate-ink-tall.jpg",
+      sha256: "e4a05e29f4e12cd763897428da63466aa7ddaa1ddf7d84264c3d6d3f04dda93e" },
+    { file: "rebuild/m1/approved-2026-09-18/app/assets/plate-dawn-tall.jpg",
+      sha256: "3192f9b2d7dea8d1efda6bd37ab4c438b939c510a6c2d496fa269e5a4479bfb4" },
+    { file: "rebuild/m1/approved-2026-09-18/app/assets/mist.png",
+      sha256: "72de840ebed8524916c8ff28bf246bbcee4ffac9ab8c0e8ec53cf40ef7325bbd" },
+    { file: "rebuild/m1/approved-2026-09-18/app/assets/grain.png",
+      sha256: "878b291b3454fca2ec07ac2d9e2bc22fb1d06604c8209a03f066e9f9a17fb57e" },
+  ];
+  const assets = design.readSceneAssets();
+  assert.deepEqual(assets.map(({ file, sha256 }) => ({ file, sha256 })), expected);
+  for (const asset of assets) {
+    assert.equal(createHash("sha256").update(asset.bytes).digest("hex"), asset.sha256,
+      asset.file + " actual bytes match the approved pin");
+    assert.match(asset.url, /^data:image\/(?:jpeg|png);base64,/);
+  }
+  const css = design.sceneAssetCss(assets);
+  for (const asset of assets) assert(css.includes(asset.url), asset.file + " is embedded in scene CSS");
+  assert.doesNotMatch(css, /url\(["']?assets\//, "the built scene has no asset fetch");
+});
+
 test("the shipped template and view bind to the approved design", () => {
   const approved = design.readApproved();
   const report = design.assertDesignBinding(approved, design.templateHtml(), design.appSource());
   assert(report.classes > 25, "the whole approved vocabulary is checked");
   assert.equal(report.copy, design.PREVIEW_COPY.length + design.APPROVED_COPY.length
-    + design.RUNTIME_COPY.length + design.CHECKIN_RUNTIME_COPY.length + design.PREVIEW_RUNTIME_COPY.length);
+    + design.RUNTIME_COPY.length + design.CHECKIN_RUNTIME_COPY.length
+    + design.ADOPTED_RUNTIME_COPY.length + design.PREVIEW_RUNTIME_COPY.length);
   // A2: the binding covers every module that can put a word on the screen, and it
   // really reads each of them — a module dropped from the list would take its copy
   // out of the binding with it. A3 adds the check-in's view and answer model.
@@ -87,19 +149,42 @@ test("the shipped template and view bind to the approved design", () => {
   }
 });
 
-/* A2 — the preview-owned runtime copy cannot be used to smuggle approved-looking
-   words in, and every entry really is said by a view module. */
-test("preview-owned runtime copy is absent from the approved references", () => {
-  const approvedText = design.readApproved().map((a) => a.html).join("\n");
+/* C-UI-1 adopts some existing runtime wording into the newer design while other
+   operational wording remains preview-owned. Every declaration must still be said. */
+test("runtime copy distinguishes newly adopted wording from preview-owned wording", () => {
+  const references = design.readCopyReferences();
+  const approvedText = references.map((a) => a.text).join("\n");
   const view = design.appSource();
   assert(design.PREVIEW_RUNTIME_COPY.length >= 5);
   for (const line of design.PREVIEW_RUNTIME_COPY) {
-    assert(!approvedText.includes(line), "claimed as preview-owned but approved: " + line);
+    assert(!approvedText.includes(line), "preview-owned wording appears upstream: " + line);
     assert(view.includes(line), "declared but never said: " + line);
   }
-  // A declared preview string that IS in the approved references fails the binding.
-  assert.throws(() => design.assertDesignBinding(design.readApproved(), design.templateHtml(),
-    view.replace("Your plan does not set a rest length.", "Take your rest.")), /COPY-BINDING FAIL/);
+  assert(design.ADOPTED_RUNTIME_COPY.length > 0);
+  for (const entry of design.ADOPTED_RUNTIME_COPY) {
+    const source = references.find((candidate) => candidate.file === entry.source);
+    assert(source && source.text.includes(entry.line), "adopted line lacks its named source: " + entry.line);
+    assert(view.includes(entry.line), "adopted line is not said: " + entry.line);
+  }
+  // A future preview declaration that is already approved must be explicitly
+  // reclassified with its source; it cannot pass merely because the union contains it.
+  assert.throws(() => design.assertRuntimeCopyBinding(view, references,
+    [...design.PREVIEW_RUNTIME_COPY, design.ADOPTED_RUNTIME_COPY[0].line]),
+  /preview runtime copy is already approved/);
+
+  const room = fs.mkdtempSync(path.join(os.tmpdir(), "cui1-copy-pin-"));
+  try {
+    for (const pin of design.COPY_SOURCES) {
+      const from = path.join(design.ROOT, pin.file), to = path.join(room, pin.file);
+      fs.mkdirSync(path.dirname(to), { recursive: true });
+      fs.copyFileSync(from, to);
+    }
+    fs.appendFileSync(path.join(room, design.COPY_SOURCES[0].file), " ");
+    assert.throws(() => design.readCopyReferences(room), /COPY-SOURCE-PIN FAIL/,
+      "unchecked words cannot authorize the build");
+  } finally {
+    fs.rmSync(room, { recursive: true, force: true });
+  }
 });
 
 test("an invented class, an invented phrase or a copied figure fails the binding", () => {
@@ -125,11 +210,20 @@ test("the template carries no figure at all", () => {
 test("the shipped stylesheet is the approved bytes, then the named corrections", () => {
   const approved = design.readApproved();
   const css = design.composeStyles(approved, design.chromeCss(), design.readFonts());
-  for (const entry of approved) assert(css.includes(entry.styles), entry.file + " is copied byte-for-byte");
-  assert(css.indexOf(approved[0].styles) < css.indexOf(approved[1].styles), "A first, C second");
+  const offline = (styles) => styles.replace(/^@font-face[^\n]*\n?/gm, "")
+    .replace(/url\(["']?assets\/plate-ink(?:-tall)?\.jpg["']?\)/g, "var(--scene-plate-ink)")
+    .replace(/url\(["']?assets\/plate-dawn(?:-tall)?\.jpg["']?\)/g, "var(--scene-plate-dawn)")
+    .replace(/url\(["']?assets\/grain\.png["']?\)/g, "var(--scene-grain)");
+  const shipped = approved.map((entry) => offline(entry.styles));
+  for (let i = 0; i < approved.length; i += 1) {
+    assert(css.includes(shipped[i]), approved[i].file + " is copied with only pinned URL rewrites");
+  }
+  const appAt = css.indexOf(shipped[0]), statesAt = css.indexOf(shipped[1]);
+  assert(appAt >= 0 && statesAt >= 0, "both rewritten pinned stylesheets are present");
+  assert(appAt < statesAt, "app.css precedes states.css");
   for (const correction of [".view .followup input", ".view .intro h1", ".view .trend .sub"]) {
     assert(css.includes(correction), correction + " is present");
-    assert(css.indexOf(correction) > css.indexOf(approved[1].styles),
+    assert(css.indexOf(correction) > statesAt,
       correction + " is laid down after the approved rules it corrects");
   }
   // The corrections are the ONLY colour/type change: nothing in the preview chrome
@@ -155,8 +249,7 @@ test("the headline vocabulary is read out of the engine source, not hand-listed"
   for (const title of titles) assert.equal(title, title.toUpperCase(),
     "the engine renders move.title in upper case: " + title);
   // Each one really is a title literal in the engine, not something this file invented.
-  const engine = fs.readdirSync(path.join(design.ROOT, design.ENGINE_DIR))
-    .filter((name) => name.endsWith(".cjs"))
+  const engine = ENGINE_TITLE_SOURCES
     .map((name) => fs.readFileSync(path.join(design.ROOT, design.ENGINE_DIR, name), "utf8"))
     .join("\n").toUpperCase();
   for (const title of titles) assert(engine.includes(title), "not an engine literal: " + title);
@@ -171,20 +264,102 @@ test("the headline vocabulary is read out of the engine source, not hand-listed"
   assert.throws(() => design.headlineVocabulary(os.tmpdir()), /HEADLINE-VOCABULARY FAIL|ENOENT/);
 });
 
-/* review D-3: the ordering authority is cited, and the misattributed line is not. */
-test("the C-wins ordering cites the handoff line 9 and MOCK.md line 20", () => {
+const HEADLINE_SNIPPETS = Object.freeze([
+  '({ title: "Low-energy check \u2014 one question that discriminates" })',
+  "({ title: 'At a floor \u2014 review the rate with your coach' })",
+  "({ title: `One template title reaches the layout` })",
+  "propose(`volume`, `${cap(mgLabel(vp.mg))} \u2014 earned volume: ${vp.fromWk} \u2192 ${vp.toWk} weekly sets`)",
+  'propose("trim", "Now a small calorie trim earns its place")',
+  '({ title: "Close the books first" })',
+  '({ title: "Nothing needs you" })',
+  '({ title: "One more approved title" })',
+  '({ title: "Another approved title" })',
+  '({ title: "Final approved title" })',
+  '({ title: "Diet break \u2014 a week at maintenance" })',
+]);
+const makeHeadlineRoom = (extra = [], omit = []) => {
+  const room = fs.mkdtempSync(path.join(os.tmpdir(), "cui1-headline-source-"));
+  const engine = path.join(room, "rebuild", "engine");
+  fs.mkdirSync(engine, { recursive: true });
+  for (const name of [...ENGINE_TITLE_SOURCES, ...ENGINE_NON_TITLE_SOURCES, ...extra]) {
+    if (omit.includes(name)) continue;
+    const index = ENGINE_TITLE_SOURCES.indexOf(name);
+    fs.writeFileSync(path.join(engine, name), index >= 0
+      ? (HEADLINE_SNIPPETS[index] || "// safe title producer") : "SYNTHETIC NON-TITLE SOURCE");
+  }
+  return room;
+};
+const auditHeadlineReads = (run) => {
+  const originalRead = fs.readFileSync;
+  const reads = [];
+  fs.readFileSync = function auditedRead(file, ...args) {
+    reads.push(path.basename(String(file)));
+    return originalRead.call(this, file, ...args);
+  };
+  try { return { value: run(), reads }; }
+  finally { fs.readFileSync = originalRead; }
+};
+
+test("headline source boundary control reads only 13 allowed producers", () => {
+  const room = makeHeadlineRoom();
+  try {
+    const { value: titles, reads } = auditHeadlineReads(() => design.headlineVocabulary(room));
+    assert.deepEqual(reads, ENGINE_TITLE_SOURCES, "exactly the allowed title sources are read, once each");
+    for (const required of ["LOW-ENERGY CHECK \u2014 ONE QUESTION THAT DISCRIMINATES",
+      "AT A FLOOR \u2014 REVIEW THE RATE WITH YOUR COACH",
+      "${CAP(MGLABEL(VP.MG))} \u2014 EARNED VOLUME: ${VP.FROMWK} \u2192 ${VP.TOWK} WEEKLY SETS",
+      "DIET BREAK \u2014 A WEEK AT MAINTENANCE", "NOW A SMALL CALORIE TRIM EARNS ITS PLACE",
+      "CLOSE THE BOOKS FIRST", "NOTHING NEEDS YOU"]) {
+      assert(titles.includes(required), "missing safe title pattern: " + required);
+    }
+  } finally {
+    fs.rmSync(room, { recursive: true, force: true });
+  }
+});
+
+test("headline source boundary refuses an unknown name before any source read", () => {
+  const room = makeHeadlineRoom(["000-unknown.cjs"]);
+  try {
+    const reads = [];
+    const originalRead = fs.readFileSync;
+    fs.readFileSync = function auditedRead(file, ...args) {
+      reads.push(path.basename(String(file)));
+      return originalRead.call(this, file, ...args);
+    };
+    try {
+      assert.throws(() => design.headlineVocabulary(room),
+        /HEADLINE-SOURCE-CENSUS FAIL: unknown 000-unknown\.cjs/);
+    } finally { fs.readFileSync = originalRead; }
+    assert.deepEqual(reads, [], "census refusal precedes every source read");
+  } finally {
+    fs.rmSync(room, { recursive: true, force: true });
+  }
+});
+
+test("headline source boundary refuses a missing allowed name before any source read", () => {
+  const room = makeHeadlineRoom([], ["writers.cjs"]);
+  try {
+    const reads = [];
+    const originalRead = fs.readFileSync;
+    fs.readFileSync = function auditedRead(file, ...args) {
+      reads.push(path.basename(String(file)));
+      return originalRead.call(this, file, ...args);
+    };
+    try {
+      assert.throws(() => design.headlineVocabulary(room),
+        /HEADLINE-SOURCE-CENSUS FAIL: missing writers\.cjs/);
+    } finally { fs.readFileSync = originalRead; }
+    assert.deepEqual(reads, [], "census refusal precedes every source read");
+  } finally {
+    fs.rmSync(room, { recursive: true, force: true });
+  }
+});
+
+test("the design binding cites C-UI-1 and the approved 2026-09-18 pack", () => {
   const source = fs.readFileSync(path.join(design.SOURCE, "design.cjs"), "utf8");
-  assert.match(source, /ADDITIONS-C-APPROVED-HANDOFF\.md LINE 9/);
-  assert.match(source, /MOCK\.md LINE 20/);
-  assert.match(source, /NOT MOCK\.md line 14/);
-  // And the cited lines really say what they are cited for.
-  const handoff = fs.readFileSync(path.join(design.ROOT,
-    "rebuild/m1/approved-2026-09-08/ADDITIONS-C-APPROVED-HANDOFF.md"), "utf8").split("\n");
-  assert.match(handoff[8], /Local authoritative implementation reference is/);
-  assert(handoff[8].includes(design.APPROVED[1].sha256), "handoff line 9 pins the C bytes");
-  const mock = fs.readFileSync(path.join(design.ROOT, "rebuild/m1/MOCK.md"), "utf8").split("\n");
-  assert.match(mock[19], /must not "improve" the design/);
-  assert.match(mock[13], /B-stage renders/, "line 14 is about the B PNGs, not Refinement A");
+  assert.match(source, /C-UI-1/);
+  assert.match(source, /approved-2026-09-18/);
+  assert.match(source, /LEGACY_STRUCTURE/, "existing screen structure stays pinned during staged adoption");
 });
 
 test("the page shell has exactly one slot for the approved templates", () => {
