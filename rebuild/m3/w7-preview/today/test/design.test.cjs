@@ -15,8 +15,10 @@ const design = require("../design.cjs");
 const ENGINE_TITLE_SOURCES = Object.freeze(["dates.cjs", "constants.cjs", "plan.cjs", "performed.cjs",
   "progression.cjs", "sleep.cjs", "energy.cjs", "policy.cjs", "today.cjs", "volume.cjs",
   "earn.cjs", "writers.cjs", "entered-load.cjs"]);
+/* S12 (census, red first): the sealed S11 engine's native-load.cjs is a non-title source, ADDED
+   here as in design.cjs; nothing is removed, and the unknown/missing refusal rows below still bite. */
 const ENGINE_NON_TITLE_SOURCES = Object.freeze([
-  "seed.cjs", "migrate.cjs", "merge.cjs", "index.cjs", "oracle-shim.cjs",
+  "seed.cjs", "migrate.cjs", "merge.cjs", "index.cjs", "oracle-shim.cjs", "native-load.cjs",
 ]);
 
 test("all four approved stylesheets are pinned by sha256 and read byte-for-byte", () => {

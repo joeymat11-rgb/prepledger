@@ -302,14 +302,39 @@ test('R9 - the control, both confirmations and the block itself carry no em or e
   assert.equal(valueOf(dashed, 'user agent'), 'Probe 1.0: experimental');
 });
 
+/* S12 SC-1 / SC-21 (SC-21 a PROPOSED id; red first): the new look's design.cjs (the 2026-09-18
+   pack, C-UI-1) splits the runtime copy the view composes into PREVIEW_RUNTIME_COPY (still
+   preview-owned, and still required ABSENT from every pinned copy reference) and
+   ADOPTED_RUNTIME_COPY (a sentence the pinned 2026-09-18 pack itself now says, each bound to the
+   one pinned source that says it), and its approved references are the pinned COPY_SOURCES text,
+   no longer an `html` field of readApproved() (which now carries only stylesheets, so `a.html`
+   read undefined and the old absence check could not bite). A line is DECLARED here exactly as
+   design.cjs assertRuntimeCopyBinding declares it: preview-owned and absent upstream, or adopted
+   and present verbatim in its own pinned source. Nothing is relaxed: every line must be one of
+   the two, and each binding below still refuses a dropped sentence. The stylesheets every class
+   is bound to are the ones assertDesignBinding uses: the pinned 2026-09-08 LEGACY structure
+   (kept while screens move one by one) laid down before the pinned 2026-09-18 pack (D:820 R1,
+   "the look keeps .page"). */
+const copyReferenceText = () => design.readCopyReferences().map((r) => r.text).join('\n');
+function assertDeclaredRuntimeLine(line, { absentUpstream = true } = {}) {
+  if (design.PREVIEW_RUNTIME_COPY.includes(line)) {
+    if (absentUpstream) assert.equal(copyReferenceText().includes(line), false,
+      'a preview-owned sentence must be ABSENT from the approved references: ' + line);
+    return 'preview';
+  }
+  const adopted = design.ADOPTED_RUNTIME_COPY.find((entry) => entry.line === line);
+  assert(adopted, 'declared: ' + line);
+  const pinned = design.readCopyReferences().find((r) => r.file === adopted.source);
+  assert(pinned && pinned.text.includes(line), 'adopted, so present verbatim in its pinned source: ' + line);
+  return 'adopted';
+}
+const approvedCss = (approved) => [...design.readLegacyStructure(), ...approved].map((a) => a.styles).join('\n');
+
 test('R10 - the three sentences are preview-owned, declared, and bound to the view', () => {
   const approved = design.readApproved();
-  const approvedText = approved.map((a) => a.html).join('\n');
   const source = design.appSource();
   for (const sentence of [PROBLEM_ENTRY, PROBLEM_COPIED, PROBLEM_SELECT]) {
-    assert.equal(design.PREVIEW_RUNTIME_COPY.includes(sentence), true, 'declared: ' + sentence);
-    assert.equal(approvedText.includes(sentence), false,
-      'a preview-owned sentence must be ABSENT from the approved references: ' + sentence);
+    assertDeclaredRuntimeLine(sentence);
     assert.equal(source.includes(sentence), true, 'present in a view source: ' + sentence);
   }
   assert.doesNotThrow(() => design.assertDesignBinding(approved, design.templateHtml(), source));
@@ -325,7 +350,7 @@ test('R10 - every class the control and its box use is in the APPROVED styleshee
   const section = template.slice(start, template.indexOf('</template>', start));
   assert(section.includes('data-slot="problem-entry"'), 'the control is in the shipped template');
   assert(section.includes('data-slot="problem-text"'), 'the box is in the shipped template');
-  const css = approved.map((a) => a.styles).join('\n');
+  const css = approvedCss(approved);   /* S12 SC-1 (red first): see the note above R10 */
   for (const token of design.classTokens(section)) {
     if (design.PREVIEW_CLASSES.includes(token)) continue;
     const selector = new RegExp('\\.' + token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\w-])');
@@ -1649,7 +1674,13 @@ test('N2-08 - a saved night is what the check-in own reader finds, with no A3 ed
    packages/S11.json, so the declaring-spec chain has to know about it. S11 releases nothing
    and does not declare the two paths S10 released, so their release is still S10's.
    Youngest first, so 'S11' goes last and is consulted first; the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11'];
+/* S12 ADDS 'S12', and the cell is unchanged in every other way. S12 (M2-S12-LOOK) is the reseal
+   child that composes the accepted look onto the SEALED S11 parent (DECISIONS:897, seal tip 7c79ef1;
+   the look DECISIONS:902-904): the files it moves - today-model.cjs and the sealed cells it moves red
+   first among them - are moved BY THAT PACKAGE, declared in packages/S12.json, so the declaring-spec
+   chain has to know about it. S12 releases nothing. Youngest first, so 'S12' goes last and is
+   consulted first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12'];
 
 test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', () => {
   /* The reuse path already existed and was dead because nothing wrote a night. N2 is
@@ -1973,16 +2004,14 @@ test('N2-16 - the build carries N2 three modules and still names no network', as
 test('N2-16 - every sleep sentence is DECLARED, and the binding refuses a dropped one', () => {
   const approved = design.readApproved();
   const source = design.appSource();
-  const approvedText = approved.map((a) => a.html).join('\n');
   const lines = [SLEEP_TITLE, SLEEP_NONE, SLEEP_MODE_TIMES, SLEEP_MODE_HOURS, SLEEP_SAVE,
     SLEEP_CLOCK_CHANGE, SLEEP_HOURS_NOTE, SLEEP_FROM_TIMES, SLEEP_USE_CHECKIN,
     SLEEP_NOT_SAVED, SLEEP_NO_STORE, ...Object.values(SLEEP_REFUSAL_COPY)];
   for (const line of lines) {
-    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared: ' + line);
+    /* S12 SC-21 (PROPOSED id; red first): see the note above R10; the title keeps its one
+       exemption from the absence check, exactly as before. */
+    assertDeclaredRuntimeLine(line, { absentUpstream: line !== SLEEP_TITLE });
     assert(source.includes(line), 'present in a view source: ' + line);
-    if (line !== SLEEP_TITLE) {
-      assert.equal(approvedText.includes(line), false, 'preview-owned, so ABSENT upstream: ' + line);
-    }
   }
   assert.doesNotThrow(() => design.assertDesignBinding(approved, design.templateHtml(), source));
   assert.throws(() => design.assertDesignBinding(approved, design.templateHtml(),
@@ -2014,7 +2043,7 @@ test('N2-18 - every class the sleep screen uses is an APPROVED selector, and it 
   const template = design.templateHtml();
   const start = template.indexOf('<template id="t-sleep">');
   const section = template.slice(start, template.indexOf('</template>', start));
-  const css = approved.map((a) => a.styles).join('\n');
+  const css = approvedCss(approved);   /* S12 SC-21 (PROPOSED id; red first): see the note above R10 */
   for (const token of design.classTokens(section)) {
     if (design.PREVIEW_CLASSES.includes(token)) continue;
     const selector = new RegExp('\\.' + token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\w-])');
@@ -3519,7 +3548,9 @@ test('S6C.6d - no gym screen is headed with nothing when the stamp is withheld',
   assert.equal(finished.hidden, false);
   /* Both fallbacks are today-app.cjs's own declared sentences, not new words. */
   for (const line of [TodayApp.WORKOUT_CANNOT_OPEN, TodayApp.WORKOUT_RECORDED_TODAY]) {
-    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared in design.cjs: ' + line);
+    /* S12 SC-21 (PROPOSED id; red first): declared in design.cjs as preview-owned or adopted
+       from its pinned 2026-09-18 source; see the note above R10. */
+    assertDeclaredRuntimeLine(line);
     assert.equal(AI_DASH.test(line), false);
   }
   /* And where the engine's words ARE true of the card's own day, they still win. */

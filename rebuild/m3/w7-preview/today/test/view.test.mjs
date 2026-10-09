@@ -12,6 +12,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { webcrypto } from "node:crypto";
+import fs from "node:fs";
 import { JSDOM } from "jsdom";
 import { faultDatabase } from "../../../w6/test/support.mjs";
 import { createReadingHost } from "../reading-host.mjs";
@@ -69,6 +70,33 @@ async function setup(options = {}) {
 const phoneText = (doc) => doc.getElementById("phone").textContent;
 const slot = (doc, name) => doc.querySelector(`[data-slot="${name}"]`);
 
+/* S12 SC-9 (red first: the PM's runs s12-pmrun2 at 96551fb and s12-pmrun1 at the S12 head,
+   view.test.mjs:101 'CLOSE THE BOOKS FIRST' !== 'Chest', :148 'NOTHING NEEDS YOU' !== 'Chest',
+   :492 the same "before"). The look's demo basis carries the board's ONE open proposal
+   (today-model.cjs withBoardProposal, C-UI-3 R1, DECISIONS:826; SC-9's fixture consumers), and
+   the engine makes the first open card's title its move. Today gives that card its own proposal
+   card and keeps the headline the engine's OWN move over the SAME state with its proposals set
+   aside (today-model.cjs planMove; DECISIONS:534 (a); adapter.test.mjs assertHeadlineLaw). The
+   bare identity these cells asserted is the proposal-free half of that law; so each now compares
+   with the reference engine over the state with its proposals set aside, and first says that the
+   state really does carry exactly that one card and that the engine really would have put it on
+   the move, so the comparison cannot pass by accident. */
+const BOARD_CARD_TITLE = "Chest";
+function engineHeadline(reference, state) {
+  const open = (state.proposals || []).filter((p) => p && !p.resolved);
+  assert.equal(open.length + (state.agentProposals || []).length, 1,
+    "the demo state carries the board's one open proposal (C-UI-3 R1)");
+  assert.equal(open[0].title, BOARD_CARD_TITLE, "and it is the board's card");
+  assert.equal(reference.nowModel(state).move.title, BOARD_CARD_TITLE,
+    "the engine no longer puts the open card's title on its move, so this law guards nothing");
+  const bare = JSON.parse(JSON.stringify(state));
+  bare.proposals = [];
+  bare.agentProposals = [];
+  const title = reference.nowModel(bare).move.title;
+  assert.notEqual(title, BOARD_CARD_TITLE, "the card's title would be the headline");
+  return title;
+}
+
 /* The sheet's submit handler awaits a real encrypted transaction, so the test has
    to wait for it too — the same wait a person makes. */
 async function settle(doc) {
@@ -98,7 +126,7 @@ test("Today paints the approved design from engine values only", async () => {
 
   assert.equal(doc.querySelector(".brand").textContent, "Earned");
   assert.equal(doc.querySelector(".label").textContent, "Your plan for today");
-  assert.equal(slot(doc, "instruction").textContent, plainCopy(reference.nowModel(state).move.title));
+  assert.equal(slot(doc, "instruction").textContent, plainCopy(engineHeadline(reference, state)));   /* S12 SC-9 */
   /* S9-TODAY-CARRY, S2 (DECISIONS:534 (b)). The slot carries the engine's WHOLE marching
      order - the cue, the action it belongs under and the reason - and not the reason
      alone, which is a subordinate clause and read on the owner's phone as a sentence
@@ -145,7 +173,7 @@ test("a weigh-in through the sheet rebinds every engine-derived value on Today",
   assert.match(slot(doc, "morning").textContent, /^This morning ✓ 179\.4 lb/);
   assert.equal(slot(doc, "trend").textContent,
     "Weight trend " + reference.nowModel(state).headed.weight.toFixed(1) + " lb · Why this plan?");
-  assert.equal(slot(doc, "instruction").textContent, plainCopy(reference.nowModel(state).move.title));
+  assert.equal(slot(doc, "instruction").textContent, plainCopy(engineHeadline(reference, state)));   /* S12 SC-9 */
   assert.match(slot(doc, "primary-label").textContent, /^Start /);
   assert.equal(model.read().hasReadToday, true);
   for (const figure of FICTIONAL) assert(!phoneText(doc).includes(figure), "prototype figure on screen: " + figure);
@@ -297,10 +325,35 @@ test("every screen this slice does not build says so and shows no invented value
   }
   assert.doesNotMatch(phoneText(doc), /\d/, "no figure is shown on a blank check-in");
 
+  /* S12 SC-5 (red first: the PM's runs s12-pmrun2 and s12-pmrun1, view.test.mjs:302 no
+     "not wired yet" on the coach screen; DECISIONS:820 R2 names :301-303 as a cell that encodes
+     the old look; REVIEW-LOOK-C-UI-6-l1 F11). The Coach route now paints the approved board's
+     #screen-coach (C-UI-6, coach-app.mjs): the board's three EXAMPLE prompts (one of them is a
+     question about the chest press), the "example" pill, and no answer. With no live coach in
+     this build, asking in any way is answered by the board's own refusal card for exactly that
+     fact (C-61). So the screen still says it is not live, in the board's words, the moment he
+     asks, and no scripted answer and no figure is ever shown: before he asks the screen holds
+     no digit at all (stronger than the old /135/), "chest press" occurs only inside a prompt,
+     and the refusal invents nothing either. Today's face still marks the entry "Not wired yet"
+     (the next test). */
   doc.querySelector('[data-go="today"]').click();
   doc.querySelector('[data-go="coach"]').click();
-  assert.match(phoneText(doc), /not wired yet/);
-  assert.doesNotMatch(phoneText(doc), /135|chest press/i, "no scripted coach answer is shown");
+  const coach = doc.getElementById("phone");
+  assert.equal(coach.querySelector("#coach-answer").hidden, true, "no answer is shown before he asks");
+  assert.equal(coach.querySelector('.pill[title="Example numbers, not your data"]').textContent, "example");
+  assert.doesNotMatch(phoneText(doc), /\d/, "no figure is shown on the coach screen");
+  const prompts = [...coach.querySelectorAll("#prompts .prompt")];
+  assert.equal(prompts.length, 3, "the board's three example prompts");
+  const answerSide = coach.cloneNode(true);
+  for (const prompt of answerSide.querySelectorAll(".prompt")) prompt.remove();
+  assert.doesNotMatch(answerSide.textContent, /135|chest press/i, "no scripted coach answer is shown");
+  prompts[1].click();
+  assert.equal(coach.querySelector("#coach-answer").hidden, false, "asking is answered");
+  assert.match(coach.querySelector("#coach-answer").textContent, /There is no live coach in this build\./,
+    "the coach screen says it is not live");
+  assert.match(coach.querySelector("#coach-answer").textContent, /Nothing changed\./);
+  assert.doesNotMatch(phoneText(doc), /\d/, "and the refusal invents no figure");
+  doc.querySelector('[data-go="today"]').click();
   kit.close();
 });
 
@@ -489,7 +542,7 @@ test("every figure on Today equals the reference engine's own value, slot by slo
     assert.equal(slot(doc, "protein").textContent, money.format(protein.g), label);
     assert.equal(slot(doc, "trend").textContent,
       "Weight trend " + reference.nowModel(state).headed.weight.toFixed(1) + " lb · Why this plan?", label);
-    assert.equal(slot(doc, "instruction").textContent, reference.nowModel(state).move.title, label);
+    assert.equal(slot(doc, "instruction").textContent, engineHeadline(reference, state), label);   /* S12 SC-9 */
     assert.equal(slot(doc, "workout-count").textContent,
       reference.genSession(state, DAY, null).ex.length + " exercises · Your set targets are ready", label);
   }
@@ -514,7 +567,13 @@ test("every unwired entry point says so on Today's own face, in secondary text",
   assert(slot(doc, "recovery-state").classList.contains("muted"));
   assert(slot(doc, "coach-state").closest(".sub"), "the coach marker is in the .sub line");
   const face = phoneText(doc);
-  for (const label of ["Your full nutrition plan", "Ask your coach"]) {
+  /* S12 SC-14 (red first: the PM's runs s12-pmrun2 and s12-pmrun1, view.test.mjs:519 "Ask your
+     coach"; rev8 s3b SC-14, FCR D-CMP-3). Under DECISIONS:820 O2 the approved board's words won on
+     Today: the coach entry is the board's Talk row, "Talk through today's plan" (the
+     template's #talk-today), and Today's face no longer says "Ask your coach". The label moves to
+     the board's; the marker, its .sub placement (asserted above), app.NOT_WIRED and the
+     120-character window are unchanged. */
+  for (const label of ["Your full nutrition plan", "Talk through today\u2019s plan"]) {
     const at = face.indexOf(label);
     assert(at >= 0, label);
     assert(face.slice(at, at + 120).includes(app.NOT_WIRED), label + " is not marked on Today's face");
@@ -523,12 +582,25 @@ test("every unwired entry point says so on Today's own face, in secondary text",
      With no check-in lane the marker names the device, and a lane that holds nothing
      for today says NOTHING: a blank check-in is blank, never "none". */
   assert.equal(slot(doc, "recovery-state").textContent, app.CHECKIN_NO_STORE_SHORT);
-  const at = face.indexOf("How are you feeling today?");
+  /* S12 SC-16 (rev8 s3b SC-16, AL2-S12 L2-B2; red only after SC-14's move, the next
+     assertion of this test): the approved Today face names the Recovery row "Recovery check in"
+     (the template's #recovery) and no longer says "How are you feeling today?". The label
+     rebinds to the board's row title; the durable marker above, the presence assertion, the
+     no-NOT_WIRED assertion and the 120-character window are unchanged. */
+  const at = face.indexOf("Recovery check in");
   assert(at >= 0);
   assert(!face.slice(at, at + 120).includes(app.NOT_WIRED), "the check-in is wired");
   for (const screen of ["nutrition", "coach"]) {
     doc.querySelector(`[data-go="${screen}"]`).click();
-    assert.match(phoneText(doc), /not wired yet/, screen);
+    if (screen === "coach") {
+      /* S12 SC-5 (view.test.mjs:529-531, DECISIONS:820 R2): the board's coach screen says it is
+         not live in the board's own words (C-61) as soon as he asks, as the test above proves
+         in full; it carries no "not wired yet" of its own. */
+      doc.querySelector("#prompts .prompt").click();
+      assert.match(phoneText(doc), /There is no live coach in this build\./, screen);
+    } else {
+      assert.match(phoneText(doc), /not wired yet/, screen);
+    }
     doc.querySelector('[data-go="today"]').click();
   }
   doc.querySelector('[data-go="recovery"]').click();
@@ -545,7 +617,7 @@ test("the wired action is NOT marked unwired", async () => {
 });
 
 /* review D-1: the fitter is a no-op where there is no layout, and never truncates. */
-test("the headline fitter cannot truncate engine text and stays off without layout", async () => {
+test("the headline fitter cannot truncate engine text and stays off without layout", { timeout: 60000 }, async () => {
   const kit = await setup();
   const { doc } = kit;
   const longest = design.headlineVocabulary()[0];
@@ -556,9 +628,52 @@ test("the headline fitter cannot truncate engine text and stays off without layo
   assert.equal(doc.querySelector(".page").style.getPropertyValue("--headline"), "");
   assert.equal(app.HEADLINE_BASE, 47);
   assert.equal(app.HEADLINE_FLOOR, 33);
+  /* S12 SC-26 (PROPOSED id; red first: the PM's runs %TEMP%\s12-pmrun2 at 96551fb and
+     %TEMP%\s12-pmrun1 at the S12 head, view.test.mjs "47px is C's own headline size"). The two
+     lines this replaces anchored the fitter's 47px base and 33px floor in the 2026-09-08
+     Additions C stylesheet, which is no longer the design of record (DECISIONS:817, :820;
+     design.cjs APPROVED is the four 2026-09-18 stylesheets, none of which declares 47px or
+     33px). Under the approved board the instruction is the pack's #greeting (C-UI-2, D:820 O1)
+     at the board's own size, and the fit is superseded by ruling 4: Start sits in the fixed
+     .stack, so no title can push it out of view (Fable REVIEW-LOOK-C-UI-2-l1 N2, listed as pack
+     edit P6, inventory T-39). What the two lines protected, that the page never puts a size of
+     its own on the approved headline, is now asserted on the approved design itself: the slot
+     is the board's h1.greeting, the pinned app.css gives .greeting its 52px, and no rule the
+     page ships that reads the fitter's --headline matches the headline, so the fitter's
+     47px to 33px range cannot reach it. The no-truncation, no-ellipsis and stays-off checks
+     above and the two constants are unchanged. */
+  assert(headline.matches("h1.greeting#greeting"), "the instruction slot is the board's greeting");
   const approved = design.readApproved();
-  assert(approved.some((a) => a.styles.includes("font-size:47px")), "47px is C's own headline size");
-  assert(approved.some((a) => a.styles.includes("font-size:33px")), "33px is C's own smallest display size");
+  const appCss = approved.find((a) => a.file === "rebuild/m1/approved-2026-09-18/app/app.css");
+  assert(appCss && /\.greeting\s*\{[^}]*font-size:\s*52px/.test(appCss.styles), "52px is the board's own greeting size");
+  /* S12 R5b: the rules are cut LINEARLY (split on braces), never with a backtracking regex: the shipped
+     stylesheet inlines the fonts and the scene images as data URLs hundreds of KB long, and a
+     /([^{}]+)\{([^{}]*var\(--headline...)\}/g scan backtracks quadratically through every such body (the
+     PM-seat hang of s12-pmrun3, this cell spinning at 100% CPU). */
+  const shipped = design.composeStyles(approved, design.chromeCss(), []).replace(/\/\*[\s\S]*?\*\//g, " ");
+  const fitted = [];
+  for (const chunk of shipped.split("}")) {
+    const parts = chunk.split("{");
+    if (parts.length < 2 || !parts[parts.length - 1].includes("var(--headline")) continue;
+    fitted.push(...parts[parts.length - 2].split(",").map((s) => s.trim()).filter(Boolean));
+  }
+  assert(fitted.length > 0, "the shipped stylesheet carries the fitter's --headline rule, so this check is not vacuous");
+  /* The fitter terminates: its only loop steps the size down by one pixel per pass and stops at the
+     floor, so it runs at most HEADLINE_BASE - HEADLINE_FLOOR passes, whatever the layout says; and it
+     writes only the page's --headline, never the headline it observes, so it cannot re-trigger itself. */
+  const appSource = fs.readFileSync(new URL("../today-app.cjs", import.meta.url), "utf8");
+  const fitter = appSource.slice(appSource.indexOf("function fitHeadline(view, root) {"));
+  const fitterBody = fitter.slice(0, fitter.indexOf("\n}\n"));
+  assert.equal((fitterBody.match(/\bwhile\b|\bfor\b|requestAnimationFrame|ResizeObserver|setTimeout/g) || []).join(","), "while",
+    "the fitter has exactly one loop and schedules nothing");
+  assert(fitterBody.includes("while (room() < 0 && size > HEADLINE_FLOOR) {\n    size -= 1;"),
+    "the fitter's one loop is bounded by the floor and steps down by one each pass");
+  assert(app.HEADLINE_BASE - app.HEADLINE_FLOOR <= 14, "at most 14 passes");
+  for (const selector of fitted) {
+    let hit = false;
+    try { hit = headline.matches(selector); } catch { hit = false; }
+    assert.equal(hit, false, "the fitter's size reaches the approved headline through " + selector);
+  }
   kit.close();
 });
 
@@ -658,4 +773,40 @@ test("the 16px correction really would raise the approved sub-16px fields A3 wil
     "the approved reference really does set this field below 16px");
   host.remove();
   kit.close();
+});
+
+/* ---------------- S12 ROUND 3 (DECISIONS:906, PM ruling): ONE weigh-in write site, both entry points ----------------
+   The look's inline weigh form (C-UI-3, the board's #weigh-form) and the sheet Start opens while the weight is owed both
+   submit through today-app.cjs submitWeighIn, the one model.weighIn call (look-cui3.test.mjs "S12 R3" holds that
+   statically). This is the runtime half, over the real encrypted lane this file already drives: each entry point
+   stores exactly ONE op per submit, and the two ops have the same shape (the sheet's is the pre-S12 path). */
+const r3OpsOf = async (kit) => (await kit.lane.readings.repository.load()).generation.collections.ops || {};
+const r3ShapeOf = (v) => (v === null ? "null" : Array.isArray(v) ? [v.length ? r3ShapeOf(v[0]) : "empty"]
+  : typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, r3ShapeOf(v[k])])) : typeof v);
+async function r3Until(check, what) {
+  for (let tick = 0; tick < 400; tick++) {
+    if (await check()) return;
+    await new Promise((resolve) => setTimeout(resolve, 2));
+  }
+  throw new Error("S12 R3: never " + what);
+}
+test("S12 R3 (DECISIONS:906): the inline weigh form and the Start sheet each store ONE reading op, of the same shape", async () => {
+  const inline = await setup();
+  const form = slot(inline.doc, "weigh-form");
+  assert(form, "the inline weigh form is on Today while this morning's weight is owed");
+  form.querySelector("#weight").value = "179.4";
+  form.dispatchEvent(new inline.dom.window.Event("submit", { bubbles: true, cancelable: true }));
+  await r3Until(async () => Object.keys(await r3OpsOf(inline)).length > 0 && inline.model.read().hasReadToday,
+    "stored the inline weigh-in");
+  const fromForm = Object.values(await r3OpsOf(inline));
+  assert.equal(fromForm.length, 1, "one stored op for one inline submit");
+
+  const sheet = await setup();
+  await weighIn(sheet.dom, sheet.doc, 179.4);
+  const fromSheet = Object.values(await r3OpsOf(sheet));
+  assert.equal(fromSheet.length, 1, "one stored op for one sheet submit");
+  assert.deepEqual(r3ShapeOf(fromForm[0]), r3ShapeOf(fromSheet[0]), "the same op shape from both entry points");
+  assert.equal(sheet.model.read().hasReadToday, true);
+  inline.close();
+  sheet.close();
 });

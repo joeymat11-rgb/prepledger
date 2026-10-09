@@ -556,7 +556,13 @@ const RELEASED_FILES = [
     lane: [],
     edges: ['require:./today-engine.cjs', 'require:../fixtures.cjs', 'require:./food-model.cjs',
       'require:./sleep-model.cjs', 'require:./today-readings.cjs'],
-    syntax: { bracket: [], templateCall: [], shadow: [], arguments: [], destructure: [
+    /* S12 RE-MEASURE (M2-S12-LOOK, C-UI-3 storedProposalAnswers, DECISIONS:817): the look's read-only
+       projection writes into a LOCAL object, `out[String(p.id)] = { ... }`, and the scanner reads the
+       builtin call inside that computed key as a binding position. No binding, no store, nothing written:
+       `out` is returned to the view. Declared BY LINE under S-R28, measured, not snapshotted. */
+    syntax: { bracket: [], templateCall: [], shadow: [
+      '    if (status) out[String(p.id)] = { status, title: p.title == null ? null : String(p.title),',
+    ], arguments: [], destructure: [
       '} = createReadingsWriter (',
     ] },
   },
@@ -568,8 +574,12 @@ const RELEASED_FILES = [
       'createGymSettingsLane ( doc , phone , model , settings ,',
     ] },
     lane: [],
+    /* S12 RE-MEASURE (C-UI-4 round 3, W-19/W-20): the fifth edge imports TWO STRING CONSTANTS,
+       CHOOSE_EFFORT and ENTER_PERFORMED (gym-model.mjs:38-39), so the card can place gym-model's own
+       refusal under the field it names (gym-app.mjs:528-539) without rewording it. gym-model.mjs is
+       already the card's producer through `model`; no writer, store or host crosses this edge. */
     edges: ['import:./today-app.cjs', 'import:./plain-copy.cjs',
-      'import:./machine-settings-view.mjs', 'import:./gym-settings-lane.mjs'],
+      'import:./machine-settings-view.mjs', 'import:./gym-settings-lane.mjs', 'import:./gym-model.mjs'],
     syntax: { bracket: [], templateCall: [], shadow: [], arguments: [], destructure: [
       '} = createGymSettingsLane (',
     ] },
@@ -592,7 +602,11 @@ const RELEASED_FILES = [
     capabilities: {},
     holders: {},
     lane: [],
-    edges: ['require:./today-model.cjs', 'require:./plain-copy.cjs', 'require:./problem-report.cjs',
+    /* S12 RE-MEASURE (C-UI-6, the coach screen): require:./coach-app.mjs. Measured with this cell's own
+       lexer: coach-app.mjs has ZERO module edges, names `model` zero times, spells no storage or network
+       API, and its three PUT-word hits are not writes (o.undo is an options flag; level.start is an
+       injected level meter today-app.cjs never hands in). Nothing on that screen records (today-app.cjs:2018). */
+    edges: ['require:./today-model.cjs', 'require:./plain-copy.cjs', 'require:./coach-app.mjs', 'require:./problem-report.cjs',
       'require:./food-model.cjs', 'require:./sleep-model.cjs', 'require:./today-lanes.cjs',
       'import:../measure/measure-screen.mjs', 'import:../import/import-screen.mjs'],
     syntax: { bracket: [], templateCall: [], shadow: [], arguments: [], destructure: [
@@ -1146,7 +1160,10 @@ for (const file of RELEASED_FILES) {
     test('CONTROL S-R27(d) ' + name + ': holder prose is not a code site', () => {
       assert.deepEqual(releasedRefusals(file, plantLine(file, '/* ' + holderName + ' */ void "' + holderName + '";')), []);
       if (holderName === 'readings') assert.equal(readingsUseOK(readRepo(file.rel)), true);
-      else assert.equal(holderTokens.length, 3);
+      /* S12 RE-MEASURE: 5 = the mount parameter, the factory argument, first.settings, and gym-app.mjs:298's two
+         reads of `stored.settings` (a PROPERTY of the stored machine record the machine row's title is read
+         from, SC-22). Property positions are free under review F4; the two declared windows are unchanged. */
+      else assert.equal(holderTokens.length, 5);
     });
   }
   for (const [shape, line, regexCount] of [
@@ -1514,11 +1531,15 @@ for (const head of ['if (ok)', 'while (ok)', 'for (;;)']) {
     checkPlantSyntax(gymFile, src);
   });
 }
-test('GREEN review F2: the released gym division after a closing parenthesis stays division', () => {
-  const src = readRepo(gymFile.rel), code = codeOf(src);
-  assert.ok(src.includes('Math.round(next * 100) / 100'));
-  assert.ok(code.includes('Math.round(next * 100) / 100'));
-  assert.deepEqual(releasedRefusals(gymFile, src), []);
+/* S12 RE-MEASURE: the gym card's +/- stepper, whose `Math.round(next * 100) / 100` was this row's witness,
+   is gone (DECISIONS:820 (4): the board has no steps). The same released construct, a division after a
+   closing parenthesis, stands in the weigh-in sheet's stepper in today-app.cjs, so the witness moves there. */
+test('GREEN review F2: the released division after a closing parenthesis stays division (weigh-in sheet)', () => {
+  const appFile = RELEASED_FILES.find((f) => f.rel.endsWith('/today-app.cjs'));
+  const src = readRepo(appFile.rel), code = codeOf(src);
+  assert.ok(src.includes('Math.round(next * 10) / 10'));
+  assert.ok(code.includes('Math.round(next * 10) / 10'));
+  assert.deepEqual(releasedRefusals(appFile, src), []);
 });
 test('Review F1: codeOf preserves length, line count and line-break offsets in all three lexer files', () => {
   for (const rel of RELEASED) {   /* today-app.cjs is IN this list from part 2 on */
@@ -1591,8 +1612,11 @@ for (const [shape, line, reason] of F2_SLASH_ROWS) {
     checkPlantSyntax(gymFile, src);
   });
 }
-const f2Mount = '{ model, onBack, onChanged, onCheckIn, draft, settings } = {}';
-const f2Duplicate = '{ settings: alias, model, onBack, onChanged, onCheckIn, draft, settings } = {}';
+/* S12 RE-MEASURE: the look's mountGym gains onCoach (gym-app.mjs:112, C-UI-4 round 3's coach pill, a
+   navigation callback), inserted before draft and settings, so the holder pin stays green (N4(a)) and only
+   these two anchors move. */
+const f2Mount = '{ model, onBack, onChanged, onCheckIn, onCoach, draft, settings } = {}';
+const f2Duplicate = '{ settings: alias, model, onBack, onChanged, onCheckIn, onCoach, draft, settings } = {}';
 const F2_BINDING_ROWS = [
   ['duplicated-key mount', (s) => s.replace(f2Mount, f2Duplicate)],
   ['renamed key before shorthand', (s) => s.replace('draft, settings }', 'draft, settings: alias, settings }')],
@@ -1712,7 +1736,12 @@ test("RED E.5 row 12: an unfrozen facade in today-lanes.cjs FAILS", () => {
  * as an open STOP. What this row does is stop the debt GROWING: the count is measured and
  * declared, so a look ticket that adds a new `model.` read goes red and has to say so.   */
 
-const TODAY_APP_MODEL_SITES = 32;
+/* S12 ROUND 3 RE-MEASURE (DECISIONS:906): 33, measured, and the one added name is said here as this row asks. The
+   look's inline weigh form (C-UI-3, board #weigh-form T-42..T-51) reads ONE model CONSTANT, model.OUT_OF_RANGE, to
+   flag the field only when the refusal names the weight typed (weighNamesTheField). It is not a writer reach: the
+   form and the Start sheet share submitWeighIn, so the released view still reaches model.weighIn at ONE site
+   (TODAY_APP_DECLARED_SEAMS above, three seams, three sites, unchanged). renderToday's model.read() only moved. */
+const TODAY_APP_MODEL_SITES = 33;
 const TODAY_APP_OPTIONS_SITES = 2;
 
 test("FENCE-MODEL-HELD: the released today-app.cjs names `model` exactly as many times as this round measured", () => {

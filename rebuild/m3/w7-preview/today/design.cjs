@@ -165,6 +165,13 @@ const APPROVED_COPY = Object.freeze([
      (W-06 #talk-workout); and W-18's hint, verbatim in app/states-workout.js. */
   "example", "Today’s set", "Unlogged", "Logged", "RIR (clean reps left)", "Earned is here",
   "No load step is on file for this machine. Type the load you used.",
+  /* S12 round 2 (DECISIONS:905 (3)): the set card's numeral words, the board's own, verbatim in
+     app/app.html #screen-workout .numerals (W-06, and the rest screen W-22): the unit under each
+     figure, "lb" and "reps", and the multiply sign between the two figures. Each is drawn as its own
+     element beside a figure the athlete types into a box, so no whole sentence can carry it; declared
+     here exactly as the board's "example" pill is, so the copy lock pins each by this declaration and
+     its mounted-card check (CL-COMPOSED) can read the card. No template or view byte changes. */
+  "lb", "reps", "\u00d7",
 ]);
 /* Approved copy the VIEW composes at runtime rather than carrying in the template,
    because it sits beside a bound value ("Weight trend 180.1 lb"). Each string is checked
@@ -1133,8 +1140,12 @@ const ENGINE_DIR = "rebuild/engine";
 const ENGINE_TITLE_SOURCES = Object.freeze(["dates.cjs", "constants.cjs", "plan.cjs", "performed.cjs",
   "progression.cjs", "sleep.cjs", "energy.cjs", "policy.cjs", "today.cjs", "volume.cjs",
   "earn.cjs", "writers.cjs", "entered-load.cjs"]);
+/* S12 composition: the sealed S11 engine adds native-load.cjs (FC01, DECISIONS:870-874), which the
+   look's census was written before. It carries no title literal (0 `title:` hits, measured with
+   git grep at the S12 head), so it is ADDED here as a non-title source; nothing is removed, and an
+   unknown or missing engine file still fails the census. */
 const ENGINE_NON_TITLE_SOURCES = Object.freeze([
-  "seed.cjs", "migrate.cjs", "merge.cjs", "index.cjs", "oracle-shim.cjs",
+  "seed.cjs", "migrate.cjs", "merge.cjs", "index.cjs", "oracle-shim.cjs", "native-load.cjs",
 ]);
 function headlineVocabulary(root = ROOT) {
   const dir = path.join(root, ENGINE_DIR);

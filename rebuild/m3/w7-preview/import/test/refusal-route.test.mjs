@@ -31,6 +31,22 @@ const DAY = '2026-09-16', AT = '2026-09-16T16:00:00.000Z';
    baseline column over. */
 const MARKERS = ['db-bench', 'lat-pulldown', 'leg-press'];
 
+/* S12 SC-20, D-W7IMPORT-FLAKE-1: a wait on a CONDITION of the Measure screen, re-rendering it on
+   every turn as the 40-turn loops it replaces did, bounded by a deadline that is a ceiling on
+   failure (it fails HERE, loudly, naming what it waited for) and never the wait itself. */
+const MEASURE_SETTLE_DEADLINE_MS = 30000;
+async function measureSettled(booted, doc, what, done) {
+  const started = Date.now();
+  for (let turns = 0; ; turns++) {
+    if (done()) return;
+    if (Date.now() - started >= MEASURE_SETTLE_DEADLINE_MS)
+      throw new Error('IMPORT-ROUTE-MEASURE-NEVER-SETTLED: waited ' + (Date.now() - started) + ' ms over '
+        + turns + ' turns for ' + what);
+    await new Promise(resolve => setTimeout(resolve, 1));
+    await booted.api.render('measure', false);
+  }
+}
+
 /* THE MEASURE LANE'S OWN OPERATIONS, by their class, so "the import left them
    alone" is a comparison of what is on disk and not a claim. */
 async function opsOfClass(era, wanted) {
@@ -301,10 +317,17 @@ test('P3-X9 - MEASURE FIRST, THEN IMPORT, ON ONE STORE: the athlete opens '
   /* MEASURE, LOOKED AT - rendered and settled until the markers pick is on the
      screen, which is what "the athlete opened Measure" costs the generation. */
   await phone.booted.api.render('measure', true);
-  for (let guard = 0; guard < 40 && !slot(doc, 'measure-marker-pick'); guard++) {
-    await new Promise(resolve => setTimeout(resolve, 1));
-    await phone.booted.api.render('measure', false);
-  }
+  /* S12 SC-20, D-W7IMPORT-FLAKE-1 (DECISIONS:899-900; red first under an injected delay, see the
+     S12 package report). Two suspects, both the :894 (2) class. (1) The wait was a 40 x 1 ms
+     BUDGET that ran out quietly on a loaded runner. (2) The `before` snapshot below was taken as
+     soon as the markers pick showed, while the Measure render was still running its second half:
+     today-app.cjs renderMeasure paints the import link only AFTER awaiting the adoption chain
+     (facade.ready()), so the snapshot could land before that work and race :344/:346. The wait is
+     now on the Measure render's own completion signal - the markers pick AND the import link it
+     paints last - re-rendering on every turn exactly as before, with a deadline that is a ceiling
+     on failure and never the wait. No assertion changes. */
+  await measureSettled(phone.booted, doc, 'the Measure render to finish: the markers pick and its import link',
+    () => !!slot(doc, 'measure-marker-pick') && !!slot(doc, 'import-entry'));
   assert.ok(slot(doc, 'measure-marker-pick'), 'the markers pick never painted');
   const before = await consumers(phone.era, phone.booted);
   assert.ok(before.durable.ops > 1,
@@ -356,10 +379,9 @@ test('P3-X9 - MEASURE FIRST, THEN IMPORT, ON ONE STORE: the athlete opens '
   assert.ok(weeks.length > 0, 'the measure baseline column still reads No baseline yet');
   /* BACK ON THE MEASURE SCREEN ITSELF. */
   await phone.booted.api.render('measure', true);
-  for (let guard = 0; guard < 40 && !slot(doc, 'import-entry'); guard++) {
-    await new Promise(resolve => setTimeout(resolve, 1));
-    await phone.booted.api.render('measure', false);
-  }
+  /* S12 SC-20: the same completion signal, the import link the Measure render paints last. */
+  await measureSettled(phone.booted, doc, 'the Measure render to finish and paint its import link',
+    () => !!slot(doc, 'import-entry'));
   assert.equal(slot(doc, 'import-entry').textContent, Screen.COPY.entryDone,
     'the Measure link still offers an import that has already happened');
   const trialAfter = slot(doc, 'measure-trial-start') && slot(doc, 'measure-trial-start').textContent;

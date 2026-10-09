@@ -270,7 +270,7 @@ test('F3 — the four refusals r7 fired bare now carry names in the vocabulary',
 });
 
 test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION where DECISIONS:414 (2) puts it, M2-S4-REAL-DAY as S3\'s own child directly behind it, and M2-S5-TODAY-CHILD as S4\'s', () => {
-  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'B1', 'B2', 'B4', 'B3']);
+  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'B1', 'B2', 'B4', 'B3']);
   // ":124 — ORDER B-NTC → H3 → B1 → B2 → B4 → B3". DECISIONS:414 (2) adopts the scout's
   // order as PM routing: P1 M2-S3-COMPANION is H3's child and B1 re-pins at its own rebase
   // behind it (CRITICAL-PATH-2026-09-15 section 4 P1). M2-S4-REAL-DAY is S3's own child
@@ -301,8 +301,12 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // S11 brief, section 4: IDS and NO_REGISTER_IDS gain 'S11' after 'S10' and nothing else
   // moves in the runner), so S11 sits directly behind S10 and still ahead of B1: the ruled
   // sequence is now FIFTEEN, and it is still the WHOLE list.
-  assert.deepEqual(api.IDS.slice(0, 15), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'B1', 'B2', 'B4', 'B3']);
-  assert.equal(api.IDS.length, 15);
+  // S12 (M2-S12-LOOK, the look composed onto the sealed S11; an UNSEALED child run with --ci
+  // under the PM's route A of DECISIONS:904) is S11's own child under the same standing ruling
+  // (DECISIONS:455), so S12 sits directly behind S11 and still ahead of B1: the ruled sequence
+  // is now SIXTEEN, and it is still the WHOLE list.
+  assert.deepEqual(api.IDS.slice(0, 16), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'B1', 'B2', 'B4', 'B3']);
+  assert.equal(api.IDS.length, 16);
   assert.equal(api.IDS.includes('B-LOM'), false,
     'the B-LOM id is removed with its skeleton spec, DECISIONS:487 stop 2');
   // AND THE DELETION IS ACCOUNTED FOR RATHER THAN EXEMPTED BY ACCIDENT. Removing an id and
@@ -343,8 +347,11 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // accepted NATIVE-LOAD build composed onto the sealed S10 under the owner's engine grants
   // (DECISIONS:784-785, :796, :803, :804), slice-plan work under DECISIONS:455 with no
   // register D-id. It is an S- id, and the shape assertion below still admits it.
-  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S10', 'S11', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']);
-  assert.equal(api.NO_REGISTER_IDS.size, 11);
+  // S12 is in for the same reason a ninth time: a reseal whose product delta is the accepted
+  // look and the sealed cells it moves, red first and named, with no rebuild/engine byte and
+  // no register D-id. It is an S- id, and the shape assertion below still admits it.
+  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S10', 'S11', 'S12', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']);
+  assert.equal(api.NO_REGISTER_IDS.size, 12);
   for (const id of api.NO_REGISTER_IDS) assert(/^[HFS][0-9]+$/.test(id) || id === 'B-NTC');
   for (const id of api.NO_REGISTER_IDS) assert(api.IDS.includes(id));
 });

@@ -551,7 +551,11 @@ test('S9 - every class the first-run screen uses is a selector in the APPROVED s
   const template = design.templateHtml();
   const start = template.indexOf('<template id="t-setup">');
   const section = template.slice(start, template.indexOf('</template>', start));
-  const css = approved.map((a) => a.styles).join('\n');
+  /* S12 SC-21 (PROPOSED id; red first): the approved stylesheets are the ones design.cjs
+     assertDesignBinding binds every class to under the new look (the 2026-09-18 pack, C-UI-1):
+     the pinned 2026-09-08 LEGACY structure, kept while screens move one by one, laid down before
+     the pinned 2026-09-18 pack. readApproved() alone is now only the new pack. */
+  const css = [...design.readLegacyStructure(), ...approved].map((a) => a.styles).join('\n');
   const tokens = new Set(design.classTokens(section));
   /* Plus every class the VIEW creates at runtime, which the template cannot show. */
   for (const token of ['field', 'options', 'option', 'followup', 'quality-label', 'section-label',
@@ -1075,8 +1079,11 @@ test('S23b / M16 - the dash-normalised harvest, if present, must not weaken any 
      property that makes normalisation safe: a term that differs by ANYTHING other
      than a dash still fails. */
   const normalise = (s) => s.split(EM).join('-').split(EN).join('-');
-  const approved = design.readApproved();
-  const approvedText = approved.map((a) => a.html).join('\n');
+  /* S12 SC-21 (PROPOSED id; red first): under the new look the approved copy references are the
+     pinned COPY_SOURCES text (design.cjs readCopyReferences, the 2026-09-18 pack and the
+     2026-09-08 references it keeps as copy authority), which is what assertDesignBinding holds
+     APPROVED_COPY to; readApproved() now carries stylesheets only, so its `html` read undefined. */
+  const approvedText = design.readCopyReferences().map((r) => r.text).join('\n');
   const carried = design.APPROVED_COPY.filter((line) => normalise(line) !== line);
   for (const line of design.APPROVED_COPY) {
     assert(approvedText.includes(line) || normalise(approvedText).includes(normalise(line)),
@@ -2385,7 +2392,13 @@ test(':132 (3) - screen 2 uses ONE apostrophe, the curly one, in every sentence'
    packages/S11.json, so the declaring-spec chain has to know about it. S11 releases nothing
    and does not declare the two paths S10 released, so their release is still S10's.
    Youngest first, so 'S11' goes last and is consulted first; the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11'];
+/* S12 ADDS 'S12', and the cell is unchanged in every other way. S12 (M2-S12-LOOK) is the reseal
+   child that composes the accepted look onto the SEALED S11 parent (DECISIONS:897, seal tip 7c79ef1;
+   the look DECISIONS:902-904): the files it moves - today-model.cjs and the sealed cells it moves red
+   first among them - are moved BY THAT PACKAGE, declared in packages/S12.json, so the declaring-spec
+   chain has to know about it. S12 releases nothing. Youngest first, so 'S12' goes last and is
+   consulted first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12'];
 function declaredPost(file) {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;

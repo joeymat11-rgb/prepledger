@@ -50,7 +50,7 @@ function activeView() {
   return { phase: 'active', startId: 'copy-lock-start', title: 'Synthetic workout',
     session: { instruction: { display: 'Synthetic workout' } },
     lift: { id: LIFT, label: 'Synthetic lift', index: 1, count: 1 },
-    set: { slot: 0, lift: LIFT, position: 1 },
+    set: { slot: 0, lift: LIFT, position: 1, count: 1 },
     prescription: { reason: ['Synthetic reason'], setup: null, line: 'Synthetic plan', effort: 'Synthetic effort' },
     strip: [], entry: { load: null, reps: null, step: 2.5 }, previous: '', upNext: null, message: null };
 }

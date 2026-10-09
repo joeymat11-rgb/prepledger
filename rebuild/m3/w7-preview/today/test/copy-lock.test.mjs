@@ -36,7 +36,13 @@
  *                 reason, F3a/F3b/F3c, F4, each F5 form); the only cells here that load engine code: the
  *                 twelve public factories plus native-load.cjs, under a loader guard that refuses the
  *                 protected five and every other engine file; CL-ENGINE-OUTPUT-TEETH shows the comment
- *                 decoy and a one-character change in each template literal are each refused */
+ *                 decoy and a one-character change in each template literal are each refused
+ *
+ * Added by S12 (M2-S12-LOOK, the 09-18 look; COPY-LOCK-ADDITIONS.md):
+ *   CL-S12-DELTA  the S12 corpus is the sealed S11 corpus plus exactly copy-lock.s12-delta.json (pieces added,
+ *                 removed and changed, mounted states, scanned files), proven both ways; CL-S11-DELTA runs on
+ *                 the S11 corpus that delta reconstructs byte for byte
+ *   CL-S12-APPROVAL the delta names the ledger line that approves its words (PENDING until the owner rules) */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -55,7 +61,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../../../..');
 const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // The sealed corpus, by value. A re-measure changes this literal in the same reseal child.
-const CORPUS_SHA256 = '58dc7a743fc883af09537a6db7692ac008ae036cb18779333e97e2f504335f8c';
+const CORPUS_SHA256 = '70efc98d97eba4f1b347f523a3ae8a8cb8863171c0860812d832ca80ad98e328';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -293,8 +299,75 @@ function s10View(corpus) {
   return { ...corpus, entries };
 }
 
-test('CL-S11-DELTA: the S11 corpus is the S10 corpus plus exactly the approved S11 copy, each with its owner and approval', () => {
+/* ---------------- S12 (M2-S12-LOOK, the 09-18 look; copy re-measure) ---------------- */
+
+/* The S12 copy delta over the sealed S11 corpus. copy-lock.s12-delta.json (sealed beside the corpus, pinned by
+   S12_DELTA_SHA256) lists every piece the look ADDED, every piece it REMOVED, every piece whose owners, counts or
+   lists CHANGED (before and after, whole), every mounted state whose words changed (before and after), and the
+   scanned files it added. CL-S12-DELTA proves the delta is exact in both directions: each listed piece is in the
+   corpus as listed, and the corpus with the delta taken back out serializes to the SEALED S11 corpus bytes
+   (S11_CORPUS_SHA256), so no unlisted piece, owner, count, list, state or scanned file moved. CL-S11-DELTA below then
+   runs on that reconstructed S11 corpus, unchanged in what it asserts. The words themselves are the owner's to
+   approve: S12_COPY_APPROVAL names the ledger line that approves this delta (CL-S12-APPROVAL). */
+const S11_CORPUS_SHA256 = '58dc7a743fc883af09537a6db7692ac008ae036cb18779333e97e2f504335f8c';
+const S12_DELTA_FILE = path.join(HERE, 'copy-lock.s12-delta.json');
+const S12_DELTA_SHA256 = '33d1c3cdae31c7614250442769c1a61aa7892b761dfef2654520e175fc7f6b3c';
+/* DECISIONS:905 (1) (owner, 2026-10-09: "the PM approves the look's strings against the approved boards and the owner's
+   words of :817/:820", option 1; the owner is sent the full list after release, and any string he flags is changed in a
+   later fix). */
+const S12_COPY_APPROVAL = 'DECISIONS:905';
+const s12Delta = () => {
+  const bytes = fs.readFileSync(S12_DELTA_FILE);
+  return { delta: JSON.parse(bytes.toString('utf8')), sha256: lock.sha256(bytes) };
+};
+const byTextOrder = (a, b) => (a.text < b.text ? -1 : a.text > b.text ? 1 : 0);
+// The S11 view: this corpus with the S12 delta taken back out, whole entries and states restored as sealed.
+function s11View(corpus, delta = s12Delta().delta) {
+  const added = new Set(delta.added.map((e) => e.text));
+  const before = new Map(delta.changed.map((c) => [c.text, c.before]));
+  const entries = corpus.entries.filter((e) => !added.has(e.text)).map((e) => (before.has(e.text) ? before.get(e.text) : e))
+    .concat(delta.removed).sort(byTextOrder);
+  const states = Object.fromEntries(Object.entries(corpus.states).map(([id, s]) => [id, delta.states[id] ? delta.states[id].before : s]));
+  const scanned = corpus.scanned.filter((f) => !delta.scanned.added.includes(f)).concat(delta.scanned.removed)
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  return { ...corpus, scanned, states, entries };
+}
+
+test('CL-S12-DELTA: the S12 corpus is the sealed S11 corpus plus exactly the listed S12 delta, both directions', () => {
   const { corpus } = loaded();
+  const { delta, sha256 } = s12Delta();
+  assert.equal(sha256, S12_DELTA_SHA256, 'CL-S12-DELTA-FILE-MOVED');
+  assert.equal(delta.from, S11_CORPUS_SHA256, 'CL-S12-DELTA-FROM');
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const e of delta.added) if (JSON.stringify(byText.get(e.text) || null) !== JSON.stringify(e)) failed.push('CL-S12-DELTA ADDED ' + JSON.stringify(e.text));
+  for (const e of delta.removed) if (byText.has(e.text)) failed.push('CL-S12-DELTA REMOVED-STILL-THERE ' + JSON.stringify(e.text));
+  for (const c of delta.changed) {
+    if (JSON.stringify(byText.get(c.text) || null) !== JSON.stringify(c.after)) failed.push('CL-S12-DELTA CHANGED-AFTER ' + JSON.stringify(c.text));
+    if (JSON.stringify(c.before) === JSON.stringify(c.after)) failed.push('CL-S12-DELTA CHANGED-NOT-A-CHANGE ' + JSON.stringify(c.text));
+  }
+  for (const [id, s] of Object.entries(delta.states)) if (JSON.stringify(corpus.states[id]) !== JSON.stringify(s.after)) failed.push('CL-S12-DELTA STATE-AFTER ' + id);
+  for (const f of delta.scanned.added) if (!corpus.scanned.includes(f)) failed.push('CL-S12-DELTA SCANNED-ADDED ' + f);
+  const s11 = lock.sha256(Buffer.from(serialize(s11View(corpus, delta)), 'utf8'));
+  if (s11 !== S11_CORPUS_SHA256) failed.push('CL-S12-DELTA S11-VIEW ' + s11);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the S11 corpus
+  const touched = new Set([...delta.added, ...delta.changed].map((e) => e.text));
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => !touched.has(e.text) && Object.keys(e.files).length > 0);
+  assert(other, 'CL-S12-DELTA-TEETH-PRECONDITION');
+  const [owner] = Object.keys(other.files);
+  other.files[owner] += 1;
+  if (lock.sha256(Buffer.from(serialize(s11View(moved, delta)), 'utf8')) === S11_CORPUS_SHA256) failed.push('CL-S12-DELTA S11-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-S12-DELTA');
+});
+
+test('CL-S12-APPROVAL: the S12 copy delta names the ledger line that approves it', () => {
+  assert.match(S12_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-S12-APPROVAL-PENDING: the owner has not approved the S12 copy delta');
+});
+
+test('CL-S11-DELTA: the S11 corpus is the S10 corpus plus exactly the approved S11 copy, each with its owner and approval', () => {
+  // S12: judged on the sealed S11 corpus, which s11View rebuilds byte for byte from this corpus (CL-S12-DELTA)
+  const corpus = s11View(loaded().corpus);
   const byText = new Map(corpus.entries.map((e) => [e.text, e]));
   const failed = [];
   for (const [text, approval] of S11_NEW) {

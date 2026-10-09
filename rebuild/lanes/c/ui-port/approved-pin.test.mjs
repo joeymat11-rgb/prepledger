@@ -91,9 +91,27 @@ const byteCompare = (a, b) => Buffer.compare(Buffer.from(a, "utf8"), Buffer.from
 
 /* THE LITERAL MAP, path to sha256. Key order does not matter to the engine; it is held in
    path BYTE order so a reader can diff two generations of it (R4 N1.1). */
+/* S12 SC-10 (red first; DECISIONS:732 A6, AL1 B2, rev8 STOP-S12-APPROVEDPIN): C-UI-1 moved the
+   pins into the 2026-09-18 pack, and the REAL ROW said so by name, as this cell was written to:
+   UNLISTED for the four 2026-09-18 stylesheets and ORPHAN for the two 2026-09-08 references.
+   The 2026-09-08 references are NOT dropped: under the new look design.cjs still binds to them as
+   copy authority (COPY_SOURCES) and as the legacy screen structure (LEGACY_STRUCTURE), each pinned
+   only by design.cjs's own unsealed constant - exactly the hole this cell closes. So namesOf()
+   below now reads the file NAMES of all three of design.cjs's pinned lists, and this literal holds
+   every one of them, each sha256 MEASURED from the file's own bytes at the S12 head (each equals
+   design.cjs's constant; the cell never reads that constant). Nothing is released: the two old
+   references keep their old pins, and eight files gain one. */
 const LITERAL = Object.freeze({
   "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
-  "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031"
+  "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
+  "rebuild/m1/approved-2026-09-18/app/app.css": "bf4924e74fc4edc5cebf7fba6519613d9eec7f44397db990396fe402c124edc2",
+  "rebuild/m1/approved-2026-09-18/app/app.html": "4c6fc3c69aabb7fcdf34ce6b2f276141f1b649ae9284b15655747ed6d6073c84",
+  "rebuild/m1/approved-2026-09-18/app/states-coach.css": "d33f62e0c54004063b5fe40720f220350d9311213bf80f13d49d260061ca0686",
+  "rebuild/m1/approved-2026-09-18/app/states-coach.js": "6aafa06d080f7fdceaeb4f011a9dd07ea84c012802cabf53ef4dea43a5762e8b",
+  "rebuild/m1/approved-2026-09-18/app/states-today.js": "6f03c468f2bc62108f622f127ec0b5c81589522dea61261e94592151ddd28cbe",
+  "rebuild/m1/approved-2026-09-18/app/states-workout.css": "5d6e4082c88e9129979f764dc992e4cbb0439c3a9b2e0d625535c524d47a4f0a",
+  "rebuild/m1/approved-2026-09-18/app/states-workout.js": "20b597eef4d48ab1011490f99549b38672472d71144c9d179fa2c840dfe2a5be",
+  "rebuild/m1/approved-2026-09-18/app/states.css": "eae53de1838338a76a416052a381494602c5fc9545c330afce2438a19a2ca219"
 });
 
 /* THE FILE LIST, READ AT RUN TIME. It takes the NAMES and nothing else: design.APPROVED's
@@ -102,7 +120,19 @@ const LITERAL = Object.freeze({
 function namesOf(mod) {
   const list = mod && mod.APPROVED;
   if (!Array.isArray(list)) return [];
-  return list.map((e) => (e && typeof e.file === "string" ? e.file : String(e)));
+  /* S12 SC-10: APPROVED first, then the two other pinned lists the new look's binding stands on
+     (COPY_SOURCES, LEGACY_STRUCTURE) where a module carries them, names only, each once, in
+     first-seen order. A module that carries APPROVED alone (every fixture below) reads as before,
+     and an APPROVED that is not a list is still LIST-EMPTY. */
+  const names = [];
+  for (const key of ["APPROVED", "COPY_SOURCES", "LEGACY_STRUCTURE"]) {
+    const entries = key === "APPROVED" ? list : (Array.isArray(mod[key]) ? mod[key] : []);
+    for (const e of entries) {
+      const name = e && typeof e.file === "string" ? e.file : String(e);
+      if (key === "APPROVED" || !names.includes(name)) names.push(name);
+    }
+  }
+  return names;
 }
 
 /* THE ENGINE, a function of (root, the file list, the literal map), shared by every

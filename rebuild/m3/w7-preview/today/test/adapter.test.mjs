@@ -51,16 +51,47 @@ const outboxOf = async repository => Object.values((await generationOf(repositor
    the half a fixture happens to reach; the identity half still holds for every proposal-free
    state, which is every state these cells build, and that is asserted rather than assumed. */
 const PROPOSAL_TITLE = "A CARD TITLE THAT IS NOT TODAY'S SESSION";
+/* S12 SC-9 (red first: the PM's runs %TEMP%\s12-pmrun2 at 96551fb and %TEMP%\s12-pmrun1 at the
+   S12 head, adapter.test.mjs:57 "this state carries no open proposal" 1 !== 0, in both cells that
+   call this law). The look's demo basis now carries the board's ONE open proposal
+   (today-model.cjs withBoardProposal, C-UI-3 R1, DECISIONS:826; rev8 SC-9, the fixture's sealed
+   consumers), so no state these cells build is proposal-free any more and the identity half can
+   no longer be reached through the real view. Nothing the law protects is dropped; each half
+   now stands on a state that really has its shape:
+   (A) the REAL view, over the real state with the board's card: the state carries exactly that
+       one card, the engine itself would put its title on the move, and Today's headline is
+       instead the engine's own move for the same state with its proposals set aside, with the
+       count of what is waiting still the real state's (DECISIONS:534 (a); planMove);
+   (B) the identity half, on that same state with its proposals set aside: Today's projection
+       IS the engine's move, word for word;
+   (C) the hotfix shape, on that proposal-free state with one synthetic card added, exactly as
+       before. Every comparison is still against the reference engine. */
+const BOARD_CARD_TITLE = "Chest";
 function assertHeadlineLaw(view, state) {
-  const open = (state.proposals || []).filter(p => p && !p.resolved).length
-    + (state.agentProposals || []).length;
-  assert.equal(open, 0, "this state carries no open proposal, so the identity is the law for it");
+  const open = (state.proposals || []).filter(p => p && !p.resolved);
+  assert.equal(open.length + (state.agentProposals || []).length, 1,
+    "the demo state carries the board's one open proposal (C-UI-3 R1) and nothing else is open");
+  assert.equal(open[0].title, BOARD_CARD_TITLE, "and it is the board's card");
 
   const reference = createEngine({ clock: engineClockFor(DAY) });
-  assert.equal(view.nowModel.move.title, reference.nowModel(state).move.title,
+  assert.equal(reference.nowModel(state).move.title, BOARD_CARD_TITLE,
+    "the engine no longer puts the open card's title on its move, so this law guards nothing");
+  const proposalFree = JSON.parse(JSON.stringify(state));
+  proposalFree.proposals = [];
+  proposalFree.agentProposals = [];
+  /* (A) */
+  assert.notEqual(view.nowModel.move.title, BOARD_CARD_TITLE,
+    "a decision card's title is the headline over 'Your plan for today' again");
+  assert.equal(view.nowModel.move.title, reference.nowModel(proposalFree).move.title,
+    "Today's headline is not the engine's own move for the same state with its proposals set aside");
+  assert.equal(view.nowModel.decisionsN, 1, "the count of what is waiting is not the real state's");
+  /* (B) */
+  assert.equal(TodayModel.projectionOf(createEngine({ clock: engineClockFor(DAY) }), proposalFree).nowModel.move.title,
+    reference.nowModel(proposalFree).move.title,
     "with nothing open, Today's headline is the engine's own move, word for word");
+  state = proposalFree;
 
-  /* The hotfix shape, over the SAME state with one proposal added. */
+  /* (C) The hotfix shape, over the SAME (proposal-free) state with one proposal added. */
   const waiting = JSON.parse(JSON.stringify(state));
   waiting.proposals = [{ id: "adapter-law", rid: "adapter-law", d: DAY, resolved: false,
     title: PROPOSAL_TITLE, why: "Synthetic proposal, this cell's own." }];

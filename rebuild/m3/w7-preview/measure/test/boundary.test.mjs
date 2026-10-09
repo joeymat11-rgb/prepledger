@@ -153,7 +153,13 @@ test('P-MEASURE (g) - package S4 pins none of this lane\'s new files', () => {
    packages/S11.json, so the declaring-spec chain has to know about it. S11 releases nothing
    and does not declare the two paths S10 released, so their release is still S10's.
    Youngest first, so 'S11' goes last and is consulted first; the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11'];
+/* S12 ADDS 'S12', and the cell is unchanged in every other way. S12 (M2-S12-LOOK) is the reseal
+   child that composes the accepted look onto the SEALED S11 parent (DECISIONS:897, seal tip 7c79ef1;
+   the look DECISIONS:902-904): the files it moves - today-model.cjs and the sealed cells it moves red
+   first among them - are moved BY THAT PACKAGE, declared in packages/S12.json, so the declaring-spec
+   chain has to know about it. S12 releases nothing. Youngest first, so 'S12' goes last and is
+   consulted first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12'];
 const declaredPost = (file) => {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;

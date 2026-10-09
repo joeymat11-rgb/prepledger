@@ -182,8 +182,19 @@ jobs:
       # declared child carries an observed needle, this step reports the runner's own refusal
       # by name rather than PASS; that is the expected pre-seal state. The step NAME moves
       # with it.
-      - name: Cumulative S11 NATIVE-LOAD reseal, S10 Today split, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S11
+      # S12 SUCCEEDS M2-S11-NATIVE-LOAD HERE, by the same rule an eleventh time, and the flip
+      # again lives INSIDE the package (ef21153's shape; DECISIONS:498). S12 is the LOOK reseal:
+      # it composes the accepted look (the C-UI lane, DECISIONS:902-904) onto the SEALED S11
+      # (DECISIONS:897, seal tip 7c79ef1) and moves the sealed cells that encode the old look red
+      # first, each named. UNLIKE S11 it moves NO rebuild/engine byte and declares no gate
+      # supersession; under the PM's route A of DECISIONS:904 it is an UNSEALED child run with
+      # --ci only (no sealed --full run, no receipt, no VERDICT), so the coach ENGINE_REVISION stays
+      # M2-S11-NATIVE-LOAD@48574b8d8f252e87. Until its THEME and BRIEF-BY-SHA lines stand on the
+      # chain branch and every declared child carries an observed needle, this step reports the
+      # runner's own refusal by name rather than PASS; that is the expected pre-ruling state. The
+      # step NAME moves with it.
+      - name: Cumulative S12 LOOK reseal, S11 NATIVE-LOAD reseal, S10 Today split, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S12
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -279,8 +290,13 @@ jobs:
       # S10 NAMES THE FIVE GSS ANNEX FILES HERE (S10-WORKING-BRIEF.md c58b892 sections 4.2
       # and 10.1): GYM-SETTINGS-WRITER-SEAL 66d32530 added them under today/test/, so the
       # 13-name rule above requires this line to name them, by exact path and never globbed.
+      # S12 NAMES THE LOOK'S FIVE TEST FILES HERE (DECISIONS:821; the look's C-UI-1, -2, -3, -4
+      # and -6 cells): scene.test.mjs, look-cui2.test.mjs, look-cui3.test.mjs, workout-look.test.mjs
+      # and coach.test.mjs stand under today/test/, so cell H3/13 requires this line to name each
+      # of them, appended by exact path and never globbed. S12 also runs them as its own declared
+      # child s12-look, so they are named twice on purpose.
       - name: A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup; and P-MEASURE's four page-stack suites
-        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy-lock.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-identity-reentrancy.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-log-timing.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-remount.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs rebuild/m3/w7-preview/measure/test/journey.test.mjs rebuild/m3/w7-preview/measure/test/lane.test.mjs rebuild/m3/w7-preview/measure/test/baseline.test.mjs rebuild/m3/w7-preview/measure/test/boundary.test.mjs rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs
+        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy-lock.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-identity-reentrancy.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-log-timing.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-remount.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs rebuild/m3/w7-preview/measure/test/journey.test.mjs rebuild/m3/w7-preview/measure/test/lane.test.mjs rebuild/m3/w7-preview/measure/test/baseline.test.mjs rebuild/m3/w7-preview/measure/test/boundary.test.mjs rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs rebuild/m3/w7-preview/today/test/scene.test.mjs rebuild/m3/w7-preview/today/test/look-cui2.test.mjs rebuild/m3/w7-preview/today/test/look-cui3.test.mjs rebuild/m3/w7-preview/today/test/workout-look.test.mjs rebuild/m3/w7-preview/today/test/coach.test.mjs
       # M2-S9-UI-PINS ADDS THE SEALED-INVENTORY FENCE HERE, beside the today step, under
       # the same DECISIONS:117 (4) licence (S9-RELEASE-SPEC.md D.2, D.3). It asks what no
       # other step asks: of the paths this branch touched since its merge-base with the
@@ -413,6 +429,14 @@ jobs:
       - name: B - S11-REGEN's path boundary and write contract, on synthetic ports
         if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/b/S11-REGEN.test.cjs
+      # S12 GIVES rebuild/lanes/b/S12-REGEN.test.cjs ITS CI HOME, the way S11 gave S11-REGEN.test.cjs
+      # one: the refusal rows of the helper that re-measures packages/S12.json at the S11 seal,
+      # compiled on fake git and filesystem ports, reading nothing of the repository. S10's and S11's
+      # steps above STAY, unchanged. Same condition shape; row (40) of the sealed-inventory fence cell
+      # reads this line. No declared child mirrors it, for the reason S10's comment gives.
+      - name: B - S12-REGEN's path boundary and write contract, on synthetic ports
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/lanes/b/S12-REGEN.test.cjs
       # M2-S7-PORT-ADMISSION ADDS ITS OWN THREE LANE CELLS HERE, under the same
       # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason: they arrived
       # with P3-PORT-FIX and P3-PORT-FIX-2 (DECISIONS:509, :510) and no workflow names

@@ -1,0 +1,5227 @@
+{
+ "schema": "earned/copy-lock-delta/v1",
+ "note": "S12 (M2-S12-LOOK) copy delta over the sealed S11 corpus (the 09-18 look as built). Sealed. Checked by CL-S12-DELTA in copy-lock.test.mjs; approved at S12_COPY_APPROVAL.",
+ "from": "58dc7a743fc883af09537a6db7692ac008ae036cb18779333e97e2f504335f8c",
+ "scanned": {
+  "added": [
+   "rebuild/m3/w7-preview/today/coach-app.mjs",
+   "rebuild/m3/w7-preview/today/scene.mjs"
+  ],
+  "removed": []
+ },
+ "states": {
+  "GYM-ACTIVE-SET": {
+   "before": {
+    "error": "",
+    "texts": [
+     "+",
+     "2",
+     "Actual reps",
+     "Actual weight in pounds",
+     "Checking this device's local storage…",
+     "Clean reps left",
+     "Decrease reps",
+     "Decrease weight",
+     "Earned Today",
+     "Earned · Today",
+     "Earned: Today",
+     "Exercise 1 of 1",
+     "How are you feeling today?",
+     "Increase reps",
+     "Increase weight",
+     "Log set 1",
+     "Machine settings",
+     "No settings saved yet.",
+     "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+     "Ready.",
+     "Reps",
+     "Set progress",
+     "Setup",
+     "Synthetic effort",
+     "Synthetic lift",
+     "Synthetic plan",
+     "Synthetic reason",
+     "Synthetic workout",
+     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+     "This set’s plan",
+     "Up next",
+     "Weight (lb)",
+     "What counts as a clean rep?",
+     "What you did · Set 1",
+     "Why?",
+     "Your settings for this machine",
+     "at the end",
+     "←",
+     "−"
+    ]
+   },
+   "after": {
+    "error": "",
+    "texts": [
+     "2",
+     "Back to Today",
+     "Checking this device's local storage…",
+     "Earned",
+     "Earned Today",
+     "Earned is here",
+     "Earned · Today",
+     "Earned: Today",
+     "Example numbers, not your data",
+     "How are you feeling today?",
+     "Log set 1",
+     "Machine settings",
+     "No load step is on file for this machine. Type the load you used.",
+     "No settings saved yet.",
+     "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+     "RIR (clean reps left)",
+     "Ready.",
+     "Reps",
+     "Set 1 of 1",
+     "Setup",
+     "Synthetic effort",
+     "Synthetic lift",
+     "Synthetic plan",
+     "Synthetic reason",
+     "Synthetic workout",
+     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+     "Today’s set",
+     "Unlogged",
+     "Weight (lb)",
+     "What counts as a clean rep?",
+     "Why?",
+     "Your settings for this machine",
+     "example",
+     "lb",
+     "reps",
+     "×"
+    ]
+   }
+  },
+  "GYM-SETTINGS-EDITOR-OPEN": {
+   "before": {
+    "error": "",
+    "texts": [
+     "+",
+     "2",
+     "Actual reps",
+     "Actual weight in pounds",
+     "Add another setting",
+     "Anything to remember",
+     "Checking this device's local storage…",
+     "Clean reps left",
+     "Close without saving",
+     "Decrease reps",
+     "Decrease weight",
+     "Earned Today",
+     "Earned · Today",
+     "Earned: Today",
+     "Exercise 1 of 1",
+     "How are you feeling today?",
+     "Increase reps",
+     "Increase weight",
+     "Log set 1",
+     "Machine settings",
+     "No settings saved yet.",
+     "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+     "Ready.",
+     "Reps",
+     "Save the settings for this machine",
+     "Save these settings",
+     "Set progress",
+     "Setting",
+     "Setup",
+     "Synthetic effort",
+     "Synthetic lift",
+     "Synthetic plan",
+     "Synthetic reason",
+     "Synthetic workout",
+     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+     "This set’s plan",
+     "Up next",
+     "Value",
+     "Weight (lb)",
+     "What counts as a clean rep?",
+     "What you did · Set 1",
+     "Why?",
+     "Your settings for this machine",
+     "at the end",
+     "←",
+     "−"
+    ]
+   },
+   "after": {
+    "error": "",
+    "texts": [
+     "2",
+     "Add another setting",
+     "Anything to remember",
+     "Back to Today",
+     "Checking this device's local storage…",
+     "Close without saving",
+     "Earned",
+     "Earned Today",
+     "Earned is here",
+     "Earned · Today",
+     "Earned: Today",
+     "Example numbers, not your data",
+     "How are you feeling today?",
+     "Log set 1",
+     "Machine settings",
+     "No load step is on file for this machine. Type the load you used.",
+     "No settings saved yet.",
+     "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+     "RIR (clean reps left)",
+     "Ready.",
+     "Reps",
+     "Save the settings for this machine",
+     "Save these settings",
+     "Set 1 of 1",
+     "Setting",
+     "Setup",
+     "Synthetic effort",
+     "Synthetic lift",
+     "Synthetic plan",
+     "Synthetic reason",
+     "Synthetic workout",
+     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+     "Today’s set",
+     "Unlogged",
+     "Value",
+     "Weight (lb)",
+     "What counts as a clean rep?",
+     "Why?",
+     "Your settings for this machine",
+     "example",
+     "lb",
+     "reps",
+     "×"
+    ]
+   }
+  },
+  "GYM-SETTINGS-REFUSED-EMPTY": {
+   "before": {
+    "error": "Add a setting or a cue before saving. Nothing was recorded.",
+    "texts": [
+     "+",
+     "2",
+     "Actual reps",
+     "Actual weight in pounds",
+     "Add a setting or a cue before saving. Nothing was recorded.",
+     "Add another setting",
+     "Anything to remember",
+     "Checking this device's local storage…",
+     "Clean reps left",
+     "Close without saving",
+     "Decrease reps",
+     "Decrease weight",
+     "Earned Today",
+     "Earned · Today",
+     "Earned: Today",
+     "Exercise 1 of 1",
+     "How are you feeling today?",
+     "Increase reps",
+     "Increase weight",
+     "Log set 1",
+     "Machine settings",
+     "No settings saved yet.",
+     "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+     "Ready.",
+     "Reps",
+     "Save the settings for this machine",
+     "Save these settings",
+     "Set progress",
+     "Setting",
+     "Setup",
+     "Synthetic effort",
+     "Synthetic lift",
+     "Synthetic plan",
+     "Synthetic reason",
+     "Synthetic workout",
+     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+     "This set’s plan",
+     "Up next",
+     "Value",
+     "Weight (lb)",
+     "What counts as a clean rep?",
+     "What you did · Set 1",
+     "Why?",
+     "Your settings for this machine",
+     "at the end",
+     "←",
+     "−"
+    ]
+   },
+   "after": {
+    "error": "Add a setting or a cue before saving. Nothing was recorded.",
+    "texts": [
+     "2",
+     "Add a setting or a cue before saving. Nothing was recorded.",
+     "Add another setting",
+     "Anything to remember",
+     "Back to Today",
+     "Checking this device's local storage…",
+     "Close without saving",
+     "Earned",
+     "Earned Today",
+     "Earned is here",
+     "Earned · Today",
+     "Earned: Today",
+     "Example numbers, not your data",
+     "How are you feeling today?",
+     "Log set 1",
+     "Machine settings",
+     "No load step is on file for this machine. Type the load you used.",
+     "No settings saved yet.",
+     "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+     "RIR (clean reps left)",
+     "Ready.",
+     "Reps",
+     "Save the settings for this machine",
+     "Save these settings",
+     "Set 1 of 1",
+     "Setting",
+     "Setup",
+     "Synthetic effort",
+     "Synthetic lift",
+     "Synthetic plan",
+     "Synthetic reason",
+     "Synthetic workout",
+     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+     "Today’s set",
+     "Unlogged",
+     "Value",
+     "Weight (lb)",
+     "What counts as a clean rep?",
+     "Why?",
+     "Your settings for this machine",
+     "example",
+     "lb",
+     "reps",
+     "×"
+    ]
+   }
+  },
+  "GYM-SETTINGS-N2": {
+   "before": {
+    "error": "Add a setting or a cue before saving. Nothing was recorded.",
+    "texts": [
+     "+",
+     "2",
+     "Actual reps",
+     "Actual weight in pounds",
+     "Add a setting or a cue before saving. Nothing was recorded.",
+     "Add another setting",
+     "Anything to remember",
+     "Checking this device's local storage…",
+     "Clean reps left",
+     "Close without saving",
+     "Decrease reps",
+     "Decrease weight",
+     "Earned Today",
+     "Earned · Today",
+     "Earned: Today",
+     "Exercise 1 of 1",
+     "How are you feeling today?",
+     "Increase reps",
+     "Increase weight",
+     "Log set 1",
+     "Machine settings",
+     "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+     "Ready.",
+     "Reps",
+     "Save the settings for this machine",
+     "Save these settings",
+     "Seat",
+     "Set progress",
+     "Setting",
+     "Setup",
+     "Synthetic effort",
+     "Synthetic lift",
+     "Synthetic plan",
+     "Synthetic reason",
+     "Synthetic workout",
+     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+     "This set’s plan",
+     "Up next",
+     "Value",
+     "Weight (lb)",
+     "What counts as a clean rep?",
+     "What you did · Set 1",
+     "Why?",
+     "Your settings for this machine",
+     "at the end",
+     "four",
+     "six",
+     "←",
+     "−"
+    ]
+   },
+   "after": {
+    "error": "Add a setting or a cue before saving. Nothing was recorded.",
+    "texts": [
+     "2",
+     "Add a setting or a cue before saving. Nothing was recorded.",
+     "Add another setting",
+     "Anything to remember",
+     "Back to Today",
+     "Checking this device's local storage…",
+     "Close without saving",
+     "Earned",
+     "Earned Today",
+     "Earned is here",
+     "Earned · Today",
+     "Earned: Today",
+     "Example numbers, not your data",
+     "How are you feeling today?",
+     "Log set 1",
+     "Machine settings",
+     "No load step is on file for this machine. Type the load you used.",
+     "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+     "RIR (clean reps left)",
+     "Ready.",
+     "Reps",
+     "Save the settings for this machine",
+     "Save these settings",
+     "Seat",
+     "Seat four.",
+     "Set 1 of 1",
+     "Setting",
+     "Setup",
+     "Synthetic effort",
+     "Synthetic lift",
+     "Synthetic plan",
+     "Synthetic reason",
+     "Synthetic workout",
+     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+     "Today’s set",
+     "Unlogged",
+     "Value",
+     "Weight (lb)",
+     "What counts as a clean rep?",
+     "Why?",
+     "Your settings for this machine",
+     "example",
+     "lb",
+     "reps",
+     "six",
+     "×"
+    ]
+   }
+  },
+  "GYM-SETTINGS-SAVED": {
+   "before": {
+    "error": "",
+    "texts": [
+     "+",
+     "2",
+     "Actual reps",
+     "Actual weight in pounds",
+     "Checking this device's local storage…",
+     "Clean reps left",
+     "Decrease reps",
+     "Decrease weight",
+     "Earned Today",
+     "Earned · Today",
+     "Earned: Today",
+     "Exercise 1 of 1",
+     "How are you feeling today?",
+     "Increase reps",
+     "Increase weight",
+     "Log set 1",
+     "Machine settings",
+     "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+     "Ready.",
+     "Reps",
+     "Seat",
+     "Set progress",
+     "Setup",
+     "Synthetic effort",
+     "Synthetic lift",
+     "Synthetic plan",
+     "Synthetic reason",
+     "Synthetic workout",
+     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+     "This set’s plan",
+     "Up next",
+     "Weight (lb)",
+     "What counts as a clean rep?",
+     "What you did · Set 1",
+     "Why?",
+     "Your settings for this machine",
+     "at the end",
+     "six",
+     "←",
+     "−"
+    ]
+   },
+   "after": {
+    "error": "",
+    "texts": [
+     "2",
+     "Back to Today",
+     "Checking this device's local storage…",
+     "Earned",
+     "Earned Today",
+     "Earned is here",
+     "Earned · Today",
+     "Earned: Today",
+     "Example numbers, not your data",
+     "How are you feeling today?",
+     "Log set 1",
+     "Machine settings",
+     "No load step is on file for this machine. Type the load you used.",
+     "Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.",
+     "RIR (clean reps left)",
+     "Ready.",
+     "Reps",
+     "Seat six.",
+     "Set 1 of 1",
+     "Setup",
+     "Synthetic effort",
+     "Synthetic lift",
+     "Synthetic plan",
+     "Synthetic reason",
+     "Synthetic workout",
+     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
+     "Today’s set",
+     "Unlogged",
+     "Weight (lb)",
+     "What counts as a clean rep?",
+     "Why?",
+     "Your settings for this machine",
+     "example",
+     "lb",
+     "reps",
+     "×"
+    ]
+   }
+  }
+ },
+ "added": [
+  {
+   "text": " coach classes harvested",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " coach strings harvested",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " could not be located",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " is under way.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " is-",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " is-active",
+   "files": {
+    "rebuild/m3/w7-preview/today/scene.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " is-refusal",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " logged. Nothing to decide.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " muted",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " now",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " rir-refusal",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " skip",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " today. Nothing to decide.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " today. One answer recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " today. One change to review.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " today. Sample data.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " today. Your calorie range is not available yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": " unsure",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "\" carries a dash",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "(prefers-reduced-motion: reduce)",
+   "files": {
+    "rebuild/m3/w7-preview/today/scene.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ", tomorrow.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "--headline: 33px",
+   "files": {
+    "rebuild/m3/w7-preview/today/preview.css": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "A live voice session cannot start on this build: there is no verified spending cap for it, and there is no way to override that here.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Add one set this week",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "An earlier workout is still open.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Answer, last comparable",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, next set",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, no calorie band",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, no check-in lane",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, no current set",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, no protein target",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, no qualified comparison",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, no reading stored",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, no session composed",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, no session today",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, no trend weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, nothing recorded for the check-in",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, protein target present",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, rate not measured",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, that was the last set",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, the check-in read back",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, the current set",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, the engine has no reason",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, the sleep record already holds the night",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, today’s plan",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, weight trend",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answer, why this instruction",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Answering",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Applied",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "At least 160 grams is the provisional protein target, using the available lean-mass input. It is not a measured personal minimum.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "C-UI-1 SCENE-ASSETS-MISSING",
+   "files": {
+    "rebuild/m3/w7-preview/today/scene.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "C01 C02 C03 C04 C05",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "C02 V04 P01 P02 P03",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "C03 C04",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-BINDING FAIL: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-BINDING FAIL: .",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-BINDING FAIL: COACH_CLASSES could not be located in ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-BINDING FAIL: only ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-BINDING FAIL: the coach screen is not in the shipped template",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-BINDING FAIL: the coach template lacks ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-BINDING FAIL: the copy region of ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-SOURCE-PIN FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-BINDING FAIL: adopted runtime copy missing from ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-BINDING FAIL: adopted runtime copy missing from the view: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-BINDING FAIL: preview runtime copy is already approved: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COPY-SOURCE-PIN FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Change my answer",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Changing your answer works until the plan is next built.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Chest is at 11 sets this week.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Chest press seat 4, back pad 2. Keep the handles on the low setting. That is what you told me, and I kept it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Chest press, set 2 of 3. 105 lb for 8 reps. Aim to finish with 2 clean reps left. Seat 4.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Coach.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Coach: a document and a host are required",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Coach: missing approved template t-coach",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Coach: the t-coach template is not the pack's chassis",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "DM Sans",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned Sans",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned Serif",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned could not use the microphone on this device. The browser said:",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Earned is here",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Enter",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Example numbers, not your data",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 4
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "From the engine’s stored plan. Example numbers.",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "From this device’s encrypted local store. Example numbers.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "From your check-in on Wed, Sep 16. You were asked how your energy was, and you said 3 of 5. The plan keeps today’s session as it is.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "General unavailable",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Go ahead.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "HEADLINE-SOURCE-CENSUS FAIL: missing ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "HEADLINE-SOURCE-CENSUS FAIL: unknown ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Hold the bench at 105 and let the reps come back. Two sets came up short last session, so the engine keeps the load until the reps are clean.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "I cannot answer that from what the app holds.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "I could not keep that, and I have kept nothing.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "I do not have a calorie band for you today, so I am not going to make one up.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "I do not have a protein target for you.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "I do not have it yet. Tell me while you are there and I will keep it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "I have not recorded which machine you used. There is no field for equipment anywhere in this app, so there is nowhere to keep it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "I have nothing comparable on file for that lift, and I am not going to reach into the session log for something that is not.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "I need to know which machine you mean.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Idle",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "It applies when your plan is next built.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "I’ll tap instead",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Kept: chest press seat 4, back pad 2. I will read it back next time you ask.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "LEGACY-STRUCTURE-PIN FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "LEGACY-STRUCTURE-STYLES FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Last time on this machine at this seat: 105 lb × 8 reps on Sep 9. Nothing else on file is comparable.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Liberation Serif",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Listening",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Log ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Logged",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Logged set 2. 105 lb for 8 reps, 2 clean reps left. Next is seated row, set 1.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Logging a set, confirmation needed",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Logging a set, effort missing",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Logging a set, entry missing",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Logging a set, no session",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Machine setting unknown",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Machine settings captured",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Machine settings could not be kept",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Machine settings recalled",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Machine unnamed",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Maintenance is not measured yet. I do not have a number for you, and I am not going to make one up.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Mic unavailable or denied",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Microphone not available",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "N01 C04",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "N02 N04",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "N03 N10 C04",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "N05 C04",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "NOT WIRED",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Next is seated row, set 1 of 3. 90 lb for 10 reps. Aim to finish with 2 clean reps left.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No engine entry point re-plans on pain, on equipment or on time away, so I cannot ask for one.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No expiry: the card stays until the plan is next built.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No gym session is composed on this device, so there is no set to log.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No gym session is composed on this device. Nothing changed.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No live adapter",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No load step is on file for this machine. Type the load you used.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "No place to keep machine settings",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No reading is stored yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No verified spending cap",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "No, keep cutting",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "No, keep it as is",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "No, keep the plan’s steps",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Not an athlete-facing state. A number the coach cannot trace marks the transcript and the turn does not ship.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "NotAllowedError: Permission denied",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Nothing changed.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 7
+   },
+   "lists": []
+  },
+  {
+   "text": "Nothing changes until you say yes.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Nothing changes.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Nothing else leaves. Your weigh-ins, your sets and your check-ins stay in this device’s encrypted local store.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Nothing is recorded for the check-in on Wed, Sep 16.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Nothing is written until you say yes. I have not recorded your sleep answer.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Nothing scheduled today, so there is nothing to start.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Nothing to decide. Next: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "OFFLINE-ASSET-REWRITE FAIL",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Offline",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "One call needs you",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Opt-in required",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Optional. How are you feeling?",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "R01 R07",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "R07 R04",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "RIR (clean reps left)",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "RULED OUT",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Recorded. What went down: energy 3 of 5 on Wed, Sep 16. The plan does not change today’s session.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Recovery check in",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "SCENE-ASSET-MISSING FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "SCENE-ASSET-PIN FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Save",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 2
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Saving",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Say yes and I will log 50 lb for 8 reps. Nothing is recorded yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Send",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Session ended",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Set logged",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Start again",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Start set ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "T01 T02",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "T01 T02 T08",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "T01 T08 T09",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "T02 N01 N05 R05",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "T04 R05 N03",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "T08 C02",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "T13 V01",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "TEST GATE",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Talk through today’s plan",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Talk through today’s plan.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tap mode, I’ll tap instead",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tap to speak",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Tap to stop",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tell me how many clean reps you had left, or say you are unsure.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tell me the weight and the reps you actually did.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Text mode for loud gyms",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That audio and that text leave this phone so they can be answered, and the answer comes back here.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That is not one of the answers on the check-in sheet. Soreness is recorded as none, a little, or a lot.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That is not something this conversation changes.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That proposal did not come from the engine. I do not build numbers of my own, and I will not act on one.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That was the last set.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The app ended the call.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The audio of what you say, and the text of what you say and what is said back.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The calorie floor is a modeled estimate using the available lean-mass input and energy-availability formula, not a proved personal safety boundary. I can read the available number and reasoning; I cannot move it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The coach screen stub",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The engine gave no reasoning for that number.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The engine issued no proposal, so there is nothing to accept.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The layer’s own reason: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "The microphone on this phone, while a session is open. The mic is off at every other moment.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The rate is not measured yet, so I have no weekly number for you.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The session is not started, so there is no current set.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "There is no check-in lane on this device. Nothing changed.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "There is no live coach in this build.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "There is no place on this device to keep machine settings yet, so I have none to read back.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "There is no training session on the board today.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "There is no trend weight on this device yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "There is no way on this device to record an answer to a proposal, so I have not recorded one.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This conversation doesn’t change your plan.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "This device is offline. Everything else in Earned works.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This device’s record did not verify. Nothing on this screen is a value.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "This is your choice alone, and you can turn it off again at any time.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This set could not be recorded on this device, and no part of it was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Tier 1 answer outside the approved sheet",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 1 fact recorded",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 1 fact, confirmation required",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 1, already recorded today",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 1, equipment unavailable",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 2 proposal accepted",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 2 proposal applied by the engine",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 2 proposal declined",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 2 proposal expired",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 2 proposal offered",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 2 proposal undone after acceptance",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 2, no consent surface",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 2, no re-plan entry point for this fact",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 2, the model tried to construct a number",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 2, the producer issued nothing",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 3 refusal",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Tier 3, unrecognised topic",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today is upper body. Eat between 2,100 and 2,300 calories. The provisional protein target is at least 160 grams. If the bench reps come back clean: the load goes back up.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Today’s exercises are not available, so there is nothing to start.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Today’s set",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Today’s workout cannot open.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Turn on voice",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Type to Earned",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Unknown value, I do not have",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Unlogged",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Untraceable number caught",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Use text mode",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Use the machine’s own steps",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Use voice",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "V05 V06 V07 V08",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Voice coaching",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Voice is off for this session. Tap the prompts or type.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Voice is off until you turn it on. Everything else in Earned works without it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Voice needs a connection",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Wed, Sep 16",
+   "files": {
+    "rebuild/m3/w7-preview/today/scene.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "What am I hitting today?",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What it uses",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What’s my seat on the chest press?",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Where it goes",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Why is today lighter than last week?",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Why one set?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Withdrawn",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Withdrawn.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Yes, add it",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Yes, log it",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "Yes, take the break",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Yes, use them",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "You asked: are you a live coach?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You asked: how much did I lift in June?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You asked: should I add a set?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You asked: what am I hitting today?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You asked: what is my maintenance?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You asked: what’s my seat?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said no.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "You said yes.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 3,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "You said: 105 for 8.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: 50 for 8.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: about seven and a half hours.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: book me a massage.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: energy 4 of 5.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: log that set.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: lower my calorie floor.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: make it 12 sets.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: my legs are wrecked.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: my shoulder hurts.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: start a voice session.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: yes, add it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "You said: yes.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your call",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Your chest lifts are holding while the scale falls. One more set is the smallest move that can show up.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-model.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your plan was rebuilt and this proposal no longer applies.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Your sleep record already has the night of Tue, Sep 15: 7.2 hours. I would ask you to confirm that rather than ask again.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your trend weight is 181.4 pounds. You are losing about 0.9 pounds a week, somewhere between 0.6 and 1.2 pounds a week, measured across 14 readings from Aug 20 to Sep 16. Your last reading was Sep 16.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "Your weight in pounds",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 2
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "answer card (copy variant)",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "cap refusal block",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "chip choice",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "coach answer card",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 5
+   },
+   "lists": []
+  },
+  {
+   "text": "coach board (the reference state)",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "coach prompt",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "coach prompt, RIR chips",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "confirm control",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "decision mic-alt",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "example",
+   "files": {},
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "eyebrow panel-h",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "lb",
+   "files": {},
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "link undo",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "link why",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "listening indicator",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "mic refusal block",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "none (a test gate)",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "note-block sample",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "opt-in panel",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "panel-body scrolls",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "proposal card",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "proposal card, applied",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "proposal card, open",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "proposal card, recorded",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 3
+   },
+   "lists": []
+  },
+  {
+   "text": "refusal card",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 8
+   },
+   "lists": []
+  },
+  {
+   "text": "refusal note-block w-refusal",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": "refusal note-block w-refusal w-card-refusal",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "reps",
+   "files": {},
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "scene-frame screen screen-",
+   "files": {
+    "rebuild/m3/w7-preview/today/scene.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "session-ended block",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "status pill",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "tap-instead control",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "tcard proposal",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "text input mode",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "w-reason w-more",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "weigh-note refusal",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "×",
+   "files": {},
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  }
+ ],
+ "removed": [
+  {
+   "text": " current",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Actual reps",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Actual weight in pounds",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Ask your coach",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
+   "text": "COPY-BINDING FAIL: preview-owned runtime copy is in the approved references and must be declared approved: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Decrease reps",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Exercise ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 2
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Increase reps",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Instrument Sans",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Instrument Serif",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Ready for set ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Record this weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Set progress",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "TYPOGRAPHY-MANIFEST FAIL",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "TYPOGRAPHY-SIZE FAIL: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Take your rest.",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This set’s plan",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This weight could not be recorded, and nothing was recorded. ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Up next",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "at the end",
+   "files": {
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  }
+ ],
+ "changed": [
+  {
+   "text": " is not in the approved stylesheets",
+   "before": {
+    "text": " is not in the approved stylesheets",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": " is not in the approved stylesheets",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": " of ",
+   "before": {
+    "text": " of ",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 3,
+     "rebuild/m3/w7-preview/today/setup-model.mjs": 1,
+     "rebuild/slice/pwa/preflight.js": 1
+    },
+    "lists": [
+     "RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": " of ",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 2,
+     "rebuild/m3/w7-preview/today/setup-model.mjs": 1,
+     "rebuild/slice/pwa/preflight.js": 1
+    },
+    "lists": [
+     "RUNTIME_COPY"
+    ]
+   }
+  },
+  {
+   "text": "\" is not in the approved references",
+   "before": {
+    "text": "\" is not in the approved references",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "\" is not in the approved references",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "About how many hours did you sleep?",
+   "before": {
+    "text": "About how many hours did you sleep?",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "About how many hours did you sleep?",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Add a setting or a cue before saving. Nothing was recorded.",
+   "before": {
+    "text": "Add a setting or a cue before saving. Nothing was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Add a setting or a cue before saving. Nothing was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Add another setting",
+   "before": {
+    "text": "Add another setting",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Add another setting",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "An earlier workout was never finished",
+   "before": {
+    "text": "An earlier workout was never finished",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "An earlier workout was never finished",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Anything to remember",
+   "before": {
+    "text": "Anything to remember",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Anything to remember",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Ask your coach.",
+   "before": {
+    "text": "Ask your coach.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": [
+     "APPROVED_COPY"
+    ]
+   },
+   "after": {
+    "text": "Ask your coach.",
+    "files": {
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Back to Today",
+   "before": {
+    "text": "Back to Today",
+    "files": {
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "Back to Today",
+    "files": {
+     "rebuild/m3/w7-preview/today/screens.template.html": 4
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Bed and wake times",
+   "before": {
+    "text": "Bed and wake times",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Bed and wake times",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Bed time",
+   "before": {
+    "text": "Bed time",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Bed time",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Calories eaten",
+   "before": {
+    "text": "Calories eaten",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Calories eaten",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Cancel",
+   "before": {
+    "text": "Cancel",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Cancel",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Change sleep",
+   "before": {
+    "text": "Change sleep",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Change sleep",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Checking whether sleep was saved.",
+   "before": {
+    "text": "Checking whether sleep was saved.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Checking whether sleep was saved.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Chest",
+   "before": {
+    "text": "Chest",
+    "files": {
+     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "Chest",
+    "files": {
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+     "rebuild/m3/w7-preview/today/setup-model.mjs": 1,
+     "rebuild/m3/w7-preview/today/today-model.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Choose a completed night.",
+   "before": {
+    "text": "Choose a completed night.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Choose a completed night.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Choose times or hours asleep.",
+   "before": {
+    "text": "Choose times or hours asleep.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Choose times or hours asleep.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Clean reps left",
+   "before": {
+    "text": "Clean reps left",
+    "files": {
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "Clean reps left",
+    "files": {
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Close without saving",
+   "before": {
+    "text": "Close without saving",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Close without saving",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Copied. Send it to Joe.",
+   "before": {
+    "text": "Copied. Send it to Joe.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Copied. Send it to Joe.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Corrected ",
+   "before": {
+    "text": "Corrected ",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Corrected ",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Decrease weight",
+   "before": {
+    "text": "Decrease weight",
+    "files": {
+     "rebuild/m3/w7-preview/today/screens.template.html": 2
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "Decrease weight",
+    "files": {
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Each setting needs a short name and a short value, and each name only once. Nothing was recorded.",
+   "before": {
+    "text": "Each setting needs a short name and a short value, and each name only once. Nothing was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Each setting needs a short name and a short value, and each name only once. Nothing was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Earned",
+   "before": {
+    "text": "Earned",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 2,
+     "rebuild/m3/w7-preview/today/setup-model.mjs": 1,
+     "rebuild/slice/pwa/icons.cjs": 1,
+     "rebuild/slice/pwa/pwa.cjs": 2
+    },
+    "lists": [
+     "APPROVED_COPY"
+    ]
+   },
+   "after": {
+    "text": "Earned",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 5,
+     "rebuild/m3/w7-preview/today/setup-model.mjs": 1,
+     "rebuild/slice/pwa/icons.cjs": 1,
+     "rebuild/slice/pwa/pwa.cjs": 2
+    },
+    "lists": [
+     "APPROVED_COPY"
+    ]
+   }
+  },
+  {
+   "text": "Earned could not prepare today’s workout, and nothing was recorded.",
+   "before": {
+    "text": "Earned could not prepare today’s workout, and nothing was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Earned could not prepare today’s workout, and nothing was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Earned could not tell whether this intake was recorded on this device. It may have been kept and it may not.",
+   "before": {
+    "text": "Earned could not tell whether this intake was recorded on this device. It may have been kept and it may not.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Earned could not tell whether this intake was recorded on this device. It may have been kept and it may not.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.",
+   "before": {
+    "text": "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Enter both times.",
+   "before": {
+    "text": "Enter both times.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Enter both times.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Enter hours from 0 to 24, with up to two decimal places.",
+   "before": {
+    "text": "Enter hours from 0 to 24, with up to two decimal places.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Enter hours from 0 to 24, with up to two decimal places.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Enter valid times.",
+   "before": {
+    "text": "Enter valid times.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Enter valid times.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Enter what you actually ate today. Either figure on its own is enough.",
+   "before": {
+    "text": "Enter what you actually ate today. Either figure on its own is enough.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Enter what you actually ate today. Either figure on its own is enough.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Enter whole minutes awake within the time in bed.",
+   "before": {
+    "text": "Enter whole minutes awake within the time in bed.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Enter whole minutes awake within the time in bed.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Entered as an approximate duration.",
+   "before": {
+    "text": "Entered as an approximate duration.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Entered as an approximate duration.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Finish this workout",
+   "before": {
+    "text": "Finish this workout",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Finish this workout",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "For a clock-change night, enter hours asleep.",
+   "before": {
+    "text": "For a clock-change night, enter hours asleep.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "For a clock-change night, enter hours asleep.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "For matching times, enter hours asleep instead.",
+   "before": {
+    "text": "For matching times, enter hours asleep instead.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "For matching times, enter hours asleep instead.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "From bed and wake times.",
+   "before": {
+    "text": "From bed and wake times.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "From bed and wake times.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Gym card: missing approved template ",
+   "before": {
+    "text": "Gym card: missing approved template ",
+    "files": {
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "Gym card: missing approved template ",
+    "files": {
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 2
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Hours",
+   "before": {
+    "text": "Hours",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Hours",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Hours asleep",
+   "before": {
+    "text": "Hours asleep",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Hours asleep",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "How are you feeling today?",
+   "before": {
+    "text": "How are you feeling today?",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 2
+    },
+    "lists": [
+     "APPROVED_COPY"
+    ]
+   },
+   "after": {
+    "text": "How are you feeling today?",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": [
+     "APPROVED_COPY"
+    ]
+   }
+  },
+  {
+   "text": "How do you want to record it?",
+   "before": {
+    "text": "How do you want to record it?",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "How do you want to record it?",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Increase weight",
+   "before": {
+    "text": "Increase weight",
+    "files": {
+     "rebuild/m3/w7-preview/today/screens.template.html": 2
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "Increase weight",
+    "files": {
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Keep this night",
+   "before": {
+    "text": "Keep this night",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Keep this night",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Machine settings",
+   "before": {
+    "text": "Machine settings",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Machine settings",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Make sense of your plan and the progress behind it.",
+   "before": {
+    "text": "Make sense of your plan and the progress behind it.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": [
+     "APPROVED_COPY"
+    ]
+   },
+   "after": {
+    "text": "Make sense of your plan and the progress behind it.",
+    "files": {
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Night",
+   "before": {
+    "text": "Night",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Night",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "No",
+   "before": {
+    "text": "No",
+    "files": {
+     "rebuild/m3/w7-preview/import/import-screen.mjs": 1,
+     "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "No",
+    "files": {
+     "rebuild/m3/w7-preview/import/import-screen.mjs": 1,
+     "rebuild/m3/w7-preview/today/checkin-commands.cjs": 1,
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 2,
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "No settings saved yet.",
+   "before": {
+    "text": "No settings saved yet.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "No settings saved yet.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "No sleep recorded for this night.",
+   "before": {
+    "text": "No sleep recorded for this night.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "No sleep recorded for this night.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Not available on this device",
+   "before": {
+    "text": "Not available on this device",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Not available on this device",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Not now",
+   "before": {
+    "text": "Not now",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 1,
+     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_COPY"
+    ]
+   },
+   "after": {
+    "text": "Not now",
+    "files": {
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 1,
+     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_COPY"
+    ]
+   }
+  },
+  {
+   "text": "Nothing was lost and nothing was changed. Log your set as usual, and open Earned again on this device to see them.",
+   "before": {
+    "text": "Nothing was lost and nothing was changed. Log your set as usual, and open Earned again on this device to see them.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Nothing was lost and nothing was changed. Log your set as usual, and open Earned again on this device to see them.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Nothing was recorded.",
+   "before": {
+    "text": "Nothing was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Nothing was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 2,
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Protein eaten",
+   "before": {
+    "text": "Protein eaten",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Protein eaten",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Reading your saved settings for this machine.",
+   "before": {
+    "text": "Reading your saved settings for this machine.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Reading your saved settings for this machine.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Recorded today",
+   "before": {
+    "text": "Recorded today",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 2
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Recorded today",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 2
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Recorded today at ",
+   "before": {
+    "text": "Recorded today at ",
+    "files": {
+     "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+     "rebuild/m3/w7-preview/today/design.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Recorded today at ",
+    "files": {
+     "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+     "rebuild/m3/w7-preview/today/design.cjs": 2
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Remove this setting",
+   "before": {
+    "text": "Remove this setting",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Remove this setting",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Report a problem",
+   "before": {
+    "text": "Report a problem",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Report a problem",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Save correction",
+   "before": {
+    "text": "Save correction",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Save correction",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Save sleep",
+   "before": {
+    "text": "Save sleep",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Save sleep",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Save the settings for this machine",
+   "before": {
+    "text": "Save the settings for this machine",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Save the settings for this machine",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Save these settings",
+   "before": {
+    "text": "Save these settings",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Save these settings",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Select all and copy, then send it to Joe.",
+   "before": {
+    "text": "Select all and copy, then send it to Joe.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Select all and copy, then send it to Joe.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Set ",
+   "before": {
+    "text": "Set ",
+    "files": {
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1,
+     "rebuild/m3/w7-preview/today/gym-model.mjs": 1,
+     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "Set ",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 2,
+     "rebuild/m3/w7-preview/today/gym-model.mjs": 1,
+     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+    },
+    "lists": [
+     "RUNTIME_COPY"
+    ]
+   }
+  },
+  {
+   "text": "Settings could not be read.",
+   "before": {
+    "text": "Settings could not be read.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Settings could not be read.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Sleep",
+   "before": {
+    "text": "Sleep",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Sleep",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Sleep cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep it. Open Earned again on this device, or use one that allows local storage.",
+   "before": {
+    "text": "Sleep cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep it. Open Earned again on this device, or use one that allows local storage.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Sleep cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep it. Open Earned again on this device, or use one that allows local storage.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Sleep could not be saved on this device.",
+   "before": {
+    "text": "Sleep could not be saved on this device.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Sleep could not be saved on this device.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "TYPOGRAPHY-PIN FAIL: ",
+   "before": {
+    "text": "TYPOGRAPHY-PIN FAIL: ",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "TYPOGRAPHY-PIN FAIL: ",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "The check-in changed. Review its hours again.",
+   "before": {
+    "text": "The check-in changed. Review its hours again.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "The check-in changed. Review its hours again.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "The coach is not wired yet. There is no conversation here, and nothing on this screen comes from your records.",
+   "before": {
+    "text": "The coach is not wired yet. There is no conversation here, and nothing on this screen comes from your records.",
+    "files": {
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "The coach is not wired yet. There is no conversation here, and nothing on this screen comes from your records.",
+    "files": {
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "The date changed. Check which night this is for.",
+   "before": {
+    "text": "The date changed. Check which night this is for.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "The date changed. Check which night this is for.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "These settings could not be recorded on this device, and no part of them was recorded.",
+   "before": {
+    "text": "These settings could not be recorded on this device, and no part of them was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "These settings could not be recorded on this device, and no part of them was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "This device could not open its encrypted local store, so nothing can be recorded here.",
+   "before": {
+    "text": "This device could not open its encrypted local store, so nothing can be recorded here.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-model.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "This device could not open its encrypted local store, so nothing can be recorded here.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-model.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "This intake could not be recorded on this device, and no part of it was recorded.",
+   "before": {
+    "text": "This intake could not be recorded on this device, and no part of it was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "This intake could not be recorded on this device, and no part of it was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "This night changed while you were editing. Review the saved record before trying again.",
+   "before": {
+    "text": "This night changed while you were editing. Review the saved record before trying again.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "This night changed while you were editing. Review the saved record before trying again.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Time awake",
+   "before": {
+    "text": "Time awake",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Time awake",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Time awake was not recorded.",
+   "before": {
+    "text": "Time awake was not recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Time awake was not recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "To remember:",
+   "before": {
+    "text": "To remember:",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "To remember:",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Today",
+   "before": {
+    "text": "Today",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 6
+    },
+    "lists": [
+     "APPROVED_COPY"
+    ]
+   },
+   "after": {
+    "text": "Today",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 5
+    },
+    "lists": [
+     "APPROVED_COPY"
+    ]
+   }
+  },
+  {
+   "text": "Today preview: missing approved template ",
+   "before": {
+    "text": "Today preview: missing approved template ",
+    "files": {
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "Today preview: missing approved template ",
+    "files": {
+     "rebuild/m3/w7-preview/today/today-app.cjs": 2
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.",
+   "before": {
+    "text": "Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.",
+    "files": {
+     "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+     "rebuild/m3/w7-preview/today/design.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.",
+    "files": {
+     "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+     "rebuild/m3/w7-preview/today/design.cjs": 2
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Today’s workout cannot open",
+   "before": {
+    "text": "Today’s workout cannot open",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Today’s workout cannot open",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Today’s workout is recorded on this device.",
+   "before": {
+    "text": "Today’s workout is recorded on this device.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Today’s workout is recorded on this device.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Try reading it again",
+   "before": {
+    "text": "Try reading it again",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Try reading it again",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Unsure",
+   "before": {
+    "text": "Unsure",
+    "files": {
+     "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "Unsure",
+    "files": {
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 2,
+     "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Use these hours",
+   "before": {
+    "text": "Use these hours",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Use these hours",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Wake time",
+   "before": {
+    "text": "Wake time",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Wake time",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Weight (lb)",
+   "before": {
+    "text": "Weight (lb)",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 2
+    },
+    "lists": [
+     "APPROVED_COPY"
+    ]
+   },
+   "after": {
+    "text": "Weight (lb)",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": [
+     "APPROVED_COPY"
+    ]
+   }
+  },
+  {
+   "text": "What you typed is still here.",
+   "before": {
+    "text": "What you typed is still here.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "What you typed is still here.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Why?",
+   "before": {
+    "text": "Why?",
+    "files": {
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "Why?",
+    "files": {
+     "rebuild/m3/w7-preview/today/coach-app.mjs": 2,
+     "rebuild/m3/w7-preview/today/screens.template.html": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Workout recorded",
+   "before": {
+    "text": "Workout recorded",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Workout recorded",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Your figures are still in the boxes above. Record them again, and if it keeps failing, report a problem from Today.",
+   "before": {
+    "text": "Your figures are still in the boxes above. Record them again, and if it keeps failing, report a problem from Today.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Your figures are still in the boxes above. Record them again, and if it keeps failing, report a problem from Today.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.",
+   "before": {
+    "text": "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Your plan does not set a rest length.",
+   "before": {
+    "text": "Your plan does not set a rest length.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Your plan does not set a rest length.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Your settings for this machine",
+   "before": {
+    "text": "Your settings for this machine",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Your settings for this machine",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "Your workout could not be opened on this device, and nothing was recorded.",
+   "before": {
+    "text": "Your workout could not be opened on this device, and nothing was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 1,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": [
+     "PREVIEW_RUNTIME_COPY"
+    ]
+   },
+   "after": {
+    "text": "Your workout could not be opened on this device, and nothing was recorded.",
+    "files": {
+     "rebuild/m3/w7-preview/today/design.cjs": 2,
+     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    },
+    "lists": []
+   }
+  },
+  {
+   "text": "small quiet",
+   "before": {
+    "text": "small quiet",
+    "files": {
+     "rebuild/m3/w7-preview/today/gym-app.mjs": 2,
+     "rebuild/m3/w7-preview/today/machine-settings-view.mjs": 2
+    },
+    "lists": []
+   },
+   "after": {
+    "text": "small quiet",
+    "files": {
+     "rebuild/m3/w7-preview/today/machine-settings-view.mjs": 2
+    },
+    "lists": []
+   }
+  }
+ ]
+}

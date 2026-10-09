@@ -470,6 +470,24 @@ async function realDirectory(directory) {
   return directory;
 }
 
+/* S12 R5 (copy.test A1 and the launch guard, red in the PM's runs at 96551fb and at the S12
+   head): THE SCENE JOINS THE PAGE AS SCRIPT, NOT AS A SECOND MODULE. esbuild emits the page as
+   one module body whose ONLY module syntax is its single trailing export clause, and the page's
+   launch checks rely on exactly that. scene.mjs is not in esbuild's graph: C-UI-1 appends it
+   after that body, and its two top-level export declarations put module syntax in the middle
+   of the shipped app.js, a parse error wherever the bundle is run as the one-clause script
+   those checks model. So the appended text is scene.mjs with the export keyword taken off its
+   top-level declarations, closed in its own function scope (none of its names can meet a
+   bundle name) and run at once, in the same place and order as before. scene.mjs itself stays
+   an ES module (the look's tests import it), the inventory still hashes its own bytes, and any
+   other import or export statement left in it refuses the build instead of shipping. */
+function classicScene(source) {
+  const body = source.replace(/^export (?=(?:async )?function\b|const\b|let\b|class\b)/gm, "");
+  const left = body.match(/^[ \t]*(?:import|export)\b.*$/gm) || [];
+  assert.equal(left.length, 0, "SCENE-MODULE-SYNTAX:" + left.join("|"));
+  return "(() => {\n\"use strict\";\n" + body + "\n})();\n";
+}
+
 /* The two output directories are arguments with the accepted defaults, so that two
    builds running AT THE SAME TIME (node --test gives each test file its own process, and
    five of this directory's suites build) can be told apart instead of overwriting each
@@ -514,7 +532,7 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
     "styles.css": composeStyles(approved, chrome, fonts, sceneAssets),
     "app.js": injectCommit(
       injectBuildId((await fs.readFile(built.outfile)).toString("utf8"), buildTag), commit)
-      + scenePrelude + sceneSource,
+      + scenePrelude + classicScene(sceneSource),
   };
   assertNoNetworkReference(Object.entries(contents));
   /* Before a byte is written: nothing in the bundle reads a global only Node has. */

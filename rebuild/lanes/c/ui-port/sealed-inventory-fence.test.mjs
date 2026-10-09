@@ -1865,6 +1865,15 @@ test("S11 P-S9-3 (38) - the S11-REGEN path-boundary step exists and carries the 
 test("S11 P-S9-3 (39) - the W6 local Today journey step exists and carries the not-cancelled condition", () => {
   assertNotCancelled(YML_LINES(), "rebuild/m3/w6/test/local-today-journey.test.mjs");
 });
+/* S12 (M2-S12-LOOK), in the shape of row (38): rebuild/lanes/b/S12-REGEN.test.cjs, the
+   path-boundary cell of the operator helper that re-measures packages/S12.json at the S11 seal,
+   gets its both-OS CI home the way S11-REGEN.test.cjs got one, with the same condition shape,
+   placed after S11's step, which stays (row (38) still reads it). It loads nothing protected: the
+   helper runs on fake node:child_process and node:fs ports. No declared child mirrors it:
+   rebuild/lanes/b/ is not a CHILD_ROOT. */
+test("S12 P-S9-3 (40) - the S12-REGEN path-boundary step exists and carries the not-cancelled condition", () => {
+  assertNotCancelled(YML_LINES(), "rebuild/lanes/b/S12-REGEN.test.cjs");
+});
 
 /* P-S9-5, THE TWO RE-HOMED INVARIANTS. ci-second-gate.test.cjs:29 asserted three things
    at once: that .github/workflows/rebuild.yml equals a 2026 baseline object with exactly

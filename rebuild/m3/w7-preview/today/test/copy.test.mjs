@@ -567,8 +567,22 @@ test('P1 — the gym card renders every state it can reach without a dash', asyn
   await t.test('the active set, carrying the engine’s own prescription reason', async () => {
     const view = await kit.model.read();
     assert.equal(view.phase, 'active');
-    const reason = [...doc.querySelectorAll('#phone .change')].map((p) => p.textContent).join(' ');
+    /* S12 SC-7 (red first: PM runs s12-pmrun1 and s12-pmrun2, copy.test.mjs:571 "the engine
+       reason is on screen"). The 2026-09-08 card printed each reason line as a p.change; the
+       approved 2026-09-18 board (app/states-workout.js:41-45, states-workout.css:5-8) puts the
+       engine's first reason line in .w-reasons > .w-reason-row > span.w-reason under the lift
+       name, the rest behind "Why?", and gym-app.mjs renderActive binds it there
+       (data-slot="reason"). The old selector now finds only the board's settings row, which
+       holds no reason. The claim is unchanged and is made stronger: the engine gives this set
+       a reason, the board's reason block is shown, and its line IS the engine's first line,
+       through the render boundary, not merely some non-empty text. */
+    const reasons = view.prescription.reason;
+    assert(Array.isArray(reasons) && reasons.length > 0, 'the engine gives the active set a prescription reason');
+    const block = doc.querySelector('#phone .w-reasons');
+    assert(block && !block.hidden, 'the board reason block is shown');
+    const reason = doc.querySelector('#phone .w-reasons .w-reason[data-slot="reason"]').textContent;
     assert(reason.trim().length > 0, 'the engine reason is on screen');
+    assert.equal(reason, plainOrDrop(reasons[0], 'reason'), 'the line on screen is the engine reason, first line');
     assertNoDashOnScreen(doc, 'the active set');
   });
 

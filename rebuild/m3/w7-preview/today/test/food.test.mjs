@@ -723,14 +723,38 @@ test('N1.15 - no em or en dash in N1 own sources, its template or its rendered s
   kit.host.close();
 });
 
+/* S12 SC-21 (PROPOSED id; red first): the new look's design.cjs (the 2026-09-18 pack, C-UI-1)
+   splits the runtime copy the view composes into PREVIEW_RUNTIME_COPY (still preview-owned, and
+   still required ABSENT from every pinned copy reference) and ADOPTED_RUNTIME_COPY (a sentence the
+   pinned 2026-09-18 pack itself now says, each bound to the one pinned source that says it), and
+   its approved references are the pinned COPY_SOURCES text, no longer an `html` field of
+   readApproved() (which now carries only stylesheets, so `a.html` read undefined and the old
+   absence check could not bite). A line is DECLARED here exactly as design.cjs
+   assertRuntimeCopyBinding declares it: preview-owned and absent upstream, or adopted and present
+   verbatim in its own pinned source. Nothing is relaxed: every line must be one of the two, and
+   the binding still refuses a dropped sentence below. */
+const copyReferenceText = () => design.readCopyReferences().map((r) => r.text).join('\n');
+function declaredRuntimeLine(line) {
+  if (design.PREVIEW_RUNTIME_COPY.includes(line))
+    return { declared: true, how: 'preview', upstreamAbsent: !copyReferenceText().includes(line) };
+  const adopted = design.ADOPTED_RUNTIME_COPY.find((entry) => entry.line === line);
+  if (!adopted) return { declared: false };
+  const pinned = design.readCopyReferences().find((r) => r.file === adopted.source);
+  return { declared: true, how: 'adopted', upstreamAbsent: true, inSource: !!pinned && pinned.text.includes(line) };
+}
+function assertDeclaredRuntimeLine(line) {
+  const d = declaredRuntimeLine(line);
+  assert(d.declared, 'declared: ' + line);
+  if (d.how === 'preview') assert.equal(d.upstreamAbsent, true, 'preview-owned, so ABSENT upstream: ' + line);
+  else assert.equal(d.inSource, true, 'adopted, so present verbatim in its pinned source: ' + line);
+}
+
 test('N1.14 - the design binding covers the entry, and REFUSES a dropped sentence', () => {
   const approved = design.readApproved();
   const source = design.appSource();
-  const approvedText = approved.map((a) => a.html).join('\n');
   for (const line of [FOOD_HEAD, FOOD_SAVE, FOOD_CORRECTION, FOOD_NO_TARGETS, FOOD_REFUSED,
     ...Object.values(FOOD_REFUSAL_COPY)]) {
-    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared: ' + line);
-    assert.equal(approvedText.includes(line), false, 'preview-owned, so ABSENT upstream: ' + line);
+    assertDeclaredRuntimeLine(line);
     assert(source.includes(line), 'present in a view source: ' + line);
   }
   assert.doesNotThrow(() => design.assertDesignBinding(approved, design.templateHtml(), source));
@@ -744,7 +768,11 @@ test('N1.14 - every class the entry uses is a selector in the APPROVED styleshee
   const start = template.indexOf('<template id="t-nutrition">');
   const section = template.slice(start, template.indexOf('</template>', start));
   assert(section.includes('data-slot="food-entry"'), 'the entry is in the shipped template');
-  const css = approved.map((a) => a.styles).join('\n');
+  /* S12 SC-21 (PROPOSED id; red first): the approved stylesheets are the ones design.cjs
+     assertDesignBinding binds every class to under the new look - the pinned 2026-09-08 LEGACY
+     structure (readLegacyStructure, kept while screens move one by one, C-UI-1) laid down before
+     the pinned 2026-09-18 pack (readApproved). readApproved() alone is now only the new pack. */
+  const css = [...design.readLegacyStructure(), ...approved].map((a) => a.styles).join('\n');
   for (const token of design.classTokens(section)) {
     if (design.PREVIEW_CLASSES.includes(token)) continue;
     const selector = new RegExp('\\.' + token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\w-])');
@@ -855,7 +883,13 @@ test('N1.16 - the entry sets no width a 390px or 320px phone cannot hold', () =>
    packages/S11.json, so the declaring-spec chain has to know about it. S11 releases nothing
    and does not declare the two paths S10 released, so their release is still S10's.
    Youngest first, so 'S11' goes last and is consulted first; the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11'];
+/* S12 ADDS 'S12', and the cell is unchanged in every other way. S12 (M2-S12-LOOK) is the reseal
+   child that composes the accepted look onto the SEALED S11 parent (DECISIONS:897, seal tip 7c79ef1;
+   the look DECISIONS:902-904): the files it moves - today-model.cjs and the sealed cells it moves red
+   first among them - are moved BY THAT PACKAGE, declared in packages/S12.json, so the declaring-spec
+   chain has to know about it. S12 releases nothing. Youngest first, so 'S12' goes last and is
+   consulted first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12'];
 function declaredPost(file) {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;
@@ -1096,7 +1130,7 @@ test('D2.4 - the recorded line carries the STORED effective time and offset', as
 test('D2.3 / D2.4 - the new sentences are declared, dash free, and carry no figure', () => {
   const source = design.appSource();
   for (const line of [FOOD_REFUSED_ACTION, FOOD_NO_STORE, FOOD_KEPT_UNREADABLE]) {
-    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared: ' + line);
+    assertDeclaredRuntimeLine(line);   /* S12 SC-21 (PROPOSED id; red first): see the note above N1.14 */
     assert(source.includes(line), 'present in a view source: ' + line);
     assert.equal(AI_DASH.test(line), false, 'dash free: ' + line);
     assert.equal(/\d/.test(line), false, 'no invented figure: ' + line);
@@ -1220,7 +1254,7 @@ test('D2.R2 - a save whose outcome is UNKNOWN says unknown, and never that nothi
 test('D2.R2 - the new sentences are declared, dash free, and carry no figure', () => {
   const source = design.appSource();
   for (const line of [FOOD_SAVED_UNREAD, FOOD_UNKNOWN, FOOD_READ_ACTION, FOOD_READ_RETRY]) {
-    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared: ' + line);
+    assertDeclaredRuntimeLine(line);   /* S12 SC-21 (PROPOSED id; red first): see the note above N1.14 */
     assert(source.includes(line), 'present in a view source: ' + line);
     assert.equal(AI_DASH.test(line), false, 'dash free: ' + line);
     assert.equal(/\d/.test(line), false, 'no invented figure: ' + line);

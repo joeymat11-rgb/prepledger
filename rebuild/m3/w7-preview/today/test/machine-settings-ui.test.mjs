@@ -146,6 +146,26 @@ async function waitFor(check, what) {
 const blockText = (page) => page.pick('settings-block').textContent;
 const pairs = (page) => [...page.doc.querySelectorAll('#phone [data-slot="settings-list"] .row')]
   .map((row) => [row.querySelector('strong').textContent, row.querySelector('span').textContent]);
+/* S12 SC-22 (PROPOSED id; red first). Under the new look (C-UI-4, the pack's machine row #machine,
+   W-06 / W-33 to W-36) the stored settings are no longer a list of rows: the view module's list
+   markup goes to a DETACHED holder (gym-app.mjs settingsPaint), so `pairs` above now reads an empty
+   list whatever is stored - every `[]` expectation below would have passed with no teeth, and every
+   other one was red. What the athlete sees is the row's serif title, which is the stored settings
+   themselves, each stored name and value verbatim and in the STORED order, as `<name> <value>.`
+   joined by single spaces ("Seat 4." on the board), with the open label as its sub line; with
+   nothing shown the title is the open label and the sub line is the reading, empty or unreadable
+   sentence. So each cell now compares that title with the line its own expected pairs compose, by
+   the board's rule. Verbatim, stored order, latest wins, nothing borrowed from another lift and
+   nothing interpreted are all still asserted on what is on screen. NAMED DEBT D-S12-MSUI-1: the
+   row joins a name and its value with a space, so the screen (and therefore this cell) cannot tell
+   [['Back pad', 'two notches']] from [['Back', 'pad two notches']]; the stored record still can,
+   and S4/S5 read it back off the store. */
+const settingsLine = (list) => list.map(([name, value]) => name + ' ' + value + '.').join(' ');
+const shownSettings = (page) => {
+  const title = page.pick('machine-setting'), when = page.pick('machine-when');
+  assert(title && when, 'the machine row carries its title and its sub line');
+  return when.textContent === SETTINGS_OPEN ? title.textContent : '';
+};
 
 /* One captured machine, through the CARD, from the active set's own lift. */
 async function capture(page, rows, cues) {
@@ -203,7 +223,7 @@ test('S2 - stored settings render verbatim and in the STORED order, with the cue
       { name: 'Pin', value: '3' }],
     cues: 'Elbows in, and stop one short.' })).ok, true);
   const page = await card(kit);
-  assert.deepEqual(pairs(page), [['Seat', 'four'], ['Back pad', 'two notches'], ['Pin', '3']],
+  assert.equal(shownSettings(page), settingsLine([['Seat', 'four'], ['Back pad', 'two notches'], ['Pin', '3']]),
     'the order is the order he gave, not an order this page chose');
   assert.match(page.pick('settings-cues').textContent, /Elbows in, and stop one short\./);
   assert.equal(page.pick('settings-cues').hidden, false);
@@ -216,7 +236,7 @@ test('S2 - "four" stays "four": nothing is interpreted into a number or a unit',
   const view = await kit.model.read();
   await kit.settings.save({ exercise_id: view.lift.id, settings: [{ name: 'Seat', value: 'four' }] });
   const page = await card(kit);
-  assert.deepEqual(pairs(page), [['Seat', 'four']]);
+  assert.equal(shownSettings(page), settingsLine([['Seat', 'four']]));
   assert.doesNotMatch(blockText(page), /\b4\b/, 'a word was turned into a figure');
   assert.doesNotMatch(blockText(page), /notch|lb|kg|cm/, 'a unit was invented');
   kit.settings.close(); kit.gymHost.close();
@@ -227,7 +247,7 @@ test('S2 - a cue on its own is a whole answer, with no settings row and no empty
   const view = await kit.model.read();
   await kit.settings.save({ exercise_id: view.lift.id, cues: 'Breathe out on the way up.' });
   const page = await card(kit);
-  assert.deepEqual(pairs(page), []);
+  assert.equal(shownSettings(page), settingsLine([]));
   assert.match(page.pick('settings-cues').textContent, /Breathe out on the way up\./);
   assert.match(page.pick('settings-cues').textContent, new RegExp(SETTINGS_CUES_LEAD.replace(':', ':')));
   assert.doesNotMatch(blockText(page), /No settings saved yet/);
@@ -242,7 +262,7 @@ test('S3 - settings stored for ANOTHER exercise id never appear on this one', as
   const view = await kit.model.read();
   await kit.settings.save({ exercise_id: 'some-other-lift', settings: [{ name: 'Seat', value: 'nine' }] });
   const page = await card(kit);
-  assert.deepEqual(pairs(page), [], 'nothing was borrowed from the other lift');
+  assert.equal(shownSettings(page), settingsLine([]), 'nothing was borrowed from the other lift');
   assert.match(blockText(page), /No settings saved yet\./);
   assert.doesNotMatch(page.text(), /nine/);
   kit.settings.close(); kit.gymHost.close();
@@ -254,12 +274,12 @@ test('S3 - two lifts in one session each show their OWN settings, or nothing', a
   assert.equal(view.lift.count, 2, 'this athlete\'s own day really has two lifts');
   await kit.settings.save({ exercise_id: view.lift.id, settings: [{ name: 'Seat', value: 'four' }] });
   const page = await card(kit);
-  assert.deepEqual(pairs(page), [['Seat', 'four']]);
+  assert.equal(shownSettings(page), settingsLine([['Seat', 'four']]));
   /* Walk to the second lift the way the screen does, and read the block again. */
   const second = await secondLift(kit);
   assert.notEqual(second.lift.id, view.lift.id, 'the card really moved to another lift');
   const other = await card(kit);
-  assert.deepEqual(pairs(other), [], 'the second lift shows nothing, never the first lift\'s seat');
+  assert.equal(shownSettings(other), settingsLine([]), 'the second lift shows nothing, never the first lift\'s seat');
   assert.match(blockText(other), /No settings saved yet\./);
   kit.settings.close(); kit.gymHost.close();
 });
@@ -294,7 +314,7 @@ test('S4 - three captures for one lift leave THREE ops and the block shows the t
   assert.equal((await settingsOps(kit.settings.repository)).length, 3,
     'a correction is a NEW op: nothing was updated and nothing was deleted');
   const page = await card(kit);
-  assert.deepEqual(pairs(page), [['Seat', 'six']], 'the LATEST wins');
+  assert.equal(shownSettings(page), settingsLine([['Seat', 'six']]), 'the LATEST wins');
   assert.doesNotMatch(blockText(page), /four|five/, 'a replaced setting is gone, not stale');
   kit.settings.close(); kit.gymHost.close();
 });
@@ -306,7 +326,7 @@ test('S4 - the winning op carries the WHOLE machine: a dropped row is dropped', 
     settings: [{ name: 'Seat', value: 'four' }, { name: 'Pin', value: 'three' }] });
   await kit.settings.save({ exercise_id: view.lift.id, settings: [{ name: 'Seat', value: 'five' }] });
   const page = await card(kit);
-  assert.deepEqual(pairs(page), [['Seat', 'five']]);
+  assert.equal(shownSettings(page), settingsLine([['Seat', 'five']]));
   assert.doesNotMatch(blockText(page), /Pin/, 'the replaced row survived from an earlier op');
   kit.settings.close(); kit.gymHost.close();
 });
@@ -349,7 +369,7 @@ test('S5 - the captured op is what the block then shows, read back off the store
   const kit = await device();
   const page = await card(kit);
   await capture(page, [['Seat', 'four']], 'Elbows in.');
-  assert.deepEqual(pairs(page), [['Seat', 'four']], 'the block repainted from the durable record');
+  assert.equal(shownSettings(page), settingsLine([['Seat', 'four']]), 'the block repainted from the durable record');
   assert.match(page.pick('settings-cues').textContent, /Elbows in\./);
   assert.equal(page.pick('settings-editor').hidden, true, 'the editor closed itself');
   kit.settings.close(); kit.gymHost.close();
@@ -449,7 +469,7 @@ test('S6d - and the card reads what the COACH captured, with no second read path
   await kit.settings.save(machineOf({ exercise_id: view.lift.id,
     settings: [{ name: 'Seat', value: 'four' }], cues: 'Elbows in.' }));
   const page = await card(kit);
-  assert.deepEqual(pairs(page), [['Seat', 'four']]);
+  assert.equal(shownSettings(page), settingsLine([['Seat', 'four']]));
   assert.match(page.pick('settings-cues').textContent, /Elbows in\./);
   kit.settings.close(); kit.gymHost.close();
 });
@@ -547,7 +567,7 @@ test('S7 - a producer refusal survives a held row-add repaint and a valid retry 
     page.type(0, 'Seat', 'four'); await page.save();
     await waitFor(() => page.pick('settings-editor').hidden, 'the successful retry to close');
     assert.equal((await settingsOps(kit.settings.repository)).length, 1);
-    assert.deepEqual(pairs(page), [['Seat', 'four']]);
+    assert.equal(shownSettings(page), settingsLine([['Seat', 'four']]));
   } finally {
     held = false; release(); page?.dom.window.close();
     kit.settings.close(); kit.gymHost.close();
@@ -597,7 +617,7 @@ test('S8 - cancelling writes nothing and leaves the record exactly as it was', a
   await waitFor(() => page.pick('settings-editor').hidden, 'the cancelled editor to close');
   assert.equal(page.pick('settings-editor').hidden, true, 'the editor closed');
   assert.equal((await settingsOps(kit.settings.repository)).length, 1, 'no second op');
-  assert.deepEqual(pairs(page), [['Seat', 'four']], 'the record is what it was');
+  assert.equal(shownSettings(page), settingsLine([['Seat', 'four']]), 'the record is what it was');
   kit.settings.close(); kit.gymHost.close();
 });
 
@@ -611,8 +631,12 @@ test('S8 - capture never blocks logging a set, and the primary action is unmoved
   assert.equal(log.disabled, false, 'the set can still be logged with the editor open');
   assert.equal(page.doc.querySelector('#phone [data-slot="log-label"]').textContent, before,
     'the primary action did not move or change');
-  assert.equal(page.doc.querySelectorAll('#phone .cta').length, 1,
+  /* S12 SC-22 (PROPOSED id; red first): the active set's primary action is the pack's Log button
+     (.log in the .log-row, W-06), not the old look's .cta; there is still exactly one, and no
+     .cta survives beside it. */
+  assert.equal(page.doc.querySelectorAll('#phone button.log').length, 1,
     'the active set still has exactly ONE primary action');
+  assert.equal(page.doc.querySelectorAll('#phone .cta').length, 0, 'and no second primary of the old look');
   kit.settings.close(); kit.gymHost.close();
 });
 
@@ -656,7 +680,7 @@ test('S9 - and a whole new installation over the same IndexedDB reads it back', 
   /* A relaunch: new gym host, new lane, same encrypted store on the same factory. */
   const relaunch = await device({ fault: kit.fault });
   const page = await card(relaunch);
-  assert.deepEqual(pairs(page), [['Seat', 'four']], 'a relaunch reads it off disk');
+  assert.equal(shownSettings(page), settingsLine([['Seat', 'four']]), 'a relaunch reads it off disk');
   relaunch.settings.close(); relaunch.gymHost.close();
 });
 
@@ -777,7 +801,13 @@ test('S10 - PAGE_PINS names exactly four files, and all four are sha-identical',
    packages/S11.json, so the declaring-spec chain has to know about it. S11 releases nothing
    and does not declare the two paths S10 released, so their release is still S10's.
    Youngest first, so 'S11' goes last and is consulted first; the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11'];
+/* S12 ADDS 'S12', and the cell is unchanged in every other way. S12 (M2-S12-LOOK) is the reseal
+   child that composes the accepted look onto the SEALED S11 parent (DECISIONS:897, seal tip 7c79ef1;
+   the look DECISIONS:902-904): the files it moves - today-model.cjs and the sealed cells it moves red
+   first among them - are moved BY THAT PACKAGE, declared in packages/S12.json, so the declaring-spec
+   chain has to know about it. S12 releases nothing. Youngest first, so 'S12' goes last and is
+   consulted first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12'];
 function declaredPost(file) {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;
@@ -848,15 +878,35 @@ function gymTemplate() {
   return template.slice(start, template.indexOf('</template>', start));
 }
 
+/* S12 SC-21 (PROPOSED id; red first): the new look's design.cjs (the 2026-09-18 pack, C-UI-1)
+   splits the runtime copy the view composes into PREVIEW_RUNTIME_COPY (still preview-owned, and
+   still required ABSENT from every pinned copy reference) and ADOPTED_RUNTIME_COPY (a sentence the
+   pinned 2026-09-18 pack itself now says, each bound to the one pinned source that says it), and
+   its approved references are the pinned COPY_SOURCES text, no longer an `html` field of
+   readApproved() (which now carries only stylesheets, so `a.html` read undefined and the old
+   absence check could not bite). A line is DECLARED here exactly as design.cjs
+   assertRuntimeCopyBinding declares it: preview-owned and absent upstream, or adopted and present
+   verbatim in its own pinned source. The binding below still refuses a dropped sentence. */
+function assertDeclaredRuntimeLine(line) {
+  if (design.PREVIEW_RUNTIME_COPY.includes(line)) {
+    const upstream = design.readCopyReferences().map((r) => r.text).join('\n');
+    assert.equal(upstream.includes(line), false, 'preview-owned, so ABSENT upstream: ' + line);
+    return 'preview';
+  }
+  const adopted = design.ADOPTED_RUNTIME_COPY.find((entry) => entry.line === line);
+  assert(adopted, 'declared: ' + line);
+  const pinned = design.readCopyReferences().find((r) => r.file === adopted.source);
+  assert(pinned && pinned.text.includes(line), 'adopted, so present verbatim in its pinned source: ' + line);
+  return 'adopted';
+}
+
 test('S12 - every new sentence is declared, preview-owned, and REFUSED if dropped', () => {
   const approved = design.readApproved();
   const source = design.appSource();
-  const approvedText = approved.map((a) => a.html).join('\n');
   for (const line of [SETTINGS_HEAD, SETTINGS_NONE, SETTINGS_OPEN, SETTINGS_EDITOR_TITLE,
     SETTINGS_CUES_LEAD, SETTINGS_ADD, SETTINGS_SAVE, SETTINGS_CANCEL,
     SETTINGS_NOTHING, SETTINGS_REFUSED, SETTINGS_NOT_SAVED, SETTINGS_CUE_LABEL]) {
-    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared: ' + line);
-    assert.equal(approvedText.includes(line), false, 'preview-owned, so ABSENT upstream: ' + line);
+    assertDeclaredRuntimeLine(line);
     assert(source.includes(line), 'present in a view source: ' + line);
   }
   assert.doesNotThrow(() => design.assertDesignBinding(approved, design.templateHtml(), source));
@@ -866,9 +916,19 @@ test('S12 - every new sentence is declared, preview-owned, and REFUSED if droppe
 
 test('S12 - every class in the new markup is a selector in the APPROVED stylesheets', () => {
   const approved = design.readApproved();
-  const css = approved.map((a) => a.styles).join('\n');
+  /* S12 SC-21 (PROPOSED id; red first): the stylesheets are the ones design.cjs assertDesignBinding
+     binds every class to under the new look, the pinned 2026-09-08 LEGACY structure laid down before
+     the pinned 2026-09-18 pack. And the settings markup is now the pack's machine row and its note,
+     the setup link and note, and the capture editor section: from the DECISIONS:154 (2) comment to
+     the close of the settings-editor section. The old end marker (the set entry's own section,
+     headed by entry-title) no longer stands after it, so it is found by the editor's own slot. */
+  const css = [...design.readLegacyStructure(), ...approved].map((a) => a.styles).join('\n');
   const section = gymTemplate();
-  const mine = section.slice(section.indexOf('<!-- DECISIONS:154 (2)'), section.indexOf('<section class="entry">\n    <div class="entry-header">\n      <h2 data-slot="entry-title">'));
+  const from = section.indexOf('<!-- DECISIONS:154 (2)');
+  const editorAt = section.indexOf('data-slot="settings-editor"', from);
+  const to = section.indexOf('</section>', editorAt);
+  assert(from >= 0 && editorAt > from && to > editorAt, 'the settings markup is located in the shipped template');
+  const mine = section.slice(from, to + '</section>'.length);
   assert(mine.includes('data-slot="settings-block"'), 'the block is in the shipped template');
   for (const token of design.classTokens(mine)) {
     if (design.PREVIEW_CLASSES.includes(token)) continue;
@@ -1067,7 +1127,10 @@ test('D2.2 - a FAILED read says so, never prints the empty state, and seeds no e
     save: async () => ({ ok: false }), close() {} } });
   const block = blockText(page);
   assert(block.includes(SETTINGS_UNREAD), 'the honest state: ' + block);
-  assert(block.includes(SETTINGS_UNREAD_ACTION), 'with what it means and what to do');
+  /* S12 SC-22 (PROPOSED id; red first): W-36 draws the action half of the unread state in the note
+     block UNDER the row (machine-note), not inside the row's button; it is still on the active set. */
+  assert.equal(page.pick('machine-note').hidden, false, 'the note under the row is shown');
+  assert(page.pick('machine-note').textContent.includes(SETTINGS_UNREAD_ACTION), 'with what it means and what to do');
   assert.equal(block.includes(SETTINGS_NONE), false,
     'a read that FAILED is never rendered as a confirmed absence');
   assert.equal(page.pick('settings-editor').hidden, true, 'no replacement editor is seeded');
@@ -1113,7 +1176,7 @@ test('D2.3 / S-M6 - and logs with the editor open and UNSAVED text in it', async
 test('D2.1 / D2.2 - the new states are declared, dash free, and carry no figure', () => {
   const source = design.appSource();
   for (const line of [SETTINGS_READING, SETTINGS_UNREAD, SETTINGS_UNREAD_ACTION]) {
-    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared: ' + line);
+    assertDeclaredRuntimeLine(line);   /* S12 SC-21 (PROPOSED id; red first): see the note above S12 */
     assert(source.includes(line), 'present in a view source: ' + line);
     assert.equal(AI_DASH.test(line), false, 'dash free: ' + line);
     assert.equal(/\d/.test(line), false, 'no invented figure: ' + line);

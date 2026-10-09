@@ -127,12 +127,22 @@ test("S1 - the count of what is genuinely waiting is not hidden by the headline 
 
 test("S1 - the fixture render is byte-identical: with no proposal nothing is recomputed", () => {
   const day = SYNTHETIC_DAY;
+  /* S12 SC-9 (red first; DECISIONS:826 C-UI-3 R1, rev8 STOP-S12-FIXTURE): the look's demo fixture
+     now carries the board's one open proposal (today-model.cjs withBoardProposal, the demo
+     athlete's T-40 card), so the bare fixture is no longer a state with no proposal, and this
+     cell's precondition went red by name. The claim is unchanged and is made on the fixture with
+     its proposals set aside: with NO proposal, nothing is recomputed - the projection's nowModel
+     is exactly the engine's own. That the fixture now carries one proposal is said, not hidden. */
   const fixture = createBasisState(day);
-  assert.deepEqual(fixture.proposals || [], [], "the fixture basis carries a proposal");
-  const model = createTodayModel({ today: day });
+  assert.equal((fixture.proposals || []).filter((p) => !p.resolved).length, 1,
+    "the look's demo fixture carries the board's one open proposal (C-UI-3 R1)");
+  const bare = JSON.parse(JSON.stringify(fixture));
+  bare.proposals = [];
+  bare.agentProposals = [];
+  const model = createTodayModel({ today: day, basisState: bare });
   const view = model.read();
   const reference = model.engine.nowModel(model.stateFromOps());
   assert.deepEqual(view.nowModel, JSON.parse(JSON.stringify(reference)),
     "the fixture's nowModel is no longer exactly the engine's own");
-  assert.equal(headlineOf(fixture, day), reference.move.title);
+  assert.equal(headlineOf(bare, day), reference.move.title);
 });

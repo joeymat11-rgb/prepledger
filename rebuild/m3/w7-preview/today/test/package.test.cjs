@@ -50,7 +50,44 @@ test("the built package is exactly the three reviewed assets", async () => {
 
 test("the approved design is pinned by sha256 and a changed byte fails the build", async () => {
   const approved = await build.readApproved();
-  assert.equal(approved.length, 2);
+  /* S12 SC-25 (PROPOSED id, filed beside SC-6's package.test rows as Fable
+     REVIEW-LOOK-C-UI-6-l3 asks; red first: the PM's runs %TEMP%\s12-pmrun2 at 96551fb and
+     %TEMP%\s12-pmrun1 at the S12 head, package.test.cjs:53 `4 !== 2`). The design of record
+     moved with the owner-approved look (DECISIONS:817, :820; C-UI-1's promotion in design.cjs
+     APPROVED): from the two 2026-09-08 HTML files (Earned-refinement-A.html fddfe054...,
+     Earned-additions-C-approved.html caf9c2dc...) to the four 2026-09-18 stylesheets. The
+     count is re-pinned to those four AND, stronger than the bare count it replaces, each
+     file and its sha256 is pinned here literally, each is hashed again from disk by this
+     cell, and the title's claim is now executed: a copy with one changed byte is refused. */
+  const PINNED = [
+    ["rebuild/m1/approved-2026-09-18/app/app.css", "bf4924e74fc4edc5cebf7fba6519613d9eec7f44397db990396fe402c124edc2"],
+    ["rebuild/m1/approved-2026-09-18/app/states.css", "eae53de1838338a76a416052a381494602c5fc9545c330afce2438a19a2ca219"],
+    ["rebuild/m1/approved-2026-09-18/app/states-workout.css", "5d6e4082c88e9129979f764dc992e4cbb0439c3a9b2e0d625535c524d47a4f0a"],
+    ["rebuild/m1/approved-2026-09-18/app/states-coach.css", "d33f62e0c54004063b5fe40720f220350d9311213bf80f13d49d260061ca0686"],
+  ];
+  assert.equal(approved.length, 4);
+  assert.deepEqual(approved.map((a) => [a.file, a.sha256]), PINNED);
+  const { createHash } = require("node:crypto");
+  const root = path.resolve(__dirname, "../../../../..");
+  for (const [file, sha256] of PINNED) {
+    assert.equal(createHash("sha256").update(fss.readFileSync(path.join(root, file))).digest("hex"), sha256, file);
+  }
+  const tampered = fss.mkdtempSync(path.join(require("node:os").tmpdir(), "s12-approved-pin-"));
+  try {
+    for (const [file] of PINNED) {
+      fss.mkdirSync(path.dirname(path.join(tampered, file)), { recursive: true });
+      fss.copyFileSync(path.join(root, file), path.join(tampered, file));
+    }
+    assert.equal(build.readApproved(tampered).length, 4, "the untouched copy is accepted (control)");
+    const target = path.join(tampered, PINNED[0][0]);
+    const bytes = fss.readFileSync(target);
+    bytes[0] = bytes[0] ^ 1;
+    fss.writeFileSync(target, bytes);
+    assert.throws(() => build.readApproved(tampered), /APPROVED-PIN FAIL: rebuild\/m1\/approved-2026-09-18\/app\/app\.css/,
+      "a changed byte in the approved design must fail the build");
+  } finally {
+    fss.rmSync(tampered, { recursive: true, force: true });
+  }
   assert.deepEqual(result.approved, build.APPROVED.map((a) => a.sha256));
   const html = await fs.readFile(path.join(build.DIST, "index.html"), "utf8");
   for (const id of ["t-today", "t-weigh", "t-why", "t-nutrition", "t-recovery", "t-coach", "t-workout"]) {

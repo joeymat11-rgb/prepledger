@@ -103,21 +103,21 @@ test("C-UI-3 T-40..T-40e: each state says the prototype's words, bound to the en
   const noLift = face({ ...SETS, lift: null }, {}, undefined, null);
   assert.equal(noLift.lift, "ENGINE TITLE", "without a named lift, the engine's own card title");
   const recorded = face(SETS, {}, "yes", "p1");
-  assert.deepEqual([recorded.state, recorded.kind, recorded.stateWord, recorded.stateText, recorded.undo, recorded.yes],
+  assert.deepEqual([recorded.state, recorded.kind, recorded.stateWord, recorded.stateText, recorded.changeAnswer, recorded.yes],
     ["recorded", "Your call", "You said yes.", "It applies when your plan is next built.", "Change my answer", null]);
   const declined = face(SETS, {}, "no", "p1");
-  assert.deepEqual([declined.state, declined.kind, declined.stateWord, declined.stateText, declined.undo],
+  assert.deepEqual([declined.state, declined.kind, declined.stateWord, declined.stateText, declined.changeAnswer],
     ["declined", "Your call", "You said no.", "Nothing changes.", "Change my answer"]);
   const applied = face(null, { p1: { status: "applied", title: "ENGINE TITLE", lift: "Incline press" } }, undefined, "p1");
-  assert.deepEqual([applied.state, applied.kind, applied.stateWord, applied.undo, applied.lift],
+  assert.deepEqual([applied.state, applied.kind, applied.stateWord, applied.changeAnswer, applied.lift],
     ["applied", "Applied", "You said yes.", null, "Incline press"]);
   const withdrawn = face(null, { p1: { status: "withdrawn", title: "ENGINE TITLE", lift: null } }, "yes", "p1");
-  assert.deepEqual([withdrawn.state, withdrawn.kind, withdrawn.stateWord, withdrawn.stateText, withdrawn.undo],
+  assert.deepEqual([withdrawn.state, withdrawn.kind, withdrawn.stateWord, withdrawn.stateText, withdrawn.changeAnswer],
     ["withdrawn", "Withdrawn", "Withdrawn.", "Your plan was rebuilt and this proposal no longer applies.", null]);
   const storedNo = face(null, { p1: { status: "declined", title: "T", lift: null } }, undefined, "p1");
-  assert.deepEqual([storedNo.state, storedNo.undo], ["declined", null], "a stored decline has no path back from here, so no control");
+  assert.deepEqual([storedNo.state, storedNo.changeAnswer], ["declined", null], "a stored decline has no path back from here, so no control");
   for (const f of [open, recorded, declined, applied, withdrawn]) {
-    for (const w of [f.kind, f.change, f.yes, f.no, f.stateWord, f.stateText, f.undo]) if (w) assert(inProto(w), "the prototype draws: " + w);
+    for (const w of [f.kind, f.change, f.yes, f.no, f.stateWord, f.stateText, f.changeAnswer]) if (w) assert(inProto(w), "the prototype draws: " + w);
   }
   const brk = face({ ...SETS, kind: "break", delta: null, lift: null, title: "DIET BREAK" }, {}, undefined, null);
   assert.deepEqual([brk.yes, brk.no, brk.change], ["Yes, take the break", "No, keep cutting", ""]);
@@ -446,4 +446,64 @@ test("C-UI-3 STOP1: the demo proposal never reaches an adopted athlete's own Tod
   for (const f of ["today-lanes.cjs", "local-source-basis.mjs"]) {
     assert(!/createBasisState|withBoardProposal/.test(read(path.join(TODAY, f))), f + " never builds the fixture basis");
   }
+});
+
+/* ---------------- S12 ROUND 3 (DECISIONS:906, PM ruling): ONE released weigh-in write site ----------------
+   The inline form (bindWeighIn) and the sheet Start opens (openWeighIn) both submit through submitWeighIn, the one
+   model.weighIn call in today-app.cjs. Static over the bytes, and the function itself run in a bare vm context with a
+   recording stand-in for the model (no require, no engine, no store). The runtime half, one stored op per submit from
+   each entry point through the real encrypted lane, is view.test.mjs "S12 R3 ..." (it loads the engine: PM seat). */
+const SUBMIT_BEGIN = "  async function submitWeighIn(raw) {";
+const BIND_BEGIN = "  function bindWeighIn(map, owed) {";
+const SHEET_BEGIN = "  function openWeighIn() {";
+const SHEET_END = "  /* ---------------- Why this plan ---------------- */";
+function weighSiteProblems(app) {
+  const problems = [];
+  const calls = app.split("model.weighIn(").length - 1;
+  if (calls !== 1) problems.push("model.weighIn( occurs " + calls + " times, not once");
+  const s = app.indexOf(SUBMIT_BEGIN), b = app.indexOf(BIND_BEGIN), o = app.indexOf(SHEET_BEGIN), e = app.indexOf(SHEET_END);
+  if (!(s >= 0 && b > s && o > b && e > o)) return problems.concat("the four anchors are not in order");
+  if (!app.slice(s, b).includes("model.weighIn(")) problems.push("the one call is not inside submitWeighIn");
+  for (const [name, body] of [["bindWeighIn", app.slice(b, o)], ["openWeighIn", app.slice(o, e)]]) {
+    const uses = body.split("await submitWeighIn(raw)").length - 1;
+    if (uses !== 1) problems.push(name + " submits through submitWeighIn " + uses + " times, not once");
+    if (body.includes("model.weighIn(")) problems.push(name + " calls model.weighIn itself");
+  }
+  return problems;
+}
+test("S12 R3: the inline form and the Start sheet reach model.weighIn through ONE call site", () => {
+  const app = read(APP);
+  assert.deepEqual(weighSiteProblems(app), []);
+  // teeth: the round-2 shape (the sheet calling the writer itself) is refused by name
+  const twoSites = app.replace("      const result = await submitWeighIn(raw);\n      submit.disabled = false;",
+    "      let result;\n      try { result = await model.weighIn(raw === \"\" ? raw : Number(raw)); } catch (_) { result = { ok: false }; }\n      submit.disabled = false;");
+  assert.notEqual(twoSites, app, "the teeth plant landed");
+  assert(weighSiteProblems(twoSites).some((p) => /occurs 2 times|openWeighIn/.test(p)), JSON.stringify(weighSiteProblems(twoSites)));
+  // the duplicated refusal sentence is written once now
+  const SENT = "This weight could not be recorded, and nothing was recorded.";
+  assert.equal(app.split('"' + SENT + '"').length - 1, 1, "the refusal sentence is one literal");
+  assert.equal(app.split(SENT).length - 1, 1, "and nowhere else in the view");
+});
+test("S12 R3: submitWeighIn passes the same argument and keeps the same refusal as each path had, one call per submit", async () => {
+  const app = read(APP);
+  const weigh = block(app, "/* C-UI-3 WEIGH-IN BEGIN", "/* C-UI-3 WEIGH-IN END */");
+  const submit = app.slice(app.indexOf(SUBMIT_BEGIN), app.indexOf(BIND_BEGIN));
+  const calls = [];
+  let mode = "ok";
+  const fake = { weighIn: async (value) => { calls.push(value);
+    if (mode === "throw") throw new Error("boom");
+    return mode === "refuse" ? { ok: false, copy: "A weight is required." } : { ok: true }; } };
+  const ctx = vm.createContext({ __model: fake });
+  vm.runInContext(weigh + "\nconst model = globalThis.__model;\n" + submit + "\nglobalThis.submitWeighIn = submitWeighIn; globalThis.WEIGH_FAILED = WEIGH_FAILED;", ctx);
+  assert.equal(ctx.WEIGH_FAILED, "This weight could not be recorded, and nothing was recorded.");
+  assert.deepEqual(await ctx.submitWeighIn("179.4"), { ok: true });
+  assert.deepEqual(calls, [179.4], "one call, the number, exactly as both paths passed it");
+  mode = "refuse";
+  assert.deepEqual(await ctx.submitWeighIn(""), { ok: false, copy: "A weight is required." }, "a refusal comes back as the model gave it");
+  assert.deepEqual(calls, [179.4, ""], "an empty box is passed as the empty string, so the client refuses it in its own words");
+  mode = "throw";
+  // (built inside the vm realm, so compared by value through JSON, not by prototype)
+  assert.deepEqual(JSON.parse(JSON.stringify(await ctx.submitWeighIn("181"))), { ok: false, copy: ctx.WEIGH_FAILED + " boom" },
+    "a thrown error reads as before");
+  assert.equal(calls.length, 3, "one model.weighIn call per submit");
 });

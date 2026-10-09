@@ -396,15 +396,17 @@ function statusLine(view, session, sample, card) {
   if (phase === "active") return name ? name + STATUS_UNDER_WAY : "";
   if (phase === "finished") return name ? name + STATUS_LOGGED : "";
   if (phase === "blocked" && session.code) return STATUS_CANNOT_OPEN;
-  const workout = view.workout || {};
-  if (workout.exerciseCount === null && workout.unavailableReason) return STATUS_NO_EXERCISES;
-  if (workout.today === false && typeof workout.title === "string" && workout.title.includes(STATUS_STAMP)) {
-    const [next, when] = workout.title.split(STATUS_STAMP);
+  /* S12: a local of this pure helper, named apart from today-lanes.cjs's factory-scope `workout` so the
+     writer fence's FENCE-SEALED-BINDING-ASSIGNED (acceptance number ZERO) does not read it as an assignment. */
+  const plan = view.workout || {};
+  if (plan.exerciseCount === null && plan.unavailableReason) return STATUS_NO_EXERCISES;
+  if (plan.today === false && typeof plan.title === "string" && plan.title.includes(STATUS_STAMP)) {
+    const [next, when] = plan.title.split(STATUS_STAMP);
     /* T-11 is drawn only for a TOMORROW stamp; the prototype draws no line for a later
        day ("· MON 9/21"), so that day says nothing (Fable l3 F1, PM ruling round 4). */
     return when.trim() === "TOMORROW" ? STATUS_REST_NEXT + next.trim().toLowerCase() + ", tomorrow." : "";
   }
-  if (!name || workout.exerciseCount === null) return STATUS_NOTHING_SCHEDULED;
+  if (!name || plan.exerciseCount === null) return STATUS_NOTHING_SCHEDULED;
   if (sample) return name + STATUS_SAMPLE;
   if (view.calorieTarget && view.calorieTarget.gated) return name + STATUS_NO_CALORIE_RANGE;
   return name + STATUS_NOTHING_TO_DECIDE;
@@ -504,9 +506,9 @@ function proposalFace(open, stored, answer, shownId, plain) {
     lift, change: words ? words.change : "",
     reason: state !== "open" ? "" : words ? (why ? why.replace(/\s*$/, " ") : "") + PROPOSAL_UNTIL_YES : why,
     yes: words ? words.yes : null, no: words ? words.no : null,
-    stateWord: null, stateText: "", undo: null };
-  if (state === "recorded") { face.stateWord = PROPOSAL_SAID_YES; face.stateText = PROPOSAL_APPLIES_NEXT; face.undo = PROPOSAL_CHANGE_ANSWER; }
-  if (state === "declined") { face.stateWord = PROPOSAL_SAID_NO; face.stateText = PROPOSAL_NOTHING_CHANGES; face.undo = card === open ? PROPOSAL_CHANGE_ANSWER : null; }
+    stateWord: null, stateText: "", changeAnswer: null };
+  if (state === "recorded") { face.stateWord = PROPOSAL_SAID_YES; face.stateText = PROPOSAL_APPLIES_NEXT; face.changeAnswer = PROPOSAL_CHANGE_ANSWER; }
+  if (state === "declined") { face.stateWord = PROPOSAL_SAID_NO; face.stateText = PROPOSAL_NOTHING_CHANGES; face.changeAnswer = card === open ? PROPOSAL_CHANGE_ANSWER : null; }
   if (state === "applied") face.stateWord = PROPOSAL_SAID_YES;
   if (state === "withdrawn") { face.stateWord = PROPOSAL_WITHDRAWN_WORD; face.stateText = PROPOSAL_REBUILT; }
   return face;
@@ -537,6 +539,9 @@ function liveProposalFace(open, stored, shownId, plain) {
    T-46 empty or not a number). Self-contained, like the blocks above. */
 const WEIGH_SAVE = "Save"; // board #save-weight, T-42
 const WEIGH_SAVING = "Saving"; // T-44
+/* S12 round 3 (DECISIONS:906): the one refusal sentence of the one weigh-in write site (submitWeighIn), which the
+   inline form and the sheet both show; it used to be written out once in each. */
+const WEIGH_FAILED = "This weight could not be recorded, and nothing was recorded.";
 function weighNamesTheField(raw, copy, outOfRange) {
   return raw === "" || !Number.isFinite(Number(raw)) || (typeof outOfRange === "string" && copy === outOfRange);
 }
@@ -889,6 +894,17 @@ function mountToday(doc, model, options = {}) {
     map.get("proposal-undo").remove();
     return face;
   }
+  /* S12 round 3 (DECISIONS:906, PM ruling): ONE released weigh-in write site. The board's inline form (bindWeighIn)
+     and the sheet Start opens while the weight is owed (openWeighIn) both hand the raw entry here, so this is the only
+     model.weighIn call in the released view (writer fence: TODAY_APP_DECLARED_SEAMS model.weighIn, one site). Same
+     writer, same argument (the raw entry, or Number of it) and the same refusal each path had: a thrown error becomes
+     WEIGH_FAILED and the error's message; a refusal is returned as the model gave it. */
+  async function submitWeighIn(raw) {
+    let result;
+    try { result = await model.weighIn(raw === "" ? raw : Number(raw)); }
+    catch (error_) { result = { ok: false, copy: WEIGH_FAILED + " " + (error_ && error_.message ? error_.message : "") }; }
+    return result;
+  }
   function bindWeighIn(map, owed) {
     const form = map.get("weigh-form");
     const note = map.get("weigh-note");
@@ -905,14 +921,12 @@ function mountToday(doc, model, options = {}) {
       save.disabled = true;
       save.textContent = plainOrDrop(WEIGH_SAVING, "weigh-save");
       const raw = input.value.trim();
-      let result;
-      try { result = await model.weighIn(raw === "" ? raw : Number(raw)); }
-      catch (error_) { result = { ok: false, copy: "This weight could not be recorded, and nothing was recorded. " + (error_ && error_.message ? error_.message : "") }; }
+      const result = await submitWeighIn(raw);
       save.disabled = false;
       save.textContent = plainOrDrop(WEIGH_SAVE, "weigh-save");
       if (!result.ok) {
         note.className = "weigh-note refusal";
-        note.textContent = plainOrDrop(result.copy || "This weight could not be recorded, and nothing was recorded.", "weigh-note");
+        note.textContent = plainOrDrop(result.copy || WEIGH_FAILED, "weigh-note");
         note.hidden = false;
         field.classList.toggle("is-invalid", weighNamesTheField(raw, result.copy, model.OUT_OF_RANGE));
         input.focus();
@@ -1183,12 +1197,10 @@ function mountToday(doc, model, options = {}) {
       if (submit.disabled) return;
       submit.disabled = true;
       const raw = input.value.trim();
-      let result;
-      try { result = await model.weighIn(raw === "" ? raw : Number(raw)); }
-      catch (error_) { result = { ok: false, copy: "This weight could not be recorded, and nothing was recorded. " + (error_ && error_.message ? error_.message : "") }; }
+      const result = await submitWeighIn(raw);
       submit.disabled = false;
       if (!result.ok) {
-        error.textContent = plainOrDrop(result.copy || "This weight could not be recorded, and nothing was recorded.", "weigh-error");
+        error.textContent = plainOrDrop(result.copy || WEIGH_FAILED, "weigh-error");
         input.focus();
         return;
       }

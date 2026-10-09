@@ -66,19 +66,38 @@ async function openMeasure(win, booted, { pick = true } = {}) {
   if (!win.indexedDB) Object.defineProperty(win, 'indexedDB',
     { configurable: true, value: new IDBFactory() });
   await booted.api.render('measure', true);
-  const settle = async (wanted) => {
-    for (let guard = 0; guard < 40 && !slot(doc, wanted); guard++) {
+  /* S12 SC-20, D-W7IMPORT-FLAKE-1 (DECISIONS:899-900; red first under an injected delay, see the
+     S12 package report). The wait used to be a BUDGET: 40 turns of 1 ms, after which it returned
+     whatever was there, null included, and an unrelated line failed later. On a loaded runner the
+     measure lane's read outlasts 40 turns (the w7-import red of run 37819040174). The wait is now
+     attached to the measure screen's own terminal state - the markers pick when this device has
+     not chosen its three lifts, or the trial table when it has (the same fact measure/test/
+     support.mjs measureScreenReady names) - and it re-renders exactly as before on every turn
+     until that state is on the screen. The deadline is a CEILING ON FAILURE, never the wait: a
+     fast run returns on the turn the screen is whole, and a screen that never becomes whole fails
+     HERE, loudly, with what it was waiting for. No assertion below changes. */
+  const SETTLE_DEADLINE_MS = 30000;
+  const settle = async (what, done) => {
+    const started = Date.now();
+    for (let turns = 0; ; turns++) {
+      if (done()) return;
+      if (Date.now() - started >= SETTLE_DEADLINE_MS)
+        throw new Error('IMPORT-ROUTE-MEASURE-NEVER-SETTLED: waited ' + (Date.now() - started) + ' ms over '
+          + turns + ' turns for ' + what);
       await new Promise(resolve => setTimeout(resolve, 1));
       await booted.api.render('measure', false);
     }
-    return slot(doc, wanted);
   };
-  const form = await settle('measure-marker-pick');
+  await settle('the measure screen to be whole (the markers pick or the trial table)',
+    () => !!(slot(doc, 'measure-marker-pick') || slot(doc, 'measure-trial-table')));
+  const form = slot(doc, 'measure-marker-pick');
   if (form && pick) {
     const boxes = [...doc.querySelectorAll('[data-slot="measure-marker-option"]')].slice(0, 3);
     for (const box of boxes) { box.checked = true; box.dispatchEvent(new win.Event('change', { bubbles: true })); }
     form.dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
-    await settle('measure-baseline-note');
+    await settle('the markers pick to close and the trial table and its baseline line to paint',
+      () => !slot(doc, 'measure-marker-pick') && !!slot(doc, 'measure-trial-table')
+        && !!slot(doc, 'measure-baseline-note'));
   }
   const trial = slot(doc, 'measure-trial-start');
   return { note: slot(doc, 'measure-baseline-note'), link: slot(doc, 'import-entry'),

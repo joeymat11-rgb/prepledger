@@ -244,10 +244,17 @@ async function runG2(variant, plant = false) {
         page.input('#gym-reps', '8');
         expectedLoad = '41'; expectedReps = '8'; expectedEffort = false;
       } else {
-        const up = [...page.phone.querySelectorAll('[data-step]')]
-          .find((button) => button.dataset.step === 'load:1');
-        assert(up, 'GSS-G2-STEPPER-PRECONDITION');
-        up.click();
+        /* S12 SC-3 (red first; DECISIONS:820 (2) O4, W-18): the new look has NO +/- load
+           stepper ("there are no +/- steps, so the box always takes typed entry",
+           gym-app.mjs), so the stepper half of this variant has no control left to press: its
+           precondition is now that no [data-step] control exists at all, and the load the
+           stepper's one step put in the box (2.5, the synthetic entry's step) is TYPED there
+           instead, the only way the new look changes it. Every expectation is unchanged: that
+           load, the untouched empty reps box and the effort chip pressed during the held Save
+           must all survive it. */
+        assert.equal(page.phone.querySelectorAll('[data-step]').length, 0,
+          'GSS-G2-STEPPER-RETIRED-PRECONDITION');
+        page.input('#gym-weight', '2.5');
         const effort = [...page.phone.querySelectorAll('[data-slot="choices"] button')]
           .find((button) => button.textContent === '2');
         assert(effort, 'GSS-G2-EFFORT-PRECONDITION');

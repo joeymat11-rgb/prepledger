@@ -501,9 +501,22 @@ test('A2 — the gym screens render the capture, with nothing preselected', asyn
   await t.test('the active-set screen is Refinement A, bound to the capture', async () => {
     const view = await kit.model.read();
     const slot = name => doc.querySelector(`[data-slot="${name}"]`);
-    assert.equal(slot('plan').textContent, view.prescription.line);
+    /* S12 SC-2 (red first; DECISIONS:820 (2) W-08/W-09): the new look draws the prescription
+       as the pack's prescLine, each cell of the model's own line in its own span either side
+       of the gold times sign, so the line is read back cell by cell and joined with the
+       times sign between them by single spaces, which is the model's own line (prescriptionLine
+       joins its two cells with ' U+00D7 '). The claim is unchanged: the screen says exactly the
+       model's line, bound to the capture, verbatim. */
+    const planCells = [...slot('plan').children].map(cell => cell.textContent);
+    assert.equal(planCells.length ? planCells.join(' ') : slot('plan').textContent, view.prescription.line);
     assert.equal(slot('effort-target').textContent, view.prescription.effort);
-    assert.equal(slot('entry-title').textContent, 'What you did · Set 1');
+    /* S12 SC-2 (red first; DECISIONS:820 (2) W-06): the set card's eyebrow is the board's own
+       static "Today's set" (U+2019), and the set's position moved to the session row's
+       #set-count, which says it as "Set N of M" from the model. Set 1 is still named, now where
+       the board puts it. */
+    assert.equal(slot('entry-title').textContent, 'Today\u2019s set');
+    assert.equal(slot('set-count').textContent, 'Set 1 of ' + view.set.count);
+    assert.equal(view.set.position, 1);
     assert.equal(doc.getElementById('gym-weight').value, String(view.entry.load));
     assert.equal(doc.getElementById('gym-reps').value, String(view.entry.reps));
     const choices = [...doc.querySelectorAll('.choice')];
@@ -512,7 +525,13 @@ test('A2 — the gym screens render the capture, with nothing preselected', asyn
       'no effort answer is preselected');
     assert.deepEqual(choices.map(c => c.textContent), ['0', '1', '2', '3+', 'Unsure']);
     assert.equal(doc.querySelectorAll('.slot').length, 2);
-    assert.equal(slot('log-label').textContent, 'Log set 1');
+    /* S12 SC-2 (red first; DECISIONS:820 (2) W-06): the Log button carries the set it will
+       record in the pack's own form, "Log L x R" with the multiplication sign U+00D7 ("Log 50 x 8"
+       on the board), read from the two boxes the set is logged from, which hold the capture
+       (asserted above). With a box empty it names the set instead ("Log set N", gym-app.mjs
+       syncEntry). */
+    assert.equal(slot('log-label').textContent,
+      'Log ' + String(view.entry.load) + ' \u00d7 ' + String(view.entry.reps));
   });
 
   await t.test('the log button refuses without an effort answer, in the approved words', async () => {
@@ -536,7 +555,11 @@ test('A2 — the gym screens render the capture, with nothing preselected', asyn
     assert(doc.querySelector('[data-action="undo"]'), 'Undo is on the saved screen');
     assert.equal(doc.querySelector('[data-slot="rest-note"]').textContent, NO_REST_PRESCRIBED);
     assert.equal(doc.querySelector('[data-slot="next-plan"]').textContent, view.next.line);
-    assert.equal(doc.querySelector('[data-slot="primary-label"]').textContent, 'Ready for set 2');
+    /* S12 SC-2 (red first; DECISIONS:820 (2) W-22): the rest screen's primary is the board's own
+       "Start set N" (app/states-workout.js), declared in design.cjs RUNTIME_COPY as "Start set ";
+       it still names the NEXT set, 2, from the model. */
+    assert.equal(doc.querySelector('[data-slot="primary-label"]').textContent, 'Start set ' + view.next.position);
+    assert.equal(view.next.position, 2);
   });
 
   /* REVIEW B1 — a refusal that came from the accepted layer is shown in the layer's
@@ -616,7 +639,11 @@ test('A2 — Today reflects the durable workout state', async t => {
     // may carry A1's unwired marker.
     assert(!slot('workout-count').textContent.includes(TodayApp.NOT_WIRED));
     assert(!slot('primary-label').textContent.includes(TodayApp.NOT_WIRED));
-    assert.equal(doc.querySelectorAll('.training [data-slot="workout-count"]').length, 1);
+    /* S12 SC-2 (red first; DECISIONS:820 (2) T-26..T-31, C-UI-2): Today's training line now
+       stands on the board's training card #card-train (a .tcard), not inside a .training
+       section; it is still there exactly once. */
+    assert.equal(doc.querySelectorAll('#card-train [data-slot="workout-count"]').length, 1);
+    assert.equal(doc.querySelectorAll('[data-slot="workout-count"]').length, 1);
   });
 
   await t.test('a workout in progress keeps its resume action even with the morning owed', async () => {

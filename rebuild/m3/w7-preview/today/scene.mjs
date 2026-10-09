@@ -417,6 +417,11 @@ function installScene(view, doc) {
   });
 }
 
-if (typeof window !== "undefined" && typeof document !== "undefined") {
+/* S12 R5: the scene is decoration drawn on the page's frame loop, so it installs where the page
+   has one. A document with no requestAnimationFrame (a non-visual DOM, the shape the launch
+   check evaluates the shipped bundle in) gets no decoration and the page still boots; every
+   browser the page runs in has the loop, and there the install is exactly as before. */
+if (typeof window !== "undefined" && typeof document !== "undefined"
+  && typeof window.requestAnimationFrame === "function") {
   window.__earnedScene = installScene(window, document);
 }
