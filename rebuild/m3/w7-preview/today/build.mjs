@@ -527,12 +527,20 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
 
   const sceneUrls = Object.fromEntries(sceneAssets.map((asset) => [asset.key, asset.url]));
   const scenePrelude = `\n// ${sceneInput.path}\nglobalThis.__earnedSceneAssets=${JSON.stringify(sceneUrls)};\n`;
+  /* S12 R5c (page-bundle P3-B5, red in the PM's s12-pmrun4: the per-input accounting fell 1616438 B short of the built
+     asset). The tail below is the only part of app.js esbuild never sees, so its metafile cannot account for it: the
+     prelude carrying the four scene data URLs and the classic scene. It is composed ONCE and DECLARED in the result
+     (`appended`: the source it comes from, its byte length and its sha256), so every byte of the shipped asset is
+     either an esbuild input's bytesInOutput or this declared tail, and a reader can check the tail against the file. */
+  const sceneTail = scenePrelude + classicScene(sceneSource);
+  const appended = Object.freeze({ path: sceneInput.path, assets: sceneAssets.map((asset) => asset.key),
+    bytes: Buffer.byteLength(sceneTail, "utf8"), sha256: design.sha256(sceneTail) });
   const contents = {
     "index.html": shell.replace("<!-- APPROVED_TEMPLATES -->", template),
     "styles.css": composeStyles(approved, chrome, fonts, sceneAssets),
     "app.js": injectCommit(
       injectBuildId((await fs.readFile(built.outfile)).toString("utf8"), buildTag), commit)
-      + scenePrelude + classicScene(sceneSource),
+      + sceneTail,
   };
   assertNoNetworkReference(Object.entries(contents));
   /* Before a byte is written: nothing in the bundle reads a global only Node has. */
@@ -550,7 +558,7 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
   return { dist, assets: [...ASSETS], inputs, inventory, dashes, nodeGlobals,
     buildId, buildTag, commit, importRoute, graph,
     approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })),
-    scene: sceneAssets.map((asset) => ({ file: asset.file, sha256: asset.sha256 })), binding };
+    scene: sceneAssets.map((asset) => ({ file: asset.file, sha256: asset.sha256 })), binding, appended };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

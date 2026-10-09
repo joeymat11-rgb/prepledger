@@ -220,14 +220,24 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
        protected engine file): 149, which the PM's run of this cell measures. */
     /* S11 FC09 ROUND 6 does NOT move it: today-bindings.mjs's new imports (lift-correspondence.cjs, setup-commands.mjs,
        setup-model.mjs) were all already in this graph. 149 stands; P3-B4 and P3-B5 carry the route-to-boot move. */
-    assert.equal(withAdmission.inventory.length, 149,
+    /* S12 (M2-S12-LOOK, SC-27 PROPOSED id; red first: the PM's run s12-pmrun4 at 6c305e2, this assertion 150 !== 149,
+       the same red the hosted needle run obs/s12-1 at dbfc1ee saw) is the TENTH ticket to move it, by ONE:
+       rebuild/m3/w7-preview/today/coach-app.mjs, the approved board's Coach screen (C-UI-6, DECISIONS:820), required by
+       today-app.cjs (`const CoachApp = require("./coach-app.mjs")`, the only new import edge in the whole graph's
+       sources between 7c79ef1 and 6c305e2; gym-app.mjs's one new edge reaches gym-model.mjs, already here). It lands
+       on the BOOT side, imports nothing at all and touches no store (C-UI-6 C6-5), and the route-only set is UNMOVED
+       at 19 (P3-B4 green in the same run). scene.mjs is not an esbuild input (build.mjs appends it), so it is not
+       counted here. MEASURED by the PM's run, not summed: 150. */
+    assert.equal(withAdmission.inventory.length, 150,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 149 (the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'measured 150 (the brief\'s 133, the F7 family\'s one, the F8 family and '
       + 'the shared-class router\'s two, the route\'s own four, B-LOM\'s '
       + 'order-mapping provider, P3-REAL-SHAPE\'s lift-correspondence '
       + 'helper, PASSPHRASE-NORMALIZE\'s shared passphrase form, S10\'s '
-      + 'three Today writer lanes, S11\'s two native-load modules, and S11 '
-      + 'FC09\'s F9 family): re-measure and say so');
+      + 'three Today writer lanes, S11\'s two native-load modules, S11 '
+      + 'FC09\'s F9 family, and S12\'s coach screen): re-measure and say so');
+    assert.ok(paths.includes('rebuild/m3/w7-preview/today/coach-app.mjs'),
+      'S12\'s coach screen is not in this graph at all: the figure above moved for some other module');
     assert.ok(paths.includes('rebuild/m4/workout/legacy-order-mapping.cjs'),
       'B-LOM\'s order-mapping provider is not in this graph at all');
     /* S11: the two modules the figure above moved by, named, so that a graph
@@ -387,9 +397,28 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
   assert.ok(routeBytes > 250000 && routeBytes < 400000,
     'the Import route contributes ' + routeBytes + ' B of the asset\'s ' + allBytes
     + ' B (' + (100 * routeBytes / allBytes).toFixed(1) + '%): re-measure and say so');
-  assert.ok(allBytes <= built && allBytes > built - 120000,
-    'the per-input accounting (' + allBytes + ' B) does not add up to the built asset ('
-    + built + ' B), so the figure above is not the whole story');
+  /* S12 (SC-27 PROPOSED id; red first: the PM's run s12-pmrun4 at 6c305e2, "the per-input accounting (2267853 B) does
+     not add up to the built asset (3884291 B)"). The look's build (C-UI-1) appends a tail esbuild never sees, so its
+     metafile cannot count it: the scene prelude with the four pinned scene data URLs and the classic scene.mjs,
+     1607243 B by the sources (r5 tailcheck), leaving 9195 B of esbuild's own wrapper, inside the 120000 B the law has
+     always allowed. The law is NOT widened: build.mjs now DECLARES that tail (result.appended: its source, its byte
+     length, its sha256), this cell checks the declaration against the actual last bytes of the shipped file (same
+     sha256, starts with the scene banner, names scene.mjs), and every byte of the asset must then be either an esbuild
+     input's bytesInOutput or that verified tail, with the same 120000 B tolerance for the bundler's own wrapper. */
+  const appended = today.appended;
+  assert.ok(appended && appended.path === 'rebuild/m3/w7-preview/today/scene.mjs' && appended.bytes > 0,
+    'the build declares no appended tail, or a tail from something other than scene.mjs');
+  const shipped = fs.readFileSync(path.join(today.dist, 'app.js'));
+  assert.equal(shipped.length, built);
+  const tail = shipped.subarray(built - appended.bytes);
+  const { createHash } = await import('node:crypto');
+  assert.equal(createHash('sha256').update(tail).digest('hex'), appended.sha256,
+    'the declared tail is not the last ' + appended.bytes + ' B of the shipped asset');
+  assert.ok(tail.toString('utf8').startsWith('\n// rebuild/m3/w7-preview/today/scene.mjs\nglobalThis.__earnedSceneAssets='),
+    'the declared tail does not start at the scene banner');
+  assert.ok(allBytes + appended.bytes <= built && allBytes + appended.bytes > built - 120000,
+    'the per-input accounting (' + allBytes + ' B) plus the declared scene tail (' + appended.bytes
+    + ' B) does not add up to the built asset (' + built + ' B), so the figure above is not the whole story');
   /* AND THE MODULE DELTA, against the base this branch is built on. 121 is the
      pinned-input count of the base, measured by building that commit in its own
      worktree; it is a constant here because this cell cannot check out another
@@ -455,13 +484,22 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
      27 is 20 route modules plus the same SEVEN boot modules. DERIVED by the
      builder from the import edges, NOT measured on a builder seat; the PM's run
      of this cell is the measurement. */
+  /* S12 (SC-27 PROPOSED id) moves it by TWO, and they are different kinds, so both are named: coach-app.mjs, a ninth
+     BOOT module (see P3-B2), and scene.mjs, which is not an esbuild module at all but stands in buildToday's pinned
+     inventory as the appended input (build.mjs: inventory = [...built.inventory, sceneInput]). The route-only set is
+     UNMOVED at 19. DERIVED from the sources (P3-B5 stopped at the accounting above, so this line is not yet measured);
+     the PM's run of this cell is the measurement: 29. */
+  assert.ok(today.inventory.some(i => i.path === 'rebuild/m3/w7-preview/today/coach-app.mjs'),
+    'S12\'s coach screen is not among the pinned inputs');
+  assert.ok(today.inventory.some(i => i.path === 'rebuild/m3/w7-preview/today/scene.mjs'),
+    'S12\'s appended scene is not among the pinned inputs');
   const BASE_PINNED_INPUTS = 121;
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 27,
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 29,
     'the delta is ' + (today.inventory.length - BASE_PINNED_INPUTS) + ' modules, not the '
-    + 'measured 27 (the route\'s 19 plus the eight boot modules, B-LOM\'s order '
+    + 'measured 29 (the route\'s 19 plus the nine boot modules, B-LOM\'s order '
     + 'mapping, the shared passphrase form, S10\'s three Today writer '
-    + 'lanes, S11\'s two native-load modules and S11 FC09 round 6\'s lift-correspondence '
-    + 'helper): re-measure and say so');
+    + 'lanes, S11\'s two native-load modules, S11 FC09 round 6\'s lift-correspondence '
+    + 'helper and S12\'s coach screen, plus S12\'s appended scene input): re-measure and say so');
   /* S11 FC09 ROUND 6 moves the BOOT graph, not the total: lift-correspondence.cjs leaves the route-only set for the Today
      boot path (today-bindings.mjs imports it), so the delta 27 is now 19 route modules plus EIGHT boot modules (the seven
      above and this one). DERIVED, not measured on a builder seat; the PM's run of this cell is the measurement. */
