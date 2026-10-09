@@ -89,6 +89,14 @@
 .screen-coach .header .back { padding: 0; color: inherit; }
 .screen-coach .proposal .change { color: inherit; }
 .screen-coach .primary { border: 0; font-weight: inherit; }
+/* S12 R5e (SC-29): the pack draws the mic glyph's colour as an inline style ATTRIBUTE
+   (app/app.html, `style="color: var(--mic-glyph)"` on the svg), which the page's
+   style-src 'self' refuses, so on the phone it was silently not applied. The same
+   declaration lives here instead. The id selector outranks every normal rule that
+   reaches the glyph, as the attribute did, and the pack's own !important glyph colours
+   (app.css, the ink theme and the listening state) still win over it, as they did over
+   the attribute. No value of its own: --mic-glyph is the pack's token. */
+#mic > svg { color: var(--mic-glyph); }
 /* ==== C-UI-6 COACH (end) ==== */
 @media (max-width: 430px) {
   .stage { display: block; min-height: 100dvh; padding: 0; }

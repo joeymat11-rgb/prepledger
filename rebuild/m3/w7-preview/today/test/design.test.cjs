@@ -367,3 +367,59 @@ test("the design binding cites C-UI-1 and the approved 2026-09-18 pack", () => {
 test("the page shell has exactly one slot for the approved templates", () => {
   assert.equal(design.shellHtml().split("<!-- APPROVED_TEMPLATES -->").length, 2);
 });
+
+/* S12 R5e (SC-29, PROPOSED id; red first: the PM's real-browser check on the seat at f8e6e9e, %TEMP%\s12-final-seat\
+   browser.log, three console errors "Applying inline style violates ... 'style-src 'self'' ... sha256-qbgk5AIFloJuqlFw1m
+   DXjTTJamq3P970y8XQjneJegM=", which is the sha256 of `color: var(--mic-glyph)`, the style ATTRIBUTE C-UI-6 copied from
+   the pack's #screen-coach markup onto the mic glyph). The page ships under style-src 'self' (serve.mjs CSP, and the
+   deployed page's PAGE_CSP in rebuild/slice/pwa/shell.cjs), so an inline style attribute or a <style> element is
+   silently NOT applied on the phone. CSSOM writes (el.style.setProperty, el.style.x = ...) are permitted and are what
+   the lane uses; markup that parses a style attribute, setAttribute("style", ...) and <style> elements are refused here,
+   in every template and shell the page renders and in every runtime source the page ships. */
+const CSP_HTML = [/\sstyle\s*=/i, /<style[\s>]/i];
+const CSP_JS = [/\sstyle\s*=\s*\\?["'`]/i, /setAttribute\(\s*["'`]style["'`]/, /<style[\s>]/i, /insertRule\(/];
+function cspInlineStyleOffences(files) {
+  const out = [];
+  for (const [name, text, patterns] of files) {
+    text.split("\n").forEach((line, i) => {
+      for (const pattern of patterns) if (pattern.test(line)) out.push(name + ":" + (i + 1) + " " + pattern);
+    });
+  }
+  return out;
+}
+function shippedCspSurface() {
+  const files = [];
+  const html = (rel) => files.push([rel, fs.readFileSync(path.join(design.ROOT, rel), "utf8"), CSP_HTML]);
+  html("rebuild/m3/w7-preview/today/screens.template.html");
+  html("rebuild/m3/w7-preview/today/index.shell.html");
+  html("rebuild/slice/pwa/preflight.html");
+  const harness = /-check\.mjs$|^(build|serve|design)\.(mjs|cjs)$/;
+  for (const dir of ["rebuild/m3/w7-preview/today", "rebuild/m3/w7-preview/import", "rebuild/m3/w7-preview/measure"]) {
+    for (const name of fs.readdirSync(path.join(design.ROOT, dir)).sort()) {
+      if (!/\.(cjs|mjs|js)$/.test(name) || harness.test(name)) continue;
+      files.push([dir + "/" + name, fs.readFileSync(path.join(design.ROOT, dir, name), "utf8"), CSP_JS]);
+    }
+  }
+  for (const name of ["preflight.js", "sw-source.js"]) {
+    files.push(["rebuild/slice/pwa/" + name, fs.readFileSync(path.join(design.ROOT, "rebuild/slice/pwa", name), "utf8"), CSP_JS]);
+  }
+  return files;
+}
+test("S12 SC-29 no template, shell or shipped source applies an inline style the page's CSP refuses", () => {
+  assert.match(fs.readFileSync(path.join(design.SOURCE, "serve.mjs"), "utf8"), /style-src 'self';/,
+    "the page's CSP no longer says style-src 'self': re-read what this cell protects");
+  const files = shippedCspSurface();
+  assert(files.length > 40, "the scan reaches the page's sources (" + files.length + " files)");
+  assert(files.some(([name]) => name.endsWith("/coach-app.mjs")) && files.some(([name]) => name.endsWith("/scene.mjs")),
+    "the look's runtime sources are in the scan");
+  assert.deepEqual(cspInlineStyleOffences(files), [], "an inline style the CSP blocks would silently not apply on the phone");
+  /* teeth: each refused shape is caught, and the permitted CSSOM writes are not */
+  for (const [text, patterns] of [['<svg style="color: var(--x)"></svg>', CSP_HTML], ["<style>a{}</style>", CSP_HTML],
+    ['el.innerHTML = \'<i style="x"></i>\';', CSP_JS], ['el.setAttribute("style", "x");', CSP_JS],
+    ["sheet.insertRule('a{}');", CSP_JS]]) {
+    assert.equal(cspInlineStyleOffences([["plant", text, patterns]]).length, 1, text);
+  }
+  for (const text of ['el.style.setProperty("--level", "1");', 'canvas.style.width = width + "px";', "root.style.removeProperty('--x');"]) {
+    assert.equal(cspInlineStyleOffences([["control", text, CSP_JS]]).length, 0, text);
+  }
+});
