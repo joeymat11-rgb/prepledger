@@ -1787,7 +1787,7 @@
         "rebuild/m3/w7-preview/measure/test/boundary.test.mjs",
         "rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 829\" is reference only"
+      "needle": "# pass 834"
     },
     {
       "name": "measure-hermetic",
@@ -1797,7 +1797,7 @@
         "rebuild/m3/w7-preview/measure/test/model.test.mjs",
         "rebuild/m3/w7-preview/measure/test/adherence.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 11\" is reference only"
+      "needle": "# pass 11"
     },
     {
       "name": "s4-real-day",
@@ -1806,7 +1806,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/local-real-day.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 15\" is reference only"
+      "needle": "# pass 15"
     },
     {
       "name": "a0-journeys",
@@ -1816,7 +1816,7 @@
         "rebuild/m3/w6/host/test/journey.test.mjs",
         "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 23\" is reference only"
+      "needle": "# pass 23"
     },
     {
       "name": "d-plan-edit",
@@ -1828,7 +1828,7 @@
         "rebuild/lanes/d/plan-edit/browser-build.test.mjs",
         "rebuild/lanes/d/plan-edit/client-p6.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 90\" is reference only"
+      "needle": "# pass 90"
     },
     {
       "name": "m4-import",
@@ -1843,7 +1843,7 @@
         "rebuild/m4/import/test/engine-pins-unprotected.test.cjs",
         "rebuild/m4/import/test/native-load-replay.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 74\" is reference only"
+      "needle": "# pass 74"
     },
     {
       "name": "m4-import-production",
@@ -1853,7 +1853,7 @@
         "rebuild/m4/import/test/production-mapping.test.cjs",
         "rebuild/m4/import/test/production-admission.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 28\" is reference only"
+      "needle": "# pass 28"
     },
     {
       "name": "d-import-retract",
@@ -1862,7 +1862,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/import-retract/retract.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 13\" is reference only"
+      "needle": "# pass 13"
     },
     {
       "name": "d-admission-swap",
@@ -1871,7 +1871,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/p3-followons/admission-swap.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 4\" is reference only"
+      "needle": "# pass 4"
     },
     {
       "name": "d-replay-measure",
@@ -1881,7 +1881,7 @@
         "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs",
         "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 9\" is reference only"
+      "needle": "# pass 9"
     },
     {
       "name": "d-capture-start",
@@ -1890,7 +1890,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 14\" is reference only"
+      "needle": "# pass 14"
     },
     {
       "name": "food-live-save",
@@ -1899,7 +1899,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/food-live-save.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 6\" is reference only"
+      "needle": "# pass 6"
     },
     {
       "name": "w7-import",
@@ -1912,7 +1912,7 @@
         "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs",
         "rebuild/m3/w7-preview/import/test/refusals.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 35\" is reference only"
+      "needle": "# pass 35"
     },
     {
       "name": "w6-host-seams",
@@ -1921,7 +1921,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/host-seams.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 9\" is reference only"
+      "needle": "# pass 9"
     },
     {
       "name": "w6-local-source",
@@ -1931,7 +1931,7 @@
         "rebuild/m3/w6/test/local-source-admission.test.mjs",
         "rebuild/m3/w6/test/local-source-consumer.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 31\" is reference only"
+      "needle": "# pass 31"
     },
     {
       "name": "d-replay-all",
@@ -1944,7 +1944,7 @@
         "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs",
         "rebuild/lanes/d/p3-replay-all/native-load-import.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 48\" is reference only"
+      "needle": "# pass 48"
     },
     {
       "name": "d-port-admission",
@@ -1955,7 +1955,7 @@
         "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs",
         "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 35\" is reference only"
+      "needle": "# pass 35"
     },
     {
       "name": "d-real-shape",
@@ -1971,7 +1971,7 @@
         "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs",
         "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 62\" is reference only"
+      "needle": "# pass 62"
     },
     {
       "name": "sealed-inventory-fence",
@@ -1980,7 +1980,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 62\" is reference only"
+      "needle": "# pass 63"
     },
     {
       "name": "ui-pack-pins",
@@ -1990,7 +1990,7 @@
         "rebuild/lanes/c/ui-port/pack-pin.test.mjs",
         "rebuild/lanes/c/ui-port/approved-pin.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# tests 121\" is reference only"
+      "needle": "# tests 121"
     },
     {
       "name": "reference-closure",
@@ -1999,7 +1999,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/reference-closure.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 5\" is reference only"
+      "needle": "# pass 5"
     },
     {
       "name": "release-object",
@@ -2008,7 +2008,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/release-object.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# tests 14\" is reference only"
+      "needle": "# tests 14"
     },
     {
       "name": "today-carry",
@@ -2018,7 +2018,7 @@
         "rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs",
         "rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 9\" is reference only"
+      "needle": "# pass 9"
     },
     {
       "name": "passphrase-normalize",
@@ -2029,7 +2029,7 @@
         "rebuild/lanes/c/passphrase-normalize/route.test.mjs",
         "rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 29\" is reference only"
+      "needle": "# pass 29"
     },
     {
       "name": "w6-local-import",
@@ -2038,7 +2038,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-import.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 22\" is reference only"
+      "needle": "# pass 22"
     },
     {
       "name": "f2-land",
@@ -2048,7 +2048,7 @@
         "rebuild/lanes/d/f2/projector.test.mjs",
         "rebuild/lanes/d/f2/guard-coverage.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 81\" is reference only"
+      "needle": "# pass 81"
     },
     {
       "name": "epp-proposed-pick",
@@ -2057,7 +2057,7 @@
         "--test-reporter=tap",
         "rebuild/engine/test/proposed-pick.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 9\" is reference only"
+      "needle": "# pass 9"
     },
     {
       "name": "d-epp-2-capture",
@@ -2066,7 +2066,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/engine-capture-proposed.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 13\" is reference only"
+      "needle": "# pass 13"
     },
     {
       "name": "today-split-fence",
@@ -2075,7 +2075,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/today-split/writer-fence.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 404\" is reference only"
+      "needle": "# pass 404"
     },
     {
       "name": "s11-sup-source-carriers",
@@ -2084,7 +2084,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s11-supersede-source-carriers.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 4\" is reference only"
+      "needle": "# pass 4"
     },
     {
       "name": "s11-sup-inherited-carriers",
@@ -2093,7 +2093,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s11-supersede-inherited-carriers.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 3\" is reference only"
+      "needle": "# pass 3"
     },
     {
       "name": "s11-sup-defect-witnesses",
@@ -2102,7 +2102,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s11-supersede-defect-witnesses.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 3\" is reference only"
+      "needle": "# pass 3"
     },
     {
       "name": "s11-sup-writers-differential",
@@ -2111,7 +2111,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s11-supersede-writers-differential.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 3\" is reference only"
+      "needle": "# pass 3"
     },
     {
       "name": "s11-sup-second-gate",
@@ -2120,14 +2120,14 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s11-supersede-second-gate.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 3\" is reference only"
+      "needle": "# pass 3"
     },
     {
       "name": "s11-engine-files-differential",
       "argv": [
         "rebuild/m4/workout/test/s11-engine-files-differential.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 2 named files move, each\" is reference only"
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 2 named files move, each"
     },
     {
       "name": "s10-copy-lock",
@@ -2136,7 +2136,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 11\" is reference only"
+      "needle": "# pass 13"
     },
     {
       "name": "native-load-fc12",
@@ -2145,7 +2145,7 @@
         "--test-reporter=tap",
         "rebuild/m4/spec/native-load-options.test.cjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 478\" is reference only"
+      "needle": "# pass 478"
     },
     {
       "name": "w6-local-source-commit",
@@ -2154,7 +2154,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-source-commit.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 9\" is reference only"
+      "needle": "# pass 9"
     },
     {
       "name": "w6-local-today-journey",
@@ -2163,7 +2163,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-today-journey.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch (never a seat run), in the child's inherited form; the sealed S11 needle \"# pass 51\" is reference only"
+      "needle": "# pass 51"
     },
     {
       "name": "s12-look",
@@ -2176,7 +2176,7 @@
         "rebuild/m3/w7-preview/today/test/workout-look.test.mjs",
         "rebuild/m3/w7-preview/today/test/coach.test.mjs"
       ],
-      "needle": "PENDING STOP-S12-NEEDLES: a NEW value, observed on BOTH OS at the final S12 product bytes by the s12-observe run on an obs/s12-* branch; form \"# pass N\" if no platform-keyed skip shows on either OS (the five files at the look head counted 7 + 5 + 13 + 25 + 12 = 62 on the builder seat, lane evidence only, never the needle)"
+      "needle": "# pass 64"
     }
   ],
   "notes": [
@@ -2190,7 +2190,7 @@
     "COPY LOCK (DECISIONS:905 (1), owner option 1; round 2): the look's strings are APPROVED by the PM against the approved boards and the owner's words of :817/:820, and the corpus is re-measured: rebuild/m3/w7-preview/today/test/copy-lock.corpus.json (325 pieces added, 20 removed, 102 changed, five mounted states, after the round-3 weigh-in merge), the new sealed copy-lock.s12-delta.json beside it, and copy-lock.test.mjs: CORPUS_SHA256 moved, CL-S12-DELTA (the corpus is the sealed S11 corpus plus exactly the delta, proven both ways, the S11 corpus rebuilt byte for byte), CL-S11-DELTA unchanged in what it asserts but run on that rebuilt S11 corpus, and CL-S12-APPROVAL citing DECISIONS:905. CL-COMPOSED (DECISIONS:905 (3); the approach PM-ruled at DECISIONS:906) is fixed product-side, lock rule untouched: the board's three numeral words \"lb\", \"reps\" and the multiply sign are declared in design.cjs APPROVED_COPY beside the board's \"example\", as the lock's own declaration mechanism requires for a word drawn alone beside a typed figure; no template, view or stylesheet byte moved (the 390x844 Workout set screen is byte-identical before and after). copy-lock.test.mjs 13/13. The owner receives the full list after release (S12 package report: COPY-LIST-FOR-OWNER.md).",
     "PM SEAT (the builder's guard stops these, so their reds are not yet measured): view.test.mjs, package.test.cjs, copy.test.mjs, adapter.test.mjs and catalogue.test.mjs load rebuild/engine/index.cjs; scene.test.mjs's build cell, the build cells of food, problem, setup and machine-settings-ui, H3/2 and boundary P-MEASURE (g) read protected engine files. rev8 predicts SC-5, SC-6, SC-14 and SC-16 red there; each is measured at the PM seat first and moved red first, named (STOP-S12-PMSEAT-CELLS).",
     "NAMED DEBTS: D-S12-MSUI-1 (the machine row joins a stored name and its value with a space, so the screen, and SC-22's cells, cannot tell [[\"Back pad\",\"two notches\"]] from [[\"Back\",\"pad two notches\"]]; the stored record can, and S4/S5 read it back off the store); D-W7IMPORT-FLAKE-1 (SC-20 lands the waits; it closes only on the PM seat's red-first record and a both-OS hunter run of the s11-w7hunt.yml shape); D-CUI3-RECORD, D-LOOK-CHASSIS, D-LOOK-PROOF, D-LOOK-STATES and D-NODE-MODULES-HOME carried from rev8 section 3a unchanged.",
-    "PRODUCT MAP (regenerated by rebuild/lanes/b/S12-REGEN.cjs at parent 7c79ef16b770ab881892ad126dadfe0687bc1d2b). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s11-native-load.json bde69f156c4f); post is sha256 of the bytes ON DISK in the UNCOMMITTED working tree over HEAD 6c305e270768333dbd2de7c0e224a3cbf9578bb2 (--worktree, header (B)): after the commit a dry run without --worktree must print \"0 entr(ies) would change\". Released paths of the parent and its ancestors are not declared: rebuild/m3/w7-preview/today/build.mjs (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/gym-app.mjs (rebuild/m4/spec/acceptance-s10-today-split.json), rebuild/m3/w7-preview/today/preview.css (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/today-app.cjs (rebuild/m4/spec/acceptance-s10-today-split.json). New paths are every path changed since the parent, inside the S12 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself. Roles: {\"new\":14,\"edited\":26,\"carried\":294}.",
+    "PRODUCT MAP (regenerated by rebuild/lanes/b/S12-REGEN.cjs at parent 7c79ef16b770ab881892ad126dadfe0687bc1d2b). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s11-native-load.json bde69f156c4f); post is sha256 of the bytes ON DISK in the UNCOMMITTED working tree over HEAD 89d55996ec701ae7c6c61f0f470640345be5e307 (--worktree, header (B)): after the commit a dry run without --worktree must print \"0 entr(ies) would change\". Released paths of the parent and its ancestors are not declared: rebuild/m3/w7-preview/today/build.mjs (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/gym-app.mjs (rebuild/m4/spec/acceptance-s10-today-split.json), rebuild/m3/w7-preview/today/preview.css (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/today-app.cjs (rebuild/m4/spec/acceptance-s10-today-split.json). New paths are every path changed since the parent, inside the S12 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself. Roles: {\"new\":14,\"edited\":26,\"carried\":294}.",
     "PARENT-UNPINNED PATHS (regenerated at 7c79ef16b770ab881892ad126dadfe0687bc1d2b): 3 path(s) existed at the parent pinned by neither its product map nor its execution pins and are declared here, so they are declared role new with pre null (DECISIONS:792): rebuild/m3/w7-preview/today/browser-check.mjs, rebuild/m3/w7-preview/today/design.cjs, rebuild/m3/w7-preview/today/screens.template.html.",
     "EXECUTION PIN SUPERSEDED (regenerated at 7c79ef16b770ab881892ad126dadfe0687bc1d2b): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: none."
   ]
