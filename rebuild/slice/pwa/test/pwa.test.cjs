@@ -547,7 +547,20 @@ test("the SVG draws the same geometry as the raster and names nothing but itself
 
 test("the preflight uses the approved design's own classes and secondary type", () => {
   const approved = design.readApproved(ROOT);
-  const css = approved.map((a) => a.styles).join("\n");
+  /* S12 SC-28 (PROPOSED id; red first: hosted rebuild run 38000622730 at a2eb8e9, ubuntu, step "A5 - the PWA
+     shell's lockfile-only suites", `not ok 30`, reproduced under the builder guard 45/46: "CLASS-BINDING FAIL: .review
+     is not in the approved stylesheets"). With the owner-approved look design.cjs APPROVED is the four 2026-09-18
+     stylesheets (DECISIONS:817, :820; SC-25), which have no .review; the 2026-09-08 design this cell was written
+     against is still pinned by sha256 as design.cjs LEGACY_STRUCTURE (Earned-refinement-A.html fddfe054,
+     Earned-additions-C-approved.html caf9c2dc) and still SHIPS in styles.css, ahead of the 2026-09-18 bytes
+     (composeStyles). So the design this aside is bound to is those two pinned layers together, exactly the
+     binding assertDesignBinding applies to every look template (SC-21). Nothing is loosened: every class must still
+     be in pinned approved bytes, the 13px var(--muted) secondary voice must still be a pinned rule, every value
+     preflight.css sets must still be a pinned value, and three checks are added below: the shipped stylesheet
+     really carries that rule and declares the two tokens the aside uses, and the look's narrow-screen
+     `.review { display: none; }` (preview.css) cannot hide the athlete's own preflight on a phone. */
+  const css = approved.map((a) => a.styles).join("\n") + "\n"
+    + design.readLegacyStructure(ROOT).map((a) => a.styles).join("\n");
   const fragment = shell.preflightHtml();
   for (const token of design.classTokens(fragment)) {
     const selector = new RegExp("\\." + token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w-])");
@@ -567,6 +580,19 @@ test("the preflight uses the approved design's own classes and secondary type", 
   for (const value of new Set(declared)) {
     assert(css.includes(value), `SPACING FAIL: ${value} is not a value the approved design declares`);
   }
+  /* S12 SC-28 additions. The stylesheet the page actually ships carries the pinned secondary-voice rule and
+     declares both tokens the aside reads. */
+  const shipped = design.composeStyles(approved, design.chromeCss(), []);
+  const voice = css.match(/\.review\{[^}]*font-size:13px[^}]*color:var\(--muted\)[^}]*\}/)[0];
+  assert(shipped.includes(voice), "the shipped stylesheet does not carry the pinned .review rule");
+  for (const token of ["--muted", "--green"]) {
+    assert(new RegExp(token + "\\s*:").test(shipped), token + " is not declared by the shipped stylesheet");
+  }
+  /* The look's narrow-screen rule hides every .review aside (the reviewer prose) on a phone. The preflight is the
+     athlete's own aside, so its display must come from an ID rule, which outranks that class rule whatever the order. */
+  assert.match(design.chromeCss(), /@media \(max-width: 430px\) \{[^}]*\}\s*\.review \{ display: none; \}/,
+    "the narrow-screen .review rule this check guards against has moved; re-measure");
+  assert.match(chrome, /(^|\n)#pwa-preflight \{ display: grid;/, "the preflight's display is not set by its own ID rule");
 });
 
 test("the preflight carries no figure of its own: every number on it comes from this device", () => {
