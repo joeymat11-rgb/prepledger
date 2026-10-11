@@ -195,7 +195,13 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // one unsealed --ci child of the sealed S11 and carries every byte it declared, so a runnable S12 would be a
 // second claim on the same parent, which parent()'s single-parent scan refuses. packages/S12.json stays as the
 // record with its parent claim withdrawn; S13 sits where S12 sat, directly behind S11 and still ahead of B1.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S13', 'B1', 'B2', 'B4', 'B3'];
+// S13 LEAVES IDS in its turn (DECISIONS:922 (f), the DECISIONS:920 shape): M2-S14-HOLD, the SEALED child of S11 that carries
+// every byte M2-S13-POLISH declared, re-measured from the S11 seal, plus the hold/bodyweight engine slice (brief
+// S14-HOLD-BW-BRIEF.md), holds the one parent claim, so a runnable S13 would be a second claim on the same parent, which
+// parent()'s single-parent scan refuses. packages/S13.json stays as the record with its parent claim withdrawn; S14 sits
+// where S13 sat, directly behind S11 and still ahead of B1. No CHILD_ROOTS hunk: every directory its children run under
+// is already a root.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'B1', 'B2', 'B4', 'B3'];
 // RETIRED IDS, and why this list has to exist at all. Removing an id from IDS and deleting
 // its spec file are ONE act - DECISIONS:487 stop 2 orders both for B-LOM - but TOOLING_FILES
 // below is derived from IDS, so the moment the id goes the deleted path stops being named
@@ -362,7 +368,11 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // rebuild/engine byte and no register D-id. It is an S- id, so the shape assertion below admits it without a PM
 // by-name ruling; it was numbered S13 for exactly that reason, and no pattern below moves.
 // 'S12' LEAVES with its id (DECISIONS:920): an exemption must name a runnable package id (the assertion below).
-const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S13']);
+// 'S14' is in for the same reason an eleventh time: M2-S14-HOLD is a reseal whose product delta is the hold/bodyweight slice
+// (brief of record DECISIONS:913, rev5 S14-HOLD-BW-BRIEF.md; PM rulings DECISIONS:922) and the S13 polish it carries,
+// slice-plan work under DECISIONS:455 with no register D-id. It is an S- id, so the shape assertion below admits it without
+// a PM by-name ruling. 'S13' LEAVES with its id (DECISIONS:922 (f)), as 'S12' left at DECISIONS:920.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).

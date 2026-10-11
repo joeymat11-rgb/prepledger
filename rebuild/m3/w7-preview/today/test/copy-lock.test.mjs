@@ -62,7 +62,8 @@ const ROOT = path.resolve(HERE, '../../../../..');
 const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // The sealed corpus, by value. A re-measure changes this literal in the same reseal child.
 // S12b R6 (DECISIONS:914, :915): re-measured after the screen and layout fixes (four pieces moved; see S12_DELTA_SHA256). R9: re-measured again.
-const CORPUS_SHA256 = '72f5d0da549949c0de3e6d55566cb03c86c4dd6dc77993c4ee3753eb7e29041b';
+// S14 (M2-S14-HOLD, E12): re-measured for exactly one new piece, the R4 panel line (CL-S14-DELTA; the S13 value is S13_CORPUS_SHA256).
+const CORPUS_SHA256 = '3a226341aac5832d490ffa652e6cf969c5f55b1820024695c94e5713880e9a98';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -341,7 +342,8 @@ function s11View(corpus, delta = s12Delta().delta) {
 }
 
 test('CL-S12-DELTA: the S12 corpus is the sealed S11 corpus plus exactly the listed S12 delta, both directions', () => {
-  const { corpus } = loaded();
+  // S14: judged on the released S13 corpus, which s13View rebuilds byte for byte from this corpus (CL-S14-DELTA)
+  const corpus = s13View(loaded().corpus);
   const { delta, sha256 } = s12Delta();
   assert.equal(sha256, S12_DELTA_SHA256, 'CL-S12-DELTA-FILE-MOVED');
   assert.equal(delta.from, S11_CORPUS_SHA256, 'CL-S12-DELTA-FROM');
@@ -374,7 +376,8 @@ test('CL-S12-APPROVAL: the S12 copy delta names the ledger line that approves it
 
 test('CL-S11-DELTA: the S11 corpus is the S10 corpus plus exactly the approved S11 copy, each with its owner and approval', () => {
   // S12: judged on the sealed S11 corpus, which s11View rebuilds byte for byte from this corpus (CL-S12-DELTA)
-  const corpus = s11View(loaded().corpus);
+  // S14: from the S13 corpus that s13View rebuilds first (CL-S14-DELTA)
+  const corpus = s11View(s13View(loaded().corpus));
   const byText = new Map(corpus.entries.map((e) => [e.text, e]));
   const failed = [];
   for (const [text, approval] of S11_NEW) {
@@ -399,6 +402,49 @@ test('CL-S11-DELTA: the S11 corpus is the S10 corpus plus exactly the approved S
   assert.deepEqual(failed, [], 'CL-S11-DELTA');
 });
 
+/* ---------------- S14 (M2-S14-HOLD, the hold/bodyweight slice; brief S13-HOLD-BW-BRIEF.md E12) ----------------
+   The S14 copy delta over the released S13 corpus (M2-S13-POLISH, 7347ba6; its corpus sha256 is the S13 value of
+   CORPUS_SHA256 before this reseal): exactly ONE new piece, section 10 string 2, the R4 panel line, owned once by
+   today-entry.mjs and in no design.cjs list (the lift name before it is the athlete's data). No piece removed or changed, no
+   mounted state and no scanned file moved. CL-S14-DELTA proves it both ways: the piece is in the corpus as listed, and the
+   corpus with it taken out serializes to the S13 corpus bytes, so CL-S12-DELTA and CL-S11-DELTA keep judging what they
+   judged. The words are approved by the PM under the owner's standing Yes, DECISIONS:913 (5), the brief's ruling 12.11. */
+const S13_CORPUS_SHA256 = '72f5d0da549949c0de3e6d55566cb03c86c4dd6dc77993c4ee3753eb7e29041b';
+const S14_OWNER = T + '/today-entry.mjs';
+const S14_NEW = Object.freeze([
+  ['bodyweight sets have no weight to agree to. Your sets are saved.', 'DECISIONS:913 (5) (brief 12.11, section 10 string 2, the R4 panel line)'],
+]);
+const S14_COPY_APPROVAL = 'DECISIONS:913';
+// The S13 view: this corpus minus the S14 piece.
+function s13View(corpus) {
+  const added = new Set(S14_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)) };
+}
+
+test('CL-S14-DELTA: the S14 corpus is the released S13 corpus plus exactly the approved S14 piece, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, approval] of S14_NEW) {
+    const want = { text, files: { [S14_OWNER]: 1 }, lists: [] };
+    const got = byText.get(text) || null;
+    if (JSON.stringify(got) !== JSON.stringify(want)) failed.push('CL-S14-DELTA NEW ' + approval + ' ' + JSON.stringify(text) + ' is ' + JSON.stringify(got));
+  }
+  const s13 = lock.sha256(Buffer.from(serialize(s13View(corpus)), 'utf8'));
+  if (s13 !== S13_CORPUS_SHA256) failed.push('CL-S14-DELTA S13-VIEW ' + s13);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the S13 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-S14-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(s13View(moved)), 'utf8')) === S13_CORPUS_SHA256) failed.push('CL-S14-DELTA S13-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-S14-DELTA');
+});
+
+test('CL-S14-APPROVAL: the S14 copy delta names the ledger line that approves it', () => {
+  assert.match(S14_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-S14-APPROVAL-PENDING: the S14 copy is not approved');
+});
+
 /* D-S11R6-3, PM RULED at DECISIONS:843 (2): a red-first pin per approved engine explanation template, never a
    silent SCAN_ROOTS widening. The sentence under an offer card is the engine's: today-entry.mjs shows
    offer.reason, which the W6 host copies from the native-load issuance. Those templates live in
@@ -410,9 +456,12 @@ test('CL-S11-DELTA: the S11 corpus is the S10 corpus plus exactly the approved S
    were not put to the owner. */
 const NATIVE_LOAD = 'rebuild/engine/native-load.cjs';
 const ENGINE_TEMPLATES = Object.freeze([
-  { id: 'NL-LOADS', at: ':148-151', approval: 'DECISIONS:842 (the load formats)', source: [
+  // S14 (M2-S14-HOLD, E1 (c) / R2b, red first): the load formats gain the R2b piece "<key> on every set" (brief
+  // S13-HOLD-BW-BRIEF.md section 10; approved by the PM under the owner's standing Yes, DECISIONS:913 (5), brief 12.11):
+  // a configuration position prints its own non-blank key. Every other literal of the block is unchanged.
+  { id: 'NL-LOADS', at: ':164-167', approval: 'DECISIONS:842 (the load formats) and DECISIONS:913 (5) (the S14 R2b piece)', source: [
     "const setLoads = (vector) => {",
-    "  const values = vector.map((x) => (x && typeof x.value === 'number' ? x.value + ' lb' : 'no load'));",
+    "  const values = vector.map((x) => (x && typeof x.value === 'number' ? x.value + ' lb' : x && x.kind === 'configuration' && textLoad(x.configuration_key) ? x.configuration_key : 'no load'));",
     "  return values.every((v) => v === values[0]) ? values[0] + ' on every set' : values.join(', ');",
     "};",
   ].join('\n') },
@@ -617,6 +666,8 @@ const FX_UNDO = (loads) => 'Fx Press: undo the choice you agreed to before any w
 const FX_N11 = { w: 100, wSets: [100, 95], sets: 2, hi: 10, steps: [100, 105, 110, 115] };
 const FX_SPEND_MISSED = JSON.stringify(['native-load', FX_LIFT, null, null, ['fx-root-missed']]);
 function fxCase(patch, comps, opts = {}) { return { state: fxFacts(fxState(patch), comps), comps, opts }; }
+// S14: a completion whose every slot was prescribed the card text hold (a configuration), as engine-capture writes it.
+function fxHold(c) { for (const slot of c.session.record.entries[0].slots) slot.prescribed_load = { state: 'specified', source: { kind: 'configuration', configuration_key: 'hold' } }; return c; }
 const ENGINE_OUTPUT_CASES = Object.freeze([
   { id: 'F1+F2 one-step (earn.cjs:88), F5 every set', build: () => fxCase({}, [fxC(1, { reps: FX_TOP, effort: fxE(2, 1, 1) }), fxC(2, { reps: FX_TOP, effort: fxE(2, 1, 1) })]),
     want: ['Fx Press: you topped the rep window at 100 lb on every set (workouts on 2026-10-01, 2026-10-02). Offer: 105 lb on every set, a one-step increase after topping the rep window.' + FX_NOTHING] },
@@ -639,6 +690,11 @@ const ENGINE_OUTPUT_CASES = Object.freeze([
   { id: 'F4 undo of an adoption', build: () => fxCase({}, [fxC(1, { reps: FX_TOP, loads: 105, effort: fxE(2, 1, 1) })], { undo: true }), want: [FX_UNDO('100 lb on every set')] },
   { id: 'F4 undo of a first adoption, F5 no load', build: () => fxCase({ w: null }, [fxC(1, { reps: FX_TOP, loads: 60, prescribed: null, effort: fxE(2, 1, 1) })], { undo: true }), want: [FX_UNDO('no load on every set')] },
   { id: 'F4 undo of a queued earn', build: () => fxCase({}, [fxC(1, { reps: FX_TOP, effort: fxE(2, 1, 1) }), fxC(2, { reps: FX_TOP, effort: fxE(2, 1, 1) })], { undo: true }), want: [FX_UNDO('100 lb on every set')] },
+  // S14 (E12, red first on the round-1 engine, which printed "no load"): the R2b piece, a CONFIGURATION ADOPTION over the
+  // card text hold (DECISIONS:913 (5), brief 12.11), and the Undo of its Yes.
+  { id: 'S14 R2b adopt over a configuration, the card said hold', build: () => fxCase({ w: 'hold' }, [fxHold(fxC(1, { reps: FX_TOP, loads: 140, effort: fxE(2, 1, 1) }))]),
+    want: ['Fx Press: on 2026-10-01 you completed every set at 140 lb on every set (the card said hold on every set)' + FX_ADOPT_TAIL] },
+  { id: 'S14 R2b undo of that adoption', build: () => fxCase({ w: 'hold' }, [fxHold(fxC(1, { reps: FX_TOP, loads: 140, effort: fxE(2, 1, 1) }))], { undo: true }), want: [FX_UNDO('hold on every set')] },
 ]);
 const FX_BUILT = ENGINE_OUTPUT_CASES.map((c) => ({ ...c, ...c.build() }));
 // What FC01 returns for one case: every offer's reason in order, or the refusal code.
@@ -696,10 +752,64 @@ test('CL-ENGINE-OUTPUT-TEETH: the comment decoy and a one-character change in ea
   assert.equal(original.split(' on every set').length - 1, 1, 'CL-ENGINE-OUTPUT-TEETH-DECOY-ANCHOR');
   if (!engineOutputRefusals(commentDecoy(original)).length) failed.push('CL-ENGINE-OUTPUT-TEETH comment decoy (Astra L1 B1) passed');
   const mutants = literalMutants(original);
-  // 30 literals at 9288adf: NL-LOADS 5, NL-EARN 14, NL-ADOPT 9, NL-UNDO 2
-  assert.equal(mutants.length, 30, 'CL-ENGINE-OUTPUT-TEETH-LITERAL-COUNT');
+  // 30 literals at 9288adf: NL-LOADS 5, NL-EARN 14, NL-ADOPT 9, NL-UNDO 2. S14 (R2b): 31, NL-LOADS gains 'configuration'
+  // (its mutant is refused by the S14 R2b output case above).
+  assert.equal(mutants.length, 31, 'CL-ENGINE-OUTPUT-TEETH-LITERAL-COUNT');
   for (const m of mutants) if (!engineOutputRefusals(m.text).length) failed.push('CL-ENGINE-OUTPUT-TEETH ' + m.label + ' passed');
   const crlf = engineOutputRefusals(original.replace(/\r?\n/g, '\r\n'));
   if (crlf.length) failed.push('CL-ENGINE-OUTPUT-TEETH CRLF checkout refused ' + JSON.stringify(crlf));
   assert.deepEqual(failed, [], 'CL-ENGINE-OUTPUT-TEETH');
+});
+
+/* ---------------- S14 (M2-S14-HOLD) CL-COMPOSED-DATA (brief S14-HOLD-BW-BRIEF.md sections 5 and 10, I-COPY) ----------------
+   DECISIONS:922 (c) keeps this cell as the I-COPY cell of the slice. The S14 copy puts the athlete's own data beside approved
+   words, and that data is not a copy-lock piece (brief section 10, "DATA, NOT COPY"): the lift name before the R4 panel line
+   (today-entry.mjs paint(): nameOf(lift) + ": " + the line) and the card's configuration text inside the R2b piece
+   ("<key> on every set", native-load.cjs setLoads). Three parts, each able to fail:
+   (1) paint() composes exactly that: the composition occurs once in today-entry.mjs (read as text, never loaded) and the
+       line it shows is the corpus piece, byte for byte;
+   (2) the composed line is covered by the locked piece plus the lift name given as data, for invented names no piece
+       carries; without the name as data it is NOT covered (the decomposition can fail); with one unlisted literal word
+       in place of an approved one it is NOT covered even with the name as data;
+   (3) the R2b piece passes the card's text through as data: the hold adoption run with an invented key returns the
+       approved sentence with only that key changed; a literal wrapped around the key in setLoads is refused.
+   Red first: (1) on the today-entry.mjs of 0043823 (no R4 line), (3) on the round-1 native-load.cjs (it printed
+   "no load" for a configuration). Every value is invented. */
+const R4_COMPOSE = 'nameOf(refusal.lift) + ": " + NATIVE_LOAD_BODYWEIGHT_COPY.line';
+const R4_NAMES = Object.freeze(['Zqxv Press', 'Wibble row 2', 'Chest press']);
+const fxHoldKey = (key) => (c) => { for (const slot of c.session.record.entries[0].slots) slot.prescribed_load = { state: 'specified', source: { kind: 'configuration', configuration_key: key } }; return c; };
+const DATA_KEY = 'Zqxv';
+function holdDataOutput(nativeText, key) {
+  const x = fxCase({ w: key }, [fxHoldKey(key)(fxC(1, { reps: FX_TOP, loads: 140, effort: fxE(2, 1, 1) }))]);
+  try { return engineOutput(composeEngine(nativeText, x.comps.at(-1).date), x); } catch (error) { return ['THREW ' + String(error && error.message)]; }
+}
+
+test('CL-COMPOSED-DATA: the lift name and the card text are shown as data beside locked S14 copy; an unlisted literal is refused', () => {
+  const { corpus } = loaded();
+  const pieces = corpus.entries.map((e) => e.text);
+  const failed = [];
+  // (1) the product composes the R4 line from the lift name (data) and the one locked piece
+  const entryText = fs.readFileSync(path.join(ROOT, S14_OWNER), 'utf8').replace(/\r\n?/g, '\n');
+  const line = S14_NEW[0][0];
+  if (entryText.split(R4_COMPOSE).length - 1 !== 1) failed.push('CL-COMPOSED-DATA-R4-COMPOSE ' + (entryText.split(R4_COMPOSE).length - 1));
+  if (entryText.split('line: ' + JSON.stringify(line)).length - 1 !== 1) failed.push('CL-COMPOSED-DATA-R4-PIECE');
+  if (!pieces.includes(line)) failed.push('CL-COMPOSED-DATA-R4-NOT-LOCKED');
+  // (2) covered with the name as data; not covered without it; an unlisted literal is refused even with it
+  for (const name of R4_NAMES) {
+    const shown = name + ': ' + line;
+    const rest = lock.uncovered(shown, pieces, [name]);
+    if (rest !== '') failed.push('CL-COMPOSED-DATA-R4-UNLOCKED ' + JSON.stringify(shown) + ' ' + JSON.stringify(rest));
+    const literal = name + ': ' + line.replace('are saved.', 'are kept safe.');
+    if (lock.uncovered(literal, pieces, [name]) === '') failed.push('CL-COMPOSED-DATA-R4-LITERAL-PASSED ' + JSON.stringify(literal));
+  }
+  if (lock.uncovered('Zqxv Press: ' + line, pieces, []) === '') failed.push('CL-COMPOSED-DATA-BLIND (the name is not copy)');
+  // (3) the R2b piece: the card's text is data, passed through unchanged, inside the approved words only
+  const nativeText = fs.readFileSync(path.join(ROOT, NATIVE_LOAD), 'utf8');
+  const want = ['Fx Press: on 2026-10-01 you completed every set at 140 lb on every set (the card said ' + DATA_KEY + ' on every set)' + FX_ADOPT_TAIL];
+  const got = holdDataOutput(nativeText, DATA_KEY);
+  if (JSON.stringify(got) !== JSON.stringify(want)) failed.push('CL-COMPOSED-DATA-R2B-KEY ' + JSON.stringify(got));
+  const wrap = nativeText.replace(/\r\n?/g, '\n').split('? x.configuration_key :');
+  if (wrap.length !== 2) failed.push('CL-COMPOSED-DATA-R2B-ANCHOR ' + (wrap.length - 1));
+  else if (JSON.stringify(holdDataOutput(wrap.join("? 'card ' + x.configuration_key :"), DATA_KEY)) === JSON.stringify(want)) failed.push('CL-COMPOSED-DATA-R2B-LITERAL-PASSED');
+  assert.deepEqual(failed, [], 'CL-COMPOSED-DATA');
 });

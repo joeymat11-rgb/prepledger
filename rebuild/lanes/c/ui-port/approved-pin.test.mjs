@@ -110,7 +110,7 @@ const LITERAL = Object.freeze({
   "rebuild/m1/approved-2026-09-18/app/states-coach.js": "6aafa06d080f7fdceaeb4f011a9dd07ea84c012802cabf53ef4dea43a5762e8b",
   "rebuild/m1/approved-2026-09-18/app/states-today.js": "6f03c468f2bc62108f622f127ec0b5c81589522dea61261e94592151ddd28cbe",
   "rebuild/m1/approved-2026-09-18/app/states-workout.css": "5d6e4082c88e9129979f764dc992e4cbb0439c3a9b2e0d625535c524d47a4f0a",
-  "rebuild/m1/approved-2026-09-18/app/states-workout.js": "20b597eef4d48ab1011490f99549b38672472d71144c9d179fa2c840dfe2a5be",
+  "rebuild/m1/approved-2026-09-18/app/states-workout.js": "3d26c4f7b28835995abc12f420da943a77dc60e8b8dbf54b1f6c4115b4fad696",
   "rebuild/m1/approved-2026-09-18/app/states.css": "eae53de1838338a76a416052a381494602c5fc9545c330afce2438a19a2ca219"
 });
 

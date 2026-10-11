@@ -1695,7 +1695,11 @@ test('N2-08 - a saved night is what the check-in own reader finds, with no A3 ed
    are moved BY THAT PACKAGE, declared in packages/S13.json (S12.json stands at its merged S12 bytes), so the
    declaring-spec chain has to know about it. S13 releases nothing. Youngest first, so 'S13' goes last and
    is consulted first; the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13'];
+/* S14 ADDS 'S14', and the cell is unchanged in every other way. S14 (M2-S14-HOLD, DECISIONS:922) is the SEALED reseal child
+   of S11 that carries every byte S13 declared (S13 retired by supersession, the :920 shape) plus the hold/bodyweight slice: the
+   files it moves are declared in packages/S14.json, so the declaring-spec chain has to know about it. S14 releases nothing.
+   Youngest first, so 'S14' goes last and is consulted first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14'];
 
 test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', () => {
   /* The reuse path already existed and was dead because nothing wrote a night. N2 is

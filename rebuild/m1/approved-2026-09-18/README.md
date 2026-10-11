@@ -313,6 +313,14 @@ outside this pack and can be added without touching it. Whether a runner's rende
 baselines is a thing to measure when someone adds one, not a thing to assume: until it is
 measured, a runner is not evidence, and the honest shapes are for it to set its own platform
 directory or to run the checks that do not compare a render.
+For the one state W-46 (S14, listed pack edit SC-S14-5) the shared records and the win32
+thumbnails were drawn on the hosted windows-latest runner with `look-gates.yml`'s pinned closure,
+and they stand only because that run first measured green against these baselines and then
+redrew every other committed record and win32 thumbnail byte for byte (s14-w46-accept, run
+38147311450); the linux W-46 thumbnails were drawn by the linux machine of record itself. The
+hosted ubuntu-24.04 runner was measured in the same run and is not equivalent: it redrew the
+W-18 linux thumbnails with other bytes, so it drew nothing here. For everything else the owner's
+PC and the builder's sandbox image remain the machines of record.
 
 **What these checks sample rather than sweep.** Several of the standard's rules are held over a
 named list and not over every element that could break them: the pressed state over three named

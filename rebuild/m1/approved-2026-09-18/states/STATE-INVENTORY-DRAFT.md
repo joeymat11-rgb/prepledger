@@ -261,8 +261,9 @@ maps them to screens.
 | W-43 | No rest length | Always on the rest screen; `gym-app.mjs:37` | "Your plan does not set a rest length." There is no timer, and the approved prototype's countdown is deliberately absent (`screens.template.html:355-362` note) | T15 (rest prescription is app-frozen, not on the phone) | LIVE now | existing set card |
 | W-44 | The card has no title | S6 item 3 withholds the engine's day stamp; `gym-app.mjs:227-237` | The stub screens fall back to "Today's workout cannot open" or "Workout recorded" as the heading rather than a blank | none | LIVE now | existing state pill |
 | W-45 | A late answer arrives after the athlete left | Ownership handed over by `leaveCard`; `gym-app.mjs:105-108`, `:200-206` | Nothing. The read resolves, is cached, and paints nothing | none | LIVE now | none |
+| W-46 | Finished, a bodyweight lift has no weight to agree to | The after-Close check answers NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT for a lift whose working weight is a bodyweight marker ("BW" or "bodyweight") and whose sets were logged at one weight; `today-entry.mjs:287-289` (S14, M2-S14-HOLD, rule R4) | One line right after the panel's status sentence: "<Lift>: bodyweight sets have no weight to agree to. Your sets are saved." No offer card for that lift; its sets are saved as logged | T09 | LIVE now | existing status line |
 
-**Workout count: 45.**
+**Workout count: 46.**
 
 ---
 
@@ -350,15 +351,15 @@ executable and tested, but nothing paints it. Statuses reflect that.
 | screen | states |
 |---|---|
 | Today (face, weigh-in sheet, Why this plan, nutrition entry, sleep entry) | 95 |
-| Inside the workout | 45 |
+| Inside the workout | 46 |
 | Coach | 65 |
-| **Total** | **205** |
+| **Total** | **206** |
 
 By status, counted off the tables:
 
 | status | rows |
 |---|---|
-| LIVE now (the athlete can reach it on the phone today) | 132 |
+| LIVE now (the athlete can reach it on the phone today) | 133 |
 | LIVE in the text prototype, NOT WIRED to any screen (all coach) | 45 |
 | NOT WIRED (named in a brief, no code, or no control exists) | 15 |
 | DORMANT (the code path exists and its input is never written, or its caller does not exist on the rebuild) | 11 |

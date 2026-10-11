@@ -1,4 +1,4 @@
-/* Inside the workout (inventory W-01 to W-45).
+/* Inside the workout (inventory W-01 to W-46).
    Every state starts from the prototype's default render of the workout screen and moves the pieces the inventory names.
    Copy is the inventory's own where the inventory has it; engine em dashes are turned into colons or full stops at this boundary, and no dash reaches the screen.
    Numbers are examples (50 lb, 8 reps, seat 4), never an athlete's. */
@@ -409,5 +409,17 @@
   R('W-45', { screen: W, title: 'A late answer arrives after the athlete left', rules: 'none', component: 'none', apply: function (a) {
     /* the read resolves, is cached, and paints nothing: the active set is exactly as it was */
     active(a, { n: 1 });
+  } });
+  /* S14 (M2-S14-HOLD) R4: the finished screen after the check, when a lift whose working weight is bodyweight was logged at one
+     weight: one line for that lift right after the panel's status sentence, in the same paragraph metrics, and no offer for it;
+     its sets are saved. Copy: the panel's own status sentence, and the brief's section 10 string 2 approved by the PM under the
+     owner's standing Yes (DECISIONS:913 (5)). The lift name is an example, never an athlete's. */
+  R('W-46', { screen: W, title: 'Finished, a bodyweight lift has no weight to agree to', rules: 'T09', component: 'state pill', apply: function (a) {
+    a.panel({ screen: W, title: 'Workout recorded', lead: 'Today’s workout is recorded on this device.', blocks: [
+      { recorded: '4 sets recorded', stamp: 'Upper body, 4 exercises.' },
+      { p: 'No new weight to agree to yet. Your saved sets are kept.' },
+      { p: 'Dips: bodyweight sets have no weight to agree to. Your sets are saved.' },
+      { actions: [{ label: 'Back to Today', kind: 'primary' }] }
+    ] });
   } });
 })();

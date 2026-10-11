@@ -78,7 +78,7 @@ const SCENE_ASSETS = Object.freeze([
 const COPY_SOURCES = Object.freeze([
   { file: "rebuild/m1/approved-2026-09-18/app/app.html", sha256: "4c6fc3c69aabb7fcdf34ce6b2f276141f1b649ae9284b15655747ed6d6073c84" },
   { file: "rebuild/m1/approved-2026-09-18/app/states-today.js", sha256: "6f03c468f2bc62108f622f127ec0b5c81589522dea61261e94592151ddd28cbe" },
-  { file: "rebuild/m1/approved-2026-09-18/app/states-workout.js", sha256: "20b597eef4d48ab1011490f99549b38672472d71144c9d179fa2c840dfe2a5be" },
+  { file: "rebuild/m1/approved-2026-09-18/app/states-workout.js", sha256: "3d26c4f7b28835995abc12f420da943a77dc60e8b8dbf54b1f6c4115b4fad696" },
   { file: "rebuild/m1/approved-2026-09-18/app/states-coach.js", sha256: "6aafa06d080f7fdceaeb4f011a9dd07ea84c012802cabf53ef4dea43a5762e8b" },
   { file: "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html", sha256: "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031" },
   { file: "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html", sha256: "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45" },

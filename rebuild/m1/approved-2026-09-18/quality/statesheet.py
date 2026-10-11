@@ -64,6 +64,8 @@ THUMB = (W // SCALE, H // SCALE)
 # The state declarations are the design record for whether a state owes an action. This frozen
 # contract was checked across both themes at the approved prototype: 56 #start, 33 #log, 59
 # .mic-button, 32 .panel-primary and these 29 deliberate explanation/overlay states with none.
+# S14 (M2-S14-HOLD, SC-S14-6) adds W-46, the finished panel with one bodyweight line: it draws W-31's
+# panel and its .panel-primary, so it is declared beside W-31 (33 .panel-primary).
 # It is intentionally independent of the rendered result, so removing or hiding a required node
 # cannot redefine the expectation it is being checked against.
 NO_PRIMARY = frozenset('''
@@ -74,7 +76,7 @@ C-02 C-06 C-07 C-08 C-63 C-64
 PANEL_PRIMARY = frozenset('''
 T-60 T-62 T-63 T-64 T-65 T-66 T-67 T-73 T-74 T-75 T-76 T-77 T-78 T-79 T-80 T-81
 T-82 T-83 T-84 T-85 T-88 T-89 T-90 T-91 T-93 T-94
-W-30 W-31 W-37 W-38 W-39 W-40
+W-30 W-31 W-37 W-38 W-39 W-40 W-46
 '''.split())
 SCREEN_PRIMARY = {'today': '#start', 'workout': '#log', 'coach': '.mic-button'}
 

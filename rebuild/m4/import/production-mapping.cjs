@@ -65,7 +65,13 @@ const ENGINE = Object.freeze({
      join (port.cjs:222-226) over the 19 names: the 14 unprotected files hashed from this tree, the protected five taken
      by their sealed per-file sha256 from rebuild/lanes/b/tooling/receipts/S10.json (never opened). Calibrated first: the
      same procedure over the round-2 tree gives the b8e8eb3d above exactly. P3-M1 confirms it at the PM seat. */
-  treeSha256: 'bc45ca73a6183c4b083217ca079788f8f09d50aeaf2814ccf60dfd7d8a53291c',
+  /* S14 re-pin (M2-S14-HOLD, brief E10; DECISIONS:913 (2), :922): ONE engine file moves, native-load.cjs, by its six declared
+     hunks (rebuild/m4/workout/test/s14-native-load-moves.cjs; ab2a1ca8 -> c91d5a2b). Value measured at the PM seat by port.cjs
+     engineDigest() (P3-M1's own function) and computed OFF-SEAT by the same join over the 19 names: the 14 unprotected files
+     hashed from this tree, the protected five by their sealed per-file sha256 from rebuild/lanes/b/tooling/receipts/S11.json
+     (never opened), proven unmoved by Git blob id since the S11 seal. Calibrated first: the same procedure over the S11 seal
+     7c79ef1 gives bc45ca73 above exactly. The two measurements agree; P3-M1 confirms it at the PM seat. */
+  treeSha256: '155e2f1b16f78d557eb72e842882a933d618a6f31814f6246a29b4da313f0adc',
   schemaV: 60,
   path: 'rebuild/engine/oracle-shim.cjs' });
 
