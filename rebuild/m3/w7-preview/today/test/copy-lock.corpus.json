@@ -1688,7 +1688,7 @@
   {
    "text": "Back to Today",
    "files": {
-    "rebuild/m3/w7-preview/today/screens.template.html": 4
+    "rebuild/m3/w7-preview/today/screens.template.html": 5
    },
    "lists": []
   },
@@ -5875,16 +5875,6 @@
    "lists": []
   },
   {
-   "text": "Talk through today’s plan",
-   "files": {
-    "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/screens.template.html": 1
-   },
-   "lists": [
-    "APPROVED_COPY"
-   ]
-  },
-  {
    "text": "Talk through today’s plan.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -7973,16 +7963,6 @@
    },
    "lists": [
     "RUNTIME_COPY"
-   ]
-  },
-  {
-   "text": "Your plan, progress and the reasons behind it.",
-   "files": {
-    "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/screens.template.html": 1
-   },
-   "lists": [
-    "APPROVED_COPY"
    ]
   },
   {

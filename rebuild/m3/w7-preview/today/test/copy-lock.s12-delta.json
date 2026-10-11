@@ -1,6 +1,6 @@
 {
  "schema": "earned/copy-lock-delta/v1",
- "note": "S12 (M2-S12-LOOK) copy delta over the sealed S11 corpus (the 09-18 look as built). Sealed. Checked by CL-S12-DELTA in copy-lock.test.mjs; approved at S12_COPY_APPROVAL.",
+ "note": "S12 (M2-S12-LOOK) copy delta over the sealed S11 corpus (the 09-18 look as built). Sealed. Checked by CL-S12-DELTA in copy-lock.test.mjs; approved at S12_COPY_APPROVAL. Re-derived at S12b R6 (DECISIONS:914, :915): the screen and layout fixes of the S12b audit.",
  "from": "58dc7a743fc883af09537a6db7692ac008ae036cb18779333e97e2f504335f8c",
  "scanned": {
   "added": [
@@ -1857,16 +1857,6 @@
    "lists": []
   },
   {
-   "text": "Talk through today’s plan",
-   "files": {
-    "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/screens.template.html": 1
-   },
-   "lists": [
-    "APPROVED_COPY"
-   ]
-  },
-  {
    "text": "Talk through today’s plan.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -3093,6 +3083,16 @@
    "lists": []
   },
   {
+   "text": "Your plan, progress and the reasons behind it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
    "text": "at the end",
    "files": {
     "rebuild/m3/w7-preview/today/screens.template.html": 1
@@ -3299,7 +3299,7 @@
    "after": {
     "text": "Back to Today",
     "files": {
-     "rebuild/m3/w7-preview/today/screens.template.html": 4
+     "rebuild/m3/w7-preview/today/screens.template.html": 5
     },
     "lists": []
    }

@@ -79,12 +79,43 @@ function watch(page) {
 }
 
 let live = null;
+/* S12b R10 (D-S12B-BROWSER-DATE). The shipped page stands on the DEVICE'S LIVE DAY (S4, DECISIONS:432) and
+   every check declares its own, so this one now stands every load on a FIXED day through the page's OWN
+   entry point, app.js boot({ today }): DAY, the synthetic athlete's own training day (Monday 2030-02-04).
+   Sleep is reached the way an athlete reaches it on any day, ?screen=sleep and Today's own Sleep entry
+   ([data-go="sleep"]); the workout primary is used only for the gym return path below, and on this fixed
+   training day it is always drawn, so that path is now walked every run and asserted rather than skipped.
+   The live mount the page boots on load is let finish first (its own paint, then 400 ms with no change
+   under #phone, at most 10 s), so nothing it had in flight can paint over the declared one. */
+const DAY = createRequire(import.meta.url)("./today-model.cjs").SYNTHETIC_DAY;
+const NEXT = (() => { const [y, m, d] = DAY.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10); })();   // 2030-02-05, as before
+async function stand(page) {
+  await page.waitForFunction(() => !!document.querySelector("#phone [data-slot]"), null, { timeout: 30000 });
+  await page.evaluate(() => new Promise((resolve) => {
+    const phone = document.getElementById("phone");
+    let timer = null;
+    const observer = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(done, 400); });
+    function done() { observer.disconnect(); resolve(); }
+    observer.observe(phone, { childList: true, subtree: true, characterData: true });
+    timer = setTimeout(done, 400);
+    setTimeout(done, 10000);
+  }));
+  const stood = await page.evaluate(async (day) => {
+    const mod = await import(new URL("app.js", location.href).href);
+    const booted = await mod.boot({ today: day });
+    return { today: booted.today, failures: booted.failures };
+  }, DAY);
+  assert.equal(stood.today, DAY, "the page stands on this check's own day: " + JSON.stringify(stood));
+  assert.deepEqual(stood.failures, [], "and every lane opened on it: " + JSON.stringify(stood));
+}
 /* THE LANE IS OPENED BY THE SCREEN, asynchronously and failing closed, so "the entry is
    on the page" is the signal that this device really did give the page a store. */
 async function launch(viewport = VIEWPORT) {
   const context = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport });
   const page = watch(context.pages()[0] || await context.newPage());
   await page.goto(url + "?screen=sleep", { waitUntil: "load" });
+  await stand(page);
   await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])', { timeout: 20000 });
   return { context, page };
 }
@@ -191,14 +222,14 @@ async function armCommitBoundary(page, mode) {
 }
 
 async function durableSleepRows(page) {
-  return page.evaluate(async () => {
+  return page.evaluate(async (day) => {
     const entry = await import('/app.js');
-    const opened = await entry.boot({ document });
+    const opened = await entry.boot({ document, today: day });   // S12b R10: the check's own day
     await opened.api.sleepReady();
     window.__n2ObservedSleepHost = opened.api.sleepLane().host;
     const rows = await window.__n2ObservedSleepHost.all();
     return rows.map(row => ({ op_id: row.op_id, night: row.night }));
-  });
+  }, DAY);
 }
 
 async function reachable(page, label) {
@@ -342,6 +373,7 @@ try {
 
   /* ---------- a genuine reload ---------- */
   await page.reload({ waitUntil: "load" });
+  await stand(page);
   await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])', { timeout: 20000 });
   assert.match(await recorded(page), /7\.5 h/, "the reload lost the night");
 
@@ -400,25 +432,25 @@ try {
   /* This device's athlete owes his morning weight before a workout can open, and that is
      A2's rule, not N2's. Recording it through the real weigh-in is what makes the gym
      route reachable at all, so the return path can actually be walked. */
-  if (/^Log/.test(((await page.textContent('#phone [data-slot="primary-label"]')) || "").trim())) {
-    await page.click('#phone [data-slot="primary"]');
-    await page.waitForSelector("#morning-weight", { timeout: 20000 });
+  /* S12b R6 (DECISIONS:915 (4)): Start no longer opens the weigh-in sheet; the weigh-in is the morning card's own form. */
+  if (await page.$("#phone #weigh-form #weight")) {
     await page.evaluate(() => {
-      const box = document.getElementById("morning-weight");
+      const box = document.getElementById("weight");
       box.value = "205.4";
       box.dispatchEvent(new Event("input", { bubbles: true }));
     });
-    await page.click('#phone .gym-actions button[type="submit"]');
-    await page.waitForFunction(() => {
-      const el = document.querySelector('#phone [data-slot="primary-label"]');
-      return el && !/^Log/.test(el.textContent.trim());
-    }, null, { timeout: 20000 });
+    await page.click("#phone #save-weight");
+    await page.waitForSelector("#phone #weigh-form", { state: "detached", timeout: 20000 });
     notes.push("the morning weight was recorded so the workout route could be walked");
   }
   const primary = ((await page.textContent('#phone [data-slot="primary-label"]')) || "").trim();
+  /* S12b R10: DAY is a training day, so the workout route is always reachable and is asserted. */
+  assert.match(primary, /^(Start|Resume|Review) /, "the fixed training day offers its workout: " + primary);
   if (/^(Start|Resume|Review)/.test(primary)) {
     await page.click('#phone [data-slot="primary"]');
-    await page.waitForSelector("#phone .page", { timeout: 20000 });
+    /* S12 SC-2 / C-UI-4: the active set is the .body/.stack chassis, recognised by its Log button;
+       a recorded workout is the after-workout .page. */
+    await page.waitForSelector('#phone [data-slot="log"], #phone .page', { timeout: 20000 });
     const gym = await page.textContent("#phone");
     assert.doesNotMatch(gym, /NaN|undefined/,
       "the workout screen after a sleep save: " + gym.slice(0, 200));
@@ -475,9 +507,10 @@ try {
   assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /5\.5 h/,
     "Today after a boot with a stored night");
   const boots = ((await page.textContent('#phone [data-slot="primary-label"]')) || "").trim();
+  assert.match(boots, /^(Start|Resume|Review) /, "the fixed training day offers its workout after the relaunch: " + boots);
   if (/^(Start|Resume|Review)/.test(boots)) {
     await page.click('#phone [data-slot="primary"]');
-    await page.waitForSelector("#phone .page", { timeout: 20000 });
+    await page.waitForSelector('#phone [data-slot="log"], #phone .page', { timeout: 20000 });
     const after = await page.textContent("#phone");
     assert.doesNotMatch(after, /NaN|undefined/, "the workout after a boot with a stored night");
     await page.click("#phone .back");
@@ -598,16 +631,16 @@ try {
   await page.click('#phone [data-slot="sleep-mode-hours"]');
   await typeHours(page, '6.25');
   const originalNight = await page.inputValue('#sleep-date');
-  const advanced = await page.evaluate(async (shell) => {
+  const advanced = await page.evaluate(async ([shell, next]) => {
     const entry = await import('/app.js');
     // Parse the exact built shell supplied by the runner. The live page has temporary
     // font styles, and the unchanged CSP also forbids a browser fetch for this shell.
     const detached = new DOMParser().parseFromString(shell, 'text/html');
-    const opened = await entry.boot({ document: detached, today: '2030-02-05' });
+    const opened = await entry.boot({ document: detached, today: next });
     await opened.api.sleepReady();
     return opened.hosts.liveDay();
-  }, fs.readFileSync(path.join(DIST, 'index.html'), 'utf8'));
-  assert.equal(advanced, '2030-02-05');
+  }, [fs.readFileSync(path.join(DIST, 'index.html'), 'utf8'), NEXT]);
+  assert.equal(advanced, NEXT);
   assert.equal(await page.inputValue('#sleep-hours'), '6.25');
   await tapSave(page);
   await page.waitForSelector('#phone [data-slot="sleep-keep-night"]:not([hidden])');
@@ -621,7 +654,7 @@ try {
     return { date: row.night.date, savedDate: row.savedDate };
   });
   assert.equal(rolled.date, originalNight);
-  assert.equal(rolled.savedDate, '2030-02-05');
+  assert.equal(rolled.savedDate, NEXT);
   assert.equal(await page.inputValue('#sleep-date'), originalNight);
   notes.push('actual page rollover required Keep this night, retained typed hours and used the installation save date');
   await hardKill(context);
@@ -632,6 +665,9 @@ try {
   const bounded = (work) => Promise.race([work.catch(() => {}),
     new Promise((resolve) => setTimeout(resolve, 5000))]);
   if (live) await bounded(Promise.resolve().then(() => live.close()));
+  for (const pid of browserProcessesForProfile()) {   // S12b R10 (D-S12B-BROWSER-DATE (c))
+    try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); } catch (_) { /* gone */ }
+  }
   if (typeof server.closeAllConnections === "function") server.closeAllConnections();
   await bounded(new Promise((resolve) => server.close(resolve)));
   const resolvedProfile = path.resolve(profile);

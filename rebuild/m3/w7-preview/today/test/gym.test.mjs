@@ -609,10 +609,13 @@ test('A2 — Today reflects the durable workout state', async t => {
   const api = TodayApp.mountToday(doc, today, { workout });
   const slot = name => doc.querySelector(`[data-slot="${name}"]`);
 
-  await t.test('with no workout started, Today offers Start once the morning is recorded', async () => {
-    // Before the weigh-in the single primary action is the engine's marching order
-    // (A1's accepted hierarchy); the workout entry point opens after it.
-    assert.match(slot('primary-label').textContent, /^Log the scale$/i);
+  await t.test('with no workout started, Today offers Start before and after the morning is recorded', async () => {
+    /* S12b R6 (DECISIONS:915 (4); red first: the R6 run r1, gym.test.mjs "Log the scale" !== "Start UPPER BODY ..."):
+       the morning weigh-in no longer gates the workout. Before the weigh-in the single primary action already
+       names the workout, never the weigh-in, and the weigh-in is the morning card's own form, one tap away. */
+    assert.match(slot('primary-label').textContent, /^Start /);
+    assert.doesNotMatch(slot('primary-label').textContent, /^Log |scale|weight/i, 'the primary is never the weigh-in');
+    assert(doc.querySelector('#card-weigh #weigh-form #weight'), 'the weigh-in is on the morning card while it is owed');
     assert((await today.weighIn(179.4)).ok);
     api.render('today');
     assert.match(slot('workout-count').textContent, /Your set targets are ready$/);
@@ -647,9 +650,9 @@ test('A2 — Today reflects the durable workout state', async t => {
   });
 
   await t.test('a workout in progress keeps its resume action even with the morning owed', async () => {
-    // The unfinished session must never become unreachable. This state cannot be
-    // reached through the UI (the workout opens only after a weigh-in), so it is
-    // constructed here from the same durable log with a fresh Today store.
+    // The unfinished session must never become unreachable. It is constructed here
+    // from the same durable log with a fresh Today store (until S12b R6 the UI opened
+    // the workout only after a weigh-in; it now opens with the morning owed too).
     const owed = createTodayModel({});
     const other = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
       { url: 'http://127.0.0.1:4178/' }).window.document;
@@ -670,6 +673,150 @@ test('A2 — Today reflects the durable workout state', async t => {
   });
 
   workout.gymHost.close();
+  readings.close();
+});
+
+/* S12b R13 (PM ruling, red first: on the lane before R13 this cell is refused WORKOUT_RESUME_REQUIRED, the
+   same as on the live tree; %TEMP%\s12b-fix\r12-day2.mjs). The gym floor at full speed: an athlete who taps
+   every control in the SAME TICK it is drawn - the effort chip and Log on each set, "Start set N", and
+   Finish - over the shipped Today and gym card with the workout entry wired exactly as boot() wires it.
+   After a set the card repaints and then the entry re-reads the session (refresh(), unawaited); before
+   R13 a Finish or a Log tapped inside that re-read had its own continuation retired by it and the
+   athlete read "Earned could not prepare today's workout". Now every tap waits for the read in flight
+   and then does exactly its one write: the session is recorded with every set, exactly one close is
+   on disk, no refusal was ever drawn, and Today says so. */
+test('S12b R13 - a set and a Finish tapped the moment they are drawn are recorded, never refused for timing', async () => {
+  const dom = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
+    { url: 'http://127.0.0.1:4178/' });
+  const doc = dom.window.document;
+  const phone = doc.getElementById('phone');
+  const fault = faultDatabase();
+  const readings = await createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  const today = createTodayModel({ today: DAY, readings });
+  const workout = await createWorkoutEntry(today, { indexedDB: fault.indexedDB, crypto: webcrypto });
+  const api = TodayApp.mountToday(doc, today, { workout });
+  workout.setOnRefresh(() => { if (api.screen() === 'today') api.render('today'); });   // as boot() wires it
+  assert((await today.weighIn(179.4)).ok);
+  api.render('today');
+  const q = (s) => doc.querySelector('#phone ' + s);
+  const tap = (s) => q(s).dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  const refusals = [], acted = new WeakSet(), taps = [];
+  let finished = false;
+  /* The athlete taps on the very next task after a paint: the card wires each control right after it draws
+     it, so that is the first moment a tap can land, and it is well inside the entry's re-read, which
+     takes many tasks of IndexedDB work. Nothing waits for the card or the entry to settle. */
+  const athlete = new dom.window.MutationObserver(() => {
+    const shown = phone.textContent;
+    if (shown.includes(COULD_NOT_PREPARE) || /WORKOUT_RESUME_REQUIRED/.test(shown)) refusals.push(shown.replace(/\s+/g, ' ').slice(0, 200));
+    setTimeout(act, 0);
+  });
+  function act() {
+    const shown = phone.textContent;
+    if (shown.includes(COULD_NOT_PREPARE) || /WORKOUT_RESUME_REQUIRED/.test(shown)) refusals.push(shown.replace(/\s+/g, ' ').slice(0, 200));
+    const root = phone.firstElementChild;
+    if (!root || acted.has(root) || finished) return;
+    if (q('[data-slot="log"]') && q('.choice:nth-child(3)')) {
+      acted.add(root); taps.push('log'); tap('.choice:nth-child(3)'); tap('[data-slot="log"]'); return;
+    }
+    const label = q('[data-slot="primary-label"]') ? q('[data-slot="primary-label"]').textContent.trim() : '';
+    if (/^Start set \d+$/.test(label)) { acted.add(root); taps.push(label); tap('[data-slot="primary"]'); return; }
+    if (label === 'Finish this workout') { acted.add(root); finished = true; taps.push('finish'); tap('[data-slot="primary"]'); }
+  }
+  athlete.observe(phone, { childList: true, subtree: true, characterData: true });
+  assert.match(q('[data-slot="primary-label"]').textContent, /^Start /);
+  tap('[data-slot="primary"]');
+  const deadline = Date.now() + 30000;
+  while (!(finished && q('[data-slot="workout-count"]') && /Workout recorded$/.test(q('[data-slot="workout-count"]').textContent))) {
+    if (Date.now() > deadline || refusals.length) break;
+    await new Promise((resolve) => setTimeout(resolve, 2));
+  }
+  athlete.disconnect();
+  assert.deepEqual(refusals, [], 'no refusal was drawn for timing: ' + refusals.join(' | '));
+  assert.equal(finished, true, 'the walk reached Finish: ' + JSON.stringify(taps) + ' | screen: ' + phone.textContent.replace(/\s+/g, ' ').slice(0, 300));
+  assert.match(q('[data-slot="workout-count"]').textContent, /Workout recorded$/, 'Today says the workout is recorded');
+  assert.equal(workout.summary().phase, 'finished', JSON.stringify(workout.summary()));
+  const ops = Object.values((await workout.gymHost.repository.load()).generation.collections.ops || {});
+  const kinds = ops.filter((op) => op.class === 'session').map((op) => op.kind);
+  const logs = taps.filter((t) => t === 'log').length;
+  assert.equal(kinds.filter((k) => k === 'session-start').length, 1, 'one Start: ' + JSON.stringify(kinds));
+  assert.equal(kinds.filter((k) => k === 'session-close').length, 1, 'exactly ONE close, the writer called once: ' + JSON.stringify(kinds));
+  assert.equal(kinds.length, 2 + logs, 'one operation per set tapped, and nothing else: ' + JSON.stringify(kinds));
+  workout.gymHost.close();
+  readings.close();
+});
+
+/* S12b R9 (PM ruling, presentation only): Today's primary BY KIND OF DAY, on the fixed DAY, so the
+   cell never depends on the weekday the suite runs on (the seat's Sunday 2026-10-11 found the gap).
+   A training day with a session: "Start <title>". A real refusal: its Why route. A day with NO
+   session: the morning weigh-in while the weight is owed (the sheet it opens; the card's own Save
+   is unchanged), otherwise no workout primary at all and T-12's line. The no-session day is the
+   real model's own view in the engine's no-session shape (today-model sessionFor: available
+   false, no code, count null); the workout entry answers summary() only, which is all Today
+   reads from it here. The refused summary is the shape the layer gives on a day with nothing to
+   prepare, which is exactly the case that must NOT read as a refusal. */
+test('S12b R9 - Today\'s primary by kind of day: a session starts, a refusal explains, a rest day weighs in or offers nothing', async () => {
+  const NOTHING_SCHEDULED = 'Nothing scheduled today, so there is nothing to start.';
+  const WEIGH = /weigh|weight|scale/i;   // the engine's own weigh-in words ("Log the scale") or the sheet's
+  const WHY = /^Why today.s workout cannot open$/;
+  const fault = faultDatabase();
+  const readings = await createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  const real = createTodayModel({ today: DAY, readings });
+  const rest = { ...real, read: () => { const v = real.read();
+    return { ...v, workout: { ...v.workout, available: false, unavailableReason: null, exerciseCount: null } }; } };
+  const READY = { phase: 'ready', sets: 0, code: null, copy: null, unfinished: null };
+  const REFUSED = { phase: 'blocked', sets: 0, code: 'WORKOUT_SPLIT_NOT_IN_FORCE', copy: null, unfinished: null };
+  const mount = (model, summary) => {
+    const doc = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
+      { url: 'http://127.0.0.1:4178/' }).window.document;
+    TodayApp.mountToday(doc, model, { workout: { summary: () => summary } });
+    const q = (name) => doc.querySelector(`[data-slot="${name}"]`);
+    return { doc, primary: q('primary'), label: q('primary-label').textContent.trim(),
+      status: q('status-line').textContent.trim(), line: q('workout-count').textContent.trim() };
+  };
+  const drawn = (screen, why) => {
+    assert.equal(screen.primary.hidden, false, why + ': the primary is drawn');
+    assert.notEqual(screen.primary.disabled, true, why + ': and it can be pressed');
+  };
+  assert.equal(real.read().hasReadToday, false, 'the morning is owed to begin with');
+  assert.equal(real.read().workout.available, true, 'DAY is a training day with a session');
+
+  // 1. A training day with a session: Start, owed or not.
+  const start = mount(real, READY);
+  assert.match(start.label, /^Start \S/, 'a session starts: ' + start.label);
+  assert.doesNotMatch(start.label, WEIGH, 'the weigh-in never takes a training day\'s primary');
+  drawn(start, 'a training day');
+  // 2. A real refusal on a training day: its Why route.
+  const refused = mount(real, REFUSED);
+  assert.match(refused.label, WHY, 'a real refusal explains itself: ' + refused.label);
+  assert.match(refused.line, /workout cannot open . WORKOUT_SPLIT_NOT_IN_FORCE$/, 'and the workout line names it: ' + refused.line);
+  assert.notEqual(refused.status, NOTHING_SCHEDULED, 'a training day is never called empty');
+  // 3. No session, the weight owed: the weigh-in is the primary, whatever code the layer answered.
+  for (const summary of [REFUSED, READY]) {
+    const owed = mount(rest, summary);
+    assert.equal(owed.line, 'No session is scheduled today.', 'the engine scheduled nothing: ' + owed.line);
+    assert.match(owed.label, WEIGH, 'a rest day with the weight owed offers the weigh-in: ' + owed.label);
+    assert.doesNotMatch(owed.label, WHY, 'a rest day is never a refusal');
+    assert.doesNotMatch(owed.label, /^Start /, 'and offers nothing to start');
+    drawn(owed, 'the owed rest day');
+    assert.equal(owed.status, NOTHING_SCHEDULED, 'the line is T-12\'s: ' + owed.status);
+    assert(owed.doc.querySelector('#card-weigh #weigh-form #weight'), 'the morning card keeps its own Save');
+    owed.primary.dispatchEvent(new owed.doc.defaultView.MouseEvent('click', { bubbles: true }));
+    assert(owed.doc.querySelector('[role="dialog"] #morning-weight'), 'the primary opens the weigh-in sheet');
+  }
+  // 4. No session, nothing owed: no workout primary, and T-12's line says why.
+  assert((await real.weighIn(179.4)).ok, 'the morning is recorded');
+  for (const summary of [REFUSED, READY]) {
+    const none = mount(rest, summary);
+    assert.equal(none.primary.hidden, true, 'a rest day with nothing owed draws no workout primary');
+    assert.equal(none.primary.disabled, true, 'and nothing behind it can be pressed');
+    assert.equal(none.status, NOTHING_SCHEDULED, 'the line says there is nothing to start: ' + none.status);
+    assert.doesNotMatch(none.doc.getElementById('phone').textContent.replace(none.label, ''), /workout cannot open/,
+      'nothing on a rest day calls it a refusal');
+  }
+  // 5. And the training day, after the weigh-in, still starts.
+  const after = mount(real, READY);
+  assert.match(after.label, /^Start \S/, 'after the weigh-in a session starts: ' + after.label);
+  drawn(after, 'a training day after the weigh-in');
   readings.close();
 });
 

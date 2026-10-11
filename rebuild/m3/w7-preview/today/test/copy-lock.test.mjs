@@ -61,7 +61,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../../../..');
 const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // The sealed corpus, by value. A re-measure changes this literal in the same reseal child.
-const CORPUS_SHA256 = '70efc98d97eba4f1b347f523a3ae8a8cb8863171c0860812d832ca80ad98e328';
+// S12b R6 (DECISIONS:914, :915): re-measured after the screen and layout fixes (four pieces moved; see S12_DELTA_SHA256). R9: re-measured again.
+const CORPUS_SHA256 = '72f5d0da549949c0de3e6d55566cb03c86c4dd6dc77993c4ee3753eb7e29041b';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -311,7 +312,13 @@ function s10View(corpus) {
    approve: S12_COPY_APPROVAL names the ledger line that approves this delta (CL-S12-APPROVAL). */
 const S11_CORPUS_SHA256 = '58dc7a743fc883af09537a6db7692ac008ae036cb18779333e97e2f504335f8c';
 const S12_DELTA_FILE = path.join(HERE, 'copy-lock.s12-delta.json');
-const S12_DELTA_SHA256 = '33d1c3cdae31c7614250442769c1a61aa7892b761dfef2654520e175fc7f6b3c';
+/* S12b R6: the delta re-derived against the same sealed S11 corpus (S11_CORPUS_SHA256 unchanged). Four pieces moved:
+   "Back to Today" (template 4 -> 5, the recorded workout's primary), "Log this morning's weight" (today-app.cjs no
+   longer carries it: Start is never the weigh-in; the sheet's aria-label keeps it), "Your plan, progress and the
+   reasons behind it." REMOVED and "Talk through today's plan" no longer added (the Talk row left Today,
+   DECISIONS:915 (3)). No new words. S12b R9 (PM ruling): "Log this morning's weight" is today-app.cjs's again, as at the
+   parent (the rest-day weigh-in primary), so it no longer moves; three pieces move. */
+const S12_DELTA_SHA256 = 'df3dbc367cee51124335cb723e519f4939250939a53ee5d24337a9846b82deff';
 /* DECISIONS:905 (1) (owner, 2026-10-09: "the PM approves the look's strings against the approved boards and the owner's
    words of :817/:820", option 1; the owner is sent the full list after release, and any string he flags is changed in a
    later fix). */

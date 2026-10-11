@@ -55,14 +55,9 @@
       <div class="weigh-note" id="weigh-note" data-slot="weigh-note" role="alert" hidden></div>
       <!-- C-UI-3 END (the inline weigh-in) -->
     </div>
-    <button class="tcard nav" id="card-eat" type="button" data-go="nutrition">
-      <span class="tdot" aria-hidden="true"></span>
-      <div class="title">Eat about <span data-slot="kcal"></span> <span data-slot="kcal-unit"></span></div>
-      <div class="sub"><span data-slot="protein"></span> <span data-slot="protein-unit"></span></div>
-      <div class="sub" data-slot="kcal-note"></div>
-      <div class="sub">Your full nutrition plan <span class="marker muted" data-own data-slot="nutrition-state"></span></div>
-      <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
-    </button>
+    <!-- S12b R6 (DECISIONS:915 (4), audit F2): today's workout comes straight after the morning
+         card, so the card Start opens is on the first screen beside Start at phone sizes; the
+         food card follows the proposal card. Every card keeps its classes, slots and words. -->
     <div class="tcard" id="card-train">
       <span class="tdot" aria-hidden="true"></span>
       <div class="title" data-slot="workout-title"></div>
@@ -90,6 +85,14 @@
       </div>
     </div>
     <!-- C-UI-3 END (the proposal card) -->
+    <button class="tcard nav" id="card-eat" type="button" data-go="nutrition">
+      <span class="tdot" aria-hidden="true"></span>
+      <div class="title" data-slot="eat-title">Eat about <span data-slot="kcal"></span> <span data-slot="kcal-unit"></span></div>
+      <div class="sub" data-slot="protein-line"><span data-slot="protein"></span> <span data-slot="protein-unit"></span></div>
+      <div class="sub" data-slot="kcal-note"></div>
+      <div class="sub">Your full nutrition plan <span class="marker muted" data-own data-slot="nutrition-state"></span></div>
+      <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
+    </button>
   </div>
     <!-- N2 · the sleep entry (DECISIONS:167). The approved prototype has no sleep
          screen at all, so both this entry's label and the screen behind it are
@@ -122,11 +125,9 @@
     <span class="text"><div class="title">Recovery check in</div><div class="sub"><span data-slot="recovery-prompt">Optional. How are you feeling?</span><span class="muted" data-own data-slot="recovery-state"></span></div></span>
     <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
   </button>
-  <button class="talk" type="button" id="talk-today" data-go="coach">
-    <span class="orb" aria-hidden="true"></span>
-    <span class="label">Talk through today’s plan<span class="sub"><span>Your plan, progress and the reasons behind it.</span> <span class="muted" data-own data-slot="coach-state"></span></span></span>
-    <span class="mic" aria-hidden="true"><svg viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="1" width="7" height="12" rx="3.5"/><path d="M1.5 10.5a7.5 7.5 0 0 0 15 0M9 18v4M5.5 22h7"/></svg></span>
-  </button>
+  <!-- S12b R6 (DECISIONS:915 (3)): the Coach entry (the board's Talk row, #talk-today) has
+       left Today until a live coach exists. The Coach screen (t-coach, coach-app.mjs) is
+       unchanged and is no longer reachable from Today. -->
 </div>
 </template>
 <!-- C-UI-2 END -->
@@ -444,6 +445,11 @@
     <p data-own data-slot="stub-note"></p>
   </header>
   <p class="note" data-own data-slot="workout-detail"></p>
+  <!-- S12b R6 (audit F7): one primary back to Today at the thumb edge, in the rest screen's
+       own words, so the recorded workout is never a dead end. -->
+  <div class="bottom">
+    <button class="primary" type="button" data-go="today"><span>Back to Today</span><span data-arrow></span></button>
+  </div>
 </article>
 </template>
 
@@ -551,7 +557,8 @@
      chassis repainted. The effort row goes, so the Log button keeps its edge on its own;
      the set card keeps its numerals (the stored set) and the saved set's facts replace
      the last-time line under the divider; "Your plan does not set a rest
-     length." is always said and there is no timer; Undo takes the Edit button's place. -->
+     length." is always said and there is no timer; Undo is a quiet link in the bottom
+     link row (S12b R6; it took the Edit button's place beside Log until R6). -->
 <template id="t-rest">
 <div class="body">
   <header class="header">
@@ -567,6 +574,14 @@
   <div class="w-reasons" hidden>
     <div class="w-reason-row"><span class="w-reason" data-slot="reason"></span></div>
   </div>
+  <!-- S12b R6 (audit F4): what to set up next comes first, above the fixed bottom; the saved
+       set's card follows it. Same blocks, slots and words, in a new order. -->
+  <div class="w-next" data-slot="next-block">
+    <div class="eyebrow" data-slot="next-label"></div>
+    <div class="w-next-presc" data-slot="next-plan"></div>
+    <div class="w-next-aim" data-slot="next-effort"></div>
+  </div>
+  <p class="w-rest-line" data-slot="rest-note"></p>
   <div class="setcard" id="setcard" data-slot="saved-block">
     <div class="top"><span class="eyebrow" data-slot="entry-title"></span><span class="state logged" id="set-state"><span class="ring" aria-hidden="true"></span><span id="set-state-text">Logged</span></span></div>
     <div class="numerals" id="numerals">
@@ -577,19 +592,15 @@
     <div class="divider"></div>
     <div class="w-facts" data-slot="saved-facts"></div>
   </div>
-  <p class="w-rest-line" data-slot="rest-note"></p>
-  <div class="w-next" data-slot="next-block">
-    <div class="eyebrow" data-slot="next-label"></div>
-    <div class="w-next-presc" data-slot="next-plan"></div>
-    <div class="w-next-aim" data-slot="next-effort"></div>
-  </div>
   <div id="workout-voice" hidden>
     <button class="talk" type="button" id="talk-workout" data-action="coach"><span class="orb" aria-hidden="true"></span><span class="label" id="talk-workout-label">Earned is here</span><span class="mic" aria-hidden="true"><svg viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="1" width="7" height="12" rx="3.5"/><path d="M1.5 10.5a7.5 7.5 0 0 0 15 0M9 18v4M5.5 22h7"/></svg></span></button>
   </div>
 </div>
 <div class="stack">
-  <div class="log-row"><button class="log" type="button" id="log" data-slot="primary"><span id="log-label" data-slot="primary-label"></span><span class="arrow" aria-hidden="true"><svg viewBox="0 0 20 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9h17M12 3l6 6-6 6"/></svg></span></button><button class="edit" type="button" id="edit" data-action="undo">Undo</button></div>
-  <div class="links bottom"><button class="link" type="button" data-action="back">Back to Today</button></div>
+  <div class="log-row"><button class="log" type="button" id="log" data-slot="primary"><span id="log-label" data-slot="primary-label"></span><span class="arrow" aria-hidden="true"><svg viewBox="0 0 20 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9h17M12 3l6 6-6 6"/></svg></span></button></div>
+  <!-- S12b R6 (audit F4): Undo is the link row's quiet action at the left edge, away from the
+       primary's thumb spot; the Log row holds the one primary. -->
+  <div class="links bottom"><button class="link" type="button" id="edit" data-action="undo">Undo</button><button class="link" type="button" data-action="back">Back to Today</button></div>
 </div>
 </template>
 <!-- END C-UI-4 BLOCK -->

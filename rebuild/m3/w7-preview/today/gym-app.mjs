@@ -255,9 +255,13 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, onCo
     put(map, 'workout-title', view.title || head);
     put(map, 'stub-note', note);
     put(map, 'workout-detail', detail || '');
-    hooks.listen(root.querySelector('[data-go="today"]'), 'click', event => {
-      event.preventDefault(); leaveCard(() => onBack());
-    });
+    /* S12b R6 (audit F7): the page's back link AND its one primary at the thumb edge both go
+       back to Today, through the same hand-over. */
+    for (const go of root.querySelectorAll('[data-go="today"]')) {
+      hooks.listen(go, 'click', event => {
+        event.preventDefault(); leaveCard(() => onBack());
+      });
+    }
     icons(root);
     show(root);
   }
@@ -619,7 +623,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, onCo
     if (!outcome || outcome.kind !== 'gym-result' || outcome.action !== 'finish') return;
     const result = outcome.result;
     if (!result.ok) { refusalScreen(view, result); return; }
-    if (onChanged) onChanged();
+    /* S12b R13: the entry's re-read is awaited before the card leaves, so the Today it lands on already says
+       the workout is recorded instead of first drawing the summary from before the last set. */
+    if (onChanged) { try { await onChanged(); } catch (_) { /* the entry reports its own read */ } }
     leaveCard(() => onBack());
   }
 

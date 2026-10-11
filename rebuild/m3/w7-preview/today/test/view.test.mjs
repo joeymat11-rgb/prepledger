@@ -65,8 +65,13 @@ async function setup(options = {}) {
   const store = options.lane || await lane();
   const model = options.model || createTodayModel({ today: DAY, readings: store.readings });
   const api = mountToday(doc, model, options.mount || {});
+  API.set(doc, api);
   return { dom, doc, model, api, lane: store, close: () => store.readings.close() };
 }
+/* S12b R6 (DECISIONS:915 (4)): Start no longer opens the weigh-in sheet. The sheet is still the page's
+   (openWeighIn, the same one write site), so the cells that drive it open it through the api the page
+   returns; the weigh-in a man reaches on Today is the morning card's own form (the R6 cells below). */
+const API = new WeakMap();
 const phoneText = (doc) => doc.getElementById("phone").textContent;
 const slot = (doc, name) => doc.querySelector(`[data-slot="${name}"]`);
 
@@ -109,7 +114,7 @@ async function settle(doc) {
   throw new Error("the weigh-in never settled");
 }
 async function weighIn(dom, doc, value) {
-  slot(doc, "primary").click();
+  API.get(doc).openWeighIn();   /* S12b R6: was slot(doc, "primary").click() while the weight was owed */
   const sheet = doc.querySelector('[role="dialog"]');
   doc.getElementById("morning-weight").value = String(value);
   sheet.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
@@ -147,10 +152,22 @@ test("Today paints the approved design from engine values only", async () => {
   kit.close();
 });
 
-test("the primary action before a weigh-in is the engine's own marching order", async () => {
+test("S12b R6: before a weigh-in the primary action is Start, and the engine's marching order is the sentence under the instruction", async () => {
   const kit = await setup();
   const view = kit.model.read();
-  assert.equal(slot(kit.doc, "primary-label").textContent.toLowerCase(), view.marchingOrder.thenText.toLowerCase());
+  /* S12b R6 (DECISIONS:915 (4); this cell pinned the P0-C gate: the label was the marching order's
+     thenText and the click opened the weigh-in sheet). The weigh-in no longer gates the workout: the
+     label names the workout, never the weigh-in, the click opens the workout, and the weigh-in is the
+     morning card's own form. The marching order keeps its place, whole, under the instruction. */
+  assert.equal(view.hasReadToday, false, "the morning really is owed");
+  assert.equal(slot(kit.doc, "primary-label").textContent, plainCopy("Start " + view.workout.title));
+  assert.notEqual(slot(kit.doc, "primary-label").textContent.toLowerCase(), view.marchingOrder.thenText.toLowerCase(),
+    "the engine's marching order no longer heads Start");
+  assert(kit.doc.querySelector('#card-weigh [data-slot="weigh-form"] #weight'), "the weigh-in is one tap away on the morning card");
+  slot(kit.doc, "primary").click();
+  assert.equal(kit.doc.querySelector('[role="dialog"]'), null, "Start opens no weigh-in sheet");
+  assert.equal(kit.api.screen(), "workout", "Start opens the workout with the weight owed");
+  kit.api.render("today");
   /* S9-TODAY-CARRY, S2. Same law at the other end of the same binding: whole sentence,
      the engine's own words, and never the clause on its own. */
   const order = view.marchingOrder;
@@ -337,7 +354,10 @@ test("every screen this slice does not build says so and shows no invented value
      and the refusal invents nothing either. Today's face still marks the entry "Not wired yet"
      (the next test). */
   doc.querySelector('[data-go="today"]').click();
-  doc.querySelector('[data-go="coach"]').click();
+  /* S12b R6 (DECISIONS:915 (3)): the Coach entry has left Today, so nothing on Today opens the Coach
+     screen; the screen itself is unchanged and is opened here through the page's own router. */
+  assert.equal(doc.querySelector('[data-go="coach"]'), null, "no Coach entry on Today");
+  kit.api.render("coach", true);
   const coach = doc.getElementById("phone");
   assert.equal(coach.querySelector("#coach-answer").hidden, true, "no answer is shown before he asks");
   assert.equal(coach.querySelector('.pill[title="Example numbers, not your data"]').textContent, "example");
@@ -390,13 +410,12 @@ test("Today's workout state comes from the injected host, never from the page", 
     const kit = await setup({ mount: { workout: { summary: () => ({ phase, sets: 0 }), open: () => { opened += 1; } } } });
     const { doc, model, api } = kit;
     assert.match(slot(doc, "workout-count").textContent, new RegExp(expected + "$"), phase);
-    // A finished workout does not displace the morning weigh-in from the single
-    // primary action; an UNFINISHED one does, so it can never become unreachable.
-    if (phase === "finished") {
-      assert.equal(slot(doc, "primary-label").textContent, "Log the scale");
-      await model.weighIn(178.3);
-      api.render("today");
-    }
+    /* S12b R6 (DECISIONS:915 (4); this cell pinned the P0-C gate: a finished workout did not displace the
+       morning weigh-in from the primary, "Log the scale"). With the gate gone, the primary names the
+       workout's own action in both phases while the weight is still owed, and the weigh-in stays on the
+       morning card. */
+    assert.equal(model.read().hasReadToday, false, phase + ": the morning is owed");
+    assert(doc.querySelector('#card-weigh [data-slot="weigh-form"]'), phase + ": the weigh-in stays on the morning card");
     assert.equal(slot(doc, "primary-label").textContent,
       phase === "active" ? "Resume " + model.read().workout.title : app.REVIEW_WORKOUT, phase);
     slot(doc, "primary").click();
@@ -557,7 +576,12 @@ test("every unwired entry point says so on Today's own face, in secondary text",
   /* A3 — recovery is no longer in this list: the check-in is WIRED. Today's recovery
      entry now carries the durable fact instead (see the assertion below), and with no
      check-in lane at all it says that, never "not wired yet". */
-  for (const name of ["nutrition-state", "coach-state"]) {
+  /* S12b R6 (DECISIONS:915 (3); red first: this cell's old pins of coach-state on Today). The Coach entry has
+     left Today until a live coach exists, so the unwired entry Today still carries is the nutrition plan's;
+     the Coach marker, the Talk row and every route to the Coach screen are absent from Today (asserted). */
+  assert.equal(slot(doc, "coach-state"), null, "no Coach marker on Today");
+  assert.equal(doc.querySelector('[data-go="coach"]'), null, "no route to the Coach screen on Today");
+  for (const name of ["nutrition-state"]) {
     const el = slot(doc, name);
     assert(el, name + " is on Today");
     assert.equal(el.textContent, app.NOT_WIRED);
@@ -565,7 +589,6 @@ test("every unwired entry point says so on Today's own face, in secondary text",
   }
   assert(slot(doc, "nutrition-state").classList.contains("muted"));
   assert(slot(doc, "recovery-state").classList.contains("muted"));
-  assert(slot(doc, "coach-state").closest(".sub"), "the coach marker is in the .sub line");
   const face = phoneText(doc);
   /* S12 SC-14 (red first: the PM's runs s12-pmrun2 and s12-pmrun1, view.test.mjs:519 "Ask your
      coach"; rev8 s3b SC-14, FCR D-CMP-3). Under DECISIONS:820 O2 the approved board's words won on
@@ -573,7 +596,8 @@ test("every unwired entry point says so on Today's own face, in secondary text",
      template's #talk-today), and Today's face no longer says "Ask your coach". The label moves to
      the board's; the marker, its .sub placement (asserted above), app.NOT_WIRED and the
      120-character window are unchanged. */
-  for (const label of ["Your full nutrition plan", "Talk through today\u2019s plan"]) {
+  assert(!face.includes("Talk through today\u2019s plan"), "the Talk row has left Today");
+  for (const label of ["Your full nutrition plan"]) {
     const at = face.indexOf(label);
     assert(at >= 0, label);
     assert(face.slice(at, at + 120).includes(app.NOT_WIRED), label + " is not marked on Today's face");
@@ -591,7 +615,9 @@ test("every unwired entry point says so on Today's own face, in secondary text",
   assert(at >= 0);
   assert(!face.slice(at, at + 120).includes(app.NOT_WIRED), "the check-in is wired");
   for (const screen of ["nutrition", "coach"]) {
-    doc.querySelector(`[data-go="${screen}"]`).click();
+    /* S12b R6: the Coach screen is opened through the page's router; nothing on Today links to it. */
+    if (screen === "coach") kit.api.render("coach", true);
+    else doc.querySelector(`[data-go="${screen}"]`).click();
     if (screen === "coach") {
       /* S12 SC-5 (view.test.mjs:529-531, DECISIONS:820 R2): the board's coach screen says it is
          not live in the board's own words (C-61) as soon as he asks, as the test above proves
@@ -669,11 +695,32 @@ test("the headline fitter cannot truncate engine text and stays off without layo
   assert(fitterBody.includes("while (room() < 0 && size > HEADLINE_FLOOR) {\n    size -= 1;"),
     "the fitter's one loop is bounded by the floor and steps down by one each pass");
   assert(app.HEADLINE_BASE - app.HEADLINE_FLOOR <= 14, "at most 14 passes");
-  for (const selector of fitted) {
+  /* S12b R6 (DECISIONS:915 (4), audit F2; red first: the R6 build, this cell's old pin "no --headline
+     rule matches the greeting"). SC-26 read the fit as superseded because Start sits in the fixed stack,
+     but the 52px greeting then pushed today's workout card off the first screen at 360x780 and 390x844
+     (audit key-content-not-seen #card-train). The fit is re-aimed: it finds Start on the whole view (it
+     looked inside the .body, where Start no longer is) and steps the headline down until #card-train
+     is wholly above Start; and the page now gives the greeting the fitter's size, capped at
+     HEADLINE_BASE. Pinned exactly: ONE shipped selector reads --headline AND reaches the greeting, its
+     fallback is HEADLINE_BASE (so the board's 52px is capped at 47px and never grows), and the fitter
+     looks up Start on the view and measures the workout card. */
+  /* (The live host's .ui and .scene-frame are scene.mjs's, which this jsdom page does not install, so the
+     greeting rule is read by its selector; every OTHER --headline rule must still miss the headline.) */
+  const reaching = fitted.filter((selector) => /\.greeting\b/.test(selector));
+  assert.deepEqual(reaching, [".scene-frame > .view.ui .greeting"], "one --headline rule reaches the greeting");
+  assert(headline.classList.contains("greeting"), "and the instruction slot is that greeting");
+  for (const selector of fitted.filter((s) => !reaching.includes(s))) {
     let hit = false;
     try { hit = headline.matches(selector); } catch { hit = false; }
-    assert.equal(hit, false, "the fitter's size reaches the approved headline through " + selector);
+    assert.equal(hit, false, "a second --headline rule reaches the headline through " + selector);
   }
+  const greetingRule = shipped.split("}").map((chunk) => chunk.split("{"))
+    .filter((p) => p.length >= 2 && p[p.length - 2].trim() === ".scene-frame > .view.ui .greeting");
+  assert.equal(greetingRule.length, 1, "the greeting's fitted size is declared once");
+  assert.equal(greetingRule[0][greetingRule[0].length - 1].trim(), "font-size: var(--headline, " + app.HEADLINE_BASE + "px);",
+    "the greeting is capped at HEADLINE_BASE");
+  assert(fitterBody.includes("view.querySelector('[data-slot=\"primary\"]')"), "the fitter finds Start on the whole view");
+  assert(fitterBody.includes('root.querySelector("#card-train")'), "the fitter measures today's workout card");
   kit.close();
 });
 
@@ -731,17 +778,24 @@ test("every text input the page actually renders is 16px or more", async () => {
     }
   };
   for (const screen of ["nutrition", "recovery", "coach", "why"]) {
-    doc.querySelector(`[data-go="${screen}"]`).click();
+    /* S12b R6 (DECISIONS:915 (3)): the Coach screen is opened through the page's router; Today has no entry to it. */
+    if (screen === "coach") kit.api.render("coach", true);
+    else doc.querySelector(`[data-go="${screen}"]`).click();
     sweep(screen);
     doc.querySelector('[data-go="today"]').click();
   }
   sweep("today");
-  slot(doc, "primary").click();
+  /* S12b R6 (DECISIONS:915 (4)): Start no longer opens the sheet; the sheet is opened through the page's api,
+     and Today's own weigh-in box (the morning card's #weight, swept above) is held to the same 16px. */
+  kit.api.openWeighIn();
   sweep("weigh-in");
 
   const inputs = seen.filter(([, name]) => name === "morning-weight");
-  assert.equal(inputs.length, 1, "the weigh-in box is the one input Today renders: " + JSON.stringify(seen));
+  assert.equal(inputs.length, 1, "the sheet's weigh-in box is rendered once: " + JSON.stringify(seen));
   assert(inputs[0][2] >= 16, "the weigh-in box is at least 16px");
+  const inline = seen.filter(([where, name]) => where === "today" && name === "weight");
+  assert.equal(inline.length, 1, "the morning card's weigh-in box is on Today: " + JSON.stringify(seen));
+  assert(inline[0][2] >= 16, "the morning card's weigh-in box is at least 16px");
   kit.close();
 });
 

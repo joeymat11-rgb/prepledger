@@ -370,3 +370,146 @@
   background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius-card);
   font-family: var(--sans); font-size: 13px; line-height: 1.3; color: var(--text-soft); }
 /* ===== S12 C-2 (STOP-S12-NLMOUNT, SC-19) . THE NATIVE-LOAD MOUNT: END ===== */
+
+/* ===== S12b R6 (DECISIONS:914, :915; the S12b audit) . SCREENS AND LAYOUT: BEGIN =====
+   Presentation only. No colour, face or size of its own: every value is a pinned pack token
+   (app.css :root, the ink and dawn blocks), a value the pack itself draws (cited per rule),
+   or a 2026-09-08 value already on the page. The pinned pack and the 09-08 references are
+   untouched (SC-25); this block answers where their rules meet on this page.
+   1. PRESSED ANSWERS (audit B1). The 09-08 .option / .choice draw a pressed answer in
+      var(--ink) on var(--paper); the 09-18 pack redefines --ink (in dawn a cream), so a
+      pressed label was the colour of its own box. A pressed answer takes the pack's own pressed
+      chip (app.css:297-298: --chip-selected, the gold line, and in dawn the cream that is dawn's --ink).
+      The workout's RIR chips (.chip.choice) keep the pack's rules. */
+.view .option[aria-pressed="true"],
+.view .choice:not(.chip)[aria-pressed="true"] { background: var(--chip-selected); border-color: var(--line-gold); color: var(--text); }
+:root[data-theme="dawn"] .view .option[aria-pressed="true"],
+:root[data-theme="dawn"] .view .choice:not(.chip)[aria-pressed="true"] { color: var(--ink); }
+/* 2. CARDS AND FIELDS FOLLOW THE THEME (audit B2, B3). The 09-08 follow-up card (--ground), its
+      fields (--paper), the hours box and the direct-entry control (a fixed cream) are light in both
+      themes, so ink's light text sat on a light box. They take the pack's card and field values
+      (states.css:54 .pfield-row input: the 86% card mix, --text; app.css .chip: the --line edge),
+      and a refusal line in ink takes the pack's refusal colour (states.css:37 .refusal, --text). */
+.view .followup { background: color-mix(in srgb, var(--card) 86%, transparent); border: 1px solid var(--line-soft); color: var(--text); }
+.view .followup input, .view .followup select, .view .hours, .view textarea,
+.view article.page .field > input, .view [data-slot="import-screen"] input:not([type="file"]) {
+  background: color-mix(in srgb, var(--card) 86%, transparent); color: var(--text); border: 1px solid var(--line); }
+.view article.page .field > input:not(.hours), .view [data-slot="import-screen"] .field > input:not([type="file"]) {
+  display: block; width: 100%; max-width: 100%; box-sizing: border-box; min-height: 48px; padding: 9px 12px; border-radius: 8px; }
+.view .number-control { background: color-mix(in srgb, var(--card) 86%, transparent); border-color: var(--line); }
+.view .number-control input { color: var(--text); }
+.view .number-control .step { display: flex; align-items: center; justify-content: center; width: var(--hit); min-width: var(--hit);
+  text-align: center; color: var(--text-soft); }
+:root:not([data-theme="dawn"]) .view .error { color: var(--text); }
+/* The proposal card's change line: the 09-08 `.change` green (Refinement A) is not the pack's,
+   which sets no colour of its own on .proposal .change (app.css:232), as C-UI-6 restored on Coach. */
+.scene-frame > .view.ui .proposal .change { color: inherit; }
+/* 3. THE SHEET'S SAVE AND EVERY .cta (audit B3, B4). The 09-08 .cta is var(--ink) on
+      var(--paper): light on light in dawn. It takes the pack's own cream button (app.css .save
+      :714, .primary: var(--cream) under var(--ink)); the secondary keeps its quiet outline. */
+.view .cta { background: var(--cream); color: var(--ink); border-color: transparent; }
+.view .cta.secondary { background: transparent; color: var(--text); border-color: var(--line); }
+/* 4. ONE LINE ON EVERY PRIMARY (audit B5). The pack sets .primary in the 32 px display serif,
+      which wraps "Start UPPER BODY . TODAY" and the content pages' primaries onto two lines
+      that leave the 60 px pill. The label takes the pack's own sans row title (app.css:252
+      .rowcard .title: 16 px, 1.3; :545 weight 500) on one line; the button keeps its own weight
+      rule (C-UI-2) and the pack's height, fill and arrow. A label too long for one line is cut
+      with an ellipsis, never wrapped out of the pill. */
+.view .primary { font-family: var(--sans); font-size: 16px; line-height: 1.3; gap: 12px; }
+.view .primary > span:first-child { flex: 1 1 auto; min-width: 0; font-weight: 500; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+/* 5. THE HEADLINE FIT REACHES THE HEADLINE (audit F2). today-app.cjs fitHeadline steps
+      --headline down from HEADLINE_BASE (47 px, Additions C's declared h1) to the 33 px floor
+      until today's workout card is on the first screen above Start; the greeting reads it, so the
+      board's 52 px is capped at 47 px on this page and never grows. */
+.scene-frame > .view.ui .greeting { font-size: var(--headline, 47px); }
+/* 6. SAFE AREAS ON EVERY SCREEN (audit B9). The pack's header clears a 47 px status band with its
+      own 53 px; a taller band pushes it down. A content page (the 09-08 .page, and the Import
+      screen) keeps its own 22 / 20 px and clears the status band and the home indicator. The
+      chassis stacks already keep max(24px, env(safe-area-inset-bottom)) (app.css:861-864). */
+.scene-frame > .view.ui .header { margin-top: max(53px, calc(env(safe-area-inset-top, 0px) + 6px)); }
+.view article.page, .view > [data-slot="import-screen"] {
+  padding-top: max(22px, calc(env(safe-area-inset-top, 0px) + 12px));
+  padding-bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 12px)); }
+.view .sheet-panel { padding-bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 12px)); }
+/* Text on a content page stands on the scene plate; it takes the pack's own protective glow
+   (--text-shadow, which the pack gives every word it sets over the scene: .greeting, .screen-title).
+   In dawn the plate's mist is mid-tone where the page's quiet lines fall, so on a content page the
+   quiet text takes the pack's dawn --text-soft for --muted (dawn's --muted measured about 2:1 there). */
+.view article.page { text-shadow: var(--text-shadow); }
+:root[data-theme="dawn"] .view article.page { --muted: var(--text-soft); }
+/* A content page's primary stays in reach (audit F10, B8): its .bottom (the 09-08 page's own
+   primary row) holds at the foot of the screen while the page scrolls above it, on the page's
+   own surface, and keeps the home indicator clear. */
+.view article.page > .bottom { position: sticky; bottom: 0; z-index: 1;
+  padding-bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+  background: linear-gradient(to bottom, transparent 0, var(--surface) 20px);
+  margin-left: -18px; margin-right: -18px; padding-left: 18px; padding-right: 18px; }
+/* The band spans the page edge to edge: it gives back exactly the page's own side inset (Additions C
+   .page: 23 px, and 18 px at 350 px and narrower), so it never makes the page wider. */
+@media (min-width: 351px) {
+  .view article.page > .bottom { margin-left: -23px; margin-right: -23px; padding-left: 23px; padding-right: 23px; }
+}
+/* 7. THE IMPORT SCREEN (audit B4). It carries no approved template, so it takes the content
+      page's chassis: the 09-08 page inset (Additions C .page 22 px 18 px), a column with the
+      pack's 12 px rhythm (--s3), full-width fields; its Back stays the quiet .option. */
+.view > [data-slot="import-screen"] { display: flex; flex-direction: column; gap: var(--s3, 12px);
+  min-height: 100%; box-sizing: border-box; padding-left: 18px; padding-right: 18px; }
+.view > [data-slot="import-screen"] > .option { align-self: flex-start; }
+/* The six words are one long line typed off paper: drawn in the pack's serif (its narrower
+   figures, as .numerals .value), at the 16 px the page holds every field to, they fit the
+   full-width box at 360 px instead of scrolling inside it. */
+.view [data-slot="import-words"] input { font-family: var(--serif); }
+/* 8. THE RECOVERY SLEEP LINE (audit B8). Additions C floats every question's legend
+      (.question legend float:left, width 100%) and clears it on .options; the hours line was the
+      one block that did not clear it, so it was laid out beside the float, off the screen. R8: the
+      clear is set on the line's own slot, so the chrome names no class of its own (N2-18). */
+.view .question > [data-slot="sleep-ask"] { clear: both; }
+/* 9. THE WORKOUT'S QUIET BAND GOES UNDER THE STACK (audit F5). S11's panel ("Check next weight",
+      its status, notices and offers) followed the scrolling body and stood ABOVE the fixed stack,
+      between the set card and the effort chips. It now follows the stack (order 2), so the set
+      card meets the RIR chips and Log; the pack's 60.5 px slack under the stack (app.css:863) is
+      given to the panel, which keeps the bottom safe area itself. Both mounts resolve the same
+      stack values (workout-look C-2). This supersedes item 4 of the C-2 block above. */
+.screen-workout .ui > .stack,
+.screen-workout .ui > [data-native-load="gym"] > .stack { --stack-lift: 0px; }
+.scene-frame > .view.ui > [data-native-load="region"] { order: 2; }
+.scene-frame > .view.ui:has(> [data-native-load="gym"] > .stack) > [data-native-load="region"] {
+  margin-top: calc(4px - max(24px, env(safe-area-inset-bottom, 0px))); margin-bottom: 0;
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
+/* 10. THE RECORDED WORKOUT ENDS IN A PRIMARY AT THE THUMB EDGE (audit F7). The 09-08 page beside
+       S11's panel takes the room the panel leaves, so its .bottom (margin-top: auto) puts
+       "Back to Today" at the foot of the screen, above any offer the panel shows. */
+.scene-frame > .view.ui > [data-native-load="gym"] > .page { flex: 1 0 auto; }
+/* 11. R7 (Fable REVIEW-S12B-R6 section 7). (a) The Sleep page's date and time boxes are the 09-08
+       80 px .hours box and clipped their own values; R8: they take the page's own field width (item 2
+       above: block, 100 per cent, never wider than the page), so no width is invented for them. (b) The recorded workout's page never
+       scrolls, so its held primary row draws no band and takes no edge-to-edge inset: it is the
+       plain .primary at the foot. (c) A follow-up card that comes straight after a question's
+       floated legend clears the float (as the hours line does), so its edge no longer runs
+       through the legend. (d) On the set screen the effort aim and the machine row's quiet line
+       take the pack's 14 px (app.css .w-reason, .machine .when) instead of 12 / 13 px (audit F11);
+       the links keep the pack's .link size, and "Why?" already has the pack's 44 px hit box
+       (states-workout.css .w-why::before). */
+.view article.page input.hours[type="date"], .view article.page input.hours[type="time"] {
+  display: block; width: 100%; max-width: 100%; box-sizing: border-box; }
+.scene-frame > .view.ui > [data-native-load="gym"] > article.page > .bottom {
+  background: none; margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; }
+.view .question > .followup { clear: both; }
+.scene-frame.screen-workout .rir-head .opt,
+.scene-frame.screen-workout .machine.rowcard .when { font-size: 14px; }
+/* 12. R11 (the seat's gym-check / machine-settings-check: "the screen scrolls sideways by 6px"). The pack's
+       fade scrims behind the effort row (.rir-head::before, 28 px past each side) and behind each quiet link
+       (.links .link::before, 26 px past each side) are absolutely placed inside the 22 px gutter of the
+       screen host, so the one against the right edge widened it: 6 px on the set screen (the effort row is
+       full width; the approved pack's own app.html measures the same 396 > 390) and 4 px on the rest screen
+       (R6 put Back to Today at the right end of the link row). On the gym screens each scrim now stops at the
+       screen edge, the gutter itself (the pack's own 22 px, app.css .ui and states-coach.css), so the scrim
+       keeps its look and the screen cannot be moved sideways. No word moves. */
+:root[data-fade="full"] .scene-frame.screen-workout .rir-head::before,
+:root[data-fade="full"] .scene-frame.screen-workout .links .link::before { left: -22px; right: -22px; }
+/* The same rule, applied to every screen, found one more: the Import screen's file picker takes the
+   browser's own width for its 16 px button and caption (373 px), wider than its field at every phone width.
+   It is held to its field, as every other field on that screen already is (item 7). */
+.view [data-slot="import-screen"] input[type="file"] { max-width: 100%; box-sizing: border-box; }
+/* ===== S12b R6 (DECISIONS:914, :915; the S12b audit) . SCREENS AND LAYOUT: END ===== */

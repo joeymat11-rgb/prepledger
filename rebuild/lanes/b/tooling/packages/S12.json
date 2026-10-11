@@ -622,8 +622,8 @@
     },
     "rebuild/m3/w6/host/test/local-real-day.test.mjs": {
       "pre": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
-      "post": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
-      "role": "carried"
+      "post": "3469953a3d14afeb28190ac48edf77df400288414a9c045180bafdc12bd32240",
+      "role": "edited"
     },
     "rebuild/m3/w6/host/workout-host.mjs": {
       "pre": "f0f36328595673061132d5c55d76b1a9a93de5fc5fca5171ed4a1647e85ccb9f",
@@ -710,10 +710,15 @@
       "post": "856b3627665b016e33d6a196e232c99981397c266ae2bab90ba4b64bc3e51af6",
       "role": "carried"
     },
+    "rebuild/m3/w6/test/local-today-browser.mjs": {
+      "pre": null,
+      "post": "7a24e2bdaff4de2e132f7964130a9ae6bc1e18c59796fee347658a3546c20693",
+      "role": "new"
+    },
     "rebuild/m3/w6/test/local-today-journey.test.mjs": {
       "pre": "4afa0cb9e23699a53c225aba1b4e7fba536de8076c98960e50dbc3c517619363",
-      "post": "4afa0cb9e23699a53c225aba1b4e7fba536de8076c98960e50dbc3c517619363",
-      "role": "carried"
+      "post": "25a29d3f222d40d121b2c34f6886378c0c0bd5349fb1eb10504026d273e6c5a5",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/browser-engine.cjs": {
       "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
@@ -847,7 +852,7 @@
     },
     "rebuild/m3/w7-preview/today/browser-check.mjs": {
       "pre": null,
-      "post": "c3a023758ed819a9424b44211160b308bb1e347f12aaff32e97bea2da14a7b4b",
+      "post": "7401ae09da1206b264a16c5e54fe1e3a979b14674e631fd98cbaf9f802ba4d95",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/checkin-app.mjs": {
@@ -862,13 +867,18 @@
     },
     "rebuild/m3/w7-preview/today/design.cjs": {
       "pre": null,
-      "post": "a6aa9ec6fdaede98a1d7c67a2922868bdcfe547f3461c12a43a16bc1820bb7bf",
+      "post": "e1556539c761bf3934504c7ce079b54b690b48097538ca4b136cd937634417c9",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/food-host.mjs": {
       "pre": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
       "post": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
       "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/gym-check.mjs": {
+      "pre": null,
+      "post": "ac65e728cb19d18fd23f3e5c7791a36df566c16037eb95903426a0da5567e159",
+      "role": "new"
     },
     "rebuild/m3/w7-preview/today/gym-host.mjs": {
       "pre": "70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85",
@@ -877,8 +887,8 @@
     },
     "rebuild/m3/w7-preview/today/gym-model.mjs": {
       "pre": "58a4fb2a37f532542e4892d7c99376061a3195db3d53b6a704c95704b58fa339",
-      "post": "58a4fb2a37f532542e4892d7c99376061a3195db3d53b6a704c95704b58fa339",
-      "role": "carried"
+      "post": "9459af7aebe32f558a938138079b211fd5fba77031caea4a26c460e19bcd3e02",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/gym-settings-lane.mjs": {
       "pre": "1de11798fff62eb5d4eba07798050db91ca1d2b5fa18dbd131bdff2f20d1ae6a",
@@ -889,6 +899,11 @@
       "pre": "3e04c246e1db083b1db66df284f0910560e4a898cd8eeb038c925ddefa031675",
       "post": "3e04c246e1db083b1db66df284f0910560e4a898cd8eeb038c925ddefa031675",
       "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/machine-settings-check.mjs": {
+      "pre": null,
+      "post": "acdba292f4799cacd0c9c3c8614107a8a265da14c6fde9ab60e672c5522b2b18",
+      "role": "new"
     },
     "rebuild/m3/w7-preview/today/machine-settings-host.mjs": {
       "pre": "be586088f56d819db242f4a67402fa4cfe877062388bdaacfc5f3bdf1ab28ef3",
@@ -917,7 +932,12 @@
     },
     "rebuild/m3/w7-preview/today/screens.template.html": {
       "pre": null,
-      "post": "2b40eef2411eb064b2f6fa16d5bb80e0154f15d4e9df3e372e2dfc1fd4e423f1",
+      "post": "fecd1792d5b53a855ca1e9b9c0324728588fdf23643db85a075ad14522a3fc44",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/sleep-check.mjs": {
+      "pre": null,
+      "post": "2eb31cb57d85088ba3533de93a53fe83a43ce22e220f6a1b1fba1838b5349b27",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/test/adapter.test.mjs": {
@@ -952,22 +972,22 @@
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.corpus.json": {
       "pre": "58dc7a743fc883af09537a6db7692ac008ae036cb18779333e97e2f504335f8c",
-      "post": "70efc98d97eba4f1b347f523a3ae8a8cb8863171c0860812d832ca80ad98e328",
+      "post": "72f5d0da549949c0de3e6d55566cb03c86c4dd6dc77993c4ee3753eb7e29041b",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.s12-delta.json": {
       "pre": null,
-      "post": "33d1c3cdae31c7614250442769c1a61aa7892b761dfef2654520e175fc7f6b3c",
+      "post": "df3dbc367cee51124335cb723e519f4939250939a53ee5d24337a9846b82deff",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs": {
       "pre": "388465b7a07ca685fdd4f300e94ea0c222c6081fc7171b4b9171f1e1729ae039",
-      "post": "b8fb6586e4cb9ac4ee81853f4c2a17c977dbdb8ee99c229b0094dda5088c4916",
+      "post": "2610c686c07f1b71cb7ffdf92f40e2000c4a1fed373643e1c814c83ce6d45050",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/copy.test.mjs": {
       "pre": "78779d8f3f73f9ddf368e39550e8eec005bb5f1da3ef647ee20c4856d53d9d3e",
-      "post": "9c3a9325f990864087e422716218da3ad8bd79d6e7f9c30c65dc0898cf953fd2",
+      "post": "f5d9bbd73aeac831758f4898429dc8f0f6d654e1b6f8c3ef319ccb53042e9f9c",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/design.test.cjs": {
@@ -1007,12 +1027,12 @@
     },
     "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
       "pre": "464d6fb956c274f3c7b281ac09ffd9657803e8cba2bb98b6cab7dfdece4325a7",
-      "post": "369860a6a79f193e18ef80aaa3b4335b62abd2607032c7031eb187f6a3389e40",
+      "post": "d946f1b10c34f36176905cd84bb845229b67c04d220f7a6938e6ebd1bdda36a4",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/look-cui2.test.mjs": {
       "pre": null,
-      "post": "876277a9f84fa30b53ef773ad5a1c4010bb7faadf90ca6c82f0823b401d27215",
+      "post": "620a2866fd83b9b2c1c75fa64392d6d009b8c7cfd7269614fb04ae06614d6746",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/test/look-cui3.test.mjs": {
@@ -1042,7 +1062,7 @@
     },
     "rebuild/m3/w7-preview/today/test/problem.test.mjs": {
       "pre": "ccce91272afbb74364b9e864db77b9488d8bc0c9d66d01ab0b7d842bf07d8d0c",
-      "post": "48348d33b397cc538a0ae4750699fe2b64276468a8a45decc6fd337b10705579",
+      "post": "6e6fd0902a090aaecce2dfcc2d80295a054343756f95006118817c6f59cebe00",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/scene.test.mjs": {
@@ -1057,12 +1077,12 @@
     },
     "rebuild/m3/w7-preview/today/test/view.test.mjs": {
       "pre": "3736dfa218ebb1b5b635a02e27aba6dd84af32c319606968bf300b20ac854ad6",
-      "post": "51a0e1b1a2c7f403c2ab41fe8c6fd021656ce506663ed3328a107b425b1bbd46",
+      "post": "003d765f908de64a8e26dda9894426b5baac869ca8c92d0aa481d54b3a5fe30e",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/workout-look.test.mjs": {
       "pre": null,
-      "post": "7c32d00c1861645f8482780d3d789259c609d2ad7ef5de832b191358ce1c8be0",
+      "post": "6bfa6a665b91e38231d63f041cdc098bab2c7e500c92396be4ad886fa861f8c6",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/today-entry.mjs": {
@@ -2190,8 +2210,8 @@
     "COPY LOCK (DECISIONS:905 (1), owner option 1; round 2): the look's strings are APPROVED by the PM against the approved boards and the owner's words of :817/:820, and the corpus is re-measured: rebuild/m3/w7-preview/today/test/copy-lock.corpus.json (325 pieces added, 20 removed, 102 changed, five mounted states, after the round-3 weigh-in merge), the new sealed copy-lock.s12-delta.json beside it, and copy-lock.test.mjs: CORPUS_SHA256 moved, CL-S12-DELTA (the corpus is the sealed S11 corpus plus exactly the delta, proven both ways, the S11 corpus rebuilt byte for byte), CL-S11-DELTA unchanged in what it asserts but run on that rebuilt S11 corpus, and CL-S12-APPROVAL citing DECISIONS:905. CL-COMPOSED (DECISIONS:905 (3); the approach PM-ruled at DECISIONS:906) is fixed product-side, lock rule untouched: the board's three numeral words \"lb\", \"reps\" and the multiply sign are declared in design.cjs APPROVED_COPY beside the board's \"example\", as the lock's own declaration mechanism requires for a word drawn alone beside a typed figure; no template, view or stylesheet byte moved (the 390x844 Workout set screen is byte-identical before and after). copy-lock.test.mjs 13/13. The owner receives the full list after release (S12 package report: COPY-LIST-FOR-OWNER.md).",
     "PM SEAT (the builder's guard stops these, so their reds are not yet measured): view.test.mjs, package.test.cjs, copy.test.mjs, adapter.test.mjs and catalogue.test.mjs load rebuild/engine/index.cjs; scene.test.mjs's build cell, the build cells of food, problem, setup and machine-settings-ui, H3/2 and boundary P-MEASURE (g) read protected engine files. rev8 predicts SC-5, SC-6, SC-14 and SC-16 red there; each is measured at the PM seat first and moved red first, named (STOP-S12-PMSEAT-CELLS).",
     "NAMED DEBTS: D-S12-MSUI-1 (the machine row joins a stored name and its value with a space, so the screen, and SC-22's cells, cannot tell [[\"Back pad\",\"two notches\"]] from [[\"Back\",\"pad two notches\"]]; the stored record can, and S4/S5 read it back off the store); D-W7IMPORT-FLAKE-1 (SC-20 lands the waits; it closes only on the PM seat's red-first record and a both-OS hunter run of the s11-w7hunt.yml shape); D-CUI3-RECORD, D-LOOK-CHASSIS, D-LOOK-PROOF, D-LOOK-STATES and D-NODE-MODULES-HOME carried from rev8 section 3a unchanged.",
-    "PRODUCT MAP (regenerated by rebuild/lanes/b/S12-REGEN.cjs at parent 7c79ef16b770ab881892ad126dadfe0687bc1d2b). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s11-native-load.json bde69f156c4f); post is sha256 of the bytes ON DISK in the UNCOMMITTED working tree over HEAD 4f570c2fd031ca7ba118e86b798149e6b88976a7 (--worktree, header (B)): after the commit a dry run without --worktree must print \"0 entr(ies) would change\". Released paths of the parent and its ancestors are not declared: rebuild/m3/w7-preview/today/build.mjs (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/gym-app.mjs (rebuild/m4/spec/acceptance-s10-today-split.json), rebuild/m3/w7-preview/today/preview.css (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/today-app.cjs (rebuild/m4/spec/acceptance-s10-today-split.json). New paths are every path changed since the parent, inside the S12 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself. Roles: {\"new\":14,\"edited\":26,\"carried\":294}.",
-    "PARENT-UNPINNED PATHS (regenerated at 7c79ef16b770ab881892ad126dadfe0687bc1d2b): 3 path(s) existed at the parent pinned by neither its product map nor its execution pins and are declared here, so they are declared role new with pre null (DECISIONS:792): rebuild/m3/w7-preview/today/browser-check.mjs, rebuild/m3/w7-preview/today/design.cjs, rebuild/m3/w7-preview/today/screens.template.html.",
+    "PRODUCT MAP (regenerated by rebuild/lanes/b/S12-REGEN.cjs at parent 7c79ef16b770ab881892ad126dadfe0687bc1d2b). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s11-native-load.json bde69f156c4f); post is sha256 of the bytes ON DISK in the UNCOMMITTED working tree over HEAD a4b138d49429c1ad37d78bd8fc9269b044d1c8a4 (--worktree, header (B)): after the commit a dry run without --worktree must print \"0 entr(ies) would change\". Released paths of the parent and its ancestors are not declared: rebuild/m3/w7-preview/today/build.mjs (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/gym-app.mjs (rebuild/m4/spec/acceptance-s10-today-split.json), rebuild/m3/w7-preview/today/preview.css (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/today-app.cjs (rebuild/m4/spec/acceptance-s10-today-split.json). New paths are every path changed since the parent, inside the S12 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself. Roles: {\"new\":18,\"edited\":29,\"carried\":291}.",
+    "PARENT-UNPINNED PATHS (regenerated at 7c79ef16b770ab881892ad126dadfe0687bc1d2b): 7 path(s) existed at the parent pinned by neither its product map nor its execution pins and are declared here, so they are declared role new with pre null (DECISIONS:792): rebuild/m3/w6/test/local-today-browser.mjs, rebuild/m3/w7-preview/today/browser-check.mjs, rebuild/m3/w7-preview/today/design.cjs, rebuild/m3/w7-preview/today/gym-check.mjs, rebuild/m3/w7-preview/today/machine-settings-check.mjs, rebuild/m3/w7-preview/today/screens.template.html, rebuild/m3/w7-preview/today/sleep-check.mjs.",
     "EXECUTION PIN SUPERSEDED (regenerated at 7c79ef16b770ab881892ad126dadfe0687bc1d2b): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: none."
   ]
 }

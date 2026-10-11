@@ -587,7 +587,26 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     }
   }
 
-  return Object.freeze({ read, start, logSet, undo, finish, forget, closeUnfinished, rebase, holdForAdoption,
+  /* S12b R13 (PM ruling: the gym floor's fast-Finish defect). Every read and every action of this model goes
+     through the ONE accepted client, and the client's continuation is single-use: preparing one retires the
+     one before it (public-client.mjs prepareWorkoutContinuation). After a set the card repaints and then
+     the workout entry re-reads the session (today-entry.mjs refresh(), unawaited), so a Finish or a Log
+     tapped inside that re-read had its own continuation retired between its prepare and its execute, and
+     the athlete read "Earned could not prepare today's workout" (WORKOUT_RESUME_REQUIRED) for nothing but
+     timing - on the live tree too. So the model's reads and actions TAKE TURNS: each waits for the one
+     in flight and then runs whole. A tap made during the re-read waits for it and then does exactly what
+     it did before, its one prepare and its one write; a real refusal is still returned in the layer's own
+     words. No writer is called more or differently, nothing about what is stored changes, and a failed
+     turn never blocks the next. Internal calls (start() reading first) use the functions themselves, so a
+     turn never waits on itself. */
+  let turn = Promise.resolve();
+  const inTurn = (fn) => (...args) => {
+    const run = turn.then(() => fn(...args));
+    turn = run.then(() => undefined, () => undefined);
+    return run;
+  };
+  return Object.freeze({ read: inTurn(read), start: inTurn(start), logSet: inTurn(logSet), undo: inTurn(undo),
+    finish: inTurn(finish), forget, closeUnfinished: inTurn(closeUnfinished), rebase, holdForAdoption,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
     previous: () => previousByLift,
     /* P0-B r2 (review finding 4) - a LIVE getter, not a value captured at

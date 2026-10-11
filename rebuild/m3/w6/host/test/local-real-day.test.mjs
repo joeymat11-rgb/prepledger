@@ -467,17 +467,37 @@ test('S4/8 - after two midnights the OLD mount cannot repaint and cannot date a 
     assert.equal(second.api.screen(), 'why', 'nor did the second');
     assert.equal(third.api.screen(), 'today', 'and the live mount is where the athlete left it');
 
-    /* ONE TAP of the primary button on that same surface, carried through the
-       sheet it opens to a durable write. */
+    /* ONE weigh-in on that same surface, through the morning card's own form, carried to a durable
+       write. S12b R6 (DECISIONS:915 (4)): Start no longer opens the weigh-in sheet; the primary is still
+       offered, and the weigh-in is the card's form, the same one write site. */
+    /* S12b R9 (PM ruling, presentation only): the primary by kind of day, here with the morning
+       owed. A day the engine schedules no session ("No session is scheduled today.") offers the
+       weigh-in, drawn and live, as before R6; a day whose session could not be generated
+       ("Today's exercises are not available: ...") holds a disabled Start; a day with a session
+       offers its workout action, live, never the weigh-in's words. The vector this cell guards, a
+       tap that could date a record, is the morning card's form, asserted and used below (the
+       rest-day primary opens the sheet, which saves through the same one write site). */
     const primary = phone.querySelector('[data-slot="primary"]');
-    assert(primary && primary.disabled !== true, 'the live Today offers its primary action');
-    primary.dispatchEvent(new doc.defaultView.MouseEvent('click', { bubbles: true }));
-    await until(() => phone.querySelector('[role="dialog"]'), 'the tap opened the weigh-in sheet');
-    const sheet = phone.querySelector('[role="dialog"]');
-    sheet.querySelector('#morning-weight').value = '181.4';
-    sheet.dispatchEvent(new doc.defaultView.Event('submit', { bubbles: true, cancelable: true }));
-    await until(() => !phone.querySelector('[role="dialog"]'),
-      'the weight was recorded and the sheet closed itself');
+    assert(primary && primary.hidden !== true, 'the live Today draws its primary action');
+    const workoutLine = phone.querySelector('[data-slot="workout-count"]').textContent.trim();
+    const primaryLabel = phone.querySelector('[data-slot="primary-label"]').textContent.trim();
+    const said = workoutLine + ' | ' + primaryLabel;
+    if (/^No session is scheduled today\.$/.test(workoutLine)) {
+      assert.equal(primary.disabled, false, 'a rest day with the weight owed offers the weigh-in, live: ' + said);
+      assert.match(primaryLabel, /weigh|weight|scale/i, 'and it is the weigh-in: ' + said);
+    } else if (/^Today.s exercises are not available: /.test(workoutLine)) {
+      assert.equal(primary.disabled, true, 'a session that could not be generated cannot be started: ' + said);
+      assert.match(primaryLabel, /^Start /, said);
+    } else {
+      assert.equal(primary.disabled, false, 'a day with a session offers its workout action, live: ' + said);
+      assert.doesNotMatch(primaryLabel, /weigh|weight|scale|morning/i, 'the weigh-in never takes a session day: ' + said);
+    }
+    const form = phone.querySelector('#weigh-form');
+    assert(form, 'the live Today offers the morning weigh-in on its card');
+    form.querySelector('#weight').value = '181.4';
+    form.dispatchEvent(new doc.defaultView.Event('submit', { bubbles: true, cancelable: true }));
+    await until(() => !phone.querySelector('#weigh-form'),
+      'the weight was recorded and the form left the card');
 
     const written = stampedDates((await third.hosts.generation()).generation);
     assert(written.length >= 1, 'the tap wrote something durable');

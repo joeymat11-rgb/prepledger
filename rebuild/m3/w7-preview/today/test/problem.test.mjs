@@ -1050,19 +1050,27 @@ test('P0C.1 - completing setup adopts his own state in place, exactly as a fresh
   booted.hosts.close();
 });
 
-test("P0C.2 - the primary button's label names the sheet it opens, before and after the weigh-in", async () => {
+test("P0C.2 + S12b R6 - the primary button's label names what it opens, before and after the weigh-in", async () => {
+  /* S12b R6 (DECISIONS:915 (4); this cell pinned the P0-C gate, a primary that named and opened the weigh-in
+     sheet while the weight was owed). The weigh-in no longer gates the workout. The law this cell keeps is
+     P0-C item (b)'s own, label and action agree: before the weigh-in, whatever the engine's owed head says,
+     the label is "Start <workout>" and the click opens the workout; no weigh-in sheet opens and the weigh-in's
+     words never head the button; the weigh-in itself is the morning card's own form, on Today. */
   const kit = await installation();
   const before = today({ model: kit.model });
   before.api.render('today');
   const primaryBefore = before.doc.querySelector('#phone [data-slot="primary"]');
   const viewBefore = kit.model.read();
   assert.equal(viewBefore.marchingOrder.kind, 'weight', 'this fixture\'s own owed head really is the weigh-in');
-  assert.equal(primaryBefore.textContent.trim().toLowerCase(), viewBefore.marchingOrder.thenText.toLowerCase(),
-    'when the engine\'s owed head IS the weigh-in, its own words are shown unchanged (view.test.mjs)');
+  assert.equal(viewBefore.hasReadToday, false, 'the weight really is owed');
+  assert.equal(primaryBefore.textContent.trim(), 'Start ' + viewBefore.workout.title,
+    'the label names the workout even while the weigh-in is owed');
+  assert(before.doc.querySelector('#phone #card-weigh [data-slot="weigh-form"] #weight'),
+    'the weigh-in is one tap away, on the morning card');
   primaryBefore.dispatchEvent(new before.dom.window.Event('click'));
   await new Promise((resolve) => setTimeout(resolve, 0));
-  assert(before.doc.querySelector('#phone [role="dialog"] #morning-weight'),
-    'clicking it opened the WEIGHT sheet the label named');
+  assert.equal(before.doc.querySelector('#phone [role="dialog"]'), null, 'no weigh-in sheet opened');
+  assert.equal(before.api.screen(), 'workout', 'clicking it opened exactly the screen the label named');
 
   /* P-INSTALL-VERIFY step 5 - a clean-init athlete's owed head can be something ELSE
      (kind "night", "log last night"), a real engine sentence, but never a sheet this
@@ -1077,12 +1085,13 @@ test("P0C.2 - the primary button's label names the sheet it opens, before and af
   const mismatch = today({ model: mismatchModel });
   mismatch.api.render('today');
   const primaryMismatch = mismatch.doc.querySelector('#phone [data-slot="primary"]');
-  assert.equal(primaryMismatch.textContent.trim(), "Log this morning's weight",
+  assert.equal(primaryMismatch.textContent.trim(), 'Start ' + mismatchModel.read().workout.title,
     'the engine\'s off-topic owed head is never shown as the primary label');
+  assert.doesNotMatch(primaryMismatch.textContent, /last night|weight/i, 'no owed item heads the button');
   primaryMismatch.dispatchEvent(new mismatch.dom.window.Event('click'));
   await new Promise((resolve) => setTimeout(resolve, 0));
-  assert(mismatch.doc.querySelector('#phone [role="dialog"] #morning-weight'),
-    'label and action agree: it opened WEIGHT, exactly as the corrected label named');
+  assert.equal(mismatch.doc.querySelector('#phone [role="dialog"]'), null, 'no weigh-in sheet opened');
+  assert.equal(mismatch.api.screen(), 'workout', 'label and action agree: it opened the workout the label named');
 
   assert.equal((await kit.model.weighIn(170.6)).ok, true);
   const after = today({ model: kit.model });

@@ -61,6 +61,14 @@ const DAY_TWO = (() => {
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "a2-gym-profile-"));
 const server = await startServer({ port: 0 });
 const url = `http://127.0.0.1:${server.address().port}/`;
+/* S12b R8. Since S6 (DECISIONS:463, today-app.cjs render(requestedScreen() || setup-first)) the
+   shipped fresh-install route opens the SETUP screens, whose own primary carries a
+   primary-label, so launch() below passed on setup and the morning slot this walk reads next
+   never attached ("waiting for locator('[data-slot=\"morning\"]')"). This profile is never set
+   up, so every load would land there. Today is requested by name, exactly as browser-check.mjs
+   has done since 4d76e53 ("The supported preview route requests Today explicitly"); nothing
+   the walk asserts is relaxed. */
+const todayUrl = url + "?screen=today";
 const problems = [];
 const notes = [];
 let failures = 0;
@@ -80,11 +88,62 @@ function watch(page) {
   });
   return page;
 }
+/* S12b R9. Since S4 (DECISIONS:432, today-entry.mjs boot()) the shipped page, which calls boot()
+   with no day, stands on the DEVICE'S LIVE DAY, and S4's own rule is that every check script
+   DECLARES its day. This walk is a whole training day of the synthetic athlete, DAY_ONE; on the
+   live day there may be no session at all (the seat's Sunday 2026-10-11) or the engine may wall
+   the fixture's ported log, and neither is what this check measures. So every load stands the
+   page on DAY_ONE exactly the way the day-2 cell below has always stood it on DAY_TWO: the
+   page's OWN entry point, app.js boot({ today }), over the same document and the same device
+   storage. Nothing about the product changes to reach it, and nothing the walk asserts moves.
+   boot() paints its Today before it resolves (mountToday renders synchronously). */
+async function openToday(page, how = "goto") {
+  if (how === "reload") await page.reload({ waitUntil: "load" });
+  else await page.goto(todayUrl, { waitUntil: "load" });
+  await page.waitForSelector('[data-slot="primary-label"]', { state: "attached" });
+  /* S12b R10: the live mount the page booted on load finishes first (400 ms with no change under
+     #phone, at most 10 s), so nothing it had in flight can paint over the declared mount. */
+  await page.evaluate(() => new Promise((resolve) => {
+    const phone = document.getElementById("phone");
+    let timer = null;
+    const observer = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(done, 400); });
+    function done() { observer.disconnect(); resolve(); }
+    observer.observe(phone, { childList: true, subtree: true, characterData: true });
+    timer = setTimeout(done, 400);
+    setTimeout(done, 10000);
+  }));
+  const stood = await page.evaluate(async (day) => {
+    const mod = await import(new URL("app.js", location.href).href);
+    const booted = await mod.boot({ today: day });
+    return { today: booted.today, failures: booted.failures };
+  }, DAY_ONE);
+  assert.equal(stood.today, DAY_ONE, "the page stands on this check's own day: " + JSON.stringify(stood));
+  assert.deepEqual(stood.failures, [], "and opened every lane on it: " + JSON.stringify(stood));
+  await page.waitForSelector('[data-slot="primary-label"]');
+}
+/* S12b R13 (PM ruling). R12 found, on BOTH trees, that a Finish tapped while the workout entry was still
+   re-reading the session after the last set was refused WORKOUT_RESUME_REQUIRED, and that the Today it
+   landed on first drew the summary from before the set. R13 fixed both in the product (gym-model.mjs: reads
+   and actions take turns; gym-app.mjs: the card awaits the entry's re-read before it leaves). So this
+   check taps Finish the moment it is drawn, exactly as the athlete does, and Today must say "Workout
+   recorded" as soon as its line is drawn: no waiting for the entry, no settling. The failure names the
+   line the athlete would read, or the screen when there is no line. */
+async function finishNow(page, why) {
+  assert.equal(await text(page, '[data-slot="primary-label"]'), "Finish this workout");
+  await page.click('[data-slot="primary"]');
+  await page.waitForSelector('[data-slot="workout-count"]').catch(() => {});
+  const line = await page.evaluate(() => {
+    const el = document.querySelector('[data-slot="workout-count"]');
+    return el ? el.textContent.trim() : "(no workout line: " + document.getElementById("phone").textContent.replace(/\s+/g, " ").slice(0, 240) + ")";
+  });
+  assert.match(line, /Workout recorded$/, why + ": Today's workout line reads " + JSON.stringify(line));
+}
+let liveContext = null;   // S12b R10: the one the finally closes, so a failure can never hang the seat
 async function launch() {
   const context = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport: VIEWPORT });
+  liveContext = context;
   const page = watch(context.pages()[0] || await context.newPage());
-  await page.goto(url, { waitUntil: "load" });
-  await page.waitForSelector('[data-slot="primary-label"]');
+  await openToday(page);
   return { context, page };
 }
 
@@ -133,6 +192,28 @@ async function hardKill(context) {
 }
 let kills = 0;
 const text = (page, selector) => page.textContent(selector).then((value) => (value || "").trim());
+/* S12b R10 (gym.test.mjs S12 SC-2, W-08/W-09): the prescription is the pack's prescLine, each cell of
+   the model's own line in its own span either side of the gold times sign, and it is HIDDEN while both
+   numerals are specified (the numerals carry it). It is read back cell by cell, joined by single
+   spaces, which is the model's own line, exactly as gym.test reads it. */
+const planLine = (page) => page.evaluate(() => {
+  const plan = document.querySelector('[data-slot="plan"]');
+  const cells = [...plan.children].map((cell) => cell.textContent);
+  return (cells.length ? cells.join(" ") : plan.textContent).trim();
+});
+/* S12 SC-2 (W-06): the set card's eyebrow is the board's static "Today\u2019s set" and the position is
+   the session row's #set-count, "Set N of M". */
+async function onSet(page, position, why) {
+  assert.equal(await text(page, '[data-slot="entry-title"]'), "Today\u2019s set", why);
+  assert.match(await text(page, '[data-slot="set-count"]'), new RegExp("^Set " + position + " of \\d+$"), why);
+}
+/* S12 SC-22 (machine-settings-ui.test.mjs, W-06 / W-33 to W-36): the stored settings are the machine
+   row's serif title, "<name> <value>." verbatim in the stored order, with the open label as its sub
+   line; with nothing shown the title is the open label and the sub line the reading. */
+const machineRow = (page) => page.evaluate(() => ({
+  title: (document.querySelector('[data-slot="machine-setting"]').textContent || "").trim(),
+  when: (document.querySelector('[data-slot="machine-when"]').textContent || "").trim() }));
+const SETTINGS_OPEN = "Machine settings";
 const seen = (page, selector) => page.$(selector).then((handle) => !!handle);
 
 /* The one primary action of whatever screen is showing must be inside the scrolling
@@ -177,11 +258,12 @@ try {
   /* The sheet awaits a real encrypted-repository transaction now (review B2), so the
      check waits for the sheet to close and the reading to appear, not for a selector
      that was already on screen. */
-  await page.click('[data-slot="primary"]');
-  await page.waitForSelector("#morning-weight");
-  await page.fill("#morning-weight", "179.4");
-  await page.click('[role="dialog"] button[type="submit"]');
-  await page.waitForSelector('[role="dialog"]', { state: "detached" });
+  /* S12b R6 (DECISIONS:915 (4)): Start no longer opens the weigh-in sheet; the weigh-in is the morning card's own form. */
+  assert.match(await text(page, '[data-slot="primary-label"]'), /^Start /, "with the weight owed the primary already starts the workout ("
+    + await text(page, '[data-slot="workout-count"]') + ")");
+  await page.fill("#weigh-form #weight", "179.4");
+  await page.click("#save-weight");
+  await page.waitForSelector("#weigh-form", { state: "detached" });
   await page.waitForFunction(() => /✓/.test(document.querySelector('[data-slot="morning"]').textContent));
   const startLabel = await text(page, '[data-slot="primary-label"]');
   assert.match(startLabel, /^Start /, "after the weigh-in the primary action starts today's workout: " + startLabel);
@@ -190,12 +272,16 @@ try {
   await noDashes(page, "Today, with a reading and a workout ready");
 
   await page.click('[data-slot="primary"]');
-  await page.waitForSelector('[data-slot="plan"]');
-  const plan = await text(page, '[data-slot="plan"]');
+  await page.waitForSelector('[data-slot="log"]');
+  const plan = await planLine(page);
   const effortTarget = await text(page, '[data-slot="effort-target"]');
   assert.match(plan, /^\d+(\.\d+)? lb × \d+ reps$/, "the active set shows the engine's prescription: " + plan);
   assert.match(effortTarget, /^Aim to finish with \d+ clean reps left\.$/, effortTarget);
-  assert.equal(await text(page, '[data-slot="entry-title"]'), "What you did · Set 1");
+  await onSet(page, 1, "the active set is set 1");
+  assert.equal(await page.evaluate(() => document.querySelectorAll("#phone button.log").length), 1,
+    "the active set has exactly ONE primary action, the pack's Log");
+  assert.equal(await text(page, '[data-slot="log-label"]'), "Log " + plan.replace(/ lb \u00d7 (\d+) reps$/, " \u00d7 $1"),
+    "the Log button carries the set it will record");
   /* C4d — B-NTC G7 / O10. "Last time" is on the ACTIVE SET, and it is the engine's
      own comparison for this position, printed by gym-model.previousLine(). This
      athlete's comparison is the LEGACY shape (their ported session log); the
@@ -238,15 +324,16 @@ try {
   assert.equal(await text(page, '[data-slot="rest-note"]'), "Your plan does not set a rest length.");
   assert.match(await text(page, '[data-slot="next-label"]'), /^Next · Set 2 of /);
   assert.match(await text(page, '[data-slot="next-plan"]'), /^\d+(\.\d+)? lb × \d+ reps$/);
-  assert.equal(await text(page, '[data-slot="primary-label"]'), "Ready for set 2");
+  assert.equal(await text(page, '[data-slot="entry-title"]'), "What you did \u00b7 Set 1");
+  assert.equal(await text(page, '[data-slot="primary-label"]'), "Start set 2");   // S12 SC-2, W-22
   assert(await seen(page, '[data-action="undo"]'), "Undo is on the saved-set screen");
   await reachable(page, '[data-slot="primary"]', "saved set");
 
   // UNDO really removes it: the screen goes back to set 1 with nothing logged.
   await page.click('[data-action="undo"]');
   await page.waitForSelector('[data-slot="log"]');
-  assert.equal(await text(page, '[data-slot="entry-title"]'), "What you did · Set 1",
-    "Undo put the athlete back on the set that was undone");
+  await onSet(page, 1, "Undo put the athlete back on the set that was undone");
+  assert.equal(await page.$('[data-slot="saved-facts"]'), null, "and the saved set is gone from the screen");
   const stripAfterUndo = await page.evaluate(() => [...document.querySelectorAll(".slot")]
     .map((s) => ({ done: s.classList.contains("done"), text: s.textContent.trim() })));
   assert.equal(stripAfterUndo.filter((s) => s.done).length, 0, "no set is marked logged after Undo");
@@ -259,6 +346,9 @@ try {
   await page.waitForSelector('[data-slot="settings-block"]:not([hidden])', { timeout: 20000 });
   assert.match(await text(page, '[data-slot="settings-block"]'), /No settings saved yet\./,
     "a machine this device holds nothing for says so, and shows no figure");
+  assert.deepEqual(await machineRow(page), { title: SETTINGS_OPEN, when: "No settings saved yet." },
+    "with nothing stored the row's title is the open label and its sub line the reading");
+  assert.doesNotMatch(await text(page, '[data-slot="settings-block"]'), /\d/, "and the empty row carries no figure");
   await page.click('[data-action="settings-open"]');
   await page.waitForSelector('[data-settings-name="0"]');
   await page.evaluate(() => {
@@ -272,13 +362,11 @@ try {
   });
   await page.click('[data-slot="settings-save"]');
   await page.waitForFunction(() =>
-    document.querySelectorAll('[data-slot="settings-list"] .row').length === 1);
-  const captured = await page.evaluate(() =>
-    [...document.querySelectorAll('[data-slot="settings-list"] .row')]
-      .map((row) => row.querySelector("strong").textContent + " " + row.querySelector("span").textContent));
-  assert.deepEqual(captured, ["Seat four"], "the block shows the capture back verbatim");
+    (document.querySelector('[data-slot="machine-setting"]').textContent || "").trim() === "Seat four.");
+  const captured = await machineRow(page);
+  assert.deepEqual(captured, { title: "Seat four.", when: SETTINGS_OPEN }, "the row shows the capture back verbatim");
   await noDashes(page, "the active set, with machine settings captured");
-  notes.push("machine settings captured on the active set: " + captured.join(", "));
+  notes.push("machine settings captured on the active set: " + captured.title);
 
   // Log set 1 again, this time with a stated effort, then rest.
   await page.click('.choice:nth-child(3)');
@@ -301,19 +389,20 @@ try {
 
   await page.click('[data-slot="primary"]');
   await page.waitForSelector('[data-slot="log"]');
-  assert.equal(await text(page, '[data-slot="entry-title"]'), "What you did · Set 2",
-    "the session resumed at the next set, out of this device's own store");
+  await onSet(page, 2, "the session resumed at the next set, out of this device's own store");
   /* DECISIONS:154 (2): and so did the machine settings, for the same reason. */
   await page.waitForSelector('[data-slot="settings-block"]:not([hidden])', { timeout: 20000 });
-  assert.deepEqual(await page.evaluate(() =>
-    [...document.querySelectorAll('[data-slot="settings-list"] .row')]
-      .map((row) => row.querySelector("strong").textContent + " " + row.querySelector("span").textContent)),
-  ["Seat four"], "the machine settings did not survive a REAL process kill");
+  await page.waitForFunction(() =>
+    (document.querySelector('[data-slot="machine-setting"]').textContent || "").trim() !== "", null, { timeout: 20000 });
+  assert.deepEqual(await machineRow(page), { title: "Seat four.", when: SETTINGS_OPEN },
+    "the machine settings did not survive a REAL process kill");
   notes.push("the machine settings survived the same taskkill /F /T the workout did");
+  /* S12 SC-2: the strip is the pack's set dots (W-29): a performed set is `.done`, a skipped one `.skip`. */
   const resumedStrip = await page.evaluate(() => [...document.querySelectorAll(".slot")]
-    .map((s) => ({ done: s.classList.contains("done"), text: s.textContent.trim() })));
+    .map((s) => ({ done: s.classList.contains("done"), skip: s.classList.contains("skip"), now: s.classList.contains("now") })));
   assert.equal(resumedStrip.filter((s) => s.done).length, 1, "the recorded set came back");
-  assert.match(resumedStrip[0].text, /logged$/, resumedStrip[0].text);
+  assert.deepEqual(resumedStrip[0], { done: true, skip: false, now: false }, "and it is set 1, performed: " + JSON.stringify(resumedStrip));
+  assert.equal(resumedStrip[1].now, true, "and set 2 is the current one: " + JSON.stringify(resumedStrip));
 
   /* ---------- finish the workout ---------- */
   let guard = 0;
@@ -326,24 +415,22 @@ try {
     const label = await text(page, '[data-slot="primary-label"]');
     await reachable(page, '[data-slot="primary"]', "saved set " + guard);
     if (label === "Finish this workout") break;
-    assert.match(label, /^Ready for set /, label);
+    assert.match(label, /^Start set \d+$/, label);   // S12 SC-2, W-22
     await page.click('[data-slot="primary"]');
     await page.waitForSelector('[data-slot="log"]');
   }
-  assert.equal(await text(page, '[data-slot="primary-label"]'), "Finish this workout");
-  await page.click('[data-slot="primary"]');
-  await page.waitForSelector('[data-slot="workout-count"]');
+  await finishNow(page, "Today reflects the finished workout");
   assert.match(await text(page, '[data-slot="workout-count"]'), /Workout recorded$/,
     "Today reflects the finished workout");
   assert.equal(await text(page, '[data-slot="primary-label"]'), "Review today’s workout");
   await reachable(page, '[data-slot="primary"]', "Today, workout recorded");
 
   /* ---------- a real reload, a genuinely new page, and one more kill ---------- */
-  await page.reload({ waitUntil: "load" });
+  await openToday(page, "reload");
   await page.waitForSelector('[data-slot="workout-count"]');
   assert.match(await text(page, '[data-slot="workout-count"]'), /Workout recorded$/, "survived a reload");
   const fresh = watch(await context.newPage());
-  await fresh.goto(url, { waitUntil: "load" });
+  await openToday(fresh);
   await fresh.waitForSelector('[data-slot="workout-count"]');
   assert.match(await text(fresh, '[data-slot="workout-count"]'), /Workout recorded$/, "a new page agrees");
   await hardKill(context);
@@ -427,11 +514,11 @@ try {
   await page.waitForSelector('[data-slot="morning"]');
   assert.equal(await text(page, '[data-slot="morning"]'), "This morning: not logged yet",
     "day 2 has its own morning, and yesterday's reading is not reused");
-  await page.click('[data-slot="primary"]');
-  await page.waitForSelector("#morning-weight");
-  await page.fill("#morning-weight", "178.9");
-  await page.click('[role="dialog"] button[type="submit"]');
-  await page.waitForSelector('[role="dialog"]', { state: "detached" });
+  /* S12b R6 (DECISIONS:915 (4)): Start no longer opens the weigh-in sheet; the weigh-in is the morning card's own form. */
+  assert.match(await text(page, '[data-slot="primary-label"]'), /^Start /, "with the weight owed the primary already starts the workout");
+  await page.fill("#weigh-form #weight", "178.9");
+  await page.click("#save-weight");
+  await page.waitForSelector("#weigh-form", { state: "detached" });
   await page.waitForFunction(() => /✓/.test(document.querySelector('[data-slot="morning"]').textContent));
   assert.match(await text(page, '[data-slot="primary-label"]'), /^Start /,
     "day 2 offers Start, not a refusal");
@@ -455,13 +542,11 @@ try {
     await page.waitForSelector('[data-slot="primary-label"]');
     const label = await text(page, '[data-slot="primary-label"]');
     if (label === "Finish this workout") break;
-    assert.match(label, /^Ready for set /, "day 2, set " + dayTwoGuard + ": " + label);
+    assert.match(label, /^Start set \d+$/, "day 2, set " + dayTwoGuard + ": " + label);   // S12 SC-2, W-22
     await page.click('[data-slot="primary"]');
     await page.waitForSelector('[data-slot="log"]');
   }
-  assert.equal(await text(page, '[data-slot="primary-label"]'), "Finish this workout");
-  await page.click('[data-slot="primary"]');
-  await page.waitForSelector('[data-slot="workout-count"]');
+  await finishNow(page, "day 2 recorded a whole second session");
   assert.match(await text(page, '[data-slot="workout-count"]'), /Workout recorded$/,
     "day 2 recorded a whole second session");
 
@@ -537,7 +622,7 @@ try {
     "and day 2 descends from day 1's close, which is the ordering claim that matters");
   assert.equal(bothDays.morning, 2, "both mornings are readable through the reading host");
 
-  await page.reload({ waitUntil: "load" });
+  await openToday(page, "reload");
   await page.waitForSelector('[data-slot="workout-count"]');
   assert.match(await text(page, '[data-slot="workout-count"]'), /Workout recorded$/,
     "and day 1 is still recorded on a plain reload");
@@ -587,7 +672,18 @@ try {
   console.error("A2 GYM BROWSER CHECK FAIL — " + error.message);
   for (const problem of problems) console.error("  " + problem);
 } finally {
-  await new Promise((resolve) => server.close(resolve));
+  /* S12b R10 (D-S12B-BROWSER-DATE (c)): shutting down is BOUNDED and the browser is always closed. A failed
+     run used to leave its persistent context open, so node never exited and the seat's next run could not
+     even rewrite this check's log. The context is closed under a deadline, anything of this profile still
+     alive is killed, sockets are dropped, and the process exits with its verdict. */
+  const bounded = (work) => Promise.race([Promise.resolve().then(work).catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 5000))]);
+  if (liveContext) await bounded(() => liveContext.close());
+  for (const pid of chromeProcessesForProfile()) {
+    try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); } catch (_) { /* gone */ }
+  }
+  if (typeof server.closeAllConnections === "function") server.closeAllConnections();
+  await bounded(() => new Promise((resolve) => server.close(resolve)));
   try { fs.rmSync(profile, { recursive: true, force: true }); } catch (_) { /* the profile is a temp dir */ }
 }
-process.exitCode = failures;
+process.exit(failures);
