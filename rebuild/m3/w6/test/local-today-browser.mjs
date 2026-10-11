@@ -101,6 +101,32 @@ let context = null, cases = 0, kills = 0;
 const passed = () => { cases++; };
 const problems = [];
 const text = (page, selector) => page.textContent(selector).then(value => (value || "").trim());
+/* S12b R10 (D-S12B-BROWSER-DATE). Two drifts since this check was last green, both in the page and both
+   intended: S6 (DECISIONS:463) opens a FRESH install on the setup screens, and S4 (DECISIONS:432) stands
+   the shipped page on the device's LIVE day, with every check to declare its own. So Today is requested by
+   name (?screen=today, as browser-check does) and every load is stood on DAY through the page's OWN
+   entry point, boot({ today }), as case 6 below already does for both of its days. The live mount the
+   page boots on load is let finish first (400 ms with no change under #phone, at most 10 s). */
+async function stand(page, { restore = null } = {}) {
+  await page.waitForFunction(() => !!document.querySelector("#phone [data-slot]"), null, { timeout: 30000 });
+  await page.evaluate(() => new Promise((resolve) => {
+    const phone = document.getElementById("phone");
+    let timer = null;
+    const observer = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(done, 400); });
+    function done() { observer.disconnect(); resolve(); }
+    observer.observe(phone, { childList: true, subtree: true, characterData: true });
+    timer = setTimeout(done, 400);
+    setTimeout(done, 10000);
+  }));
+  const stood = await page.evaluate(async (day) => {
+    const mod = await import(new URL("app.js", location.href).href);
+    const booted = await mod.boot({ today: day });
+    return { today: booted.today, failures: booted.failures, restoreRequired: booted.restoreRequired };
+  }, DAY);
+  assert.equal(stood.today, DAY, "the page stands on this check's own day: " + JSON.stringify(stood));
+  assert.equal(stood.restoreRequired, restore, "restore state on the declared day: " + JSON.stringify(stood));
+  if (restore === null) assert.deepEqual(stood.failures, [], "and every lane opened on it: " + JSON.stringify(stood));
+}
 
 async function open() {
   context = await chromium.launchPersistentContext(profile,
@@ -111,7 +137,8 @@ async function open() {
     if (!request.url().startsWith(origin) && !request.url().startsWith("data:"))
       problems.push("offsite request: " + request.url());
   });
-  await page.goto(origin, { waitUntil: "load" });
+  await page.goto(origin + "?screen=today", { waitUntil: "load" });
+  await stand(page);
   await page.waitForSelector('[data-slot="primary-label"]');
   return page;
 }
@@ -121,9 +148,9 @@ const storageKeys = page => page.evaluate(() => Object.keys(localStorage));
 /* The whole sealed generation, read out of the page's own store in the browser.
    It opens the encrypted database READ-ONLY through the page's own module rather
    than parsing bytes, so what is asserted is what the page itself would read. */
-const snapshot = page => page.evaluate(async () => {
+const snapshot = page => page.evaluate(async (day) => {
   const mod = await import(new URL("app.js", location.href).href);
-  const booted = await mod.boot({});
+  const booted = await mod.boot({ today: day });   // S12b R10: the check's own day
   const generation = (await booted.hosts.generation()).generation;
   const ops = Object.values(generation.collections.ops || {});
   const out = { ops: ops.length, classes: ops.map(op => op.class).sort(),
@@ -136,7 +163,7 @@ const snapshot = page => page.evaluate(async () => {
     restoreRequired: booted.restoreRequired };
   booted.hosts.close();
   return out;
-});
+}, DAY);
 
 try {
   let page = await open();
@@ -145,7 +172,7 @@ try {
      encrypted generation, one self-issued schema-2 lease — and the two
      databases beside it are the era's own key custody and enrolment marker.
      None of the page's three old synthetic stores exists. */
-  assert.equal(await text(page, '[data-slot="morning"]'), "This morning — not logged yet",
+  assert.equal(await text(page, '[data-slot="morning"]'), "This morning: not logged yet",
     "a fresh profile holds no reading");
   const fresh = await databases(page);
   assert.deepEqual(fresh, [DATABASE, keysDatabaseName(DATABASE), markerDatabaseName(DATABASE)].sort(),
@@ -160,14 +187,15 @@ try {
   assert.equal(first.restoreRequired, null, "a fresh phone opens silently — it is first run, not restore");
   passed();
 
-  /* 2. THE MORNING WEIGH-IN, through the shipped sheet. */
+  /* 2. THE MORNING WEIGH-IN, through the morning card's own form. */
+  /* S12b R6 (DECISIONS:915 (4)): Start no longer opens the weigh-in sheet; the weigh-in is the morning card's own form. */
   await page.reload({ waitUntil: "load" });
+  await stand(page);
   await page.waitForSelector('[data-slot="primary-label"]');
-  await page.click('[data-slot="primary"]');
-  await page.waitForSelector("#morning-weight");
-  await page.fill("#morning-weight", "179.4");
-  await page.click('[role="dialog"] button[type="submit"]');
-  await page.waitForSelector('[role="dialog"]', { state: "detached" });
+  await page.waitForSelector("#weigh-form #weight");
+  await page.fill("#weigh-form #weight", "179.4");
+  await page.click("#save-weight");
+  await page.waitForSelector("#weigh-form", { state: "detached" });
   await page.waitForFunction(() => /✓/.test(document.querySelector('[data-slot="morning"]').textContent));
   assert.equal(await text(page, '[data-slot="morning"]'), "This morning ✓ 179.4 lb");
   const startLabel = await text(page, '[data-slot="primary-label"]');
@@ -207,7 +235,9 @@ try {
   assert.equal(await text(page, '[data-slot="primary-label"]'), "Resume " + sessionTitle);
   await page.click('[data-slot="primary"]');
   await page.waitForSelector('[data-slot="log"]');
-  assert.equal(await text(page, '[data-slot="entry-title"]'), "What you did · Set 2",
+  assert.equal(await text(page, '[data-slot="entry-title"]'), "Today\u2019s set",
+    "the session resumed on the active set");
+  assert.match(await text(page, '[data-slot="set-count"]'), /^Set 2 of \d+$/,
     "the session resumed at the next set, out of this device's own store");
   const after = await snapshot(page);
   assert.equal(after.ops, 3, "the generation survived the kill intact, and reading it wrote nothing");
@@ -275,8 +305,12 @@ try {
   }, { day: DAY, nextDay: NEXT_DAY, checkInProfile: CHECKIN_PROFILE,
     effort: EFFORT_CHOICES.find(choice => choice.label === "2").reserve });
   assert.deepEqual(twoDays.failures, [], JSON.stringify(twoDays.failures));
-  assert.deepEqual(twoDays.adoptions, [{ from: DAY, to: NEXT_DAY, adopted: true }],
+  /* S12b R10: the shipped page opened this installation on the LIVE day (S4), so the first adoption on the
+     record is this check's own stand onto DAY; the later day is still adopted by name after it. */
+  assert.deepEqual(twoDays.adoptions.slice(-1), [{ from: DAY, to: NEXT_DAY, adopted: true }],
     "the later day is ADOPTED by name, never silently dropped: " + JSON.stringify(twoDays.adoptions));
+  assert(twoDays.adoptions.length <= 2 && twoDays.adoptions.slice(0, -1).every(a => a.to === DAY && a.adopted === true),
+    "and the only other adoption is the stand onto this check's own day: " + JSON.stringify(twoDays.adoptions));
   assert.equal(twoDays.liveDay, NEXT_DAY);
   assert.equal(twoDays.recover && twoDays.recover.ok, true,
     "day 1's abandoned session is retired through the accepted close: " + JSON.stringify(twoDays.recover));
@@ -324,22 +358,23 @@ try {
   }, keysDatabaseName(DATABASE));
 
   await page.reload({ waitUntil: "load" });
+  await stand(page, { restore: "KEY_MISSING" });
   await page.waitForSelector("#today-status");
   await page.waitForFunction(() => document.getElementById("today-status").textContent.trim().length > 0);
   const status = await text(page, "#today-status");
   assert.equal(status, RESTORE_REQUIRED + " (KEY_MISSING)",
     "the page says what rebuild/client says, and names the code: " + status);
-  assert.equal(await text(page, '[data-slot="morning"]'), "This morning — not logged yet",
+  assert.equal(await text(page, '[data-slot="morning"]'), "This morning: not logged yet",
     "nothing on screen claims a reading it cannot read");
   // The record is still on disk, and the era is not replaced.
   const survivors = await databases(page);
   assert(survivors.includes(DATABASE), "the athlete's record is still there: " + JSON.stringify(survivors));
-  const stillRefused = await page.evaluate(async () => {
+  const stillRefused = await page.evaluate(async (day) => {
     const mod = await import(new URL("app.js", location.href).href);
-    const booted = await mod.boot({});
+    const booted = await mod.boot({ today: day });
     return { restoreRequired: booted.restoreRequired, hosts: booted.hosts === null,
       readings: booted.readings === null };
-  });
+  }, DAY);
   assert.equal(stillRefused.restoreRequired, "KEY_MISSING", "it still refuses on the next open");
   assert.equal(stillRefused.hosts, true, "no installation was opened");
   assert.equal(stillRefused.readings, true, "and no store");
@@ -364,7 +399,16 @@ try {
   for (const problem of problems) console.log("  " + problem);
   process.exitCode = 1;
 } finally {
-  if (context) { try { await context.close(); } catch (_) { /* already gone */ } }
-  await new Promise(resolve => server.close(resolve));
+  /* S12b R10 (D-S12B-BROWSER-DATE (c)): bounded, the profile's browser killed if still alive, and the process
+     exits with its verdict, so a failed run can never hang the seat. */
+  const bounded = (work) => Promise.race([Promise.resolve().then(work).catch(() => {}),
+    new Promise(resolve => setTimeout(resolve, 5000))]);
+  if (context) await bounded(() => context.close());
+  for (const pid of processesForProfile()) {
+    try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); } catch (_) { /* gone */ }
+  }
+  if (typeof server.closeAllConnections === "function") server.closeAllConnections();
+  await bounded(() => new Promise(resolve => server.close(resolve)));
   try { fs.rmSync(profile, { recursive: true, force: true }); } catch (_) { /* a temp dir */ }
 }
+process.exit(process.exitCode || 0);

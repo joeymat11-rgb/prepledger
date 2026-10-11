@@ -64,6 +64,40 @@ const HEADLINES = design.headlineVocabulary();
 // tests prove slot by slot where every figure came from.
 const FICTIONAL = ["2,252", "2,344", "235 g", "180.9 lb", "181.3 lb", "135 lb", "About 60 min", "9 exercises"];
 const VIEWPORT = { width: 390, height: 844 };
+/* S12b R10 (D-S12B-BROWSER-DATE). The shipped page stands on the DEVICE'S LIVE DAY (S4, DECISIONS:432) and
+   S4's own rule is that every check declares its day; this one did not, so it passed or failed with the
+   weekday (the seat's Sunday 2026-10-11 has no session for the synthetic athlete). Every page this check
+   opens is now stood on a FIXED day through the page's OWN entry point, app.js boot({ today }), exactly as
+   gym-check's day-2 cell has always reached its day: TRAIN, the synthetic athlete's own day (a training
+   day, Monday 2030-02-04), and for Today's primary also REST, two days on (Wednesday 2030-02-06, a day
+   the engine schedules no session; asserted below from the screen itself, not assumed). */
+const TRAIN = createRequire(import.meta.url)("./today-model.cjs").SYNTHETIC_DAY;
+const REST = (() => { const [y, m, d] = TRAIN.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + 2)).toISOString().slice(0, 10); })();
+/* The live mount the page boots on load is let finish first (its own first paint, then 400 ms with no
+   change under #phone, at most 10 s), so nothing it still had in flight can paint over the declared one;
+   boot() paints its own screen before it resolves. */
+async function stand(target, day = TRAIN) {
+  await target.waitForFunction(() => !!document.querySelector("#phone [data-slot]"), null, { timeout: 30000 });
+  await target.evaluate(() => new Promise((resolve) => {
+    const phone = document.getElementById("phone");
+    let timer = null;
+    const observer = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(done, 400); });
+    function done() { observer.disconnect(); resolve(); }
+    observer.observe(phone, { childList: true, subtree: true, characterData: true });
+    timer = setTimeout(done, 400);
+    setTimeout(done, 10000);
+  }));
+  const stood = await target.evaluate(async (d) => {
+    const mod = await import(new URL("app.js", location.href).href);
+    const booted = await mod.boot({ today: d });
+    return { today: booted.today, failures: booted.failures };
+  }, day);
+  assert.equal(stood.today, day, "the page stands on the check's declared day: " + JSON.stringify(stood));
+  assert.deepEqual(stood.failures, [], "and every lane opened on it: " + JSON.stringify(stood));
+}
+/* Every persistent context this check launches, so the finally can close it even on a failure. */
+const persistent = new Set();
 const VISUAL_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "cui1-browser-proof-"));
 console.log(`CUI1 VISUAL CAPTURE DIR ${VISUAL_DIR}`);
 const visual = { viewport: VIEWPORT };
@@ -82,8 +116,61 @@ const namedWait = async (page, name, predicate) => {
 /* A2 review B2: the weigh-in is a real encrypted-repository transaction now, so the
    check waits for the sheet to close and the reading to appear rather than for a
    selector that was already on screen. */
+/* S12b R6 (DECISIONS:915 (4)): Start no longer opens the weigh-in sheet; the weigh-in is the morning card's own form. */
+const weighInline = async (page, value) => {
+  await page.waitForSelector("#weigh-form #weight");
+  await page.fill("#weigh-form #weight", value);
+  await page.click("#save-weight");
+};
+/* S12b R9 (PM ruling, presentation only): Today's primary BY KIND OF DAY, asserted for whichever
+   day this check runs on (it runs on the device's live day: the seat's Sunday 2026-10-11 had no
+   session). The kind of day is read off the workout line, the layer's and the engine's own words:
+   - "No session is scheduled today.": while the weight is owed (the morning card's form is
+     mounted) the primary is the weigh-in, drawn and live; once it is not owed no workout primary
+     is drawn at all; either way T-12's "Nothing scheduled today, so there is nothing to start."
+     is the status line and nothing calls the day a refusal.
+   - a refusal on the line ("... workout cannot open ..."): the primary is its Why route.
+   - otherwise a session: "Start <title>", drawn, and never the weigh-in's words.
+   gym.test.mjs "S12b R9" pins all of these on a fixed date, so they never depend on the weekday;
+   `owedNow` says which morning this call expects, so the owed branch cannot pass by accident. */
+const NOTHING_SCHEDULED = "Nothing scheduled today, so there is nothing to start.";
+const workoutAction = async (page, where, owedNow, kind) => {
+  const s = await page.evaluate(() => {
+    const q = (name) => document.querySelector('[data-slot="' + name + '"]');
+    const p = q("primary");
+    return { line: (q("workout-count").textContent || "").trim(), label: (q("primary-label").textContent || "").trim(),
+      status: (q("status-line").textContent || "").trim(), drawn: !!p && !p.hidden && p.getClientRects().length > 0,
+      live: !!p && !p.disabled, owed: !!document.querySelector("#weigh-form #weight") };
+  });
+  const why = /^Why today.s workout cannot open$/, weigh = /weigh|weight|scale/i;
+  const said = where + ": " + JSON.stringify(s);
+  assert.equal(s.owed, owedNow, where + ": the morning is " + (owedNow ? "owed" : "recorded") + " here: " + said);
+  /* S12b R10: the day is fixed, so its kind is asserted, not inferred. */
+  assert.equal(s.line === "No session is scheduled today." ? "rest" : "session", kind,
+    where + ": the declared day is a " + kind + " day: " + said);
+  if (s.line === "No session is scheduled today.") {
+    assert.equal(s.status, NOTHING_SCHEDULED, "a day with no session says T-12's line: " + said);
+    if (s.owed) {
+      assert.match(s.label, weigh, "no session and the weight owed: the primary is the weigh-in: " + said);
+      assert(s.drawn && s.live, "and it is drawn and can be pressed: " + said);
+    } else {
+      assert(!s.drawn && !s.live, "no session and nothing owed: no workout primary is drawn: " + said);
+    }
+    assert.doesNotMatch(s.status + " " + (s.drawn ? s.label : ""), /cannot open/, "a rest day is never a refusal: " + said);
+  } else if (/workout cannot open/.test(s.line)) {
+    assert.match(s.label, why, "a refused workout line makes the primary its Why route: " + said);
+    assert(s.drawn, "and it is drawn: " + said);
+  } else {
+    assert.match(s.label, /^Start \S/, "a day with a session offers Start: " + said);
+    assert.doesNotMatch(s.label, weigh, "and the weigh-in never takes it: " + said);
+    assert(s.drawn, "and it is drawn: " + said);
+  }
+  return s;
+};
+/* The box the one primary action occupies, or, on a day that draws none, the fixed stack it would
+   head (what then sits at the thumb), so every fold measure below still measures something. */
 const recorded = async (page) => {
-  await page.waitForSelector('[role="dialog"]', { state: "detached" });
+  await page.waitForSelector("#weigh-form", { state: "detached" });
   await namedWait(page, "morning-recorded-checkmark",
     () => /\u2713/.test(document.querySelector('[data-slot="morning"]').textContent));
 };
@@ -115,6 +202,8 @@ try {
   });
 
   await page.goto(todayUrl, { waitUntil: "load" });
+
+  await stand(page);
   await page.waitForSelector('[data-slot="instruction"]');
   await namedWait(page, "ink-scene-ready",
     () => window.__earnedScene && window.__earnedScene.snapshot().ready);
@@ -157,6 +246,7 @@ try {
   try {
     const dawn = await dawnContext.newPage();
     await dawn.goto(url + "?theme=dawn&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
+    await stand(dawn);
     await dawn.waitForSelector('[data-slot="instruction"]');
     await namedWait(dawn, "dawn-scene-ready",
       () => window.__earnedScene && window.__earnedScene.snapshot().ready);
@@ -200,6 +290,7 @@ try {
       await pack.close();
       const ours = await chromeContext.newPage();
       await ours.goto(url + "?theme=" + theme + "&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
+      await stand(ours);
       await ours.waitForSelector('[data-slot="instruction"]');
       const actual = await chromeLook(ours);
       await ours.close();
@@ -215,7 +306,8 @@ try {
      states. Measured against the scrolling viewport, not the document. */
   const primaryBox = () => page.evaluate(() => {
     const view = document.querySelector(".view");
-    const cta = document.querySelector('[data-slot="primary"]');
+    const primary = document.querySelector('[data-slot="primary"]');
+    const cta = primary.hidden && primary.parentElement ? primary.parentElement : primary;  // S12b R9
     const top = view.getBoundingClientRect().top;
     const box = cta.getBoundingClientRect();
     return { top: Math.round(box.top - top), bottom: Math.round(box.bottom - top),
@@ -239,11 +331,9 @@ try {
   assert(before.bottom <= before.viewport,
     `the primary action is below the fold before a weigh-in: bottom ${before.bottom} > ${before.viewport}`);
 
-  // Log a weigh-in through the real sheet.
-  await page.click('[data-slot="primary"]');
-  await page.waitForSelector("#morning-weight");
-  await page.fill("#morning-weight", "179.4");
-  await page.click('[role="dialog"] button[type="submit"]');
+  // Log a weigh-in through the morning card's own form (S12b R6). With the weight owed, the primary is the workout's.
+  await workoutAction(page, "with the weight owed", true, "session");
+  await weighInline(page, "179.4");
   await recorded(page);
   const logged = (await page.textContent('[data-slot="morning"]')).trim();
   assert.equal(logged, "This morning ✓ 179.4 lb", "the weigh-in reached the screen");
@@ -254,6 +344,7 @@ try {
   await sweepForDashes(page, "Today, with a reading recorded");
 
   const afterBox = await primaryBox();
+  await workoutAction(page, "after the weigh-in", false, "session");
   assert(afterBox.bottom <= afterBox.viewport,
     `the primary action is below the fold after a weigh-in: bottom ${afterBox.bottom} > ${afterBox.viewport}`);
 
@@ -268,7 +359,8 @@ try {
       const row = await target.evaluate(async (text) => {
         const view = document.querySelector(".view");
         const headline = document.querySelector('[data-slot="instruction"]');
-        const cta = document.querySelector('[data-slot="primary"]');
+        const primary = document.querySelector('[data-slot="primary"]');
+        const cta = primary.hidden && primary.parentElement ? primary.parentElement : primary;  // S12b R9
         headline.textContent = text;
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         const top = view.getBoundingClientRect().top;
@@ -297,13 +389,13 @@ try {
   const sweepContext = await browser.newContext({ viewport: VIEWPORT });
   const sweepPage = await sweepContext.newPage();
   await sweepPage.goto(todayUrl, { waitUntil: "load" });
+  await stand(sweepPage);
   await sweepPage.waitForSelector('[data-slot="primary"]');
   const sweptBefore = await sweep(sweepPage, "before a weigh-in");
   await sweepPage.reload({ waitUntil: "load" });
+  await stand(sweepPage);
   await sweepPage.waitForSelector('[data-slot="primary"]');
-  await sweepPage.click('[data-slot="primary"]');
-  await sweepPage.fill("#morning-weight", "180.6");
-  await sweepPage.click('[role="dialog"] button[type="submit"]');
+  await weighInline(sweepPage, "180.6");
   await recorded(sweepPage);
   const sweptAfter = await sweep(sweepPage, "after a weigh-in");
   /* NOT swept for dashes in this state: the layout sweep writes the engine's RAW titles
@@ -311,7 +403,9 @@ try {
      so the render boundary) to measure the worst case. Reload, so the screen is the
      page's own again, and sweep that. */
   await sweepPage.reload({ waitUntil: "load" });
-  await sweepPage.waitForSelector('[data-slot="primary"]');
+  await stand(sweepPage);
+  /* S12b R9: attached, not visible: on a day with no session nothing owed draws no primary. */
+  await sweepPage.waitForSelector('[data-slot="primary"]', { state: "attached" });
   await sweepForDashes(sweepPage, "Today, reloaded with a reading");
   await sweepContext.close();
 
@@ -322,10 +416,9 @@ try {
      the durable fact and is blank until an intake is recorded. jsdom has no indexedDB,
      so the pinned view suite still sees "Not wired yet" there - that is the difference
      between a browser and a test runner, not a difference in the page. */
-  for (const name of ["coach-state"]) {
-    const text = (await page.textContent('[data-slot="' + name + '"]')).trim();
-    assert.equal(text, "Not wired yet", name + " does not say so on Today's face");
-  }
+  /* S12b R6 (DECISIONS:915 (3)): the Coach entry has left Today, marker and all. */
+  assert.equal(await page.$('[data-slot="coach-state"]'), null, "no Coach marker on Today");
+  assert.equal(await page.$('[data-go="coach"]'), null, "no Coach entry on Today");
   for (const name of ["recovery-state", "nutrition-state"]) {
     assert.equal((await page.textContent('[data-slot="' + name + '"]')).trim(), "",
       "a blank " + name + " must be blank on Today's face, never 'none' and never 'not wired'");
@@ -336,10 +429,9 @@ try {
   const spikeContext = await browser.newContext({ viewport: VIEWPORT });
   const spikePage = await spikeContext.newPage();
   await spikePage.goto(todayUrl, { waitUntil: "load" });
+  await stand(spikePage);
   await spikePage.waitForSelector('[data-slot="primary"]');
-  await spikePage.click('[data-slot="primary"]');
-  await spikePage.fill("#morning-weight", "191.7");
-  await spikePage.click('[role="dialog"] button[type="submit"]');
+  await weighInline(spikePage, "191.7");
   await recorded(spikePage);
   const spikeLine = (await spikePage.textContent('[data-slot="morning"]')).trim();
   assert.match(spikeLine, /^This morning ✓ 191\.7 lb · .+/,
@@ -353,21 +445,59 @@ try {
   const refuseContext = await browser.newContext({ viewport: VIEWPORT });
   const refusePage = await refuseContext.newPage();
   await refusePage.goto(todayUrl, { waitUntil: "load" });
+  await stand(refusePage);
   await refusePage.waitForSelector('[data-slot="primary"]');
-  await refusePage.click('[data-slot="primary"]');
-  await refusePage.fill("#morning-weight", "10000");
-  await refusePage.click('[role="dialog"] button[type="submit"]');
+  await weighInline(refusePage, "10000");
   await namedWait(refusePage, "impossible-weight-refusal",
-    () => document.querySelector("#weigh-error").textContent.trim().length > 0);
-  const refusal = (await refusePage.textContent("#weigh-error")).trim();
+    () => document.querySelector("#weigh-note").textContent.trim().length > 0);
+  const refusal = (await refusePage.textContent("#weigh-note")).trim();
   assert(refusal.length > 0, "an impossible weight is refused in words, not silently");
   assert.match(refusal, /Nothing was recorded/);
-  assert(await refusePage.$('[role="dialog"]'), "the sheet stays open on a refusal");
-  await sweepForDashes(refusePage, "the weigh-in sheet, refusing an impossible weight");
+  assert(await refusePage.$("#weigh-form"), "the form stays on the morning card on a refusal");
+  await sweepForDashes(refusePage, "the morning card's weigh-in, refusing an impossible weight");
   await refuseContext.close();
+
+  /* S12b R10 (D-S12B-BROWSER-DATE (a)): THE REST DAY, on its own fixed date and a fresh context. With the
+     weight owed the primary is the weigh-in, drawn, inside the viewport, and it opens the sheet; once the
+     morning is recorded no workout primary is drawn, T-12's line says why, and the fixed stack it would
+     have headed is still inside the viewport. */
+  const restContext = await browser.newContext({ viewport: VIEWPORT });
+  try {
+    const restPage = await restContext.newPage();
+    await restPage.goto(todayUrl, { waitUntil: "load" });
+    await stand(restPage, REST);
+    await restPage.waitForSelector('[data-slot="morning"]');
+    await workoutAction(restPage, "the rest day, the weight owed", true, "rest");
+    const restOwed = await restPage.evaluate(() => {
+      const view = document.querySelector(".view"), cta = document.querySelector('[data-slot="primary"]');
+      const top = view.getBoundingClientRect().top, box = cta.getBoundingClientRect();
+      return { bottom: Math.round(box.bottom - top), viewport: Math.round(view.clientHeight) };
+    });
+    assert(restOwed.bottom <= restOwed.viewport, "the rest day's weigh-in primary is below the fold: " + JSON.stringify(restOwed));
+    await sweepForDashes(restPage, "Today, a rest day with the weight owed");
+    await restPage.click('[data-slot="primary"]');
+    await restPage.waitForSelector('[role="dialog"] #morning-weight');
+    await restPage.keyboard.press("Escape");
+    await restPage.waitForSelector('[role="dialog"]', { state: "detached" });
+    await weighInline(restPage, "179.8");
+    await recorded(restPage);
+    await workoutAction(restPage, "the rest day, the morning recorded", false, "rest");
+    const restDone = await restPage.evaluate(() => {
+      const view = document.querySelector(".view"), stack = document.querySelector('[data-slot="primary"]').parentElement;
+      const top = view.getBoundingClientRect().top, box = stack.getBoundingClientRect();
+      return { top: Math.round(box.top - top), bottom: Math.round(box.bottom - top), viewport: Math.round(view.clientHeight),
+        overflow: Math.round(view.scrollWidth - view.clientWidth) };
+    });
+    assert(restDone.top >= 0 && restDone.bottom <= restDone.viewport, "the rest day's stack is off the first screen: " + JSON.stringify(restDone));
+    assert(restDone.overflow <= 0, "the rest day scrolls sideways: " + JSON.stringify(restDone));
+    await sweepForDashes(restPage, "Today, a rest day with nothing owed");
+  } finally {
+    await restContext.close();
+  }
 
   // A REAL reload of a REAL browser.
   await page.reload({ waitUntil: "load" });
+  await stand(page);
   await page.waitForSelector('[data-slot="morning"]');
   assert.equal((await page.textContent('[data-slot="morning"]')).trim(), logged, "the reading survived the reload");
   assert.equal((await page.textContent('[data-slot="trend"]')).trim(), trend, "the trend survived the reload");
@@ -375,18 +505,21 @@ try {
   // A genuinely new page in the same origin (the app-kill path).
   const relaunched = await context.newPage();
   await relaunched.goto(todayUrl, { waitUntil: "load" });
+  await stand(relaunched);
   await relaunched.waitForSelector('[data-slot="morning"]');
   assert.equal((await relaunched.textContent('[data-slot="morning"]')).trim(), logged, "a new page sees the same reading");
   await sweepForDashes(page, "Today, after a real reload");
   await sweepForDashes(relaunched, "Today, on a genuinely new page");
   /* Every screen this page can route to from Today, in the real browser. */
+  /* S12b R6 (DECISIONS:915 (3)): no Coach entry on Today, so the Coach route is not walked from here. */
   for (const [route, where] of [["why", "Why this plan"], ["nutrition", "the nutrition entry"],
-    ["coach", "the coach entry"], ["recovery", "the recovery check-in"]]) {
+    ["recovery", "the recovery check-in"]]) {
     await relaunched.click('[data-go="' + route + '"]');
     await namedWait(relaunched, "route-leaves-today-" + route,
       () => !document.querySelector('[data-slot="kcal-note"]'));
     await sweepForDashes(relaunched, where);
     await relaunched.goto(todayUrl, { waitUntil: "load" });
+    await stand(relaunched);
     await relaunched.waitForSelector('[data-slot="morning"]');
   }
 
@@ -429,7 +562,8 @@ try {
     const area = document.querySelector('[data-slot="problem-text"]');
     const control = document.querySelector('[data-slot="problem-entry"]');
     const said = document.querySelector('[data-slot="problem-said"]');
-    const primary = document.querySelector('[data-slot="primary"]');
+    const drawnPrimary = document.querySelector('[data-slot="primary"]');
+    const primary = drawnPrimary.hidden && drawnPrimary.parentElement ? drawnPrimary.parentElement : drawnPrimary;  // S12b R9
     const view = document.querySelector(".view") || document.documentElement;
     const frame = view.getBoundingClientRect();
     const box = primary.getBoundingClientRect();
@@ -470,6 +604,7 @@ try {
     + " to " + narrow.primaryBottom + " of " + narrow.viewport);
   await page.setViewportSize(VIEWPORT);
   await page.reload({ waitUntil: "load" });
+  await stand(page);
   await page.waitForSelector('[data-slot="morning"]');
 
   /* THE REAL PROCESS KILL (review B2). Everything above ran on a throwaway context;
@@ -480,13 +615,12 @@ try {
   let killed = 0;
   try {
     const first = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport: VIEWPORT });
+    persistent.add({ context: first, profile });
     const killPage = first.pages()[0] || await first.newPage();
     await killPage.goto(todayUrl, { waitUntil: "load" });
+    await stand(killPage);
     await killPage.waitForSelector('[data-slot="primary"]');
-    await killPage.click('[data-slot="primary"]');
-    await killPage.waitForSelector("#morning-weight");
-    await killPage.fill("#morning-weight", "178.9");
-    await killPage.click('[role="dialog"] button[type="submit"]');
+    await weighInline(killPage, "178.9");
     await recorded(killPage);
     const killedLine = (await killPage.textContent('[data-slot="morning"]')).trim();
     const killedTrend = (await killPage.textContent('[data-slot="trend"]')).trim();
@@ -507,8 +641,10 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 250));
 
     const second = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport: VIEWPORT });
+    persistent.add({ context: second, profile });
     const after = second.pages()[0] || await second.newPage();
     await after.goto(todayUrl, { waitUntil: "load" });
+    await stand(after);
     await after.waitForSelector('[data-slot="morning"]');
     assert.equal((await after.textContent('[data-slot="morning"]')).trim(), killedLine,
       "the reading survived a REAL process kill");
@@ -528,10 +664,12 @@ try {
        to ?screen=workout leaves the app host unpainted even though the independent
        scene review hook correctly says "workout". */
     await still.goto(url + "?theme=dawn&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
+    await stand(still);
     await still.waitForSelector('[data-slot="instruction"]');
     await namedWait(still, "reduced-bootstrap-scene-ready",
       () => window.__earnedScene && window.__earnedScene.snapshot().ready);
     await still.goto(url + "?theme=dawn&screen=workout&chrome=1&date=board&state=W-18", { waitUntil: "load" });
+    await stand(still);
     await namedWait(still, "workout-screen-ready",
       () => document.documentElement.dataset.screen === "workout"
         && !!document.querySelector('[data-slot="session-title"]')
@@ -586,7 +724,19 @@ try {
   console.error("A1 TODAY BROWSER CHECK FAIL — " + (error && error.stack ? error.stack : String(error)));
   for (const problem of problems) console.error("  " + problem);
 } finally {
-  await browser.close();
-  await new Promise((resolve) => server.close(resolve));
+  /* S12b R10 (D-S12B-BROWSER-DATE (c)): every close is bounded, every persistent profile's browser is
+     closed and then killed if it is still alive, sockets are dropped, and the process exits with its
+     verdict, so a failed run can never hang the seat. */
+  const bounded = (work) => Promise.race([Promise.resolve().then(work).catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 5000))]);
+  for (const held of persistent) {
+    await bounded(() => held.context.close());
+    for (const pid of chromeProcessesForProfile(held.profile)) {
+      try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); } catch (_) { /* gone */ }
+    }
+  }
+  await bounded(() => browser.close());
+  if (typeof server.closeAllConnections === "function") server.closeAllConnections();
+  await bounded(() => new Promise((resolve) => server.close(resolve)));
 }
-process.exitCode = failures;
+process.exit(failures);

@@ -371,6 +371,15 @@ function statusSessionName(workout) {
 /* `session` is the durable session facade.session() answers (its phase), `sample` is
    true while Today paints the preview's sample athlete before setup (T-02). `card` is the
    proposal card's state as C-UI-3 drew it ("open", "recorded", "declined"), or undefined. */
+/* S12b R9 (PM ruling, presentation only). A day the engine schedules NO session (today-model
+   sessionFor: no session, and no error code) is a rest from training, not a refusal: the layer,
+   with nothing to prepare, may still answer with a code, and that code is not the athlete's to
+   act on. A session that could not be generated (unavailableReason) and a pending adoption
+   (exerciseCount held null, available untouched) are NOT this case. Named apart from `workout`
+   (writer fence, see below). */
+function noSessionToday(plan) {
+  return !!plan && plan.available === false && !plan.unavailableReason;
+}
 function statusLine(view, session, sample, card) {
   if (!view || view.blocked) return STATUS_BLOCKED;
   const phase = session ? session.phase : null;
@@ -387,7 +396,10 @@ function statusLine(view, session, sample, card) {
   if (view.nowModel && view.nowModel.decisionsN > 0) {
     const plain = view.nowModel.decisionsN === 1 && name && view.workout.exerciseCount !== null
       && phase !== "unfinished" && phase !== "active" && phase !== "finished" && phase !== "blocked";
-    if (!plain) return "";
+    /* S12b R9 (PM ruling): on a day with no session the line is T-12's even beside an open card,
+       because the screen draws no workout primary and this line is what says why. */
+    if (!plain) return noSessionToday(view.workout) && phase !== "unfinished" && phase !== "active"
+      && phase !== "finished" ? STATUS_NOTHING_SCHEDULED : "";
     if (sample) return card === "open" ? name + STATUS_SAMPLE : "";
     return card === "open" ? name + STATUS_ONE_CHANGE : card === "recorded" ? name + STATUS_ONE_ANSWER
       : card === "declined" ? name + STATUS_NOTHING_TO_DECIDE : "";
@@ -395,11 +407,14 @@ function statusLine(view, session, sample, card) {
   if (phase === "unfinished" && session.unfinished) return STATUS_EARLIER_OPEN;
   if (phase === "active") return name ? name + STATUS_UNDER_WAY : "";
   if (phase === "finished") return name ? name + STATUS_LOGGED : "";
-  if (phase === "blocked" && session.code) return STATUS_CANNOT_OPEN;
+  if (phase === "blocked" && session.code && !noSessionToday(view.workout)) return STATUS_CANNOT_OPEN;
   /* S12: a local of this pure helper, named apart from today-lanes.cjs's factory-scope `workout` so the
      writer fence's FENCE-SEALED-BINDING-ASSIGNED (acceptance number ZERO) does not read it as an assignment. */
   const plan = view.workout || {};
   if (plan.exerciseCount === null && plan.unavailableReason) return STATUS_NO_EXERCISES;
+  /* S12b R9 (PM ruling): a day with no session says T-12's line, which is what says why the
+     screen draws no workout primary. */
+  if (noSessionToday(plan)) return STATUS_NOTHING_SCHEDULED;
   if (plan.today === false && typeof plan.title === "string" && plan.title.includes(STATUS_STAMP)) {
     const [next, when] = plan.title.split(STATUS_STAMP);
     /* T-11 is drawn only for a TOMORROW stamp; the prototype draws no line for a later
@@ -554,13 +569,25 @@ function weighNamesTheField(raw, copy, outOfRange) {
    is never truncated. It is a no-op wherever there is no layout to measure (a jsdom test),
    which is why the browser check is what proves it. */
 const HEADLINE_BASE = 47, HEADLINE_FLOOR = 33, HEADLINE_GUARD = 8;
+/* S12b R6 (DECISIONS:915 (4), audit F2). Under the chassis (C-UI-2) Start is not in `root` (the
+   day's .body) but in the fixed .stack beside it, so the old lookup found nothing and the fit
+   never ran. Start is looked up on the whole view, and where it sits in the fixed stack the
+   fit is for today's workout card (#card-train) to be wholly on the first screen above Start;
+   a page whose primary is in its own flow keeps the old rule (the primary inside the view).
+   The headline is capped at HEADLINE_BASE (preview.css reads --headline on the greeting). */
 function fitHeadline(view, root) {
   const headline = root.querySelector("h1");
-  const primary = root.querySelector('[data-slot="primary"]');
+  const primary = view && view.querySelector ? view.querySelector('[data-slot="primary"]') : null;
   if (!headline || !primary || !view || !view.clientHeight) return null;
+  const inStack = !root.contains(primary);
+  const card = root.querySelector("#card-train");
+  const target = inStack && card ? card : primary;
   root.style.removeProperty("--headline");
-  const room = () => view.clientHeight - HEADLINE_GUARD
-    - (primary.getBoundingClientRect().bottom - view.getBoundingClientRect().top);
+  /* S12b R9: a primary that is not drawn (no session today, nothing owed) has no box; the card
+     must then clear the top of the fixed stack it would have headed. */
+  const edge = primary.hidden && primary.parentElement ? primary.parentElement : primary;
+  const room = () => (inStack ? edge.getBoundingClientRect().top : view.getBoundingClientRect().bottom)
+    - HEADLINE_GUARD - target.getBoundingClientRect().bottom;
   let size = HEADLINE_BASE;
   while (room() < 0 && size > HEADLINE_FLOOR) {
     size -= 1;
@@ -816,7 +843,8 @@ function mountToday(doc, model, options = {}) {
   let checkinOrigin = null;
 
   /* The engine's own words are never reworded; only the first letter of the marching
-     order's verb phrase is capitalised so it can head a button. */
+     order's verb phrase is capitalised so it can head a button. S12b R9: used again only on a
+     day with no session, where the weigh-in is the primary (PM ruling). */
   const capitalise = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
   const template = (id) => {
@@ -895,7 +923,7 @@ function mountToday(doc, model, options = {}) {
     return face;
   }
   /* S12 round 3 (DECISIONS:906, PM ruling): ONE released weigh-in write site. The board's inline form (bindWeighIn)
-     and the sheet Start opens while the weight is owed (openWeighIn) both hand the raw entry here, so this is the only
+     and the weigh-in sheet (openWeighIn; Start no longer opens it, S12b R6) both hand the raw entry here, so this is the only
      model.weighIn call in the released view (writer fence: TODAY_APP_DECLARED_SEAMS model.weighIn, one site). Same
      writer, same argument (the raw entry, or Number of it) and the same refusal each path had: a thrown error becomes
      WEIGH_FAILED and the error's message; a refusal is returned as the model gave it. */
@@ -959,11 +987,23 @@ function mountToday(doc, model, options = {}) {
       /* C-UI-3: no proposal card and no weigh-in over a record that could not be trusted (T-06). */
       map.get("proposal").remove();
       bindWeighIn(map, false);
-      for (const name of ["kcal", "kcal-unit", "protein", "protein-unit", "kcal-note",
-        "workout-title", "workout-count", "morning", "trend", "primary-label"]) put(map, name, null);
-      for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
-      put(map, "recovery-state", null);
+      /* S12b R6 (audit B6, the board's T-06): each card says NOT_AVAILABLE ONCE, on its title
+         line, and draws no figure line under it; the trend link has no figure to name, so it is
+         not drawn; Sleep keeps its own label; Start, with nothing it could start and no label of
+         its own, stays disabled and is not drawn. No new words. */
+      for (const name of ["eat-title", "workout-title", "morning", "primary-label"]) put(map, name, null);
+      for (const name of ["protein-line", "kcal-note", "workout-count"]) map.get(name).hidden = true;
+      map.get("trend").parentNode.hidden = true;
+      put(map, "sleep-entry-label", SLEEP_TITLE);
+      put(map, "nutrition-state", NOT_WIRED);
+      /* S12b R7 (Fable REVIEW-S12B-R6 section 7): under a headline that already says nothing is shown,
+         NOT_AVAILABLE is said ONCE, on the food card, which keeps its link to the nutrition plan; the
+         morning and training cards, which would only repeat it, are not drawn, and the Recovery row
+         says nothing rather than repeating it (written straight, as on a normal day with nothing recorded). */
+      for (const id of ["card-weigh", "card-train"]) root.querySelector("#" + id).hidden = true;
+      map.get("recovery-state").textContent = "";
       map.get("primary").disabled = true;
+      map.get("primary").hidden = true;
       /* A blocked Today is exactly when a problem is worth reporting, so the control
          is wired here too. It reads nothing from the record it could not trust. */
       problemControl(map);
@@ -989,6 +1029,14 @@ function mountToday(doc, model, options = {}) {
     put(map, "protein", Number.isFinite(view.proteinTarget.g) ? amount(view.proteinTarget.g) : null);
     put(map, "protein-unit", Number.isFinite(view.proteinTarget.g) ? "g protein" : "");
     put(map, "kcal-note", calorieBand(view.calorieTarget));
+    /* S12b R6 (audit B7, the board's T-19 to T-21): with no calorie figure the card's title is
+       its empty state, said once in the band line's own words, and the band line is not drawn
+       twice; with no protein target its line is not drawn. No new words. */
+    if (kcal === null) {
+      map.get("eat-title").textContent = plainOrDrop(calorieBand(view.calorieTarget), "eat-title");
+      map.get("kcal-note").hidden = true;
+    }
+    if (!Number.isFinite(view.proteinTarget.g)) map.get("protein-line").hidden = true;
 
     put(map, "workout-title", view.workout.title);
     /* The workout line carries the durable state of today's session — in progress,
@@ -1022,7 +1070,7 @@ function mountToday(doc, model, options = {}) {
     map.get("nutrition-state").textContent = plainOrDrop(nutritionState(), "nutrition-state");
     /* C-UI-2: the card's marker is lit only for a recorded day (pack T-25, .marker.on). */
     map.get("nutrition-state").classList.toggle("on", map.get("nutrition-state").textContent === FOOD_SAVED);
-    put(map, "coach-state", NOT_WIRED);
+    /* S12b R6 (DECISIONS:915 (3)): no coach entry on Today, so no coach marker to bind. */
     /* Written straight, not through put(): when nothing is recorded this slot says
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
        page inventing a state the athlete never entered. */
@@ -1053,23 +1101,32 @@ function mountToday(doc, model, options = {}) {
        progress the single primary action resumes it, in the approved design's own
        word. A recorded workout is reviewable, not restartable. */
     const resuming = !!(today && today.phase === "active");
+    /* S12b R6 (DECISIONS:915 (4), audit F1): the morning weigh-in no longer gates the workout.
+       P0-C item (b) made this click open the weigh-in sheet whenever the weight was owed; now
+       Start always does what its label says, and the label is never the weigh-in's. The
+       weigh-in stays one tap away on this screen, on the morning card's own form (bindWeighIn
+       above), which saves through the one write site, submitWeighIn, exactly as before; the
+       sheet (openWeighIn) is unchanged and still submits through that same site. */
+    /* S12b R9 (PM ruling, presentation only): the primary by kind of day. A training day with a
+       session: "Start <title>". A real refusal: its Why route. A day with NO session
+       (noSessionToday): the morning weigh-in while the weight is owed, exactly as before R6 (its
+       label and the sheet it opens; the morning card's own Save is unchanged), and otherwise no
+       workout primary at all: the button is not drawn and the status line says T-12's "Nothing
+       scheduled today, so there is nothing to start." Resume, Close and Review keep precedence:
+       each is a real action on any day. No word is new, and nothing here saves anything. */
+    const finished = !!(today && today.phase === "finished");
+    const restDay = noSessionToday(view.workout) && !resuming && !stranded && !finished;
+    const weighFirst = restDay && owed;
+    const nothingToStart = restDay && !owed;
     const action = resuming ? resumeLabel(view.workout)
       : stranded ? CLOSE_UNFINISHED_WORKOUT
-      /* P0-C item (b) - the primary label must name the sheet the click below
-         actually opens. Before a weigh-in this click ALWAYS opens WEIGHT
-         ("close the books first" - the weigh-in comes before everything else
-         by design; sleep keeps its own row). The engine's marchingOrder is a
-         general "what's owed" hint and its head is not always the weigh-in
-         (kind "weight") - on a clean-init athlete it read kind "night"
-         ("log last night"), a real sentence, but for a sheet this click does
-         not open. `kind` (rebuild/engine/today.cjs marchingOrder, o0.k) names
-         which owed item thenText describes; only echo the engine's own words
-         when they truly describe THIS click, and say what it opens otherwise. */
-      : owed ? (view.marchingOrder.kind === "weight" && view.marchingOrder.thenText
+      : finished ? REVIEW_WORKOUT
+      /* P0-C item (b), kept for the rest day: the label names the sheet the click opens; the
+         engine's marching order is echoed only when its head is the weigh-in (kind "weight"). */
+      : weighFirst ? (view.marchingOrder && view.marchingOrder.kind === "weight" && view.marchingOrder.thenText
         ? capitalise(view.marchingOrder.thenText)
         : "Log this morning's weight")
-      : today && today.phase === "finished" ? REVIEW_WORKOUT
-      : refused ? WHY_WORKOUT_CANNOT_OPEN
+      : refused && !restDay ? WHY_WORKOUT_CANNOT_OPEN
       : "Start " + view.workout.title;
     put(map, "primary-label", action);
     hooks.listen(primary, "click", async () => {
@@ -1081,9 +1138,10 @@ function mountToday(doc, model, options = {}) {
         render("today", false);
         return;
       }
-      return owed && !resuming ? openWeighIn() : render("workout", true);
+      return weighFirst ? openWeighIn() : render("workout", true);
     });
-    if (!owed && view.workout.exerciseCount === null) primary.disabled = true;
+    if (nothingToStart) { primary.disabled = true; primary.hidden = true; }
+    else if (!weighFirst && view.workout.exerciseCount === null) primary.disabled = true;
 
     /* P-MEASURE (round 2, closing finding 2 - "nothing renders"): the ONE way
        Today reaches the comparison view. No approved tile exists for this
@@ -1139,6 +1197,11 @@ function mountToday(doc, model, options = {}) {
     wire(stack);
     show(root, focus, stack);
     fitHeadline(phone, root);
+    /* S12b R6: the fit measures text, so it is taken again once the page's two inlined faces
+       are ready (their metrics, not a fallback's, decide the lines), on this frame only. */
+    if (doc.fonts && doc.fonts.ready && typeof doc.fonts.ready.then === "function") {
+      doc.fonts.ready.then(() => { if (token === mountToken && root.isConnected) fitHeadline(phone, root); });
+    }
     /* A change to the headline's text re-runs the fit. No test hook: the page simply
        keeps itself correct, and the browser check exercises the engine's whole title
        vocabulary through exactly this path. */

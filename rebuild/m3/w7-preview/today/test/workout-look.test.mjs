@@ -116,8 +116,19 @@ test("C-UI-4 Log keeps its edge: below it only the one link row, on the set AND 
     assert.deepEqual(classes.slice(-2), ["log-row", "links bottom"], id + " ends Log row, link row");
   }
   const rest = section("t-rest");
-  assert.match(rest, /<button class="edit" type="button" id="edit" data-action="undo">Undo<\/button>/,
-    "Undo takes the Edit button's place beside Log on the rest screen");
+  /* S12b R6 (audit F4; red first: the R6 run r1, this cell's old pin of `<button class="edit" ... id="edit"
+     data-action="undo">` beside Log). Undo moved off the primary's thumb spot: the rest screen's Log row holds
+     the one primary and nothing else, and Undo is the link row's first quiet .link (#edit kept), before Back
+     to Today. Exactly one Undo on the screen. */
+  const restStack = rest.slice(rest.indexOf('<div class="stack">'));
+  const logRow = elementWith(restStack, 'class="log-row"');
+  assert.equal((logRow.match(/<button\b/g) || []).length, 1, "the rest screen's Log row holds the one primary only");
+  assert.match(logRow, /<button class="log" type="button" id="log" data-slot="primary">/);
+  const linkRow = elementWith(restStack, 'class="links bottom"');
+  assert.match(linkRow, /^<div class="links bottom"><button class="link" type="button" id="edit" data-action="undo">Undo<\/button><button class="link" type="button" data-action="back">Back to Today<\/button><\/div>$/,
+    "Undo is the link row's first quiet link, Back to Today the second");
+  assert.equal((rest.match(/data-action="undo"/g) || []).length, 1, "one Undo on the rest screen");
+  assert.doesNotMatch(rest, /class="edit"/, "no Edit-sized Undo beside Log");
   assert.doesNotMatch(section("t-gym") + rest, /timer|Skip this set/i, "no rest timer, no skip (ruling 6)");
 });
 
@@ -495,13 +506,25 @@ for (const screen of ["t-gym", "t-rest"]) {
   });
 }
 
-test("S12 C-2 the panel sits between the scrolling body and the fixed stack, dressed in the pack's own values", async () => {
+test("S12 C-2 + S12b R6 the panel follows the fixed stack, dressed in the pack's own values", async () => {
   const { container, region } = await workoutPage({ native: true, screen: "t-gym" });
   const w = (el) => winners(el);
   assert.equal(w(container).get("display")?.value, "contents", "S11's child box gives its two chassis parts to the host");
-  assert.equal(w(region).get("order")?.value, "1", "the panel follows the scrolling body");
-  assert.equal(w(container.querySelector(":scope > .stack")).get("order")?.value, "1", "and Log keeps its edge below it");
+  /* S12b R6 (audit F5; red first: the R6 run r1, this cell's old pin "the panel follows the scrolling body",
+     order 1 between the body and the stack, which put Check next weight between the set card and the RIR
+     chips). The panel now follows the stack (order 2 after the stack's 1), so the set card meets the chips
+     and Log; the pack's 60.5 px slack under the stack goes to the panel on BOTH mounts (the plain-vs-S11
+     cells above compare the stack too), and the panel keeps the bottom safe area itself. */
+  assert.equal(w(region).get("order")?.value, "2", "the panel follows the fixed stack");
+  const stackEl = container.querySelector(":scope > .stack");
+  assert.equal(w(stackEl).get("order")?.value, "1", "the stack, with the RIR chips and Log, comes before the panel");
   assert.equal(w(container.querySelector(":scope > .body")).get("order"), undefined, "the body stays first");
+  assert.equal(w(stackEl).get("--stack-lift")?.value, "0px", "the stack's slack is given to the panel under it");
+  assert.equal(w(region).get("padding-bottom")?.value, "max(12px, env(safe-area-inset-bottom, 0px))",
+    "the panel, now the last band, keeps the home indicator clear");
+  const plain = await workoutPage({ native: false, screen: "t-gym" });
+  assert.equal(winners(plain.container.querySelector(":scope > .stack")).get("--stack-lift")?.value, "0px",
+    "the plain mount resolves the same stack slack");
   const check = region.querySelector('[data-native-load="check"]');
   for (const [prop, value] of [["min-height", "var(--hit)"], ["font-size", "13.5px"], ["color", "var(--text-soft)"]]) {
     assert.equal(w(check).get(prop)?.value, value, "Check next weight is the pack's quiet link: " + prop);

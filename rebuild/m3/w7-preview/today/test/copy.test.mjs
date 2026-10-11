@@ -491,9 +491,12 @@ test('P1 — Today renders every state it can reach without a dash', async (t) =
       assertNoDashOnScreen(kit.doc, 'the ' + screen + ' screen');
     }
     kit.api.render('today');
-    for (const name of ['nutrition-state', 'coach-state']) {
+    /* S12b R6 (DECISIONS:915 (3)): the Coach entry has left Today, so its marker is gone with it; the Coach
+       screen itself is still swept above. */
+    for (const name of ['nutrition-state']) {
       assert.equal(kit.doc.querySelector('[data-slot="' + name + '"]').textContent, 'Not wired yet');
     }
+    assert.equal(kit.doc.querySelector('[data-slot="coach-state"]'), null, 'no Coach marker on Today');
     kit.close();
   });
 

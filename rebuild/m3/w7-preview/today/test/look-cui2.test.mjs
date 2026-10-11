@@ -104,7 +104,11 @@ test("C-UI-2 R3: the board's words on Today (DECISIONS:820 (2))", () => {
   const design = fs.readFileSync(DESIGN, "utf8");
   const today = templateBlock("t-today");
   const weigh = templateBlock("t-weigh");
-  const words = ["Recovery check in", "Optional. How are you feeling?", "Talk through today\u2019s plan",
+  /* S12b R6 (DECISIONS:915 (3); red first: the R6 run r1, this cell's old pin "on the shipped template: Talk
+     through today's plan"). The Coach entry (the board's Talk row) has left Today until a live coach exists,
+     so its words are no longer the shipped Today's; the other board words are pinned as before, and the Talk
+     row's absence is pinned below, together with the Coach screen it used to open, which is still shipped. */
+  const words = ["Recovery check in", "Optional. How are you feeling?",
     "example", "Example numbers, not your data", "Your weight in pounds", "Your weight"];
   for (const w of words) {
     assert(board.includes(w), "on the approved board: " + w);
@@ -112,6 +116,13 @@ test("C-UI-2 R3: the board's words on Today (DECISIONS:820 (2))", () => {
     const decl = design.indexOf(JSON.stringify(w));
     assert(decl >= 0 && design.lastIndexOf("DECISIONS:820", decl) >= 0, "declared in design.cjs under :820: " + w);
   }
+  for (const gone of ["Talk through today\u2019s plan", "Your plan, progress and the reasons behind it."]) {
+    assert(!today.includes(gone), "the Talk row is not on the shipped Today: " + gone);
+    assert(!design.includes(JSON.stringify(gone)), "and design.cjs no longer declares it: " + gone);
+  }
+  assert(board.includes('id="talk-today"'), "the board still draws the Talk row; only the shipped Today leaves it out");
+  assert.doesNotMatch(today, /id="talk-today"|data-go="coach"|data-slot="coach-state"/, "nothing on Today opens the Coach screen");
+  assert(templateBlock("t-coach").includes("Talk through today\u2019s plan."), "the Coach screen itself is still shipped");
   assert.match(today, /<span class="pill"[^>]*title="Example numbers, not your data"[^>]*>example<\/span>/);
   assert.match(weigh, /placeholder="Your weight"/);
   for (const old of ["How are you feeling today?", "Ask your coach"]) assert(!today.includes(old), "the app's words gave way on Today: " + old);

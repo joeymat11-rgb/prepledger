@@ -48,6 +48,31 @@ const problems = [];
 const notes = [];
 let kills = 0;
 let live = null;
+/* S12b R9. S4 (DECISIONS:432): the shipped page stands on the device's LIVE day, and every check
+   script declares its own. This walk needs a training day of the synthetic athlete, so each load
+   stands the page on that day through the page's OWN entry point, app.js boot({ today }), exactly
+   as gym-check.mjs does; nothing about the product changes and nothing asserted moves. */
+const DAY_ONE = createRequire(import.meta.url)("./today-model.cjs").SYNTHETIC_DAY;
+async function standOnDay(page) {
+  await page.waitForSelector('[data-slot="primary-label"]', { state: "attached" });
+  /* S12b R10: the live mount the page booted on load finishes first (400 ms with no change under
+     #phone, at most 10 s), so nothing it had in flight can paint over the declared mount. */
+  await page.evaluate(() => new Promise((resolve) => {
+    const phone = document.getElementById("phone");
+    let timer = null;
+    const observer = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(done, 400); });
+    function done() { observer.disconnect(); resolve(); }
+    observer.observe(phone, { childList: true, subtree: true, characterData: true });
+    timer = setTimeout(done, 400);
+    setTimeout(done, 10000);
+  }));
+  const stood = await page.evaluate(async (day) => {
+    const mod = await import(new URL("app.js", location.href).href);
+    const booted = await mod.boot({ today: day });
+    return { today: booted.today, failures: booted.failures };
+  }, DAY_ONE);
+  if (stood.today !== DAY_ONE || stood.failures.length) throw new Error("the page did not stand on " + DAY_ONE + ": " + JSON.stringify(stood));
+}
 
 function watch(page) {
   page.on("pageerror", (error) => problems.push("pageerror: " + error.message));
@@ -109,18 +134,20 @@ const text = (page, selector) => page.textContent(selector).then((value) => (val
 async function toActiveSet(viewport = VIEWPORT) {
   const context = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport });
   const page = watch(context.pages()[0] || await context.newPage());
-  await page.goto(url, { waitUntil: "load" });
+  /* S12b R8: the shipped fresh-install route opens setup first (S6, DECISIONS:463), and this profile
+     is never set up, so Today is requested by name, as browser-check.mjs does (4d76e53). */
+  await page.goto(url + "?screen=today", { waitUntil: "load" });
+  await standOnDay(page);
   await page.waitForSelector('[data-slot="primary-label"]');
   /* The morning is owed on a fresh profile, and Today's primary action is the weigh-in
      until it is in. The label for it is the approved design's own ("Log the scale"), so
      this branch is taken on anything that is NOT already a workout action rather than on
      a sentence this file would otherwise have to keep in step with the design. */
-  if (!/^(Start|Resume|Review) /.test(await text(page, '[data-slot="primary-label"]'))) {
-    await page.click('[data-slot="primary"]');
-    await page.waitForSelector("#morning-weight");
-    await page.fill("#morning-weight", "179.4");
-    await page.click('[role="dialog"] button[type="submit"]');
-    await page.waitForSelector('[role="dialog"]', { state: "detached" });
+  /* S12b R6 (DECISIONS:915 (4)): Start no longer opens the weigh-in sheet; the weigh-in is the morning card's own form. */
+  if (await page.$("#weigh-form #weight")) {
+    await page.fill("#weigh-form #weight", "179.4");
+    await page.click("#save-weight");
+    await page.waitForSelector("#weigh-form", { state: "detached" });
     await page.waitForFunction(() => /✓/.test(document.querySelector('[data-slot="morning"]').textContent));
   }
   await openCard(page);
@@ -137,7 +164,9 @@ async function openCard(page) {
     /^(Start|Resume|Review) /.test(document.querySelector('[data-slot="primary-label"]').textContent.trim()),
   null, { timeout: 20000 });
   await page.click('[data-slot="primary"]');
-  await page.waitForSelector('[data-slot="plan"]', { timeout: 20000 });
+  /* S12b R10 (gym.test.mjs S12 SC-2): the plan line is hidden while both numerals are specified, so the
+     active set is recognised by its Log button, which every active set carries. */
+  await page.waitForSelector('[data-slot="log"]', { timeout: 20000 });
   /* The block can appear while its optional saved-settings read is still pending.
      Inspect durable values only after that read enables the editor; a failed read
      stays disabled and times out here. The value assertions below still decide
@@ -150,9 +179,25 @@ async function openCard(page) {
 }
 
 const block = (page) => text(page, '[data-slot="settings-block"]');
-const storedPairs = (page) => page.evaluate(() =>
-  [...document.querySelectorAll('[data-slot="settings-list"] .row')]
-    .map((row) => [row.querySelector("strong").textContent, row.querySelector("span").textContent]));
+/* S12b R10, porting machine-settings-ui.test.mjs S12 SC-22 (W-06 / W-33 to W-36). The stored settings are no
+   longer a list of rows on screen (the view module's list goes to a DETACHED holder), so the old reader
+   read an empty list whatever was stored. What the athlete sees is the machine row's serif title: each
+   stored name and value verbatim, in the STORED order, as "<name> <value>." joined by single spaces,
+   with the open label as its sub line; with nothing shown the title is the open label. The same named
+   debt applies (D-S12-MSUI-1: a space-joined row cannot tell a split name from a split value). */
+const SETTINGS_OPEN = "Machine settings";
+const settingsLine = (list) => list.map(([name, value]) => name + " " + value + ".").join(" ");
+const shownSettings = (page) => page.evaluate((open) => {
+  const title = document.querySelector('[data-slot="machine-setting"]');
+  const when = document.querySelector('[data-slot="machine-when"]');
+  if (!title || !when) return null;
+  return when.textContent.trim() === open ? title.textContent.trim() : "";
+}, SETTINGS_OPEN);
+const showsSettings = (page, list) => page.waitForFunction(([open, line]) => {
+  const title = document.querySelector('[data-slot="machine-setting"]');
+  const when = document.querySelector('[data-slot="machine-when"]');
+  return !!title && !!when && when.textContent.trim() === open && title.textContent.trim() === line;
+}, [SETTINGS_OPEN, settingsLine(list)], { timeout: 20000 });
 
 /* MEASURED, never asserted: the set's one primary action is still in view with the
    editor open, the screen never scrolls sideways, and every target is big enough. */
@@ -165,15 +210,17 @@ async function measure(page, label) {
     const rect = cta.getBoundingClientRect();
     return { top: Math.round(rect.top - frame.top), bottom: Math.round(rect.bottom - frame.top),
       viewport: Math.round(view.clientHeight), overflow: Math.round(view.scrollWidth - view.clientWidth),
-      ctas: document.querySelectorAll("#phone .cta").length };
+      ctas: document.querySelectorAll("#phone .cta").length, logs: document.querySelectorAll("#phone button.log").length };
   });
   assert(box.bottom <= box.viewport + 1,
     `${label}: the set's primary action is not in view (${box.bottom} > ${box.viewport})`);
   assert(box.top >= 0, `${label}: the set's primary action is cut off at the top`);
   assert(box.overflow <= 0, `${label}: the screen scrolls sideways by ${box.overflow}px`);
-  assert.equal(box.ctas, 1, `${label}: the active set has ${box.ctas} primary actions, not one`);
+  /* S12b R10 (machine-settings-ui S8, S12 SC-22): the one primary is the pack's Log, and no .cta survives. */
+  assert.equal(box.logs, 1, `${label}: the active set has ${box.logs} Log actions, not one`);
+  assert.equal(box.ctas, 0, `${label}: a second primary of the old look is on the active set`);
   const targets = await page.evaluate(() => [...document.querySelectorAll(
-    '#phone [data-slot="settings-block"] button, #phone [data-slot="settings-editor"] button')]
+    '#phone [data-slot="settings-block"], #phone [data-slot="settings-block"] button, #phone [data-slot="settings-editor"] button')]
     .filter((el) => !el.hidden && el.offsetParent !== null)
     .map((el) => ({ id: el.textContent.trim().slice(0, 24), h: Math.round(el.getBoundingClientRect().height) })));
   for (const entry of targets) {
@@ -226,6 +273,7 @@ try {
   assert.match(await block(page), /No settings saved yet\./,
     "a machine this device holds nothing for says so");
   assert.doesNotMatch(await block(page), /\d/, "the empty block invented a figure");
+  assert.equal(await shownSettings(page), "", "with nothing stored the row shows no setting");
   await measure(page, "the active set, nothing stored");
   await noDashes(page, "the active set, nothing stored");
 
@@ -252,9 +300,8 @@ try {
     cue.dispatchEvent(new Event("input", { bubbles: true }));
   });
   await page.click('[data-slot="settings-save"]');
-  await page.waitForFunction(() =>
-    document.querySelectorAll('[data-slot="settings-list"] .row').length === 2);
-  assert.deepEqual(await storedPairs(page), [["Seat", "four"], ["Pin", "three"]],
+  await showsSettings(page, [["Seat", "four"], ["Pin", "three"]]);
+  assert.equal(await shownSettings(page), settingsLine([["Seat", "four"], ["Pin", "three"]]),
     "the block shows what was captured, verbatim and in the order given");
   assert.match(await block(page), /Elbows in, and stop one short\./);
   assert.doesNotMatch(await block(page), /\b4\b/, '"four" was turned into a figure');
@@ -267,15 +314,18 @@ try {
      back is the athlete's own, and the workout is in progress, so the primary action
      resumes it. */
   await page.reload({ waitUntil: "load" });
+  await standOnDay(page);
   await page.waitForSelector('[data-slot="primary-label"]');
   await openCard(page);
-  assert.deepEqual(await storedPairs(page), [["Seat", "four"], ["Pin", "three"]],
+  await showsSettings(page, [["Seat", "four"], ["Pin", "three"]]).catch(() => {});
+  assert.equal(await shownSettings(page), settingsLine([["Seat", "four"], ["Pin", "three"]]),
     "the reload lost the settings");
 
   /* ---------- A REAL PROCESS KILL ---------- */
   await hardKill(context);
   ({ context, page } = await toActiveSet());
-  assert.deepEqual(await storedPairs(page), [["Seat", "four"], ["Pin", "three"]],
+  await showsSettings(page, [["Seat", "four"], ["Pin", "three"]]).catch(() => {});
+  assert.equal(await shownSettings(page), settingsLine([["Seat", "four"], ["Pin", "three"]]),
     "a real taskkill lost the settings");
   assert.match(await block(page), /Elbows in, and stop one short\./);
   notes.push("survived a real taskkill /F /T with the settings intact");
@@ -290,9 +340,8 @@ try {
     !document.querySelector('[data-settings-name="1"]'));
   await typeRow(page, 0, "Seat", "five");
   await page.click('[data-slot="settings-save"]');
-  await page.waitForFunction(() =>
-    document.querySelectorAll('[data-slot="settings-list"] .row').length === 1);
-  assert.deepEqual(await storedPairs(page), [["Seat", "five"]], "the latest capture wins");
+  await showsSettings(page, [["Seat", "five"]]);
+  assert.equal(await shownSettings(page), settingsLine([["Seat", "five"]]), "the latest capture wins");
   assert.doesNotMatch(await block(page), /Pin/, "a replaced row survived from an earlier op");
   notes.push("a correction replaced the whole machine: the dropped row is gone, not stale");
 
@@ -302,7 +351,7 @@ try {
   await typeRow(page, 0, "Seat", "nine");
   await page.click('[data-action="settings-cancel"]');
   await page.waitForFunction(() => document.querySelector('[data-slot="settings-editor"]').hidden);
-  assert.deepEqual(await storedPairs(page), [["Seat", "five"]], "cancelling changed the record");
+  assert.equal(await shownSettings(page), settingsLine([["Seat", "five"]]), "cancelling changed the record");
   notes.push("cancelling wrote nothing and left the record as it was");
 
   /* ---------- D2 ROUND 2, R2-1: BACK KEEPS TODAY ----------
@@ -333,7 +382,8 @@ try {
   /* ---------- 320px ---------- */
   await hardKill(context);
   ({ context, page } = await toActiveSet(NARROW));
-  assert.deepEqual(await storedPairs(page), [["Seat", "five"]], "the narrow relaunch lost the record");
+  await showsSettings(page, [["Seat", "five"]]).catch(() => {});
+  assert.equal(await shownSettings(page), settingsLine([["Seat", "five"]]), "the narrow relaunch lost the record");
   await measure(page, "the active set at 320");
   await page.click('[data-action="settings-open"]');
   await page.waitForSelector('[data-settings-name="0"]');

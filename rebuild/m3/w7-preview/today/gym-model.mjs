@@ -482,6 +482,44 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     return { ...common, phase: 'active', ...activeView(shape) };
   }
 
+  /* S12b R14 (PM ruling R13, redesigned to keep every GSS guarantee). The accepted client's continuation is
+     single-use: preparing one retires the one before it (public-client.mjs prepareWorkoutContinuation),
+     and a retired one is refused WORKOUT_RESUME_REQUIRED before the writer is reached (public-client.mjs
+     executeResumedWorkout: the entry check precedes every write). After a set the card repaints and THEN
+     the workout entry re-reads the session (today-entry.mjs refresh(), unawaited), so a Finish or a Log
+     tapped inside that re-read had its continuation retired between its prepare and its execute, and the
+     athlete read "Earned could not prepare today's workout" for nothing but timing, on the live tree too.
+     R13 made every read and action take turns, which also held REPAINTS behind a held set write and broke
+     the GSS annex (G4, G6, G7). Now reads wait for nothing, exactly as before; only the two continuation
+     commits change: (1) a set or a Finish first waits for the reads already in flight (the post-set
+     re-read) and then prepares, so it does not prepare into a read that is about to retire it; and (2) if a
+     read that started later still retired it, the client refused it BEFORE any write, so it prepares once
+     more (at most two more times) and executes. The writer is reached exactly once per tap, as before; a
+     real refusal (any other code, or the same code a third time) is returned in the layer's own words. */
+  const readsInFlight = new Set();
+  function readTracked(...args) {
+    const run = read(...args);
+    readsInFlight.add(run);
+    const drop = () => { readsInFlight.delete(run); };
+    run.then(drop, drop);
+    return run;
+  }
+  async function afterReads() {
+    for (let round = 0; round < 3 && readsInFlight.size; round += 1) await Promise.allSettled([...readsInFlight]);
+  }
+  const CONTINUATION_RETIRED = 'WORKOUT_RESUME_REQUIRED';
+  async function commitContinued(startId, command) {
+    let handle = null, result = null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await afterReads();
+      handle = await client.prepareWorkoutContinuation({ session_start_op_id: startId });
+      if (!handle.prepared) return { handle, result: null };
+      result = await client.executeResumedWorkout(command(handle));
+      if (!(result && result.acknowledged !== true && result.code === CONTINUATION_RETIRED)) break;
+    }
+    return { handle, result };
+  }
+
   /* ---------------- the actions ---------------- */
 
   async function start() {
@@ -520,12 +558,11 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
       return { ok: false, code: null, copy: ENTER_PERFORMED };
     }
     if (!effort) { message = { code: null, copy: CHOOSE_EFFORT }; return { ok: false, code: null, copy: CHOOSE_EFFORT }; }
-    const handle = await client.prepareWorkoutContinuation({ session_start_op_id: startId });
-    if (!handle.prepared) return remember(handle);
-    const result = await client.executeResumedWorkout({ resumeId: handle.resumeId, action: 'set', input: {
+    const { handle, result } = await commitContinued(startId, (prepared) => ({ resumeId: prepared.resumeId, action: 'set', input: {
       session_start_op_id: startId, logical_set_slot: slot, lift_lineage_id: lift,
       load: { value: Number(load), unit: 'lb' }, reps: { value: Number(reps), unit: 'rep' },
-      reserve: clone(effort) } });
+      reserve: clone(effort) } }));
+    if (!handle.prepared) return remember(handle);
     if (result.acknowledged !== true) return remember(result);
     saved = { startId, opId: result.op_id };
     return { ok: true, opId: result.op_id };
@@ -551,11 +588,12 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
   function forget() { saved = null; }
 
   async function finish({ startId } = {}) {
-    const handle = await client.prepareWorkoutContinuation({ session_start_op_id: startId });
+    const { handle, result } = await commitContinued(startId, (prepared) => {
+      const parents = [startId, ...prepared.view.slots.filter(s => s.completion).map(s => s.completion.op_id)];
+      return { resumeId: prepared.resumeId, action: 'close', input: {
+        session_start_op_id: startId, completion_kind: 'normal', causal_parents: [...new Set(parents)] } };
+    });
     if (!handle.prepared) return remember(handle);
-    const parents = [startId, ...handle.view.slots.filter(s => s.completion).map(s => s.completion.op_id)];
-    const result = await client.executeResumedWorkout({ resumeId: handle.resumeId, action: 'close', input: {
-      session_start_op_id: startId, completion_kind: 'normal', causal_parents: [...new Set(parents)] } });
     if (result.acknowledged !== true) return remember(result);
     saved = null;
     /* NATIVE-LOAD FB01 (NATIVE-LOAD-SPEC R7 route B; DECISIONS:784-785). AFTER the
@@ -602,7 +640,7 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     }
   }
 
-  return Object.freeze({ read, start, logSet, undo, finish, forget, closeUnfinished, rebase, holdForAdoption,
+  return Object.freeze({ read: readTracked, start, logSet, undo, finish, forget, closeUnfinished, rebase, holdForAdoption,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
     previous: () => previousByLift,
     /* P0-B r2 (review finding 4) - a LIVE getter, not a value captured at

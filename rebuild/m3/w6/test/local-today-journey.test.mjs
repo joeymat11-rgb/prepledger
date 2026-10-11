@@ -835,9 +835,13 @@ test('C4b — the page\'s createWorkoutEntry drives Today\'s real screen over th
   const api = TodayApp.mountToday(doc, today, { workout });
   const slot = name => doc.querySelector(`[data-slot="${name}"]`).textContent;
 
-  await t.test('the entry point took nothing synthetic, and Today offers the morning first', () => {
+  await t.test('the entry point took nothing synthetic, and Today offers the workout with the morning on its card', () => {
     assert.deepEqual(era.ignored(), []);
-    assert.match(slot('primary-label'), /^Log the scale$/i);
+    /* S12b R6 (DECISIONS:915 (4); this cell pinned the P0-C gate, "Log the scale" on the primary while the
+       weight was owed). The weigh-in no longer gates the workout: the primary names the workout, and the
+       morning weigh-in is the card's own form on Today, owed until it is in. */
+    assert.match(slot('primary-label'), /^Start /);
+    assert(doc.querySelector('#card-weigh [data-slot="weigh-form"]'), 'the morning weigh-in is on its card');
     assert.equal(workout.summary().phase, 'ready');
     assert.equal(workout.gymHost.repository, readings.repository, 'one repository handle');
   });
@@ -906,7 +910,9 @@ const shellDoc = () => new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPL
 
 async function wholeJourney(booted, doc) {
   const label = () => doc.querySelector('[data-slot="primary-label"]').textContent;
-  assert.match(label(), /^Log the scale$/i);
+  /* S12b R6 (DECISIONS:915 (4); was /^Log the scale$/i, the P0-C gate): Start before the weigh-in too. */
+  assert.match(label(), /^Start /);
+  assert(doc.querySelector('#card-weigh [data-slot="weigh-form"]'), 'the morning weigh-in is on its card');
   assert.equal((await booted.model.weighIn(179.4)).ok, true);
   booted.api.render('today');
   assert.match(label(), /^Start /);

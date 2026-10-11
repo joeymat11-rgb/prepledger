@@ -121,13 +121,17 @@ const APPROVED_COPY = Object.freeze([
      template says it now. A declaration the screen no longer says would fail the binding
      (as C-UI-4 wrote for "Exercise "); the C-02 drawn state still says "Ask your coach."
      and is bound by assertCoachBinding. */
-  "Your plan, progress and the reasons behind it.", "Weight (lb)",
+  /* S12b R6 (DECISIONS:915 (3)): the Talk row left Today until a live coach exists, and with it
+     its two lines ("Talk through today's plan" and "Your plan, progress and the reasons behind
+     it."), so neither is declared here; the Coach screen's own "Talk through today's plan." is
+     bound by assertCoachBinding. */
+  "Weight (lb)",
   /* C-UI-2 round 3, DECISIONS:820 (2): the approved board's words win on Today where the
      app named the same thing differently. Each is on the board (app/app.html) and in the
      shipped template: the Recovery row (board #recovery, state T-26), the Talk row (board
      #talk-today, T-31), the header pill (board .pill, shown only over the sample athlete,
      T-02/T-04) and the weigh-in field (board #weigh-form label and placeholder, T-42). */
-  "Recovery check in", "Optional. How are you feeling?", "Talk through today’s plan",
+  "Recovery check in", "Optional. How are you feeling?",
   "example", "Example numbers, not your data", "Your weight in pounds", "Your weight",
   "Back to my plan", "Today", "Your food plan.",
   "Your agreed daily targets, together in one place.",
