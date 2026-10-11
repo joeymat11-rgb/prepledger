@@ -1946,7 +1946,7 @@
         "rebuild/m3/w7-preview/measure/test/boundary.test.mjs",
         "rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 842"
     },
     {
       "name": "measure-hermetic",
@@ -1956,7 +1956,7 @@
         "rebuild/m3/w7-preview/measure/test/model.test.mjs",
         "rebuild/m3/w7-preview/measure/test/adherence.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 11"
     },
     {
       "name": "s4-real-day",
@@ -1965,7 +1965,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/local-real-day.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 15"
     },
     {
       "name": "a0-journeys",
@@ -1975,7 +1975,7 @@
         "rebuild/m3/w6/host/test/journey.test.mjs",
         "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 23"
     },
     {
       "name": "d-plan-edit",
@@ -1987,7 +1987,7 @@
         "rebuild/lanes/d/plan-edit/browser-build.test.mjs",
         "rebuild/lanes/d/plan-edit/client-p6.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 90"
     },
     {
       "name": "m4-import",
@@ -2002,7 +2002,7 @@
         "rebuild/m4/import/test/engine-pins-unprotected.test.cjs",
         "rebuild/m4/import/test/native-load-replay.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 74"
     },
     {
       "name": "m4-import-production",
@@ -2012,7 +2012,7 @@
         "rebuild/m4/import/test/production-mapping.test.cjs",
         "rebuild/m4/import/test/production-admission.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 28"
     },
     {
       "name": "d-import-retract",
@@ -2021,7 +2021,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/import-retract/retract.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 13"
     },
     {
       "name": "d-admission-swap",
@@ -2030,7 +2030,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/p3-followons/admission-swap.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 4"
     },
     {
       "name": "d-replay-measure",
@@ -2040,7 +2040,7 @@
         "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs",
         "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 9"
     },
     {
       "name": "d-capture-start",
@@ -2049,7 +2049,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 14"
     },
     {
       "name": "food-live-save",
@@ -2058,7 +2058,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/food-live-save.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 6"
     },
     {
       "name": "w7-import",
@@ -2071,7 +2071,7 @@
         "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs",
         "rebuild/m3/w7-preview/import/test/refusals.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 35"
     },
     {
       "name": "w6-host-seams",
@@ -2080,7 +2080,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/host-seams.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 9"
     },
     {
       "name": "w6-local-source",
@@ -2090,7 +2090,7 @@
         "rebuild/m3/w6/test/local-source-admission.test.mjs",
         "rebuild/m3/w6/test/local-source-consumer.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 31"
     },
     {
       "name": "d-replay-all",
@@ -2103,7 +2103,7 @@
         "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs",
         "rebuild/lanes/d/p3-replay-all/native-load-import.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 48"
     },
     {
       "name": "d-port-admission",
@@ -2114,7 +2114,7 @@
         "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs",
         "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 35"
     },
     {
       "name": "d-real-shape",
@@ -2130,7 +2130,7 @@
         "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs",
         "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 62"
     },
     {
       "name": "sealed-inventory-fence",
@@ -2139,7 +2139,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 63"
     },
     {
       "name": "ui-pack-pins",
@@ -2149,7 +2149,7 @@
         "rebuild/lanes/c/ui-port/pack-pin.test.mjs",
         "rebuild/lanes/c/ui-port/approved-pin.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# tests 121"
     },
     {
       "name": "reference-closure",
@@ -2158,7 +2158,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/reference-closure.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 5"
     },
     {
       "name": "release-object",
@@ -2167,7 +2167,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/release-object.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# tests 14"
     },
     {
       "name": "today-carry",
@@ -2177,7 +2177,7 @@
         "rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs",
         "rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 9"
     },
     {
       "name": "passphrase-normalize",
@@ -2188,7 +2188,7 @@
         "rebuild/lanes/c/passphrase-normalize/route.test.mjs",
         "rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 29"
     },
     {
       "name": "w6-local-import",
@@ -2197,7 +2197,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-import.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 22"
     },
     {
       "name": "f2-land",
@@ -2207,7 +2207,7 @@
         "rebuild/lanes/d/f2/projector.test.mjs",
         "rebuild/lanes/d/f2/guard-coverage.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 81"
     },
     {
       "name": "epp-proposed-pick",
@@ -2216,7 +2216,7 @@
         "--test-reporter=tap",
         "rebuild/engine/test/proposed-pick.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 9"
     },
     {
       "name": "d-epp-2-capture",
@@ -2225,7 +2225,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/engine-capture-proposed.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 13"
     },
     {
       "name": "today-split-fence",
@@ -2234,7 +2234,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/today-split/writer-fence.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 404"
     },
     {
       "name": "s14-sup-source-carriers",
@@ -2243,7 +2243,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s14-supersede-source-carriers.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 4"
     },
     {
       "name": "s14-sup-inherited-carriers",
@@ -2252,7 +2252,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s14-supersede-inherited-carriers.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 3"
     },
     {
       "name": "s14-sup-defect-witnesses",
@@ -2261,7 +2261,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s14-supersede-defect-witnesses.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 3"
     },
     {
       "name": "s14-sup-writers-differential",
@@ -2270,7 +2270,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s14-supersede-writers-differential.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 3"
     },
     {
       "name": "s14-sup-second-gate",
@@ -2279,14 +2279,14 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s14-supersede-second-gate.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 3"
     },
     {
       "name": "s14-engine-files-differential",
       "argv": [
         "rebuild/m4/workout/test/s14-engine-files-differential.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 1 named file moves, by"
     },
     {
       "name": "s10-copy-lock",
@@ -2295,7 +2295,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 16"
     },
     {
       "name": "native-load-fc12",
@@ -2304,7 +2304,7 @@
         "--test-reporter=tap",
         "rebuild/m4/spec/native-load-options.test.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 491"
     },
     {
       "name": "w6-local-source-commit",
@@ -2313,7 +2313,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-source-commit.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 9"
     },
     {
       "name": "w6-local-today-journey",
@@ -2322,7 +2322,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-today-journey.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 51"
     },
     {
       "name": "s12-look",
@@ -2335,7 +2335,7 @@
         "rebuild/m3/w7-preview/today/test/workout-look.test.mjs",
         "rebuild/m3/w7-preview/today/test/coach.test.mjs"
       ],
-      "needle": "PENDING"
+      "needle": "# pass 64"
     }
   ],
   "notes": [
