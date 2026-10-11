@@ -830,7 +830,45 @@ function mountToday(doc, model, options = {}) {
     if (!facade.adoptionSettled() || !todayEntry) return null;
     if (todayEntry.token !== mountToken || screen !== "today") return null;
     if (todayEntry.root.querySelector('[data-slot="import-entry"]')) return null;
-    return importLink(todayEntry.root, null);
+    const link = importLink(todayEntry.root, null);
+    routineLink(link);
+    return link;
+  }
+
+  /* S15 - "CHANGE MY ROUTINE". The entry sits beside the Import entry, on the same
+     enrolled-only, settled Today frame, and only where boot() composed a routine
+     lane over a real installation. The two words are this file's own, like the
+     Import link's, so painting the link loads none of the editor; routine-model.mjs
+     COPY.entry carries the same two words and the S15 suite asserts they agree.
+     The editor itself is lazy-loaded by renderRoutine below. */
+  const ROUTINE_LINK = "Change my routine";
+  let routineView = null;
+  function routineLink(after) {
+    if (!facade.routine() || !after || !after.parentNode) return null;
+    const link = doc.createElement("button");
+    link.type = "button";
+    link.className = "option";
+    link.dataset.slot = "routine-entry";
+    link.textContent = plainOrDrop(ROUTINE_LINK, "routine-entry");
+    hooks.listen(link, "click", () => render("routine", true));
+    after.parentNode.insertBefore(link, after.nextSibling);
+    return link;
+  }
+  function closeRoutine() {
+    if (routineView) { try { routineView.close(); } catch (_) { /* nothing held */ } routineView = null; }
+  }
+  async function renderRoutine(focus) {
+    const root = doc.createElement("section");
+    root.id = "routine-screen";
+    root.dataset.slot = "routine-screen";
+    const token = mountToken;
+    show(root, focus);
+    if (!facade.routine()) return render("today", true);
+    const view = await facade.routine().mount(doc, root, { onBack: () => render("today", true) });
+    if (token !== mountToken) { view.close(); return root; }
+    closeRoutine();
+    routineView = view;
+    return root;
   }
 
   let screen = "today";
@@ -2130,6 +2168,7 @@ function mountToday(doc, model, options = {}) {
        is never repainted from under him. A repaint of the SAME screen is the same
        mount and keeps the token. */
     closeCoach();   /* C-UI-6: any paint replaces the coach screen, so it is closed first */
+    if (next !== "routine") closeRoutine();   /* S15: leaving the editor releases its lane */
     if (next !== screen) {
       mountToken += 1;
       if (next === "sleep") hooks.forgetCheckInRead();
@@ -2192,6 +2231,7 @@ function mountToday(doc, model, options = {}) {
     }
     if (next === "measure") return renderMeasure(focus);
     if (next === "import") return renderImport(focus);
+    if (next === "routine") return renderRoutine(focus);   /* S15 */
     if (next === "coach") return renderCoach(focus);   /* C-UI-6 */
     if (next === "workout") {
       if (facade.workout() && typeof facade.workout().open === "function") {

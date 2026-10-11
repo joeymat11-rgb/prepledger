@@ -201,7 +201,11 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // parent()'s single-parent scan refuses. packages/S13.json stays as the record with its parent claim withdrawn; S14 sits
 // where S13 sat, directly behind S11 and still ahead of B1. No CHILD_ROOTS hunk: every directory its children run under
 // is already a root.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'B1', 'B2', 'B4', 'B3'];
+// S15 ADDS 'S15', directly behind S14 and still ahead of B1 (PM round 3 of S15, the S12/S13 shape): M2-S15-ROUTINE, the
+// UNSEALED --ci child of the SEALED M2-S14-HOLD (receipt DECISIONS:932, sealed and merged :933), orders this registration
+// and one more (the entry in NO_REGISTER_IDS below) and NO CHILD_ROOTS hunk: every directory its children run under is
+// already a root. S14 stays: it is the sealed parent, a package of record, and S15 is its one child claim.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S15', 'B1', 'B2', 'B4', 'B3'];
 // RETIRED IDS, and why this list has to exist at all. Removing an id from IDS and deleting
 // its spec file are ONE act - DECISIONS:487 stop 2 orders both for B-LOM - but TOOLING_FILES
 // below is derived from IDS, so the moment the id goes the deleted path stops being named
@@ -372,7 +376,10 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // (brief of record DECISIONS:913, rev5 S14-HOLD-BW-BRIEF.md; PM rulings DECISIONS:922) and the S13 polish it carries,
 // slice-plan work under DECISIONS:455 with no register D-id. It is an S- id, so the shape assertion below admits it without
 // a PM by-name ruling. 'S13' LEAVES with its id (DECISIONS:922 (f)), as 'S12' left at DECISIONS:920.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14']);
+// 'S15' is in for the same reason a twelfth time: M2-S15-ROUTINE is a reseal child whose product delta is the "Change my
+// routine" editor (brief rebuild/lanes/b/S15-ROUTINE-BRIEF.md) over the sealed S14, with no rebuild/engine byte and no
+// register D-id. It is an S- id, so the shape assertion below admits it without a PM by-name ruling.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S15']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).

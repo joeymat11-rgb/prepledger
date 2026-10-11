@@ -899,7 +899,11 @@ test('N1.16 - the entry sets no width a 390px or 320px phone cannot hold', () =>
    of S11 that carries every byte S13 declared (S13 retired by supersession, the :920 shape) plus the hold/bodyweight slice: the
    files it moves are declared in packages/S14.json, so the declaring-spec chain has to know about it. S14 releases nothing.
    Youngest first, so 'S14' goes last and is consulted first; the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14'];
+/* S15 ADDS 'S15', and the cell is unchanged in every other way. S15 (M2-S15-ROUTINE, brief rebuild/lanes/b/S15-ROUTINE-BRIEF.md)
+   is the UNSEALED --ci reseal child of the SEALED S14 (receipt DECISIONS:932): the files it moves (today-entry.mjs among them,
+   and the journey suite's PAGE_PINS re-pin) are declared in packages/S15.json, so the declaring-spec chain has to know about it.
+   S15 releases nothing. Youngest first, so 'S15' goes last and is consulted first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15'];
 function declaredPost(file) {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;

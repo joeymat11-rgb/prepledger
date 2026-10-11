@@ -114,6 +114,11 @@ function createTodayLanes({ doc, model, options, painter,
      state with the setup or gym handles. today-entry.mjs hands over the era it
      already opened; with none, the Import route says so and offers nothing. */
   const installation = options.installation || null;
+  /* S15 - the "Change my routine" lane (routine-host.mjs createRoutineEntry), which
+     today-entry.mjs composes only over a real installation with a first-run lane.
+     Read once here, like every other injected lane; the view reaches it through
+     facade.routine(). */
+  const routine = options.routine || null;
   const firstRun = () => !!(setup && typeof setup.firstRun === "function" && setup.firstRun() === true);
 
   /* TA-S03  today-app.cjs:392-392 */
@@ -778,7 +783,13 @@ function createTodayLanes({ doc, model, options, painter,
       .catch(() => null)
       /* P3-IMPORT-UI-2 - the SAME read is what the two entry links ask, so the
          page never has a second opinion about whether a history is admitted. */
-      .then((imported) => { importAdmitted = !!imported; return imported || setup.athleteState(); });
+      .then((imported) => { importAdmitted = !!imported; return imported || setup.athleteState(); })
+      /* S15 - THE ROUTINE IN FORCE TODAY. A saved "Change my routine" edit whose
+         start date has come is layered over this same basis by the reviewed
+         plan-edit companion (routine-host.mjs adopt); with none, or on any doubt,
+         the basis is handed on unchanged. */
+      .then((state) => (state && routine && typeof routine.adopt === "function"
+        ? routine.adopt(state) : state));
   }
 
   /* TA-S37  today-app.cjs:2491-2547 */
@@ -870,6 +881,7 @@ function createTodayLanes({ doc, model, options, painter,
       importScreen: () => importScreen,
       measureScreen: () => measureScreen,
       ready: () => ready,
+      routine: () => routine,
       session: () => session(),
       setup: () => setup,
       setupFirst: () => setupFirst,

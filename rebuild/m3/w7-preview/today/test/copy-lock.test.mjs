@@ -63,7 +63,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // The sealed corpus, by value. A re-measure changes this literal in the same reseal child.
 // S12b R6 (DECISIONS:914, :915): re-measured after the screen and layout fixes (four pieces moved; see S12_DELTA_SHA256). R9: re-measured again.
 // S14 (M2-S14-HOLD, E12): re-measured for exactly one new piece, the R4 panel line (CL-S14-DELTA; the S13 value is S13_CORPUS_SHA256).
-const CORPUS_SHA256 = '3a226341aac5832d490ffa652e6cf969c5f55b1820024695c94e5713880e9a98';
+// S15 (Change my routine, PM S15 round 2): re-measured for exactly the S15 pieces and three scanned files (CL-S15-DELTA;
+// the S14 value is S14_CORPUS_SHA256).
+const CORPUS_SHA256 = '11b0e9d6e940321be68eda69a531fa74410450e7daca7875baa40875543f3915';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -343,7 +345,7 @@ function s11View(corpus, delta = s12Delta().delta) {
 
 test('CL-S12-DELTA: the S12 corpus is the sealed S11 corpus plus exactly the listed S12 delta, both directions', () => {
   // S14: judged on the released S13 corpus, which s13View rebuilds byte for byte from this corpus (CL-S14-DELTA)
-  const corpus = s13View(loaded().corpus);
+  const corpus = s13View(s14View(loaded().corpus));
   const { delta, sha256 } = s12Delta();
   assert.equal(sha256, S12_DELTA_SHA256, 'CL-S12-DELTA-FILE-MOVED');
   assert.equal(delta.from, S11_CORPUS_SHA256, 'CL-S12-DELTA-FROM');
@@ -377,7 +379,7 @@ test('CL-S12-APPROVAL: the S12 copy delta names the ledger line that approves it
 test('CL-S11-DELTA: the S11 corpus is the S10 corpus plus exactly the approved S11 copy, each with its owner and approval', () => {
   // S12: judged on the sealed S11 corpus, which s11View rebuilds byte for byte from this corpus (CL-S12-DELTA)
   // S14: from the S13 corpus that s13View rebuilds first (CL-S14-DELTA)
-  const corpus = s11View(s13View(loaded().corpus));
+  const corpus = s11View(s13View(s14View(loaded().corpus)));
   const byText = new Map(corpus.entries.map((e) => [e.text, e]));
   const failed = [];
   for (const [text, approval] of S11_NEW) {
@@ -422,7 +424,8 @@ function s13View(corpus) {
 }
 
 test('CL-S14-DELTA: the S14 corpus is the released S13 corpus plus exactly the approved S14 piece, both directions', () => {
-  const { corpus } = loaded();
+  // S15: judged on the S14 corpus, which s14View rebuilds byte for byte from this corpus (CL-S15-DELTA)
+  const corpus = s14View(loaded().corpus);
   const byText = new Map(corpus.entries.map((e) => [e.text, e]));
   const failed = [];
   for (const [text, approval] of S14_NEW) {
@@ -443,6 +446,87 @@ test('CL-S14-DELTA: the S14 corpus is the released S13 corpus plus exactly the a
 
 test('CL-S14-APPROVAL: the S14 copy delta names the ledger line that approves it', () => {
   assert.match(S14_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-S14-APPROVAL-PENDING: the S14 copy is not approved');
+});
+
+/* ---------------- S15 (Change my routine; PM S15 round 2) ----------------
+   The S15 copy delta over the S14 corpus (CORPUS_SHA256 before this re-measure, S14_CORPUS_SHA256 below): exactly the
+   thirty-three new pieces of the routine editor, each with its one owner (routine-model.mjs COPY; the Today link's two
+   words also in today-app.cjs; the editor's internal no-host error in routine-app.mjs), in no design.cjs list, and
+   the three new scanned files. No sealed piece removed or changed, no owner, count, list or mounted state moved.
+   CL-S15-DELTA proves it both ways: every piece is in the corpus exactly as listed, and the corpus with the delta taken
+   out serializes to the S14 corpus bytes, so CL-S14-DELTA, CL-S12-DELTA and CL-S11-DELTA keep judging what they judged.
+   Approved by the PM under the owner's standing Yes, DECISIONS:913 (5) (PM S15 round 2: "all new strings APPROVED"). */
+const S14_CORPUS_SHA256 = '3a226341aac5832d490ffa652e6cf969c5f55b1820024695c94e5713880e9a98';
+const S15_MODEL = T + '/routine-model.mjs';
+const S15_NEW = Object.freeze([
+  ['A new exercise starts at SETS sets with no weight. Your first workout sets it.', { [S15_MODEL]: 1 }],
+  ['Add it', { [S15_MODEL]: 1 }],
+  ['Change', { [S15_MODEL]: 1 }],
+  ['Change my days', { [S15_MODEL]: 1 }],
+  ['Changes start on DATE. Today\u2019s workout stays as it is.', { [S15_MODEL]: 1 }],
+  ['Each workout that has exercises needs at least one day.', { [S15_MODEL]: 1 }],
+  ['Each workout with days needs at least one exercise.', { [S15_MODEL]: 1 }],
+  ['Give it a name.', { [S15_MODEL]: 1 }],
+  ['Keep it', { [S15_MODEL]: 1 }],
+  ['Move down', { [S15_MODEL]: 1 }],
+  ['Move up', { [S15_MODEL]: 1 }],
+  ['New exercise', { [S15_MODEL]: 1 }],
+  ['Nothing has changed yet.', { [S15_MODEL]: 1 }],
+  ['Opening your routine.', { [S15_MODEL]: 1 }],
+  ['Remove NAME from your routine? Its history stays.', { [S15_MODEL]: 1 }],
+  ['Remove it', { [S15_MODEL]: 1 }],
+  ['Replace NAME', { [S15_MODEL]: 1 }],
+  ['Replace it', { [S15_MODEL]: 1 }],
+  ['Save changes', { [S15_MODEL]: 1 }],
+  ['Save my days', { [S15_MODEL]: 1 }],
+  ['Save this order', { [S15_MODEL]: 1 }],
+  ['Saved. It starts on DATE.', { [S15_MODEL]: 1 }],
+  ['Sets', { [S15_MODEL]: 1 }],
+  ['That change was not saved. Nothing was changed. (CODE)', { [S15_MODEL]: 1 }],
+  ['Which workout?', { [S15_MODEL]: 1 }],
+  ['Yes, remove it', { [S15_MODEL]: 1 }],
+  ['Your routine cannot be changed on this device right now. Nothing was changed. (CODE)', { [S15_MODEL]: 1 }],
+  ['Your routine changed while this was open. Look it over and save again.', { [S15_MODEL]: 1 }],
+  ['Your routine needs at least one exercise.', { [S15_MODEL]: 1 }],
+  ['Your week', { [S15_MODEL]: 1 }],
+  // Fable l1 N2 (PM-approved, S15 round 3): the turned-day line.
+  ['The day has changed. Look it over and save again.', { [S15_MODEL]: 1 }],
+  ['Change my routine', { [S15_MODEL]: 1, [T + '/today-app.cjs']: 1 }],
+  ['Change my routine: no host element', { [T + '/routine-app.mjs']: 1 }],
+]);
+const S15_SCANNED = Object.freeze([T + '/routine-app.mjs', T + '/routine-host.mjs', T + '/routine-model.mjs']);
+const S15_COPY_APPROVAL = 'DECISIONS:913';
+// The S14 view: this corpus minus the S15 pieces and the S15 scanned files.
+function s14View(corpus) {
+  const added = new Set(S15_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)),
+    scanned: corpus.scanned.filter((f) => !S15_SCANNED.includes(f)) };
+}
+
+test('CL-S15-DELTA: the S15 corpus is the S14 corpus plus exactly the approved S15 routine pieces, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  assert.equal(S15_NEW.length, 33, 'CL-S15-DELTA-COUNT');
+  for (const [text, files] of S15_NEW) {
+    const want = { text, files: sortedFiles(files), lists: [] };
+    const got = byText.get(text) || null;
+    if (JSON.stringify(got) !== JSON.stringify(want)) failed.push('CL-S15-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(got));
+  }
+  for (const f of S15_SCANNED) if (!corpus.scanned.includes(f)) failed.push('CL-S15-DELTA SCANNED ' + f);
+  const s14 = lock.sha256(Buffer.from(serialize(s14View(corpus)), 'utf8'));
+  if (s14 !== S14_CORPUS_SHA256) failed.push('CL-S15-DELTA S14-VIEW ' + s14);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the S14 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-S15-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(s14View(moved)), 'utf8')) === S14_CORPUS_SHA256) failed.push('CL-S15-DELTA S14-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-S15-DELTA');
+});
+
+test('CL-S15-APPROVAL: the S15 copy delta names the ledger line that approves it', () => {
+  assert.match(S15_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-S15-APPROVAL-PENDING: the S15 copy is not approved');
 });
 
 /* D-S11R6-3, PM RULED at DECISIONS:843 (2): a red-first pin per approved engine explanation template, never a

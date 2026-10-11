@@ -44,6 +44,14 @@ function nextLocalDate(day) {
 }
 const EXERCISE = ['id', 'n', 'mg', 'day', 'sets', 'hi', 'inc', 'steps'];
 const CHANGES = ['n', 'day', 'sets', 'hi', 'inc', 'steps'];
+/* S15 CHANGE MY ROUTINE. Two athlete edit kinds beside the four reviewed ones.
+   'reorder' names the complete new order of ONE workout kind's lifts; the
+   projector checks it is exactly that kind's lifts. 'split' names the whole
+   week, weekday '0' (Sunday) to '6', each Upper, Lower or a rest day, the same
+   keys and words setup writes. Both are structural and dated like every other
+   edit here: they start on the next local day and rewrite nothing before it. */
+const WEEKDAYS = ['0', '1', '2', '3', '4', '5', '6'];
+const SPLIT_KINDS = ['U', 'L', 'REST'];
 function fieldOf(k, v) {
   if (['id', 'n', 'mg'].includes(k)) text(v);
   else if (k === 'day') { if (v !== 'U' && v !== 'L') fail(); }
@@ -77,6 +85,14 @@ function editOf(value, validateTags) {
     exact(value, ['kind', 'exercise', 'tags', ...(value.kind === 'replace' ? ['exercise_id'] : [])]);
     exerciseOf(value.exercise); tagsOf(value.exercise, value.tags, validateTags);
     if (value.kind === 'replace') { text(value.exercise_id); if (value.exercise_id === value.exercise.id) fail(); }
+  } else if (value.kind === 'reorder') {
+    exact(value, ['kind', 'day', 'order']);
+    if (value.day !== 'U' && value.day !== 'L') fail();
+    if (!Array.isArray(value.order) || !value.order.length || new Set(value.order).size !== value.order.length) fail();
+    value.order.forEach(text);
+  } else if (value.kind === 'split') {
+    exact(value, ['kind', 'map']); exact(value.map, WEEKDAYS);
+    if (WEEKDAYS.some(k => !SPLIT_KINDS.includes(value.map[k])) || WEEKDAYS.every(k => value.map[k] === 'REST')) fail();
   } else fail();
   return value;
 }
@@ -129,4 +145,4 @@ function createPlanEditCommands({ validateTags } = {}) {
   return Object.freeze({ schemaVersion: 2, prepare, validate });
 }
 module.exports = { PROFILE, ACTION, FIELD, createPlanEditCommands, validateInput, nextLocalDate,
-  plain, exact, text, dateOf, editOf, exerciseOf, tagsOf, EXERCISE, fail };
+  plain, exact, text, dateOf, editOf, exerciseOf, tagsOf, EXERCISE, WEEKDAYS, SPLIT_KINDS, fail };

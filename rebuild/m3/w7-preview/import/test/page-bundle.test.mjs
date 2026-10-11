@@ -228,9 +228,14 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
        on the BOOT side, imports nothing at all and touches no store (C-UI-6 C6-5), and the route-only set is UNMOVED
        at 19 (P3-B4 green in the same run). scene.mjs is not an esbuild input (build.mjs appends it), so it is not
        counted here. MEASURED by the PM's run, not summed: 150. */
-    assert.equal(withAdmission.inventory.length, 150,
+    /* S15 (Change my routine) moves it by SEVEN, all on the BOOT side: today-entry.mjs imports routine-host.mjs, which
+       reaches routine-model.mjs, routine-app.mjs (its own lazy edge, not the Import route), the reviewed companion
+       plan-edit-host.mjs, plan-edit-commands.cjs and plan-edit-model.cjs, and F2's setup-tags.cjs. None of the seven was
+       in the route, and the route-only set is UNMOVED at 19. MEASURED by the builder with every protected engine file
+       held external (never read) on both sides of the change: 147 -> 154 non-protected inputs, so 150 -> 157 here. */
+    assert.equal(withAdmission.inventory.length, 157,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 150 (the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'measured 157 (S15\'s seven routine modules on the 150 before them: the brief\'s 133, the F7 family\'s one, the F8 family and '
       + 'the shared-class router\'s two, the route\'s own four, B-LOM\'s '
       + 'order-mapping provider, P3-REAL-SHAPE\'s lift-correspondence '
       + 'helper, PASSPHRASE-NORMALIZE\'s shared passphrase form, S10\'s '
@@ -493,10 +498,15 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
     'S12\'s coach screen is not among the pinned inputs');
   assert.ok(today.inventory.some(i => i.path === 'rebuild/m3/w7-preview/today/scene.mjs'),
     'S12\'s appended scene is not among the pinned inputs');
+  /* S15 moves it by SEVEN boot modules (see P3-B2: routine-host, routine-model, routine-app, plan-edit-host,
+     plan-edit-commands, plan-edit-model, setup-tags); the route-only set is UNMOVED at 19. MEASURED on the esbuild graph
+     with protected files held external: 29 -> 36. The PM's run of this cell is the full measurement. */
+  assert.ok(['routine-host.mjs', 'routine-model.mjs', 'routine-app.mjs'].every(n =>
+    today.inventory.some(i => i.path === 'rebuild/m3/w7-preview/today/' + n)), 'S15\'s routine modules are not among the pinned inputs');
   const BASE_PINNED_INPUTS = 121;
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 29,
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 36,
     'the delta is ' + (today.inventory.length - BASE_PINNED_INPUTS) + ' modules, not the '
-    + 'measured 29 (the route\'s 19 plus the nine boot modules, B-LOM\'s order '
+    + 'measured 36 (S15\'s seven routine modules on the 29 before them: the route\'s 19 plus the nine boot modules, B-LOM\'s order '
     + 'mapping, the shared passphrase form, S10\'s three Today writer '
     + 'lanes, S11\'s two native-load modules, S11 FC09 round 6\'s lift-correspondence '
     + 'helper and S12\'s coach screen, plus S12\'s appended scene input): re-measure and say so');

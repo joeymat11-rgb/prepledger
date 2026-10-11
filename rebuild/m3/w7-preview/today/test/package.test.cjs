@@ -224,13 +224,20 @@ const TODAY_REQUIRED_INPUTS = [
   "rebuild/m3/w7-preview/today/today-readings.cjs",
   "rebuild/m3/w7-preview/today/today-lanes.cjs",
   "rebuild/m3/w7-preview/today/gym-settings-lane.mjs",
+  /* S15 (Change my routine, PM ruling S15 round 2): the routine lane, its model and its screens join
+     build.mjs's REQUIRED_INPUTS. MEASURED from build.mjs's own source text by this file's rule: 54 path
+     literals / 32 today/ at the S15 head, 51 / 29 before, and the difference is exactly these three paths
+     (nothing removed, nothing renamed). No row is dropped and no count is loosened. */
+  "rebuild/m3/w7-preview/today/routine-host.mjs",
+  "rebuild/m3/w7-preview/today/routine-model.mjs",
+  "rebuild/m3/w7-preview/today/routine-app.mjs",
 ];
 
-test("H18 - the build still refuses a bundle that lost any of the 29 today/ required inputs", () => {
-  assert.equal(TODAY_REQUIRED_INPUTS.length, 29,
-    "the literal list is not the 29 today/ entries of REQUIRED_INPUTS measured at S10 (A.4's 26 plus the split's three)");
-  assert.equal(new Set(TODAY_REQUIRED_INPUTS).size, 29, "the literal list repeats a path");
-  /* the green control first, so the 29 rows below fail for the reason they name rather
+test("H18 - the build still refuses a bundle that lost any of the 32 today/ required inputs", () => {
+  assert.equal(TODAY_REQUIRED_INPUTS.length, 32,
+    "the literal list is not the 32 today/ entries of REQUIRED_INPUTS measured at S15 (A.4's 26, the split's three, S15's routine three)");
+  assert.equal(new Set(TODAY_REQUIRED_INPUTS).size, 32, "the literal list repeats a path");
+  /* the green control first, so the 32 rows below fail for the reason they name rather
      than because assertBundleInputs refuses everything it is handed. */
   assert.doesNotThrow(() => build.assertBundleInputs(result.inputs.map((p) => ({ path: p }))));
   for (const required of TODAY_REQUIRED_INPUTS) {
@@ -275,7 +282,7 @@ const requiredInputsOf = (src) => {
 };
 const requiredInputsOfBuildSource = () => requiredInputsOf(buildSource());
 
-test("H18b - the 29 are still the WHOLE today/ half of build.mjs's REQUIRED_INPUTS", () => {
+test("H18b - the 32 are still the WHOLE today/ half of build.mjs's REQUIRED_INPUTS", () => {
   const all = requiredInputsOfBuildSource();
   /* the today/ half FIRST, because its failure NAMES the paths that moved and the
      counts below only name a number: R1 N6's lesson, applied to this cell's own reds. */
@@ -284,10 +291,10 @@ test("H18b - the 29 are still the WHOLE today/ half of build.mjs's REQUIRED_INPU
     "the today/ half of build.mjs's REQUIRED_INPUTS is no longer the " + TODAY_REQUIRED_INPUTS.length
     + " paths this seal pins: it now holds " + today.length
     + ". An ADDED entry is invisible to H18 and this is the cell that sees it");
-  assert.equal(all.length, 51,
-    "build.mjs's REQUIRED_INPUTS no longer holds 51 path literals but " + all.length
-    + ": A.4's seven laws are stated over that list and this seal pins 29 of it");
-  assert.equal(new Set(all).size, 51, "build.mjs's REQUIRED_INPUTS repeats a path literal");
+  assert.equal(all.length, 54,
+    "build.mjs's REQUIRED_INPUTS no longer holds 54 path literals but " + all.length
+    + ": A.4's seven laws are stated over that list and this seal pins 32 of it");
+  assert.equal(new Set(all).size, 54, "build.mjs's REQUIRED_INPUTS repeats a path literal");
 });
 
 /* H18c, R2 N7. H18b's per-line rule counts any bare quoted string that sits alone on its
@@ -302,7 +309,7 @@ test("H18b - the 29 are still the WHOLE today/ half of build.mjs's REQUIRED_INPU
 test("H18c - a prose string alone on its own line inside REQUIRED_INPUTS is not a path", () => {
   const src = buildSource();
   const real = requiredInputsOf(src);
-  assert.equal(real.length, 51, "the baseline is not 51 (S10: the split's three added to 48): " + real.length);
+  assert.equal(real.length, 54, "the baseline is not 54 (S15: the routine's three added to S10's 51): " + real.length);
   const planted = src.replace("\nconst REQUIRED_INPUTS = Object.freeze([\n",
     "\nconst REQUIRED_INPUTS = Object.freeze([\n  \"and this line is prose, not a path\",\n");
   assert.notEqual(planted, src, "the plant did not land: the block header has moved");

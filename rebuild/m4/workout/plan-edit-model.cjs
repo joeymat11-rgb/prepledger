@@ -325,6 +325,16 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
       const family = day === 'U' || day === 'L', days = Object.values(split?.map || {});
       if (!split || !family || !(days.includes(day) || days.includes('F'))) fail('PLAN_EDIT_DAY_UNCOVERED');
     };
+    /* S15 R2 (PM ruling 2). A workout kind that has a day in the week in force on
+       starts_on keeps at least one lift in the week. Checked after an edit, only
+       for the kinds that edit touched, so a basis that already broke it never
+       blocks an unrelated change. */
+    const staffed = kind => {
+      let split = null; for (const row of state.split || []) if (row && row.from <= starts_on) split = row;
+      if ((kind !== 'U' && kind !== 'L') || !Object.values(split?.map || {}).includes(kind)) return;
+      const retired = state.retirements || {};
+      if (!state.exercises.some(e => e.day === kind && !retired[e.id])) fail('PLAN_EDIT_WORKOUT_EMPTY');
+    };
     if (edit.kind === 'update') {
       if (Object.entries(edit.changes).every(([k, value]) => equal(target[k], value))) fail('PLAN_EDIT_NO_CHANGE');
       if (own(edit.changes, 'day')) covered(edit.changes.day);
@@ -341,6 +351,34 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
       if (!remaining.length) fail('PLAN_EDIT_WEEK_EMPTY');
       const retirements = state.retirements || (state.retirements = {}); put(retirements, target.id, op?.op_id || 'preview');
       put(order, oldDay, (order[oldDay] || []).filter(id => id !== target.id));
+    } else if (edit.kind === 'reorder') {
+      /* S15. The new order must name exactly this workout's lifts that are still
+         in the week. The comparison is the order the engine serves today
+         (rebuild/engine/today.cjs _sessionPool: exOrder index, unknown last,
+         stable), so an order that changes nothing refuses rather than writes. */
+      const retired = state.retirements || {};
+      const pool = state.exercises.filter(e => e.day === edit.day && !retired[e.id]);
+      const ids = new Set(pool.map(e => e.id));
+      if (edit.order.length !== ids.size || edit.order.some(id => !ids.has(id))) fail('PLAN_EDIT_ORDER_MISMATCH');
+      const current = order[edit.day] || [];
+      const rank = id => { const i = current.indexOf(id); return i === -1 ? 99 : i; };
+      const served = pool.slice().sort((a, b) => rank(a.id) - rank(b.id)).map(e => e.id);
+      if (equal(served, edit.order)) fail('PLAN_EDIT_NO_CHANGE');
+      put(order, edit.day, edit.order.slice());
+    } else if (edit.kind === 'split') {
+      /* S15. A new dated period from starts_on; every earlier period is kept as
+         it is, so days before the change still read the week they had. Two
+         saves for the same start date leave one period, the later map. */
+      const split = Array.isArray(state.split) ? state.split : (state.split = []);
+      let inForce = null; for (const row of split) if (row && row.from <= starts_on) inForce = row;
+      const served = inForce && inForce.map && Object.fromEntries(C.WEEKDAYS.map(k =>
+        [k, inForce.map[k] === 'U' || inForce.map[k] === 'L' ? inForce.map[k] : 'REST']));
+      if (served && equal(served, edit.map)) fail('PLAN_EDIT_NO_CHANGE');
+      const kinds = Object.values(edit.map), retired = state.retirements || {};
+      if (state.exercises.some(e => !retired[e.id] && !kinds.includes(e.day))) fail('PLAN_EDIT_DAY_UNCOVERED');
+      const last = split[split.length - 1];
+      if (last && last.from === starts_on) put(last, 'map', clone(edit.map));
+      else split.push({ from: starts_on, map: clone(edit.map) });
     } else {
       const row = clone(edit.exercise); covered(row.day);
       if (state.exercises.some(e => e.id === row.id)) fail('PLAN_EDIT_ID_REUSED');
@@ -363,6 +401,13 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
         put(order, oldDay, (order[oldDay] || []).filter(id => id !== target.id));
         if (oldDay === row.day && index >= 0) order[row.day].splice(index, 0, row.id); else order[row.day].push(row.id);
       } else order[row.day].push(row.id);
+    }
+    /* The no-empty-workout rule judges a NEW edit (preview, op null) only: an
+       operation already on the record is replayed as recorded, so a rule added
+       later can never make the stored history unreadable. */
+    if (!op) {
+      if (edit.kind === 'split') { staffed('U'); staffed('L'); }
+      else if (target && (edit.kind !== 'update' || target.day !== oldDay)) staffed(oldDay);
     }
     return state;
   }

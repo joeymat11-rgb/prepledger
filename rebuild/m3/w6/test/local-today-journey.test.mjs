@@ -725,8 +725,19 @@ export const PAGE_PINS = Object.freeze({
      DEFAULT (today-entry.mjs:534 `hosts = options.hosts || null`, :545 openTodayHosts only when none was injected) and the
      `hosts` branch is untouched; the new hunk only READS the host's view.refusals and opens no store; an INJECTED
      installation is still never closed by this page (today-entry.mjs:698 `owned = options.hosts ? null : hosts`); and a
-     declared-day caller still gets no watcher at all. gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move. */
-  'today-entry.mjs': '5adab952dc9eb42a81aa53aa5070e3f0cb90fa1b24fb56359de5d104eb5725fc',
+     declared-day caller still gets no watcher at all. gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move.
+     S15 CHANGE MY ROUTINE re-pin (PM S15 round 2; copy approved DECISIONS:913 (5)). today-entry.mjs moves by TWO hunks and
+     nothing else: (1) one import, createRoutineEntry from ./routine-host.mjs (today-entry.mjs:40); (2) in boot(), the
+     routine entry composed over the installation boot() already holds, only when there is one AND a first-run lane
+     (today-entry.mjs:642 `const routine = hosts && setup ? createRoutineEntry({ installation: hosts, ...`), and handed to
+     mountToday as `routine`. Re-read against today-bindings.mjs at this re-pin, as every re-pin must: boot() still opens
+     the local era BY DEFAULT (today-entry.mjs:538 `hosts = options.hosts || null`, :549 openTodayHosts only when none was
+     injected) and the `hosts` branch is untouched; the routine entry opens NO store of its own - it reads through the
+     installation's own client, generation() and liveDay() and stamps with today-bindings.mjs clientClockFor; an
+     INJECTED installation is still never closed by this page (today-entry.mjs:706 `owned = options.hosts ? null : hosts`);
+     and a declared-day caller still gets no watcher at all. gym-host.mjs, reading-host.mjs and checkin-host.mjs did not
+     move. MEASURED: 5adab952dc9eb42a81aa53aa5070e3f0cb90fa1b24fb56359de5d104eb5725fc -> the value below. */
+  'today-entry.mjs': '0e4b338873e3d42d0eb057c0cd643c2e28e1f4ee9d56f040d3df3a723baa07bc',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

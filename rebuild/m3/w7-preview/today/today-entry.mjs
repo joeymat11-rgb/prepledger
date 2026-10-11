@@ -34,6 +34,10 @@ import { createSetupHost, PROFILE as SETUP_PROFILE } from "./setup-host.mjs";
 import { createSetupCommands } from "./setup-commands.mjs";
 import { createSetupModel, createCleanInitState } from "./setup-model.mjs";
 import { mountSetup } from "./setup-app.mjs";
+/* S15 - "Change my routine": the reviewed plan-edit companion composed over this
+   installation (routine-host.mjs). Today adopts the routine in force today
+   through it, and the editor saves through it. */
+import { createRoutineEntry } from "./routine-host.mjs";
 
 const { plainCopy, plainOrDrop } = PlainCopy;
 const { createCheckInCommands } = CheckInCommands;
@@ -633,8 +637,12 @@ export async function boot(options = {}) {
      which requestedScreen() honours ahead of this. `options.setupFirst` overrides
      both directions explicitly, so a cell can drive either landing on either clock. */
   const setupFirst = options.setupFirst !== undefined ? !!options.setupFirst : !!live;
+  /* S15. Only over a real installation with a first-run lane; with neither there
+     is no routine to change and nothing to adopt, exactly as before. */
+  const routine = hosts && setup ? createRoutineEntry({ installation: hosts, day: today,
+    live, ...(web ? { crypto: web } : {}) }) : null;
   const api = mountToday(doc, model, { ...(workout ? { workout } : {}), ...(checkin ? { checkin } : {}),
-    ...(setup ? { setup } : {}), ...(hosts ? { installation: hosts } : {}), setupFirst });
+    ...(setup ? { setup } : {}), ...(hosts ? { installation: hosts } : {}), ...(routine ? { routine } : {}), setupFirst });
 
   /* P3-IMPORT-UI-2 (DECISIONS:475 (4)) - the installation this boot opened is handed
      to the page on the same call above, for the ONE route that needs the local durable

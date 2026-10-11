@@ -212,6 +212,14 @@ const REQUIRED_INPUTS = Object.freeze([
      the second blocker of DECISIONS:472 walking back in. */
   "rebuild/m3/w7-preview/import/import-screen.mjs",
   "rebuild/m4/import/production-mapping.cjs",
+  /* S15 CHANGE MY ROUTINE (PM ruling, S15 round 2). The routine lane, its pure model and
+     its screens. routine-app.mjs is reached through routine-host.mjs's own dynamic import,
+     so naming it here is also what proves the bundler really followed that edge. A build
+     that lost any of the three would be a page whose "Change my routine" link opens
+     nothing, or whose saved routine never reaches Today and the gym card. */
+  "rebuild/m3/w7-preview/today/routine-host.mjs",
+  "rebuild/m3/w7-preview/today/routine-model.mjs",
+  "rebuild/m3/w7-preview/today/routine-app.mjs",
 ]);
 
 /* review D-4: EXECUTE the "no network reference" claim instead of printing it. Every

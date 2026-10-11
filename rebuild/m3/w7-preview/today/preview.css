@@ -513,3 +513,20 @@
    It is held to its field, as every other field on that screen already is (item 7). */
 .view [data-slot="import-screen"] input[type="file"] { max-width: 100%; box-sizing: border-box; }
 /* ===== S12b R6 (DECISIONS:914, :915; the S12b audit) . SCREENS AND LAYOUT: END ===== */
+/* ===== S15 CHANGE MY ROUTINE: the editor takes the Import screen's chassis (item 7) and the page's
+   own minimums: 16 px inputs, 48 px fields, 44 px taps, no new colour, type or token. ===== */
+.view [data-slot="routine-entry"] { min-height: 44px; }
+.view > [data-slot="routine-screen"] { min-height: 100%; box-sizing: border-box; padding-left: 18px; padding-right: 18px;
+  padding-top: max(22px, calc(env(safe-area-inset-top, 0px) + 12px));
+  padding-bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 12px)); }
+.view [data-slot="routine-screen"] .routine { display: flex; flex-direction: column; gap: var(--s3, 12px); }
+.view [data-slot="routine-screen"] button { min-height: 44px; }
+.view [data-slot="routine-screen"] .field > input { display: block; width: 100%; max-width: 100%; box-sizing: border-box;
+  font-size: 16px; min-height: 48px; padding: 9px 12px; border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 86%, transparent); color: var(--text); border: 1px solid var(--line); }
+.view [data-slot="routine-list"] { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s3, 12px); }
+.view [data-slot="routine-row"] { display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--line-soft); padding-bottom: 8px; }
+.view [data-slot="routine-row"] > p { margin: 0; flex: 1 1 100%; }
+.view [data-slot="routine-sets"] { color: var(--muted); }
+/* ===== S15 CHANGE MY ROUTINE: END ===== */

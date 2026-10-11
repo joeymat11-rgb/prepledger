@@ -203,8 +203,16 @@ jobs:
       # chain branch, its artifact is committed and every declared child carries an observed needle, this step reports
       # the runner's own refusal by name rather than PASS; that is the expected pre-seal state. The step NAME moves
       # with it.
-      - name: Cumulative S14 HOLD reseal, S13 POLISH reseal, S12 LOOK reseal, S11 NATIVE-LOAD reseal, S10 Today split, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S14
+      # S15 SUCCEEDS M2-S14-HOLD HERE, by the same rule a thirteenth time, and the flip again lives INSIDE the package
+      # (ef21153's shape; DECISIONS:498). S15 is the ROUTINE reseal child: the "Change my routine" editor (brief
+      # rebuild/lanes/b/S15-ROUTINE-BRIEF.md) composed onto the SEALED S14 (receipt DECISIONS:932, sealed and merged :933).
+      # LIKE S13 it is an UNSEALED child run with --ci only: it moves NO rebuild/engine byte, declares no D-id and no gate
+      # supersession, and writes no seal, receipt or VERDICT, so the coach ENGINE_REVISION stays M2-S14-HOLD's. Until its
+      # THEME and BRIEF-BY-SHA lines stand on the chain branch and every declared child carries an observed needle, this
+      # step reports the runner's own refusal by name rather than PASS; that is the expected pre-ruling state. The step
+      # NAME moves with it.
+      - name: Cumulative S15 ROUTINE reseal, S14 HOLD reseal, S13 POLISH reseal, S12 LOOK reseal, S11 NATIVE-LOAD reseal, S10 Today split, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S15
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -305,8 +313,10 @@ jobs:
       # and coach.test.mjs stand under today/test/, so cell H3/13 requires this line to name each
       # of them, appended by exact path and never globbed. S12 also runs them as its own declared
       # child s12-look, so they are named twice on purpose.
+      # S15 NAMES ITS ROUTINE SUITE HERE: routine.test.mjs stands under today/test/, so this line names it, appended by
+      # exact path and never globbed. S15 also runs it as its own declared child s15-routine, so it is named twice on purpose.
       - name: A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup; and P-MEASURE's four page-stack suites
-        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy-lock.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-identity-reentrancy.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-log-timing.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-remount.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs rebuild/m3/w7-preview/measure/test/journey.test.mjs rebuild/m3/w7-preview/measure/test/lane.test.mjs rebuild/m3/w7-preview/measure/test/baseline.test.mjs rebuild/m3/w7-preview/measure/test/boundary.test.mjs rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs rebuild/m3/w7-preview/today/test/scene.test.mjs rebuild/m3/w7-preview/today/test/look-cui2.test.mjs rebuild/m3/w7-preview/today/test/look-cui3.test.mjs rebuild/m3/w7-preview/today/test/workout-look.test.mjs rebuild/m3/w7-preview/today/test/coach.test.mjs
+        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy-lock.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-identity-reentrancy.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-log-timing.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-remount.test.mjs rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs rebuild/m3/w7-preview/measure/test/journey.test.mjs rebuild/m3/w7-preview/measure/test/lane.test.mjs rebuild/m3/w7-preview/measure/test/baseline.test.mjs rebuild/m3/w7-preview/measure/test/boundary.test.mjs rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs rebuild/m3/w7-preview/today/test/scene.test.mjs rebuild/m3/w7-preview/today/test/look-cui2.test.mjs rebuild/m3/w7-preview/today/test/look-cui3.test.mjs rebuild/m3/w7-preview/today/test/workout-look.test.mjs rebuild/m3/w7-preview/today/test/coach.test.mjs rebuild/m3/w7-preview/today/test/routine.test.mjs
       # M2-S9-UI-PINS ADDS THE SEALED-INVENTORY FENCE HERE, beside the today step, under
       # the same DECISIONS:117 (4) licence (S9-RELEASE-SPEC.md D.2, D.3). It asks what no
       # other step asks: of the paths this branch touched since its merge-base with the
@@ -372,7 +382,7 @@ jobs:
       - name: M4 — the import lane, its production mapping and its admission
         run: node --test rebuild/m4/import/test/prepare.test.cjs rebuild/m4/import/test/reading-replay.test.cjs rebuild/m4/import/test/engine-provider.test.cjs rebuild/m4/import/test/local-source-order.test.cjs rebuild/m4/import/test/browser-parity.test.mjs rebuild/m4/import/test/production-mapping.test.cjs rebuild/m4/import/test/production-admission.test.mjs rebuild/m4/import/test/engine-pins-unprotected.test.cjs
       - name: D — plan edit, import retract, the admission swap, the replay measure family and capture-start
-        run: node --test rebuild/lanes/d/plan-edit/model.test.cjs rebuild/lanes/d/plan-edit/durable-host.test.mjs rebuild/lanes/d/plan-edit/browser-build.test.mjs rebuild/lanes/d/plan-edit/client-p6.test.cjs rebuild/lanes/d/import-retract/retract.test.mjs rebuild/lanes/d/p3-followons/admission-swap.test.mjs rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs rebuild/lanes/d/p3-capture-start/capture-start.test.mjs
+        run: node --test rebuild/lanes/d/plan-edit/model.test.cjs rebuild/lanes/d/plan-edit/durable-host.test.mjs rebuild/lanes/d/plan-edit/browser-build.test.mjs rebuild/lanes/d/plan-edit/client-p6.test.cjs rebuild/lanes/d/plan-edit/routine-kinds.test.cjs rebuild/lanes/d/import-retract/retract.test.mjs rebuild/lanes/d/p3-followons/admission-swap.test.mjs rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs rebuild/lanes/d/p3-capture-start/capture-start.test.mjs
       # F2-LAND GIVES THE EXERCISE-TAG PROJECTOR ITS CI HOME, under the same
       # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason the D
       # steps above are named one path at a time: rebuild/m4/workout/setup-tags.cjs
@@ -454,6 +464,12 @@ jobs:
       - name: B - S14-REGEN's path boundary and write contract, on synthetic ports
         if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/b/S14-REGEN.test.cjs
+      # S15 GIVES rebuild/lanes/b/S15-REGEN.test.cjs ITS CI HOME, the way S14 gave S14-REGEN.test.cjs one: the refusal rows of
+      # the helper that re-measures packages/S15.json at the S14 seal, compiled on fake git and filesystem ports, reading
+      # nothing of the repository. The steps above STAY, unchanged. Same condition shape. No declared child mirrors it.
+      - name: B - S15-REGEN's path boundary and write contract, on synthetic ports
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/lanes/b/S15-REGEN.test.cjs
       # M2-S7-PORT-ADMISSION ADDS ITS OWN THREE LANE CELLS HERE, under the same
       # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason: they arrived
       # with P3-PORT-FIX and P3-PORT-FIX-2 (DECISIONS:509, :510) and no workflow names
