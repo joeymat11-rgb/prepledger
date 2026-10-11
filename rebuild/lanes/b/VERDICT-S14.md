@@ -1,7 +1,7 @@
 # VERDICT - M2-S14-HOLD - lane B seal - PASS on the `DECISIONS:932` receipt
 
 <!-- DRAFT (builder, claude-opus-5-5, 2026-10-11), for rebuild/lanes/b/VERDICT-S14.md. Written from the PM's FILTERed lines and the
-     builder's own round reports only; no raw log, no private value, count or prose. Every [[PLACEHOLDER-...]] is filled from the
+     builder's own round reports only; no raw log, no private value, count or prose. Every value is filled from the
      PM's filtered T20/T23/T24/CI-2 lines before C2/C4; nothing else changes then. Remove this comment and the placeholder list at the
      end before C2. -->
 
@@ -45,7 +45,7 @@ it stands on, every red of the slice and of its seal chain, every ruling, and ev
 - rebuild/lanes/b/tooling/receipts/S14.json sha256 0a9d78045c75e812a174f590f3fa7903e04d6086636765e4aa64babad5026431 (44669 B),
   commit C1 6e04533 (not pushed alone).
 - T20 SEALED RUN RECORDED over 352 pinned product file(s) (352 declared, 0 released).
-- T24 BYTE-IDENTITY RE-VERIFY over [[PLACEHOLDER-T24-PINNED-COUNT]] pinned product file(s).
+- T24 BYTE-IDENTITY RE-VERIFY over 352 pinned product file(s).
 
 ## Terminals - the S14 seal chain, executed on the PC, exit codes measured (grant OQ-1 :913, pass/fail lines only)
 
@@ -66,9 +66,10 @@ it stands on, every red of the slice and of its seal chain, every ruling, and ev
   re-executed, 0 carried, 9 SUPERSEDED under DECISIONS:924; SEALED RUN RECORDED rebuild/lanes/b/tooling/receipts/S14.json over 352
   pinned product file(s); SEALED RUN NEXT STEP (receipt sha256 0a9d78045c75e812a174f590f3fa7903e04d6086636765e4aa64babad5026431); POSTFIX PACKAGE PASS
   M2-S14-HOLD; EXIT=0; no re-run. C1 6e04533 = the receipt alone (44669 B), not pushed.
-- T23: coach [[PLACEHOLDER-T23-COACH-COUNT x/x]], production pair [[PLACEHOLDER-T23-PROD-COUNT y/y]], both EXIT=0.
-- T24 full3 at C3 [[PLACEHOLDER-C3-7]]: [[PLACEHOLDER-T24-FILTERED-LINES: AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY over <n>; POSTFIX
-  PACKAGE PASS; EXIT=0]]; then the census junction removed by rmdir.
+- T23: coach 377/377, production pair 28/28, both EXIT=0.
+- T24 full3 at C3 97e4dac: AUTHORIZED mode=--full; SEAL BASE ON THE TIP (8ac6812 ancestor); ENVELOPE AUTHORIZED;
+  AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY (DECISIONS:136 (3)): artifact, runner, spec and all 352 pinned product files byte-identical
+  to the sealed run in receipts/S14.json; no new SEALED RUN RECORDED; POSTFIX PACKAGE PASS M2-S14-HOLD; EXIT=0; then the census junction removed by rmdir.
 
 ## CI
 
@@ -76,8 +77,8 @@ it stands on, every red of the slice and of its seal chain, every ruling, and ev
 - T5b attempt 2: run 38157426646 at ca373b0 - GREEN on both OS; the 40 needles come from its two artifacts, never typed.
 - CI-M1 at M1 f9225f0: run 38159811792, success on both OS.
 - CI-1 at A 3e22a3b: run 38162059395, success on both OS.
-- CI-2, the binding run (`DECISIONS:563`/`:565`), at C4 [[PLACEHOLDER-C4-7]]: run [[PLACEHOLDER-CI2-RUN-ID]]
-  [[PLACEHOLDER-CI2-RESULT: rebuild-public and C font transport on ubuntu and windows, times, failed steps]].
+- CI-2, the binding run (`DECISIONS:563`/`:565`), at C4 (this commit): it runs after this file is committed, so its run id, both-OS result and job times are recorded in
+  the L6 ledger line (as S11 recorded its CI-2 at :897), not here.
 - W-46 accept observation (never merged, obs/s14-w46): run 38144505339 - VERDICT FAIL (W-46 refused on the #log rule; no files);
   run 38147311450 - win32 VERDICT PASS (pack status exactly its six paths, MEASURE "nothing moved in 418 renders"), linux VERDICT FAIL
   (hosted ubuntu redrew W-18 linux thumbnails; not used).
@@ -186,7 +187,7 @@ whole-pack pin, then re-pinned:
   record. README SC-S14-5 red first on pack-pin twice (first wording, then the true provenance).
 - T5b attempt 1 (38154044650): red on both OS, today-17 838/4 and w6-local-today-journey 49/2, one cause (PAGE_PINS), fixed 5b42f36.
 - T7-T16: none (`DECISIONS:931`); T14 EXIT=2 REVIEW-PENDING is the predicted terminal, not a red.
-- T20-T26: T20: none. T21-T26: [[PLACEHOLDER-T21-T26-REDS: none | list with run ids]].
+- T20-T26: T20: none. T21-T26: none through T25 (C4); CI-2 and later are recorded in L6.
 
 ### Every incident (recorded, not excused)
 
@@ -201,7 +202,7 @@ whole-pack pin, then re-pinned:
   against the never-force-push rule; rule since: a new obs branch per attempt.
 - `DECISIONS:931`: A 3e22a3b's message was amended BEFORE its push to add the attribution trailers (author "cowork (Earned PM)");
   the artifact bytes are the T10 export's, unchanged; nothing pushed was rewritten.
-- T20: none. T21-T28: [[PLACEHOLDER-T21-T28-INCIDENTS: none | list]].
+- T20: none. T21-T28: the PC bridge was offline 20:25-20:37Z between C3 and T24; no run was in flight, nothing moved.
 
 ## Carried debts (each CARRIED by id, with why it is not reachable from genuine use or why it is carried)
 
@@ -215,8 +216,7 @@ whole-pack pin, then re-pinned:
 - Hosted ubuntu-24.04 is not byte-equivalent to the linux machine of record (W-18 thumbnails, run 38147311450): a future linux
   accept comes from the machine of record unless re-measured.
 - The S13 polish debts carried by id: D-W6-LOCAL-TODAY-BROWSER and the audit's F6, F8 and F9.
-- Fable read debts by id: [[PLACEHOLDER-none (Fable T22: only the t09 README wording note): T6 5361ED37, containment BB26750C, T16 9019459A, VERDICT C2 <id8> - "none" or
-  the named debts of each]].
+- Fable read debts by id: none: T6 5361ED37, containment BB26750C, T16 9019459A and the VERDICT read (T22) each named no debt beyond those in this file; T22 noted only the t09 README wording.
 - PM ruling (Fable agreed): the pack's hand-written prototype app/app.js is hashed by existing pin rows (pack-pin,
   approved-pin) without being printed; that is not the "built app.js" limit, which is the shipped bundle (R5-REPORT 9 (f) closed).
 - The inherited S11 carries exactly as VERDICT-S11 lists them, and D-BLOM (:798/:799) as below.
@@ -254,9 +254,9 @@ Unchanged from VERDICT-S11 (:798/:799): it excuses no red public step.
 
 ## The coach constant (`DECISIONS:927`)
 
-rebuild/coach/engine-revision.cjs:25 moved once, at C3 [[PLACEHOLDER-C3-7]], from "M2-S11-NATIVE-LOAD@48574b8d8f252e87" to
+rebuild/coach/engine-revision.cjs:25 moved once, at C3 97e4dac, from "M2-S11-NATIVE-LOAD@48574b8d8f252e87" to
 "M2-S14-HOLD@0a9d78045c75e812" (the first 16 hex of sha256(receipts/S14.json)); coach tests by glob
-[[PLACEHOLDER-T23-COACH-COUNT]], production pair [[PLACEHOLDER-T23-PROD-COUNT]]. S14.json declares rebuild/coach/NATIVE-LOAD-SPEC.md but
+377/377, production pair 28/28. S14.json declares rebuild/coach/NATIVE-LOAD-SPEC.md but
 not engine-revision.cjs, so C3 does not void the receipt. C1 was never pushed alone (`DECISIONS:897`).
 
 ## What this seal carries for the athlete
