@@ -1,19 +1,19 @@
 'use strict';
-/* S12B-REGEN.test: S12-REGEN.test.cjs ported to rebuild/lanes/b/S12B-REGEN.cjs (M2-S12B-POLISH) with the same
-   rows and the same meaning: names, the spec path (packages/S12B.json) and the SCOPE row's two added exact
+/* S13-REGEN.test: S12-REGEN.test.cjs ported to rebuild/lanes/b/S13-REGEN.cjs (M2-S13-POLISH) with the same
+   rows and the same meaning: names, the spec path (packages/S13.json) and the SCOPE row's two added exact
    files are the only moves. The S12 header follows. */
-/* S12B-REGEN's PATH BOUNDARY and its S12 deltas, on synthetic ports. The port of
+/* S13-REGEN's PATH BOUNDARY and its S12 deltas, on synthetic ports. The port of
    rebuild/lanes/b/S11-REGEN.test.cjs (89012d94; itself the port of S10-REGEN.test.cjs, Astra
    S10-INTEGRATION-REVIEW-L2..L5 B5, D-REGEN-INPUT, D-S10I-11, DECISIONS:812, D-S11-A1, D-S11-A2, D-S11P-2).
    The helper is compiled in memory with FAKE node:child_process and node:fs modules, so nothing here
    touches the repository: every git answer and every file is invented below, and every content read the
    helper attempts is recorded. The rows require that an out-of-scope, forbidden, linked or non-regular name
    is REFUSED BY NAME BEFORE ANY READ OF IT, and that before the refusal nothing but the fixed inputs was
-   read. S12B_REGEN_UNDER_TEST may name another copy of the helper (a mutant, or a red-first copy), at ANY
+   read. S13_REGEN_UNDER_TEST may name another copy of the helper (a mutant, or a red-first copy), at ANY
    directory depth: REPO below is resolved ONCE, from the helper under test, by the same expression the
    helper uses for its own REPO.
-   Every ported row keeps its meaning with S12's names (S12B.json, the parent S11.json, the S11 artifact slug
-   s11-native-load); the row labels carry S12B-REGEN and keep the S11 tag of the delta they were written for.
+   Every ported row keeps its meaning with S12's names (S13.json, the parent S11.json, the S11 artifact slug
+   s11-native-load); the row labels carry S13-REGEN and keep the S11 tag of the delta they were written for.
    Rows NEW in S12 carry "S12" in their name: the ancestor-release walk (header (A)) and --worktree
    (header (B)). */
 const test = require('node:test');
@@ -23,13 +23,13 @@ const crypto = require('node:crypto');
 const Module = require('node:module');
 const fsReal = require('node:fs');
 
-const HELPER = process.env.S12B_REGEN_UNDER_TEST || path.join(__dirname, 'S12B-REGEN.cjs');
+const HELPER = process.env.S13_REGEN_UNDER_TEST || path.join(__dirname, 'S13-REGEN.cjs');
 const REPO = path.resolve(path.dirname(HELPER), '..', '..', '..');   // the helper's own REPO (its __dirname is dirname(HELPER))
 const rel = (abs) => path.relative(REPO, abs).split(path.sep).join('/');
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const oid = (s) => crypto.createHash('sha1').update(String(s)).digest('hex');
 const P = 'a'.repeat(40), HEAD = 'b'.repeat(40);
-const SPEC = 'rebuild/lanes/b/tooling/packages/S12B.json', S10SPEC = 'rebuild/lanes/b/tooling/packages/S11.json';   // S10SPEC names the PARENT spec (S11.json) in this port
+const SPEC = 'rebuild/lanes/b/tooling/packages/S13.json', S10SPEC = 'rebuild/lanes/b/tooling/packages/S11.json';   // S10SPEC names the PARENT spec (S11.json) in this port
 const RUNNER = 'rebuild/lanes/b/tooling/b-package.cjs';
 const A = 'rebuild/m4/workout/a.cjs', VIEW = 'rebuild/m3/w7-preview/today/today-entry.mjs';
 const ART = 'rebuild/m4/spec/acceptance-s11-native-load.json', REV = 'rebuild/m4/spec/review-s11-native-load.json';
@@ -104,7 +104,7 @@ function run(w, argv = ['--parent', 'fake']) {
   return { exitCode, error, out: out.join('\n'), reads: w.reads.slice() };
 }
 
-test('S12B-REGEN CONTROL: an in-scope change is measured, and only allowlisted paths are read', () => {
+test('S13-REGEN CONTROL: an in-scope change is measured, and only allowlisted paths are read', () => {
   const r = run(world());
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.equal(r.exitCode, 0, r.out);
@@ -113,7 +113,7 @@ test('S12B-REGEN CONTROL: an in-scope change is measured, and only allowlisted p
 });
 
 const refusals = [
-  ['an out-of-scope changed name', (w) => { w.changed.push('rebuild/secret/other.json'); w.at[HEAD]['rebuild/secret/other.json'] = 'x'; w.disk['rebuild/secret/other.json'] = 'x'; }, 'rebuild/secret/other.json', /outside the S12B product scope/],
+  ['an out-of-scope changed name', (w) => { w.changed.push('rebuild/secret/other.json'); w.at[HEAD]['rebuild/secret/other.json'] = 'x'; w.disk['rebuild/secret/other.json'] = 'x'; }, 'rebuild/secret/other.json', /outside the S13 product scope/],
   ['a forbidden private path', (w) => { w.changed.push('rebuild/conform/private/live.json'); w.at[HEAD]['rebuild/conform/private/live.json'] = 'x'; }, 'rebuild/conform/private/live.json', /forbidden set/],
   ['a forbidden soak name inside a root', (w) => { w.changed.push('rebuild/m4/spec/soak-run.json'); w.at[HEAD]['rebuild/m4/spec/soak-run.json'] = 'x'; w.disk['rebuild/m4/spec/soak-run.json'] = 'x'; }, 'rebuild/m4/spec/soak-run.json', /forbidden set/],
   ['a traversal name', (w) => { w.changed.push('rebuild/m4/workout/../../../outside.json'); }, 'rebuild/m4/workout/../../../outside.json', /plain repository-relative/],
@@ -122,7 +122,7 @@ const refusals = [
   ['a Git symlink entry', (w) => { const f = 'rebuild/m4/workout/glink.cjs'; w.changed.push(f); w.at[HEAD][f] = 'target'; w.disk[f] = 'target'; w.modes[f] = '120000'; }, 'rebuild/m4/workout/glink.cjs', /not a regular file in Git/],
 ];
 for (const [label, plant, name, why] of refusals) {
-  test('S12B-REGEN REFUSES ' + label + ' BY NAME, BEFORE ANY READ OF IT', () => {
+  test('S13-REGEN REFUSES ' + label + ' BY NAME, BEFORE ANY READ OF IT', () => {
     const w = world(); plant(w);
     const r = run(w);
     assert.equal(r.error, null, String(r.error && r.error.stack));
@@ -146,13 +146,13 @@ function sealed(w, reviewStatus) {
   w.disk[SPEC] = JSON.stringify(spec); w.at[HEAD][SPEC] = w.disk[SPEC];
   return w;
 }
-test('S12B-REGEN D-REGEN-INPUT: --write refuses a parent whose review envelope is not ACCEPTED', () => {
+test('S13-REGEN D-REGEN-INPUT: --write refuses a parent whose review envelope is not ACCEPTED', () => {
   const r = run(sealed(world(), 'PENDING'), ['--parent', 'fake', '--write', '--receipt-line', '1']);
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.equal(r.exitCode, 2, r.out);
   assert.match(r.out, /is not an ACCEPTED envelope/);
 });
-test('S12B-REGEN D-REGEN-INPUT: a parent-released path leaves the WHOLE declared union, even when the draft carries it', () => {
+test('S13-REGEN D-REGEN-INPUT: a parent-released path leaves the WHOLE declared union, even when the draft carries it', () => {
   const r = run(sealed(world(), 'ACCEPTED'));
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.match(r.out, /dropped from the declared union: rebuild\/m3\/w7-preview\/today\/gym-app\.mjs/);
@@ -161,14 +161,14 @@ test('S12B-REGEN D-REGEN-INPUT: a parent-released path leaves the WHOLE declared
 });
 
 /* D-S10I-11, ported: the two --write refusals, as rows (the stale note now cites the S10 candidate). */
-test('S12B-REGEN D-S10I-11: --write without --receipt-line is refused BY NAME, before any read', () => {
+test('S13-REGEN D-S10I-11: --write without --receipt-line is refused BY NAME, before any read', () => {
   const r = run(sealed(world(), 'ACCEPTED'), ['--parent', 'fake', '--write']);
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.equal(r.exitCode, 2, r.out);
   assert.match(r.out, /--write needs --receipt-line N/);
   assert.deepEqual(r.reads, [], 'the helper read before refusing a --write with no receipt line');
 });
-test('S12B-REGEN D-S10I-11: --write refuses while a carried note still cites the S10 candidate, and writes nothing', () => {
+test('S13-REGEN D-S10I-11: --write refuses while a carried note still cites the S10 candidate, and writes nothing', () => {
   const w = sealed(world(), 'ACCEPTED');
   const spec = JSON.parse(w.disk[SPEC]);
   spec.notes = ['PROPOSED DRAFT composed over the S10 candidate 9849bc7, not a spec of record.'];
@@ -200,7 +200,7 @@ const ADMITTED = [
   ['an alternate data stream', 'rebuild/m4/workout/a.cjs:secret', /alternate-data-stream/],
 ];
 for (const [label, name, why] of ADMITTED) {
-  test('S12B-REGEN B5 REFUSES ' + label + ' BY NAME, BEFORE ANY READ OF IT', () => {
+  test('S13-REGEN B5 REFUSES ' + label + ' BY NAME, BEFORE ANY READ OF IT', () => {
     const w = world(); w.changed.push(name); w.at[HEAD][name] = 'synthetic\n'; w.disk[name] = 'synthetic\n';
     const r = run(w);
     assert.equal(r.error, null, String(r.error && r.error.stack));
@@ -218,7 +218,7 @@ const SOURCES = {
 };
 for (const [source, plant] of Object.entries(SOURCES)) {
   for (const name of ['rebuild/m4/spec/LEDGER/synthetic.json', 'rebuild/m4/spec/auth.json']) {
-    test('S12B-REGEN B5 REFUSES ' + name + ' supplied through ' + source + ', before any read of it', () => {
+    test('S13-REGEN B5 REFUSES ' + name + ' supplied through ' + source + ', before any read of it', () => {
       const w = world(); w.at[HEAD][name] = 'synthetic\n'; w.disk[name] = 'synthetic\n'; plant(w, name);
       const r = run(w);
       assert.equal(r.error, null, String(r.error && r.error.stack));
@@ -262,7 +262,7 @@ function refusedBeforeRead(r, name, why, before) {
 }
 for (const name of L4_NAMES) {
   for (const [source, build, before] of L4_SOURCES) {
-    test('S12B-REGEN B5-L4 REFUSES ' + name + ' supplied through ' + source + ', BY NAME, before any content read of it', () => {
+    test('S13-REGEN B5-L4 REFUSES ' + name + ' supplied through ' + source + ', BY NAME, before any content read of it', () => {
       refusedBeforeRead(run(build(name)), name, /dot-name|credential or key file name|key or secret container extension/, before);
     });
   }
@@ -286,12 +286,12 @@ const L4_CLAUSES = [
   ['rebuild/m4/spec/archive.zip', EXT],
 ];
 for (const [name, why] of L4_CLAUSES) {
-  test('S12B-REGEN B5-L4 admission rule REFUSES the changed name ' + name + ' BY NAME, before any content read of it', () => {
+  test('S13-REGEN B5-L4 admission rule REFUSES the changed name ' + name + ' BY NAME, before any content read of it', () => {
     refusedBeforeRead(run(L4_SOURCES[0][1](name)), name, why, FIXED);
   });
 }
 /* EXACT REVIEWED FILES: a dot-name is admitted only as an exact-file SCOPE entry. */
-test('S12B-REGEN B5-L4 CONTROL: the exact reviewed .github/workflows/rebuild.yml is admitted and measured', () => {
+test('S13-REGEN B5-L4 CONTROL: the exact reviewed .github/workflows/rebuild.yml is admitted and measured', () => {
   const YML = '.github/workflows/rebuild.yml';
   const w = world(); w.at[P][YML] = 'on: push\n'; w.at[HEAD][YML] = 'on: [push]\n'; w.disk[YML] = 'on: [push]\n'; w.changed.push(YML);
   const r = run(w);
@@ -300,7 +300,7 @@ test('S12B-REGEN B5-L4 CONTROL: the exact reviewed .github/workflows/rebuild.yml
   assert.match(r.out, /\.github\/workflows\/rebuild\.yml: undeclared {2}=> {2}new/);
 });
 for (const name of ['rebuild/m4/spec/.github/workflows/rebuild.yml', 'rebuild/m4/workout/.github/x.json']) {
-  test('S12B-REGEN B5-L4 REFUSES ' + name + ' (a .github segment that is not an exact reviewed file) BY NAME, before any content read of it', () => {
+  test('S13-REGEN B5-L4 REFUSES ' + name + ' (a .github segment that is not an exact reviewed file) BY NAME, before any content read of it', () => {
     refusedBeforeRead(run(L4_SOURCES[0][1](name)), name, DOT, FIXED);
   });
 }
@@ -317,16 +317,16 @@ const DECLARING = new Set(['S11.product', 'the parent candidate product', 'the p
 const NOT_REVIEWED = /not an exact member of a reviewed inventory/;
 for (const name of L5_NAMES) {
   for (const [source, build, before] of L4_SOURCES.filter(([s]) => !DECLARING.has(s))) {
-    test('S12B-REGEN B5-L5 REFUSES ' + name + ' supplied through ' + source + ' (in no reviewed inventory), BY NAME, before any content read of it', () => {
+    test('S13-REGEN B5-L5 REFUSES ' + name + ' supplied through ' + source + ' (in no reviewed inventory), BY NAME, before any content read of it', () => {
       refusedBeforeRead(run(build(name)), name, NOT_REVIEWED, before);
     });
   }
 }
-test('S12B-REGEN B5-L5: an UNDECLARED changed path with an ordinary name is refused BY NAME before any content read (declare it in S11.json first)', () => {
+test('S13-REGEN B5-L5: an UNDECLARED changed path with an ordinary name is refused BY NAME before any content read (declare it in S11.json first)', () => {
   const name = 'rebuild/m4/workout/b.cjs';
   refusedBeforeRead(run(L4_SOURCES[0][1](name)), name, NOT_REVIEWED, FIXED);
 });
-test('S12B-REGEN B5-L5: S11.json naming a declared product file as the parent artifact is refused BY NAME, before any read of it', () => {
+test('S13-REGEN B5-L5: S11.json naming a declared product file as the parent artifact is refused BY NAME, before any read of it', () => {
   const w = world(); editSpec(w, (s) => { s.parent.options[0].artifact = A; });
   const r = run(w);
   assert.equal(r.error, null, String(r.error && r.error.stack));
@@ -336,7 +336,7 @@ test('S12B-REGEN B5-L5: S11.json naming a declared product file as the parent ar
   assert(r.out.includes('REGEN-PATH-REFUSED') && r.out.includes(A), 'not refused BY NAME: ' + r.out);
   assert.match(r.out, /not admitted for a content read: not the reviewed S11 parent artifact or review/);
 });
-test('S12B-REGEN B5-L5 CONTROL: a changed Markdown report outside rebuild/engine/, in no inventory, is neither read, declared nor refused', () => {
+test('S13-REGEN B5-L5 CONTROL: a changed Markdown report outside rebuild/engine/, in no inventory, is neither read, declared nor refused', () => {
   const name = 'rebuild/m4/spec/NOTES.md';
   const w = world(); w.at[HEAD][name] = 'notes\n'; w.disk[name] = 'notes\n'; w.changed.push(name);
   const r = run(w);
@@ -359,7 +359,7 @@ const parentPins = (w, name, bytes) => {   // the sealed parent pins name as a p
   editS10(w, (s) => { s.product[name] = { pre: sha(bytes), post: sha(bytes), role: 'carried' }; });
 };
 for (const declaredInS11 of [false, true]) {
-  test('S12B-REGEN DECISIONS:812: the exact SCOPE file ' + CI2 + ', pinned by the sealed parent' + (declaredInS11 ? ' and declared carried in S12B.json' : ' and undeclared in S12B.json') + ', is admitted and carried pre == post', () => {
+  test('S13-REGEN DECISIONS:812: the exact SCOPE file ' + CI2 + ', pinned by the sealed parent' + (declaredInS11 ? ' and declared carried in S13.json' : ' and undeclared in S13.json') + ', is admitted and carried pre == post', () => {
     const w = sealed(world(), 'ACCEPTED'); parentPins(w, CI2, CI2_BYTES);
     if (declaredInS11) editSpec(w, (s) => { s.product[CI2] = { pre: sha(CI2_BYTES), post: sha(CI2_BYTES), role: 'carried' }; });
     const r = run(w);
@@ -382,13 +382,13 @@ const CI2_SOURCES = [   // each world also carries the exact file, pinned by the
 ];
 for (const [label, name] of CI2_REFUSED) {
   for (const [source, build] of CI2_SOURCES) {
-    test('S12B-REGEN DECISIONS:812 REFUSES ' + label + ' (' + name + ') supplied through ' + source + ' as outside the S12B product scope, BY NAME, before any read of it', () => {
+    test('S13-REGEN DECISIONS:812 REFUSES ' + label + ' (' + name + ') supplied through ' + source + ' as outside the S13 product scope, BY NAME, before any read of it', () => {
       const r = run(build(name));
       assert.equal(r.error, null, String(r.error && r.error.stack));
       assert.equal(r.reads.includes(name), false, 'the helper READ ' + name + ' before refusing it');
       for (const f of r.reads) assert(SEALED_READS.has(f), 'a product read happened before the refusal: ' + f);
       assert.equal(r.exitCode, 2, 'not refused: ' + r.out);
-      assert(r.out.includes('REGEN-PATH-REFUSED') && r.out.includes(name + ' (outside the S12B product scope)'), 'not refused BY NAME as outside the S12B product scope: ' + r.out);
+      assert(r.out.includes('REGEN-PATH-REFUSED') && r.out.includes(name + ' (outside the S13 product scope)'), 'not refused BY NAME as outside the S13 product scope: ' + r.out);
     });
   }
 }
@@ -398,7 +398,7 @@ for (const [label, name] of CI2_REFUSED) {
    parent pinned by nothing (parent-unpinned), so once declared and changed it is role new with pre null
    (DECISIONS:792 shape); a sibling, a case variant and a path below it stay outside the scope. */
 const T2 = 'rebuild/m3/w6/t2-stage.cjs';
-test('S12B-REGEN S11 FC06: the exact SCOPE file ' + T2 + ', parent-unpinned, changed and declared by S11.json, is declared new with pre null', () => {
+test('S13-REGEN S11 FC06: the exact SCOPE file ' + T2 + ', parent-unpinned, changed and declared by S11.json, is declared new with pre null', () => {
   const w = world(); w.at[P][T2] = 't2 parent\n'; w.at[HEAD][T2] = 't2 composed\n'; w.disk[T2] = 't2 composed\n'; w.changed.push(T2);
   editSpec(w, (s) => { s.product[T2] = { pre: null, post: sha('t2 composed\n'), role: 'new' }; });
   const r = run(w);
@@ -411,13 +411,13 @@ const T2_REFUSED = [['a sibling directly under rebuild/m3/w6/', 'rebuild/m3/w6/t
   ['a case variant of the exact name', 'rebuild/m3/w6/T2-Stage.cjs'], ['a path below the exact name', T2 + '/x.cjs']];
 for (const [label, name] of T2_REFUSED) {
   for (const [source, build] of [L4_SOURCES[0], L4_SOURCES[1]]) {
-    test('S12B-REGEN S11 FC06 REFUSES ' + label + ' (' + name + ') supplied through ' + source + ' as outside the S12B product scope, BY NAME, before any read of it', () => {
+    test('S13-REGEN S11 FC06 REFUSES ' + label + ' (' + name + ') supplied through ' + source + ' as outside the S13 product scope, BY NAME, before any read of it', () => {
       const r = run(build(name));
       assert.equal(r.error, null, String(r.error && r.error.stack));
       assert.equal(r.reads.includes(name), false, 'the helper READ ' + name + ' before refusing it');
       for (const f of r.reads) assert(FIXED.has(f), 'a product read happened before the refusal: ' + f);
       assert.equal(r.exitCode, 2, 'not refused: ' + r.out);
-      assert(r.out.includes('REGEN-PATH-REFUSED') && r.out.includes(name + ' (outside the S12B product scope)'), 'not refused BY NAME as outside the S12B product scope: ' + r.out);
+      assert(r.out.includes('REGEN-PATH-REFUSED') && r.out.includes(name + ' (outside the S13 product scope)'), 'not refused BY NAME as outside the S13 product scope: ' + r.out);
     });
   }
 }
@@ -425,7 +425,7 @@ for (const [label, name] of T2_REFUSED) {
 /* S11 D-REGEN-INPUT at a CANDIDATE parent (the PREP-NOW case, brief T3f): with no sealed artifact the parent
    pins come from S10.json's own posts, and S10's role-released pair leaves the declared union there too;
    no parent pin is invented for it. */
-test('S12B-REGEN S11 candidate parent: an S10.json role-released path leaves the declared union and is never declared', () => {
+test('S13-REGEN S11 candidate parent: an S10.json role-released path leaves the declared union and is never declared', () => {
   const w = world();
   for (const r of [P, HEAD]) w.at[r][GYMAPP] = 'gym\n';
   w.disk[GYMAPP] = 'gym\n';
@@ -442,7 +442,7 @@ test('S12B-REGEN S11 candidate parent: an S10.json role-released path leaves the
 
 /* S11 PENDING CENSUS: every string value of S11.json that begins with the word PENDING is listed by its JSON
    path on a dry run; a string that merely contains the word elsewhere is not a PENDING value. */
-test('S12B-REGEN S11 PENDING census: a dry run lists every PENDING value of S11.json by JSON path, and nothing else', () => {
+test('S13-REGEN S11 PENDING census: a dry run lists every PENDING value of S11.json by JSON path, and nothing else', () => {
   const w = world();
   editSpec(w, (s) => {
     s.packageId = 'PENDING STOP-S11-ID: PROPOSED M2-S11-NATIVE-LOAD';
@@ -463,10 +463,13 @@ test('S12B-REGEN S11 PENDING census: a dry run lists every PENDING value of S11.
 /* S11 --write at a SEALED, ACCEPTED parent (brief T3k): the fields this helper owns are filled from the
    parent and HEAD, the fields it does not own stay PENDING and are listed, and the bytes written are the
    runner's canonical JSON (strict-json.cjs parseExact: JSON.stringify(value, null, 2) + LF). */
-test('S12B-REGEN S11 --write: sourceBase, the parent option, the receipt line and the runner pin are filled; the rest stays PENDING and is listed', () => {
+test('S13-REGEN S11 --write: sourceBase, the parent option, the receipt line and the runner pin are filled; the rest stays PENDING and is listed', () => {
   const w = sealed(world(), 'ACCEPTED'); w.allowWrite = true;
   editSpec(w, (s) => {
-    s.packageId = 'PENDING STOP-S11-ID: PROPOSED M2-S11-NATIVE-LOAD';
+    /* S12b R19: the value carries a non-ASCII character (the ledger's clause separator U+00B7, as every
+       filled ledger line does), so the canonical-bytes assertion below sees an escaped write as the
+       JSON-NONCANONICAL-BYTES refusal it is. */
+    s.packageId = 'PENDING STOP-S11-ID: PROPOSED M2-S11-NATIVE-LOAD \u00b7 PROPOSED';
     s.sourceBase = 'PENDING STOP-S11-BASE: the S10 fast-forward sha';
     s.parent.decided = false; s.parent.chosen = null;
     Object.assign(s.parent.options[0], { sha256: 'PENDING STOP-S11-PARENT: a', reviewSha256: 'PENDING STOP-S11-PARENT: b', receiptLedgerLine: 'PENDING STOP-S11-PARENT: c' });
@@ -484,9 +487,9 @@ test('S12B-REGEN S11 --write: sourceBase, the parent option, the receipt line an
   assert.equal(s.parent.options[0].reviewSha256, sha(w.at[P][REV]));
   assert.equal(s.parent.options[0].receiptLedgerLine, 7);
   assert.equal(s.tooling.runnerSha256, sha('runner\n'));
-  assert.equal(s.packageId, 'PENDING STOP-S11-ID: PROPOSED M2-S11-NATIVE-LOAD', 'the helper filled a field it does not own');
+  assert.equal(s.packageId, 'PENDING STOP-S11-ID: PROPOSED M2-S11-NATIVE-LOAD \u00b7 PROPOSED', 'the helper filled a field it does not own');
   assert.match(r.out, /PENDING left for the PM, never filled by this helper: 1 value\(s\) - \$\.packageId/);
-  assert.match(r.out, /^WROTE rebuild\/lanes\/b\/tooling\/packages\/S12B\.json [0-9a-f]{64}$/m);
+  assert.match(r.out, /^WROTE rebuild\/lanes\/b\/tooling\/packages\/S13\.json [0-9a-f]{64}$/m);
 });
 
 /* S11 PROTECTED FIVE (S11 moves rebuild/engine bytes; the five never move and are never read): a declared
@@ -501,14 +504,14 @@ function protectedWorld(headBytes) {
   editSpec(w, (s) => { s.product[MIG] = { pre: sha('synthetic protected parent\n'), post: sha('synthetic protected parent\n'), role: 'carried' }; });
   return w;
 }
-test('S12B-REGEN S11 protected five: an unchanged protected file is carried at the parent pin by object id, never read', () => {
+test('S13-REGEN S11 protected five: an unchanged protected file is carried at the parent pin by object id, never read', () => {
   const r = run(protectedWorld('synthetic protected parent\n'));
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.equal(r.exitCode, 0, r.out);
   assert.equal(r.reads.includes(MIG), false, 'the helper READ a protected engine file');
   assert.equal(r.out.includes(MIG + ':'), false, 'the carried protected pin moved: ' + r.out);
 });
-test('S12B-REGEN S11 protected five: a protected file whose object id moved refuses the run BY NAME, never read', () => {
+test('S13-REGEN S11 protected five: a protected file whose object id moved refuses the run BY NAME, never read', () => {
   const r = run(protectedWorld('synthetic protected moved\n'));
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.equal(r.exitCode, 2, r.out);
@@ -531,7 +534,7 @@ const DRAFT_CLAIMS = [
   ['a note that calls the spec a DRAFT', 'CHILDREN (invented): the argv lists of this DRAFT follow the parent.', 'CHILDREN (invented)'],
 ];
 for (const [label, note, head] of DRAFT_CLAIMS) {
-  test('S12B-REGEN S11 D-S11P-2: --write refuses while ' + label + ' is carried, and writes nothing', () => {
+  test('S13-REGEN S11 D-S11P-2: --write refuses while ' + label + ' is carried, and writes nothing', () => {
     const w = sealed(world(), 'ACCEPTED'); w.allowWrite = true;
     editSpec(w, (s) => { s.notes = [note]; });
     const r = run(w, ['--parent', 'fake', '--write', '--receipt-line', '1']);
@@ -542,7 +545,7 @@ for (const [label, note, head] of DRAFT_CLAIMS) {
     assert.match(r.out, /carried note\(s\) still make a draft-time claim/);
   });
 }
-test('S12B-REGEN S11 D-S11P-2: a dry run over the draft layout flags [0] and the four draft-time notes [4]-[7], and neither the regenerated [1]-[3] nor a carried debt note [8]', () => {
+test('S13-REGEN S11 D-S11P-2: a dry run over the draft layout flags [0] and the four draft-time notes [4]-[7], and neither the regenerated [1]-[3] nor a carried debt note [8]', () => {
   const w = world();
   editSpec(w, (s) => {
     s.notes = ['PROPOSED DRAFT (invented): not a spec of record.',
@@ -558,7 +561,7 @@ test('S12B-REGEN S11 D-S11P-2: a dry run over the draft layout flags [0] and the
   const flagged = r.out.split('\n').filter((l) => l.includes('STALE NOTE')).map((l) => (l.match(/\[(\d+)\]/) || [])[1]);
   assert.deepEqual(flagged, ['0', '4', '5', '6', '7'], r.out);
 });
-test('S12B-REGEN S11 D-S11P-2 CONTROL: a carried note with no candidate id and no draft-time claim is kept, unflagged, and --write proceeds', () => {
+test('S13-REGEN S11 D-S11P-2 CONTROL: a carried note with no candidate id and no draft-time claim is kept, unflagged, and --write proceeds', () => {
   const w = sealed(world(), 'ACCEPTED'); w.allowWrite = true;
   const keep = 'D-EXAMPLE, CARRIED (invented): the example child stays undeclared; its open item list in T31 was drafted and closed.';
   editSpec(w, (s) => { s.notes = [keep]; });
@@ -577,7 +580,7 @@ test('S12B-REGEN S11 D-S11P-2 CONTROL: a carried note with no candidate id and n
 const MANY = 45;
 const manyPending = (s) => { s.children = Array.from({ length: MANY }, (_, i) => ({ name: 'c' + i, argv: ['--test'], needle: 'PENDING STOP-S11-T4: invented needle ' + i })); };
 const censusOf = (line) => line.split(' - ').slice(1).join(' - ').trim().split(' ');
-test('S12B-REGEN S11 D-S11-A1: a dry run lists ALL ' + MANY + ' PENDING values on disk, past 40, with no cap marker', () => {
+test('S13-REGEN S11 D-S11-A1: a dry run lists ALL ' + MANY + ' PENDING values on disk, past 40, with no cap marker', () => {
   const w = world(); editSpec(w, manyPending);
   const r = run(w);
   assert.equal(r.error, null, String(r.error && r.error.stack));
@@ -587,7 +590,7 @@ test('S12B-REGEN S11 D-S11-A1: a dry run lists ALL ' + MANY + ' PENDING values o
   assert.equal(/\.\.\. \d+ more/.test(line), false, 'the on-disk census is capped: ...' + line.slice(-60));
   assert.deepEqual(censusOf(line), Array.from({ length: MANY }, (_, i) => '$.children[' + i + '].needle'));
 });
-test('S12B-REGEN S11 D-S11-A1: --write lists ALL the PENDING values it leaves for the PM, past 40, with no cap marker', () => {
+test('S13-REGEN S11 D-S11-A1: --write lists ALL the PENDING values it leaves for the PM, past 40, with no cap marker', () => {
   const w = sealed(world(), 'ACCEPTED'); w.allowWrite = true;
   editSpec(w, (s) => { manyPending(s); s.packageId = 'PENDING STOP-S11-ID: invented package id'; });
   const r = run(w, ['--parent', 'fake', '--write', '--receipt-line', '7']);
@@ -611,13 +614,13 @@ function readsBeforeDiscovery(w, argv) {
   const r = run(w, argv);
   return { r, before: snap[0] };
 }
-test('S12B-REGEN S11 D-S11-A2 CONTROL: at a sealed parent the reads before discovery are exactly S11.json, the parent S10.json, the parent artifact and its review, in that order', () => {
+test('S13-REGEN S11 D-S11-A2 CONTROL: at a sealed parent the reads before discovery are exactly S11.json, the parent S10.json, the parent artifact and its review, in that order', () => {
   const { r, before } = readsBeforeDiscovery(sealed(world(), 'ACCEPTED'));
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.equal(r.exitCode, 0, r.out);
   assert.deepEqual(before, [SPEC, S10SPEC, ART, REV]);
 });
-test('S12B-REGEN S11 D-S11-A2 CONTROL: with no artifact at the parent (CANDIDATE mode, dry run) the reads before discovery are S11.json, the parent S10.json and its execution-pin targets, never an artifact or review', () => {
+test('S13-REGEN S11 D-S11-A2 CONTROL: with no artifact at the parent (CANDIDATE mode, dry run) the reads before discovery are S11.json, the parent S10.json and its execution-pin targets, never an artifact or review', () => {
   const { r, before } = readsBeforeDiscovery(world());
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.equal(r.exitCode, 0, r.out);
@@ -625,13 +628,13 @@ test('S12B-REGEN S11 D-S11-A2 CONTROL: with no artifact at the parent (CANDIDATE
   assert.deepEqual([...new Set(before.slice(2))].sort(), [RUNNER, S10SPEC].sort());
   assert.equal(before.includes(ART) || before.includes(REV), false, 'an artifact or review was read: ' + before.join(' '));
 });
-test('S12B-REGEN S11 D-S11-A2: the header calls FIXED_INPUTS the initial trust inputs and names every read that precedes discovery', () => {
+test('S13-REGEN S11 D-S11-A2: the header calls FIXED_INPUTS the initial trust inputs and names every read that precedes discovery', () => {
   const src = fsReal.readFileSync(HELPER, 'utf8');
   const header = src.slice(0, src.indexOf('*/'));
   assert.equal(/are the only files read before\s+discovery/.test(header), false, 'the header still says FIXED_INPUTS are the only files read before discovery');
-  assert.match(header, /FIXED_INPUTS \(S12B\.json, the parent's\s+S11\.json,\s+the runner\) are the INITIAL TRUST INPUTS/);
+  assert.match(header, /FIXED_INPUTS \(S13\.json, the parent's\s+S11\.json,\s+the runner\) are the INITIAL TRUST INPUTS/);
   assert.match(header, /the reads that precede\s+discovery are:/);
-  for (const named of ['S12B.json on disk', 'S11.json at the parent P', 'PARENT_ARTIFACT', 'PARENT_REVIEW', 'CANDIDATE mode', 'execution-pin targets'])
+  for (const named of ['S13.json on disk', 'S11.json at the parent P', 'PARENT_ARTIFACT', 'PARENT_REVIEW', 'CANDIDATE mode', 'execution-pin targets'])
     assert(header.includes(named), 'the header does not name ' + named);
 });
 
@@ -648,7 +651,7 @@ function chained(w, grandparent, extraArtifact = {}) {   // a sealed, ACCEPTED p
   w.at[P][REV] = JSON.stringify({ version: 1, status: 'ACCEPTED', receipt: null });
   return w;
 }
-test('S12B-REGEN S12 (A): a path an ANCESTOR artifact released is dropped from the declared union, validated, and never read', () => {
+test('S13-REGEN S12 (A): a path an ANCESTOR artifact released is dropped from the declared union, validated, and never read', () => {
   const w = chained(world(), GRAND);
   w.at[P][GRAND] = JSON.stringify({ product: {}, released: { [TODAYAPP]: { role: 'released' } } });
   w.at[P][TODAYAPP] = 'app parent\n'; w.at[HEAD][TODAYAPP] = 'app look\n'; w.disk[TODAYAPP] = 'app look\n';
@@ -662,7 +665,7 @@ test('S12B-REGEN S12 (A): a path an ANCESTOR artifact released is dropped from t
   assert.equal(/today-app\.cjs: .*=>/.test(r.out), false, 'the released path was declared: ' + r.out);
   assert.deepEqual(r.reads.slice(0, 5), [SPEC, S10SPEC, ART, REV, GRAND], 'the ancestor is read after the parent artifact and review, and before discovery');
 });
-test('S12B-REGEN S12 (A) RED CONTROL: without the ancestor walk the same released path would be read and declared new', () => {
+test('S13-REGEN S12 (A) RED CONTROL: without the ancestor walk the same released path would be read and declared new', () => {
   /* The same world with the grandparent carrying NO released block: the path is then an ordinary
      changed, undeclared file, so B5-L5 refuses it BY NAME before any read - which is exactly what the
      walk exists to replace with "released, not declared". */
@@ -680,7 +683,7 @@ for (const [label, grandparent] of [
   ['a parent outside rebuild/m4/spec/ (the chain root\'s shape)', 'rebuild/conform/v4/postfix/acceptance-step-efficacy.json'],
   ['a nested path under rebuild/m4/spec/', 'rebuild/m4/spec/LEDGER/acceptance-x.json'],
   ['a name that is not an acceptance artifact', 'rebuild/m4/spec/review-s10-today-split.json']]) {
-  test('S12B-REGEN S12 (A): the walk STOPS, reading nothing, at ' + label, () => {
+  test('S13-REGEN S12 (A): the walk STOPS, reading nothing, at ' + label, () => {
     const w = chained(world(), grandparent);
     w.at[P][grandparent] = JSON.stringify({ product: {}, released: { [TODAYAPP]: { role: 'released' } } });
     const r = run(w);
@@ -690,7 +693,7 @@ for (const [label, grandparent] of [
     assert.match(r.out, /ancestor artifacts walked for releases \(header \(A\)\): none/);
   });
 }
-test('S12B-REGEN S12 (A): a chain that returns to an artifact already walked is refused BY NAME', () => {
+test('S13-REGEN S12 (A): a chain that returns to an artifact already walked is refused BY NAME', () => {
   const w = chained(world(), GRAND);
   w.at[P][GRAND] = JSON.stringify({ product: {}, parent: { artifact: GRAND } });
   const r = run(w);
@@ -698,7 +701,7 @@ test('S12B-REGEN S12 (A): a chain that returns to an artifact already walked is 
   assert.equal(r.exitCode, 2, r.out);
   assert.match(r.out, /the ancestor walk returned to rebuild\/m4\/spec\/acceptance-s10-today-split\.json/);
 });
-test('S12B-REGEN S12 (A): an ancestor the chain names but the parent commit does not hold is refused BY NAME', () => {
+test('S13-REGEN S12 (A): an ancestor the chain names but the parent commit does not hold is refused BY NAME', () => {
   const r = run(chained(world(), GRAND));
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.equal(r.exitCode, 2, r.out);
@@ -718,7 +721,7 @@ function uncommitted(w) {
   editSpec(w, (s) => { s.product[NEWFILE] = { pre: 'PENDING', post: 'PENDING', role: 'new' }; });
   return w;
 }
-test('S12B-REGEN S12 (B): --worktree measures the uncommitted bytes ON DISK, finds the untracked file, and says so', () => {
+test('S13-REGEN S12 (B): --worktree measures the uncommitted bytes ON DISK, finds the untracked file, and says so', () => {
   const r = run(uncommitted(world()), ['--parent', 'fake', '--worktree']);
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.equal(r.exitCode, 0, r.out);
@@ -728,7 +731,7 @@ test('S12B-REGEN S12 (B): --worktree measures the uncommitted bytes ON DISK, fin
   assert(r.out.includes(NEWFILE + ': new PENDING->PENDING  =>  new null->' + n), 'the untracked file was not measured as new: ' + r.out);
   assert.equal(/PROBLEM/.test(r.out), false, r.out);
 });
-test('S12B-REGEN S12 (B) RED CONTROL: WITHOUT --worktree the same uncommitted tree is a PROBLEM (commit first)', () => {
+test('S13-REGEN S12 (B) RED CONTROL: WITHOUT --worktree the same uncommitted tree is a PROBLEM (commit first)', () => {
   const w = uncommitted(world());
   w.at[HEAD][NEWFILE] = 'brand new\n';                       // tracked at HEAD here, so the only fault is A
   const r = run(w);
@@ -736,7 +739,7 @@ test('S12B-REGEN S12 (B) RED CONTROL: WITHOUT --worktree the same uncommitted tr
   assert.equal(r.exitCode, 1, r.out);
   assert.match(r.out, /PROBLEM disk differs from HEAD \(commit first\): rebuild\/m4\/workout\/a\.cjs/);
 });
-test('S12B-REGEN S12 (B): --worktree --write writes the posts it measured and the PRODUCT MAP note names the uncommitted tree', () => {
+test('S13-REGEN S12 (B): --worktree --write writes the posts it measured and the PRODUCT MAP note names the uncommitted tree', () => {
   const w = sealed(uncommitted(world()), 'ACCEPTED'); w.allowWrite = true;
   const r = run(w, ['--parent', 'fake', '--worktree', '--write', '--receipt-line', '896']);
   assert.equal(r.error, null, String(r.error && r.error.stack));
@@ -749,12 +752,12 @@ test('S12B-REGEN S12 (B): --worktree --write writes the posts it measured and th
   assert.match(note, /ON DISK in the UNCOMMITTED working tree over HEAD/);
   assert.match(note, /must print "0 entr\(ies\) would change"/);
 });
-test('S12B-REGEN S12 (B): --worktree still refuses an UNDECLARED untracked file BY NAME before any content read', () => {
+test('S13-REGEN S12 (B): --worktree still refuses an UNDECLARED untracked file BY NAME before any content read', () => {
   const w = world(); const f = 'rebuild/m4/workout/stray.cjs';
   w.disk[f] = 'stray\n'; w.untracked = [f];
   refusedBeforeRead(run(w, ['--parent', 'fake', '--worktree']), f, NOT_REVIEWED, FIXED);
 });
-test('S12B-REGEN S12 (B): --worktree still refuses a forbidden untracked name BY NAME before any read', () => {
+test('S13-REGEN S12 (B): --worktree still refuses a forbidden untracked name BY NAME before any read', () => {
   const w = world(); const f = 'rebuild/m4/spec/LEDGER/synthetic.json';
   w.disk[f] = 'x\n'; w.untracked = [f];
   const r = run(w, ['--parent', 'fake', '--worktree']);
@@ -763,21 +766,21 @@ test('S12B-REGEN S12 (B): --worktree still refuses a forbidden untracked name BY
   assert.equal(r.exitCode, 2, r.out);
   assert.match(r.out, /forbidden set/);
 });
-test('S12B-REGEN S12 (B): --worktree never reads a protected file and still refuses one that moved', () => {
+test('S13-REGEN S12 (B): --worktree never reads a protected file and still refuses one that moved', () => {
   const r = run(protectedWorld('synthetic protected moved\n'), ['--parent', 'fake', '--worktree']);
   assert.equal(r.error, null, String(r.error && r.error.stack));
   assert.equal(r.exitCode, 2, r.out);
   assert.equal(r.reads.includes(MIG), false, 'the helper READ a protected engine file');
   assert.match(r.out, /protected engine file changed between the parent and HEAD, or is dirty: rebuild\/engine\/migrate\.cjs/);
 });
-test('S12B-REGEN S12 SCOPE: the four exact files S12 adds are admitted, and the look workflow by identity only', () => {
+test('S13-REGEN S12 SCOPE: the four exact files S12 adds are admitted, and the look workflow by identity only', () => {
   const src = fsReal.readFileSync(HELPER, 'utf8');
   for (const exact of ['rebuild/lanes/b/S11-NATIVE-LOAD-BRIEF.md', 'rebuild/lanes/b/S12-REGEN.cjs', 'rebuild/lanes/b/S12-REGEN.test.cjs', '.github/workflows/look-gates.yml',
-    /* S12B's two exact files (the helper's port note (ii)). */ 'rebuild/lanes/b/S12B-REGEN.cjs', 'rebuild/lanes/b/S12B-REGEN.test.cjs'])
+    /* S13's two exact files (the helper's port note (ii)). */ 'rebuild/lanes/b/S13-REGEN.cjs', 'rebuild/lanes/b/S13-REGEN.test.cjs'])
     assert(src.includes("'" + exact + "'"), 'SCOPE lacks ' + exact);
   const w = world(); const f = '.github/workflows/other.yml';
   w.at[HEAD][f] = 'x\n'; w.disk[f] = 'x\n'; w.changed.push(f);
   const r = run(w);
   assert.equal(r.exitCode, 2, r.out);
-  assert(r.out.includes(f + ' (outside the S12B product scope)'), r.out);
+  assert(r.out.includes(f + ' (outside the S13 product scope)'), r.out);
 });

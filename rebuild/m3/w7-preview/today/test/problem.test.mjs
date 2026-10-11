@@ -1689,7 +1689,13 @@ test('N2-08 - a saved night is what the check-in own reader finds, with no A3 ed
    first among them - are moved BY THAT PACKAGE, declared in packages/S12.json, so the declaring-spec
    chain has to know about it. S12 releases nothing. Youngest first, so 'S12' goes last and is
    consulted first; the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12'];
+/* S13 ADDS 'S13', and the cell is unchanged in every other way. S13 (M2-S13-POLISH, THEME DECISIONS:918) is the
+   reseal child that carries the S12 look AND the S12b polish over the SEALED S11 parent (seal tip 7c79ef1):
+   the files it moves - gym-model.mjs and the sealed cells it moves, local-today-journey.test.mjs among them -
+   are moved BY THAT PACKAGE, declared in packages/S13.json (S12.json stands at its merged S12 bytes), so the
+   declaring-spec chain has to know about it. S13 releases nothing. Youngest first, so 'S13' goes last and
+   is consulted first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13'];
 
 test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', () => {
   /* The reuse path already existed and was dead because nothing wrote a night. N2 is

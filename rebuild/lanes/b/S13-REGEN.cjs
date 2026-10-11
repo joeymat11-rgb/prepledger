@@ -1,17 +1,17 @@
 'use strict';
-/* S12B-REGEN, PORTED FROM S12-REGEN, whose header follows (M2-S12-LOOK, the PM's route A of DECISIONS:904: an UNSEALED child of the sealed S11, run
+/* S13-REGEN, PORTED FROM S12-REGEN, whose header follows (M2-S12-LOOK, the PM's route A of DECISIONS:904: an UNSEALED child of the sealed S11, run
    with --ci). The port of rebuild/lanes/b/S11-REGEN.cjs (a283b778; itself the port of S10-REGEN.cjs,
    Astra S10-INTEGRATION-REVIEW-L2..L5 B5, D-REGEN-INPUT, D-S11-A1, D-S11-A2) to S12 over the SEALED S11
    parent (DECISIONS:896-897, seal tip 7c79ef1). ONE COMMAND, RUN AFTER S12 IS MERGE-FORWARDED (never
    rebased, DECISIONS:563) ONTO THE SEALED S11 PARENT:
 
-     node rebuild/lanes/b/S12B-REGEN.cjs --parent <S11_PARENT_COMMIT> [--worktree] [--receipt-line N] [--write [--allow-stale-notes]]
+     node rebuild/lanes/b/S13-REGEN.cjs --parent <S11_PARENT_COMMIT> [--worktree] [--receipt-line N] [--write [--allow-stale-notes]]
 
-   It re-measures, AT THE PARENT COMMIT, every value of packages/S12B.json that the S11 seal fixes:
+   It re-measures, AT THE PARENT COMMIT, every value of packages/S13.json that the S11 seal fixes:
    every product `pre` (from the sealed S11 artifact's product map), the pre of every S11 execution pin
    S12 changes (role superseded-by-child), parent.options[0].sha256 and reviewSha256, sourceBase and
    tooling.runnerSha256; every `post` is re-measured at HEAD. Children, coverage and authorizations are
-   CARRIED from the S12B.json on disk, never authored. The three notes whose content IS a parent
+   CARRIED from the S13.json on disk, never authored. The three notes whose content IS a parent
    measurement - PRODUCT MAP, the parent-unpinned paths and the superseded execution pins - are
    REGENERATED; every other note is carried, and a carried note that still makes a draft-time claim (the
    S11 helper's STALE pattern, unchanged) is FLAGGED; --write refuses while one is flagged unless
@@ -33,7 +33,7 @@
        from the whole declared union. The walk stops at the first parent that is not of that shape (the
        release role exists only since S9, and the chain's root, acceptance-step-efficacy.json, stands
        outside rebuild/m4/spec/) and is bounded at ANCESTOR_HOPS; a released path is never read.
-   (B) --worktree, for authoring BEFORE the commit. A builder seat may not commit, so S12B.json is first
+   (B) --worktree, for authoring BEFORE the commit. A builder seat may not commit, so S13.json is first
        written from the WORKING TREE: discovery is `git diff --name-only <P> -- <SCOPE...>` (the
        worktree against the parent) plus `git ls-files --others --exclude-standard -- <SCOPE...>` (new
        files not yet tracked), and every post is sha256 of the bytes ON DISK. Every path is still
@@ -50,9 +50,9 @@
        (rebuild/lanes/b/S11-NATIVE-LOAD-BRIEF.md, an execution pin of the parent artifact), this helper
        and its test, and .github/workflows/look-gates.yml (the look's own workflow, declared by S12;
        admitted by identity as the two other exact workflow files are). Every run prints the count of
-       entries and of path/revision pairs it validated. FIXED_INPUTS (S12B.json, the parent's S11.json,
+       entries and of path/revision pairs it validated. FIXED_INPUTS (S13.json, the parent's S11.json,
        the runner) are the INITIAL TRUST INPUTS: they are validated first, before any read. In order,
-       the reads that precede discovery are: S12B.json on disk and S11.json at the parent P; then, each
+       the reads that precede discovery are: S13.json on disk and S11.json at the parent P; then, each
        validated first, the S11 parent artifact and review at P, refused by name unless they are exactly
        PARENT_ARTIFACT and PARENT_REVIEW (the reviewed slug s11-native-load); then the ancestor artifacts
        of (A), each validated first; and, only in the CANDIDATE mode (no artifact at P, so a dry run
@@ -75,20 +75,21 @@
    D-REGEN-INPUT: --write also requires the parent's review envelope to be status ACCEPTED, and every
    released path of (A) is excluded from the WHOLE declared union, not only from the discovery.
    Without --write it is a DRY RUN and writes nothing. It loads no engine module. */
-/* S12B-REGEN (M2-S12B-POLISH, DECISIONS:914-:915 and the PM's R16 ruling: S12b is its OWN unsealed --ci child of
+/* S13-REGEN (M2-S13-POLISH, DECISIONS:914-:915 and the PM's R16 ruling, renumbered S13 by his R20 ruling before it ever ran: S12b is its OWN unsealed --ci child of
    the sealed S11, so the sealed-inventory fence's reseal-child claim covers its touches of S11-sealed paths, as
    S12's own claim covered S12 at dbfc1ee). THE PORT OF rebuild/lanes/b/S12-REGEN.cjs, and nothing else moves:
-   (i) the spec it re-measures and writes is packages/S12B.json (S12.json stands at its merged S12 bytes and is,
+   (i) the spec it re-measures and writes is packages/S13.json (S12.json stands at its merged S12 bytes and is,
        from the S11 seal, a changed file this child carries like any other);
    (ii) SCOPE keeps S12's four exact files and adds two, this helper and its test;
-   (iii) --write writes the JSON with every non-ASCII character as a JSON \\u escape, so the spec file is ASCII
-       and parses to exactly the values S12-REGEN would write (every quoted ledger line, every lineSha256);
-   (iv) its messages name S12B-REGEN and the S12B product scope. The parent is still the sealed S11 at 7c79ef1
-   (DECISIONS:896-897): S12B carries S12's look AND the S12b polish over it, each path measured from the seal.
+   (iii) --write writes the runner's canonical JSON bytes (strict-json.cjs parseExact: JSON.stringify(value,
+       null, 2) + LF, UTF-8), byte for byte as S12-REGEN does; the R16 ASCII-escaped write was refused by
+       b-package as JSON-NONCANONICAL-BYTES and is gone (R19);
+   (iv) its messages name S13-REGEN and the S13 product scope. The parent is still the sealed S11 at 7c79ef1
+   (DECISIONS:896-897): S13 carries S12's look AND the S12b polish over it, each path measured from the seal.
    S12-REGEN's own header follows unchanged in substance. */
 const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process'), crypto = require('node:crypto');
 const REPO = path.resolve(__dirname, '..', '..', '..');
-const SPEC = 'rebuild/lanes/b/tooling/packages/S12B.json', S11SPEC = 'rebuild/lanes/b/tooling/packages/S11.json';
+const SPEC = 'rebuild/lanes/b/tooling/packages/S13.json', S11SPEC = 'rebuild/lanes/b/tooling/packages/S11.json';
 const RUNNER = 'rebuild/lanes/b/tooling/b-package.cjs';
 const SCOPE = ['.github/workflows/rebuild.yml', '.github/workflows/shared-preflight.yml',
   'rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs', 'rebuild/engine/',
@@ -105,8 +106,8 @@ const SCOPE = ['.github/workflows/rebuild.yml', '.github/workflows/shared-prefli
   /* S12's four exact files (header (1)). */
   'rebuild/lanes/b/S11-NATIVE-LOAD-BRIEF.md', 'rebuild/lanes/b/S12-REGEN.cjs', 'rebuild/lanes/b/S12-REGEN.test.cjs',
   '.github/workflows/look-gates.yml',
-  /* S12B's two exact files (port note (ii)). */
-  'rebuild/lanes/b/S12B-REGEN.cjs', 'rebuild/lanes/b/S12B-REGEN.test.cjs'];
+  /* S13's two exact files (port note (ii)). */
+  'rebuild/lanes/b/S13-REGEN.cjs', 'rebuild/lanes/b/S13-REGEN.test.cjs'];
 const PROTECTED = new Set(['seed', 'migrate', 'merge', 'index', 'oracle-shim'].map((n) => 'rebuild/engine/' + n + '.cjs'));
 const FORBIDDEN = [/(^|\/)src\//, /^rebuild\/conform\/private(\/|$)/, /(^|\/)ledger\//, /soak/i];
 /* B5 RESIDUAL (Astra S10-INTEGRATION-REVIEW-L3), carried unchanged: filesystem-equivalence matching of the
@@ -125,15 +126,15 @@ const ADMITTED_EXT = new Set(['.cjs', '.css', '.html', '.json', '.md', '.mjs', '
 const EXACT_REVIEWED = new Set(SCOPE.filter((r) => !r.endsWith('/')));
 /* B5 RESIDUAL, L5, carried: POSITIVE REVIEWED PROVENANCE. REVIEWED is the union of the inventories this run
    binds: the fixed inputs and exact-file SCOPE entries; the S11 parent artifact and review (slug
-   s11-native-load); the product keys of S12B.json; the product keys of the parent's S11.json at P and its
+   s11-native-load); the product keys of S13.json; the product keys of the parent's S11.json at P and its
    execution-pin paths; and, new in S12 (header (A)), each ancestor artifact path the artifact before it
-   names as its parent. LIMIT (as S10- and S11-REGEN): a path that S12B.json or the parent S11.json itself
+   names as its parent. LIMIT (as S10- and S11-REGEN): a path that S13.json or the parent S11.json itself
    declares is a member BY THAT DECLARATION; the review of that declaration is its gate. */
 const PARENT_ARTIFACT = 'rebuild/m4/spec/acceptance-s11-native-load.json', PARENT_REVIEW = 'rebuild/m4/spec/review-s11-native-load.json';
 const ANCESTOR_SHAPE = /^rebuild\/m4\/spec\/acceptance-[a-z0-9-]+\.json$/;
 const ANCESTOR_HOPS = 16;
 const REVIEWED = new Set([SPEC, S11SPEC, RUNNER, ...EXACT_REVIEWED, PARENT_ARTIFACT, PARENT_REVIEW]);
-const NOT_REVIEWED = 'not admitted for a content read: not an exact member of a reviewed inventory (S12B.json product, the parent S11.json product and execution pins, the fixed inputs, the S11 parent artifact and review and the ancestors they name, the exact-file SCOPE entries); declare it in S12B.json first';
+const NOT_REVIEWED = 'not admitted for a content read: not an exact member of a reviewed inventory (S13.json product, the parent S11.json product and execution pins, the fixed inputs, the S11 parent artifact and review and the ancestors they name, the exact-file SCOPE entries); declare it in S13.json first';
 function admission(segs) {
   const exact = EXACT_REVIEWED.has(segs.join('/'));
   for (const s of segs) {
@@ -155,7 +156,7 @@ const git = (a) => cp.execFileSync('git', a, { cwd: REPO, maxBuffer: 1e9, stdio:
 const arg = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
 const WRITE = process.argv.includes('--write');
 const WORKTREE = process.argv.includes('--worktree');
-const fail = (m) => { console.error('S12B-REGEN REFUSED: ' + m); process.exit(2); };
+const fail = (m) => { console.error('S13-REGEN REFUSED: ' + m); process.exit(2); };
 if (WRITE && !/^[1-9][0-9]*$/.test(arg('--receipt-line') || ''))
   fail('--write needs --receipt-line N (the S11 receipt ledger line, parent.options[0].receiptLedgerLine); the runner re-reads that line');
 
@@ -171,7 +172,7 @@ function shape(f) {
   const canon = segs.map(canonSeg).join('/');
   if (FORBIDDEN.some((re) => re.test(f) || re.test(canon))) return 'in the forbidden set';
   if (CANON_PROTECTED.has(canon) && !PROTECTED.has(f)) return 'an alternate spelling of a protected engine file';
-  if (!inScope(f)) return 'outside the S12B product scope';
+  if (!inScope(f)) return 'outside the S13 product scope';
   if (!AUTH_ALLOWLIST.has(f) && segs.some((s) => ['auth.json', '.credentials'].includes(canonSeg(s)) || AUTH_SEGMENT.test(s)))
     return 'an auth-shaped name under an allowed root (auth.json, .credentials, auth|credential|token|secret)';
   const refused = admission(segs);
@@ -224,16 +225,16 @@ function validateAll(paths, revs, label, reads = () => true) {
 }
 // Reads happen ONLY through these two, and only for a path validate() accepted at that revision.
 function blobAt(rev, f) {
-  if (PROTECTED.has(f)) throw new Error('S12B-REGEN never reads a protected engine file: ' + f);
-  if (!validated.has(rev + ':' + f)) throw new Error('S12B-REGEN read before validation: ' + rev + ':' + f);
-  if (!REVIEWED.has(f)) throw new Error('S12B-REGEN read outside the reviewed inventory: ' + f);
+  if (PROTECTED.has(f)) throw new Error('S13-REGEN never reads a protected engine file: ' + f);
+  if (!validated.has(rev + ':' + f)) throw new Error('S13-REGEN read before validation: ' + rev + ':' + f);
+  if (!REVIEWED.has(f)) throw new Error('S13-REGEN read outside the reviewed inventory: ' + f);
   const e = validated.get(rev + ':' + f);
   return e ? cp.execFileSync('git', ['cat-file', 'blob', e.oid], { cwd: REPO, maxBuffer: 1e9 }) : null;
 }
 function diskAt(f) {
-  if (PROTECTED.has(f)) throw new Error('S12B-REGEN never reads a protected engine file: ' + f);
-  if (!validated.has('HEAD:' + f)) throw new Error('S12B-REGEN disk read before validation: ' + f);
-  if (!REVIEWED.has(f)) throw new Error('S12B-REGEN disk read outside the reviewed inventory: ' + f);
+  if (PROTECTED.has(f)) throw new Error('S13-REGEN never reads a protected engine file: ' + f);
+  if (!validated.has('HEAD:' + f)) throw new Error('S13-REGEN disk read before validation: ' + f);
+  if (!REVIEWED.has(f)) throw new Error('S13-REGEN disk read outside the reviewed inventory: ' + f);
   try { return fs.readFileSync(path.join(REPO, ...f.split('/'))); } catch { return null; }
 }
 const shaAt = (rev, f) => { const b = blobAt(rev, f); return b === null ? null : sha(b); };
@@ -261,7 +262,7 @@ const S11 = JSON.parse(s11raw.toString('utf8'));
 const s11targets = [...new Set([RUNNER, S11SPEC, ...(S11.brief && S11.brief.file ? [S11.brief.file] : []),
   ...(S11.children || []).flatMap((c) => (c.argv || []).filter((a) => !a.startsWith('--')))])];
 for (const f of [...Object.keys(S12.product || {}), ...Object.keys(S11.product || {}), ...s11targets]) REVIEWED.add(f);
-const option = ((S12.parent && Array.isArray(S12.parent.options)) ? S12.parent.options : []).find((o) => o.id === 'S11') || fail('S12B.json names no S11 parent option');
+const option = ((S12.parent && Array.isArray(S12.parent.options)) ? S12.parent.options : []).find((o) => o.id === 'S11') || fail('S13.json names no S11 parent option');
 validateAll([option.artifact, option.review], [P], 'parent artifact');
 if (option.artifact !== PARENT_ARTIFACT || option.review !== PARENT_REVIEW)
   fail('REGEN-PATH-REFUSED parent artifact: ' + [option.artifact, option.review].join(', ') + ' (not admitted for a content read: not the reviewed S11 parent artifact or review, which are exactly ' + PARENT_ARTIFACT + ' and ' + PARENT_REVIEW + ')');
@@ -349,10 +350,10 @@ if (!WORKTREE) for (const [f, p] of Object.entries(product)) if (p.role !== 'rel
 const runnerPost = postOf(RUNNER);
 
 const roles = {}; for (const p of Object.values(product)) roles[p.role] = (roles[p.role] || 0) + 1;
-console.log('S12B-REGEN ' + (WRITE ? 'WRITE' : 'DRY RUN') + ' at parent ' + P + ' / HEAD ' + HEADSHA + (WORKTREE ? ' + THE UNCOMMITTED WORKING TREE (--worktree)' : ''));
+console.log('S13-REGEN ' + (WRITE ? 'WRITE' : 'DRY RUN') + ' at parent ' + P + ' / HEAD ' + HEADSHA + (WORKTREE ? ' + THE UNCOMMITTED WORKING TREE (--worktree)' : ''));
 console.log('  mode: ' + mode + (WORKTREE ? '; posts are sha256 of the bytes ON DISK, not at HEAD (header (B))' : ''));
-console.log('  scope: ' + SCOPE.length + ' reviewed roots and exact files; ' + validated.size + ' path/revision pair(s) validated before any product read; ' + changed.length + ' changed path(s) in scope, ' + (changed.length - changedRead.length) + ' of them never read (reports, S12B.json)');
-console.log('  reviewed inventory: ' + REVIEWED.size + ' exact paths (S12B.json product, parent S11.json product and execution pins, fixed inputs, S11 parent artifact and review, the ancestor artifacts, exact-file SCOPE entries); every read path is a member');
+console.log('  scope: ' + SCOPE.length + ' reviewed roots and exact files; ' + validated.size + ' path/revision pair(s) validated before any product read; ' + changed.length + ' changed path(s) in scope, ' + (changed.length - changedRead.length) + ' of them never read (reports, S13.json)');
+console.log('  reviewed inventory: ' + REVIEWED.size + ' exact paths (S13.json product, parent S11.json product and execution pins, fixed inputs, S11 parent artifact and review, the ancestor artifacts, exact-file SCOPE entries); every read path is a member');
 console.log('  ancestor artifacts walked for releases (header (A)): ' + (ancestors.length ? ancestors.length + ' - ' + ancestors.join(' ') : 'none'));
 console.log('  product: ' + Object.keys(product).length + ' paths ' + JSON.stringify(roles) + '; ' + moves.length + ' entr(ies) would change');
 for (const m of moves.slice(0, 40)) console.log('    ' + m);
@@ -369,10 +370,10 @@ for (const p of problems) console.log('  PROBLEM ' + p);
 // Regenerate the measured notes; flag the carried ones that still make a draft-time claim.
 const execSup = Object.entries(product).filter(([, p]) => p.role === 'superseded-by-child').map(([f, p]) => f + ' pre ' + p.pre + ' post ' + p.post);
 const MEASURED = [
-  ['PRODUCT MAP', 'PRODUCT MAP (regenerated by rebuild/lanes/b/S12B-REGEN.cjs at parent ' + P + '). pre is the parent pin read at that commit (' + mode + '); post is sha256 of the bytes ' +
+  ['PRODUCT MAP', 'PRODUCT MAP (regenerated by rebuild/lanes/b/S13-REGEN.cjs at parent ' + P + '). pre is the parent pin read at that commit (' + mode + '); post is sha256 of the bytes ' +
     (WORKTREE ? 'ON DISK in the UNCOMMITTED working tree over HEAD ' + HEADSHA + ' (--worktree, header (B)): after the commit a dry run without --worktree must print "0 entr(ies) would change"'
       : 'at HEAD ' + HEADSHA) + '. Released paths of the parent and its ancestors are not declared: ' +
-    ([...parentReleased].sort().map((f) => f + ' (' + releasedBy.get(f) + ')').join(', ') || 'none') + '. New paths are every path changed since the parent, inside the S12B product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself. Roles: ' + JSON.stringify(roles) + '.'],
+    ([...parentReleased].sort().map((f) => f + ' (' + releasedBy.get(f) + ')').join(', ') || 'none') + '. New paths are every path changed since the parent, inside the S13 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ and this spec itself. Roles: ' + JSON.stringify(roles) + '.'],
   ['PARENT-UNPINNED PATHS', 'PARENT-UNPINNED PATHS (regenerated at ' + P + '): ' + parentUnpinned.length + ' path(s) existed at the parent pinned by neither its product map nor its execution pins and are declared here, so they are declared role new with pre null (DECISIONS:792): ' + (parentUnpinned.join(', ') || 'none') + '.'],
   ['EXECUTION PIN SUPERSEDED', 'EXECUTION PIN SUPERSEDED (regenerated at ' + P + '): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: ' + (execSup.join('; ') || 'none') + '.']];
 const OLD_PREFIX = { 'PRODUCT MAP': ['PRODUCT MAP'], 'PARENT-UNPINNED PATHS': ['PARENT-UNPINNED PATHS'], 'EXECUTION PIN SUPERSEDED': ['EXECUTION PIN SUPERSEDED'] };
@@ -399,7 +400,5 @@ S12.tooling.runnerSha256 = runnerPost;
 S12.product = product;
 const pendingAfter = pendingPaths(S12, '$', []);
 console.log('  PENDING left for the PM, never filled by this helper: ' + pendingAfter.length + ' value(s)' + (pendingAfter.length ? ' - ' + pendingAfter.join(' ') : ''));   // D-S11-A1: every path, no cap
-/* Port note (iii): ASCII on disk; the same JSON values. */
-const asciiJson = (s) => s.replace(/[\u0080-\uffff]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
-fs.writeFileSync(path.join(REPO, SPEC), asciiJson(JSON.stringify(S12, null, 2)) + '\n');
+fs.writeFileSync(path.join(REPO, SPEC), JSON.stringify(S12, null, 2) + '\n');
 console.log('WROTE ' + SPEC + ' ' + sha(fs.readFileSync(path.join(REPO, SPEC))));

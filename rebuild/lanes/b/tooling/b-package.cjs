@@ -191,7 +191,7 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // NO_REGISTER_IDS below) and NO CHILD_ROOTS hunk: every directory its children run under is
 // already a root. Without the id here the argv gate refuses `--package S12` outright, before a
 // byte of its spec is read.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S12B', 'B1', 'B2', 'B4', 'B3'];
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'B1', 'B2', 'B4', 'B3'];
 // RETIRED IDS, and why this list has to exist at all. Removing an id from IDS and deleting
 // its spec file are ONE act - DECISIONS:487 stop 2 orders both for B-LOM - but TOOLING_FILES
 // below is derived from IDS, so the moment the id goes the deleted path stops being named
@@ -353,7 +353,11 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // sealed cells it moves, red first and named; slice-plan work under DECISIONS:455 with no
 // register D-id and no rebuild/engine byte. It is an S- id, so the shape assertion below
 // admits it without a PM by-name ruling.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12']);
+// 'S13' is in for the same reason a tenth time: M2-S13-POLISH is a reseal whose product delta is the S12b
+// polish over the S12 look on the sealed S11 (DECISIONS:914-915; the PM's rulings R16 and R20, THEME :918), with no
+// rebuild/engine byte and no register D-id. It is an S- id, so the shape assertion below admits it without a PM
+// by-name ruling; it was numbered S13 for exactly that reason, and no pattern below moves.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).

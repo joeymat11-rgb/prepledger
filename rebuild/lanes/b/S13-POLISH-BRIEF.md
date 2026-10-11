@@ -1,18 +1,19 @@
-# S12B-POLISH-BRIEF: M2-S12B-POLISH, the S12b screen and layout polish on the sealed S11 (fast route)
+# S13-POLISH-BRIEF: M2-S13-POLISH, the S12b screen and layout polish on the sealed S11 (fast route)
 
-- Brief of record for rebuild/lanes/b/tooling/packages/S12B.json (brief.file). Accepted only by sha256, on a cowork
+- Brief of record for rebuild/lanes/b/tooling/packages/S13.json (brief.file). Accepted only by sha256, on a cowork
   BRIEF ACCEPTED BY SHA line on rebuild/t2-client-core; any edit makes a new sha and needs a new line.
-- Package M2-S12B-POLISH (lanePackage S12B), parent M2-S11-NATIVE-LOAD (receipt DECISIONS:896, sealed and merged :897).
+- Package M2-S13-POLISH (lanePackage S13), parent M2-S11-NATIVE-LOAD (receipt DECISIONS:896, sealed and merged :897).
 - Route: the S12b fast route (owner, DECISIONS:914 "visual polish first"; PM, DECISIONS:915 "new definition of done,
-  review cap, Coach off Today, order of work"), made its own child package by the PM's ruling R16.
-- Written 2026-10-11 by a builder seat over the lane worktree of branch rebuild/c-look-s12b: commit 40ff08d (the PM's
-  commit of R6-R13 on a4b138d) plus the uncommitted R14 and R16 edits named in section 4. The PM amends.
-- A map of what S12B is and is not. It does not restate S11's brief (DECISIONS:875) or S12-LOOK-BRIEF.md; both stay
-  the contracts for everything S12B carries unchanged.
+  review cap, Coach off Today, order of work"), made its own child package by the PM's ruling R16 and numbered S13
+  by his ruling R20 (section 3).
+- Written 2026-10-11 by a builder seat over the lane worktree of branch rebuild/c-look-s12b: commit aaf6008 (R6-R18,
+  committed by the PM) plus the uncommitted R19 and R20 edits named in section 4. The PM commits.
+- A map of what S13 is and is not. It does not restate S11's brief (DECISIONS:875) or S12-LOOK-BRIEF.md; both stay
+  the contracts for everything S13 carries unchanged.
 
-## 1. What S12B is, in one paragraph
+## 1. What S13 is, in one paragraph
 
-S12B is the S12b polish: the fixes that came out of a screen-by-screen ease-of-use audit of the S12 look, run at
+S13 is the S12b polish: the fixes that came out of a screen-by-screen ease-of-use audit of the S12 look, run at
 phone sizes (360x780, 390x844) in both themes, plus one client-side defect fix (the fast Finish, R13/R14). It is a
 presentation-and-client delta over the S12 look that is already on rebuild/t2-client-core: stylesheet rules, template
 order, Today's view code, the gym view's after-workout wiring, the gym client model's continuation retry, the copy-lock
@@ -31,36 +32,37 @@ the workout; no screen scrolls sideways; fields, buttons and safe areas fit a ph
 
 | item | value |
 |---|---|
-| parent package | M2-S11-NATIVE-LOAD (packages/S11.json, unchanged and undeclared by S12B) |
+| parent package | M2-S11-NATIVE-LOAD (packages/S11.json, unchanged and undeclared by S13) |
 | parent artifact | rebuild/m4/spec/acceptance-s11-native-load.json sha256 bde69f156c4f88e15c65ae79790d0e7ad34c522af058e22438c7ea1fef5ccac4 |
 | parent review | rebuild/m4/spec/review-s11-native-load.json sha256 6388db96f429e498b7c78bfd5ebb3c04ae08b7550ee274ef0b0ee0c466a41f5b |
 | receipt | DECISIONS:896 (POSTFIX-ACCEPTANCE M2-S11-NATIVE-LOAD); sealed and merged DECISIONS:897 |
-| seal tip | 7c79ef16b770ab881892ad126dadfe0687bc1d2b = S12B.json sourceBase (set by S12B-REGEN at every --write) |
-| sibling before it | M2-S12-LOOK (packages/S12.json), merged to the chain; S12.json is left at its chain bytes by S12B |
+| seal tip | 7c79ef16b770ab881892ad126dadfe0687bc1d2b = S13.json sourceBase (set by S13-REGEN at every --write) |
+| sibling before it | M2-S12-LOOK (packages/S12.json), merged to the chain; S12.json is left at its chain bytes by S13 |
 | chain at branch point | refs/remotes/origin/rebuild/t2-client-core a4b138d (DECISIONS:915) |
 | engine | no rebuild/engine byte moves; the coach ENGINE_REVISION stays S11's |
 
-S12B.json parent.options[0] is S11 with receiptLedgerLine 896 and the artifact and review shas above, re-measured by
-S12B-REGEN. Its product pre values are the bytes at 7c79ef1, so its product map covers the S12 look and the S12b
-polish together, as one delta over the sealed S11.
+S13-REGEN re-measures the parent option (S11, receipt line 896, the shas above) and every product pre at 7c79ef1, so
+the map covers the S12 look and the S12b polish as one delta over the sealed S11.
 
-## 3. The route, and why S12B is its own package
+## 3. The route, and why S13 is its own package
 
 - DECISIONS:914 (owner): visual polish first, on the S12b fast route. DECISIONS:915 (PM): the definition of done, the
-  review cap, Coach off Today, the order of work. The rounds R6-R16 are the PM's round messages to this seat.
+  review cap, Coach off Today, the order of work. The rounds R6-R20 are the PM's round messages to this seat.
 - The fence. rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs, cell "THE REAL ROW", diffs
   merge-base(chain, HEAD)..HEAD (committed history only) and refuses any touched path the chain's sealed top artifact
-  (acceptance-s11) does not release. A branch stands aside only under the RESEAL-CHILD CLAIM, when all five hold:
-  1. the diff adds exactly one rebuild/lanes/b/tooling/packages/<ID>.json at status A, with the runner's SPEC_KEYS;
-  2. that spec's chosen parent option binds acceptance-s11 at bde69f15;
-  3. <ID> is not in b-package.cjs IDS at the chain;
-  4. the diff touches b-package.cjs and HEAD's IDS carries <ID>;
-  5. the spec's sourceBase is an ancestor of HEAD.
+  (acceptance-s11) does not release, unless the RESEAL-CHILD CLAIM holds: the diff adds exactly one
+  packages/<ID>.json (status A, SPEC_KEYS closure) whose parent binds acceptance-s11 at bde69f15; <ID> is not in
+  IDS at the chain, b-package.cjs is touched and HEAD's IDS carries it; its sourceBase is an ancestor of HEAD.
 - S12 stood aside this way at dbfc1ee. After S12 merged, a branch cut from a4b138d has no S12.json at status A, so the
   fence (its F3 note) treats S12b as an ordinary branch: at 40ff08d it is 62/1, naming nine sealed paths (section 6).
-- R16 (PM ruling) makes S12b the child M2-S12B-POLISH (section 4). The standing CI step moves from --package S12 to
-  --package S12B: S12.json is back at its chain bytes, the polish moves files whose posts it pins, so S12's step
-  would refuse here; S12B.json re-measures S12's whole map, so its step covers everything S12's did.
+- R16 (PM ruling) makes S12b its own child package (section 4), and the standing CI step moves from --package S12
+  to --package S13: S12.json is at its chain bytes and the polish moves files whose posts it pins, so S12's step
+  would refuse here; S13.json re-measures S12's whole map, so its step covers everything S12's did.
+- R20 (PM ruling, escalated under DECISIONS:915 (2) instead of widening a guard). The child was first registered
+  under the S12b id of DECISIONS:916-:917 and never ran: that id fails the runner's no-register shape
+  /^[HFS][0-9]+$/, and a package with no D-id must be in NO_REGISTER_IDS (b-package.cjs, REGISTER-D-ID-INVENTORY-
+  EMPTY-AND-NOT-EXEMPT). So it is renumbered S13 (M2-S13-POLISH) and added BY NAME to NO_REGISTER_IDS exactly as
+  S12 is; no pattern moves. The hold/bodyweight slice becomes S14 and the gym change S15 (the PM's ledger).
 
 ## 4. Composition
 
@@ -68,24 +70,25 @@ polish together, as one delta over the sealed S11.
 |---|---|---|
 | a4b138d | the chain at branch point (S12 merged; DECISIONS:914, :915) | chain |
 | 40ff08d | "S12b R6-R13: screen and layout fixes for ease of use (DECISIONS:914-:915)", the PM's commit | committed |
-| R14 | rebuild/m3/w7-preview/today/gym-model.mjs: the narrow fast-Finish design (section 7) | worktree |
-| R16 | packages/S12B.json (new), packages/S12.json (restored), b-package.cjs (IDS), rebuild.yml (one line), rebuild/lanes/b/S12B-REGEN.cjs and S12B-REGEN.test.cjs (new), this brief (new) | worktree |
+| 534851e..aaf6008 | R14-R18: gym-model.mjs (fast Finish); the child package, regenerator pair and brief; S12.json restored; IDS; the chain merged at c5d7f61; the standing step | committed |
+| R19 | canonical spec bytes (strict-json.cjs); the CHILD_SPECS lists of five tests and the tooling F6 IDS pin (section 6) | worktree |
+| R20 | the rename: packages/S13.json, the S13-REGEN pair, this brief; IDS and NO_REGISTER_IDS 'S13'; rebuild.yml --package S13; the CHILD_SPECS lists and F6 pins | worktree |
 
-The fence reads committed history: it turns green only when the PM's amend puts S12B.json at status A and the IDS
-line in the same merge-base diff.
+The fence reads committed history. It held 63/63 at aaf6008 under the claim; once R20 is committed the claim needs
+packages/S13.json at status A and 'S13' in IDS in the same merge-base diff (the chain has neither).
 
-## 5. Product map (S12B.json, 341 paths by role)
+## 5. Product map (S13.json, 341 paths by role)
 
 - 21 new: S12's 18 plus packages/S12.json (declared so the regenerator may read it; post = chain bytes) and the
-  S12B-REGEN pair. 29 edited (S12's set; S12b's edits land in gym-model.mjs and the today, W6 and copy-lock tests).
+  S13-REGEN pair. 29 edited (S12's set; S12b's edits land in gym-model.mjs and the today, W6 and copy-lock tests).
   291 carried, byte-equal to 7c79ef1.
 - Released-undeclared, as in S12: today-app.cjs, gym-app.mjs, preview.css and build.mjs (released by the S9/S10
-  ancestors; the regenerator's ancestor-release walk leaves them out). S12B moves three of them.
-- S12B-REGEN.cjs is S12-REGEN.cjs ported (SPEC packages/S12B.json; SCOPE plus the S12B-REGEN pair; ASCII-escaped
-  write). Run `--parent 7c79ef1... --worktree`, then `--write --receipt-line 896`, then dry again (0 changes). Its
-  PENDING census: $.brief.acceptedLedgerLine, $.authorizations.theme.line, $.authorizations.theme.lineSha256.
+  ancestors; the regenerator's ancestor-release walk leaves them out). S13 moves three of them.
+- S13-REGEN.cjs is S12-REGEN.cjs ported (SPEC packages/S13.json; SCOPE plus the S13-REGEN pair; the runner's
+  canonical JSON write, R19). Run `--parent 7c79ef1... --worktree`, then `--write --receipt-line 896`, then dry
+  (0 changes). PENDING: $.brief.acceptedLedgerLine, $.authorizations.theme.line, $.authorizations.theme.lineSha256.
 
-## 6. The nine S11-sealed paths S12B touches, and why
+## 6. The nine S11-sealed paths S13 touches, and why
 
 The fence's REAL ROW at 40ff08d names these nine; the reseal-child claim of section 3 is what lets them move.
 
@@ -100,6 +103,11 @@ The fence's REAL ROW at 40ff08d names these nine; the reseal-child claim of sect
 | w7-preview/today/test/copy-lock.corpus.json | R6, R9 | the re-measured corpus |
 | w6/test/local-today-journey.test.mjs | R6 | the two "Log the scale" pins become Start plus the morning card's weigh-in form |
 | w6/host/test/local-real-day.test.mjs | R6, R8, R9 | the one durable tap is one submit of the card's form; the primary follows the rule by kind of day |
+
+R19-R20 add, under the same claim, 'S13' after 'S12' in the declaring-spec chain (CHILD_SPECS) of boundary.test.mjs
+(P-MEASURE (g)), food.test.mjs (N1.18), machine-settings-ui.test.mjs (S10), problem.test.mjs and setup.test.mjs
+(re-pin): S12.json stands at its chain bytes, so only S13.json declares the bytes S12b's files stand at. The lane B
+tooling F6 cell pins the runner's IDS (17) and NO_REGISTER_IDS (13) by literal, as it did for S12.
 
 ## 7. The changes, by file (R6-R14)
 
@@ -124,12 +132,10 @@ The fence's REAL ROW at 40ff08d names these nine; the reseal-child claim of sect
   WORKOUT_RESUME_REQUIRED (which executeResumedWorkout returns before bridge.execute, so nothing is written) waits and
   prepares again, at most three attempts. Reads never wait on a write, so every GSS annex guarantee holds (R13's
   serialisation broke two of them; R14 replaced it).
-- Browser checks (browser-check, gym-check, machine-settings-check, sleep-check, w6 local-today-browser): R8-R13
-  each stands on a fixed declared day through app.js boot({ today }) (TRAIN 2030-02-04, REST 2030-02-06); each reads
-  the current gym card; each closes its browser in a bounded finally; gym-check taps Finish the moment it is drawn and
-  expects "Workout recorded".
-- Static audit (outside the lane, %TEMP%\s12b-fix): screen-scrolls-sideways is a BROKEN kind (.view scrollWidth minus
-  clientWidth above 0); red first (BROKEN 10), green after R11.
+- The five browser checks (R8-R13): a fixed declared day via app.js boot({ today }) (TRAIN 2030-02-04, REST
+  2030-02-06), the current gym card, a bounded teardown; gym-check taps Finish at once, expects "Workout recorded".
+- Static audit (outside the lane): BROKEN kind screen-scrolls-sideways (.view scrollWidth > clientWidth); red first
+  (BROKEN 10), green after R11.
 
 ## 8. The copy moves (no new words)
 
@@ -148,7 +154,7 @@ DECISIONS:905.
 ## 9. The tests changed, and how each stays as strict
 
 No law, guard or pin was weakened. Each replaced assertion reads the same fact from where the screen now shows it,
-with ONE narrow relaxation in a browser check (local-today-browser, below; accepted by Fable, REVIEW-S12B-R8-R13,
+with ONE narrow relaxation in a browser check (local-today-browser, below; accepted by Fable, its R8-R13 review,
 1fdbde2c).
 
 | test | change | why it is as strict |
@@ -162,14 +168,17 @@ with ONE narrow relaxation in a browser check (local-today-browser, below; accep
 | copy-lock.test, corpus | two sha literals | the lock is exact bytes either way; re-derived against the same S11 corpus |
 | local-today-journey | two "Log the scale" pins become Start plus the card's form | both facts pinned |
 | local-real-day S4/8 | the durable tap is one submit of the card's form; the primary is the weigh-in (live), a disabled Start, or a live workout action, by the workout line | same write site, same date assertions; the primary is pinned for every kind of day |
-| look-cui2 R3 words | "Talk through today's plan" pinned ABSENT from t-today and design.cjs; no #talk-today, data-go="coach" or coach-state on Today; the board still draws it; the Coach screen still ships its line | presence pins replaced by absence pins plus the board and Coach pins |
+| look-cui2 R3 words | "Talk through today's plan" ABSENT from t-today and design.cjs, no Coach entry or coach-state on Today; the board and the Coach screen still draw it | absence pins plus the board and Coach pins |
 | workout-look | the rest Log row holds exactly one button and the link row is exactly Undo (#edit, .link) then Back to Today; the S11 panel is order 2 after the stack's 1, --stack-lift 0px on both mounts, its safe-area padding pinned | exact counts and orders, as before |
 | the five browser checks | a fixed declared day; the current card's selectors; bounded teardown; gym-check's Finish tapped at once | the rest-day branch and the gym return path are asserted where they used to be skipped; two exceptions follow |
 | local-today-browser adoptions (R10) | was deepEqual [{from DAY, to NEXT_DAY, adopted}]; now the LAST adoption is exactly that, and at most one other is allowed, which must be to DAY, adopted true | RELAXED, narrowly: the shipped page boots on the live day first (S4), so the check's own stand onto DAY is a real adoption on the record; the later day must still be adopted by name |
 | machine-settings-check (R10) | `.catch(() => {})` on the three post-reload showsSettings waits | the verdict is kept: an exact assert.equal of the settings line follows each wait |
-| S12B-REGEN.test.cjs | new, the S12-REGEN test ported (env S12B_REGEN_UNDER_TEST; SCOPE row adds the S12B-REGEN pair) | 215 cells, as S12-REGEN.test |
+| S13-REGEN.test.cjs | new, the S12-REGEN test ported (env S13_REGEN_UNDER_TEST; SCOPE row adds the S13-REGEN pair) | 215 cells, as S12-REGEN.test |
+| S13-REGEN.test --write cell (R19) | its fixture value carries U+00B7 | stricter: an escaped write fails the canonical-bytes assertion (red first) |
+| five CHILD_SPECS lists (R19, R20) | 'S13' added after 'S12' | additive: a drift is still red unless the youngest declaring spec names its exact bytes |
+| tooling F6 (R19, R20) | IDS pin 17 ids; NO_REGISTER_IDS pin 13 ids | exact literals, as for S12; the shape regex is unchanged |
 
-## 10. What S12B does NOT move
+## 10. What S13 does NOT move
 
 - No engine byte: nothing under rebuild/engine changes; the coach ENGINE_REVISION is S11's.
 - No writer call change: the write sites and their commands are byte-equal in shape. submitWeighIn and openWeighIn are
@@ -183,13 +192,13 @@ with ONE narrow relaxation in a browser check (local-today-browser, below; accep
 
 ## 11. Evidence for the PM seat
 
-Held by this seat (protected-five guard preloaded on every run; nothing guard-stopped re-run): see R6-REPORT.md R6-R16.
+Held by this seat (protected-five guard preloaded on every run; nothing guard-stopped re-run): see R6-REPORT.md R6-R20.
 The seat still owes, before the fast-forward:
-1. The amend that commits R14 and R16, then sealed-inventory-fence (expected 63/63 under the reseal-child claim).
-2. b-package.cjs --ci --package S12B (the standing step). It passes only once the :916/:917 lines fill
+1. The commit of R19-R20, then sealed-inventory-fence (expected 63/63 under the claim, now for packages/S13.json).
+2. b-package.cjs --ci --package S13 (the standing step). It passes only once the :918/:919 lines fill
    authorizations.theme and brief.acceptedLedgerLine, and today-17 prints "# pass 837" (835 plus gym.test's R9 and
    R13 cells; no other child's count moved), which the seat confirms.
-3. S12B-REGEN dry at the amended commit: 0 entries would change.
+3. S13-REGEN dry at that commit: 0 entries would change; the lane B tooling suite.
 4. The build, then browser-check, gym-check, machine-settings-check and sleep-check with W7_BROWSER_BIN, on the
    declared days.
 5. w6 local-today-browser with W6_BROWSER_BIN (expected red: section 12).
@@ -199,17 +208,15 @@ The seat still owes, before the fast-forward:
 
 ## 12. Open debts
 
-- D-W6-LOCAL-TODAY-BROWSER: local-today-browser fails on the live tree too. It waits for #today-status to be visible,
-  and the page shell's chrome=0 hides the review aside it sits in; the text is already the expected "Restore required
-  ... (KEY_MISSING)". Not caused by S12b; left for its own fix.
-- F6 (the rest screen as the next set's screen), F8 (a rest day where the engine names tomorrow's session as today's
-  workout still offers Start; T-11 is drawn there) and F9 (tell() writes into the review aside, outside the phone
-  frame, so the status message never reaches a phone): LEFT OPEN, each an owner or placement decision, not a cheap
-  presentation rule. F11 is partly fixed; the quiet links keep the pack's 13.5 px. F10: nutrition's food-save is still
-  below the fold.
-- S12B-REGEN.test.cjs has no CI step. S12-REGEN.test's step is in rebuild.yml; adding one for S12B would move other
+- D-W6-LOCAL-TODAY-BROWSER: local-today-browser fails on the live tree too (it waits for #today-status to be
+  visible, and chrome=0 hides the aside it sits in; its text is the expected KEY_MISSING). Not caused by S12b.
+- LEFT OPEN, each an owner or placement decision: F6 (the rest screen as the next set's screen), F8 (a rest day the
+  engine gives tomorrow's session still offers Start, under T-11), F9 (tell() writes outside the phone frame, so the
+  status message never reaches a phone). F11 partly fixed (quiet links keep 13.5 px); F10 food-save below the fold.
+- S13-REGEN.test.cjs has no CI step. S12-REGEN.test's step is in rebuild.yml; adding one for S13 would move other
   bytes of rebuild.yml, which R16 keeps identical. The PM may add it.
-- The fence is 62/1 until the amend (section 4). The THEME and BRIEF lines are the PM's.
+- The fence must hold again once R20 is committed (section 4). :916-:917 bind the withdrawn S12b id; the THEME
+  (:918) and BRIEF (:919) lines are the PM's.
 - The pack's quality gate.py lists #talk-today .mic, no longer drawn (only if run on the live app).
 - The page boots live first, so gym-check's exact composition counts would show any live-boot write.
 - R14-1 (Fable, observation): a Today read that never settles now holds Log and Finish until it does; narrower
@@ -217,15 +224,13 @@ The seat still owes, before the fast-forward:
 
 ## 13. Acceptance
 
-This brief is accepted by its sha256 on a cowork line on rebuild/t2-client-core that names M2-S12B-POLISH and this
-path and ends with the clause separator and ACCEPTED (b-package.cjs spec(): claim(..., 'cowork', 'brief acceptance'),
-status BRIEF-ACCEPTED, the line includes packageId and brief.file; authority() finds the exact line bytes on
-refs/remotes/origin/rebuild/t2-client-core under role cowork). The THEME line for M2-S12B-POLISH is the line before
-it. Both are the PM's to append after Fable reads this brief (THEME DECISIONS:916, BRIEF :917). brief.sha256 is
-this file's sha256. Pending in S12B.json until the lines and the seat run:
-- brief.acceptedLedgerLine "PENDING" (the :917 line's bytes);
-- authorizations.theme: ledgerLine 916, line and lineSha256 "PENDING" (the :916 line's bytes);
-- authorizations.review.prefix is already "POSTFIX-ACCEPTANCE M2-S12B-POLISH" (spec() binds it to the package id);
+This brief is accepted by its sha256 on a cowork BRIEF line on rebuild/t2-client-core that names M2-S13-POLISH and
+this path and ends with the clause separator and ACCEPTED (b-package.cjs spec() and authority(), role cowork); the
+THEME line is the line before it. Both are the PM's to append after Fable reads this brief (THEME DECISIONS:918,
+BRIEF :919). brief.sha256 is this file's sha256. Pending in S13.json until the lines and the seat run:
+- brief.acceptedLedgerLine "PENDING" (the :919 line's bytes);
+- authorizations.theme: ledgerLine 918, line and lineSha256 "PENDING" (the :918 line's bytes);
+- authorizations.review.prefix is already "POSTFIX-ACCEPTANCE M2-S13-POLISH" (spec() binds it to the package id);
 - children today-17 needle "# pass 837", authored from the count and confirmed only by the seat's full run.
 Neither line authorises a PASS word by itself; on this route no PASS word is sought, only PUBLIC CI EVIDENCE PASS
-from the standing step --package S12B.
+from the standing step --package S13.
