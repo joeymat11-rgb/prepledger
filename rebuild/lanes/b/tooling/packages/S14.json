@@ -6,7 +6,12 @@
   "brief": {
     "file": "rebuild/lanes/b/S14-HOLD-BW-BRIEF.md",
     "sha256": "7b0c66936c18f0ef97ddfa7acab982724186a5fdb3b0f4265911187d30592041",
-    "acceptedLedgerLine": "PENDING"
+    "acceptedLedgerLine": {
+      "ledgerLine": 929,
+      "role": "cowork",
+      "line": "- 2026-10-11 · cowork · BRIEF ACCEPTED BY SHA for M2-S14-HOLD: rebuild/lanes/b/S14-HOLD-BW-BRIEF.md (rev5), sha256 7b0c66936c18f0ef97ddfa7acab982724186a5fdb3b0f4265911187d30592041 (102532 bytes), is the brief of record for M2-S14-HOLD (Fable: rev5 acceptable, :922); rebuild/lanes/b/S13-HOLD-BW-BRIEF.md (sha256 fc8b4a4b, :913) stays byte-identical as :913's record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "d0b3b4923d894f7f381f0c765d22f1581905c8e60dd5cbfa1dc3ee7db328878c"
+    }
   },
   "sourceBase": "7c79ef16b770ab881892ad126dadfe0687bc1d2b",
   "dIds": [],
@@ -1806,7 +1811,7 @@
     "moves": {},
     "successors": null,
     "superseded": {
-      "rulingLineSha256": null,
+      "rulingLineSha256": "c86027a02b8dfc1c9652180d605515c0fed946e1674d3da1e5a980f54fd71bae",
       "gates": {
         "source-carriers": {
           "why": "DECISIONS:153 (the standing role) and the token clause GATE-SUPERSESSION M2-S14-HOLD (RULED) for M2-S14-HOLD, located by its own sha256 (rulingLineSha256 above): the carrier RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers pinned by CHANGES_SHA. S14 moves ONE engine file, native-load.cjs, by its declared hunks under the owner grants of DECISIONS:913; the parent added that file outside the reconstruction's closed inventory, and five rebuilt files had left the construction at the parent, so the refusal predates S14 entirely and S14 neither causes it nor mends it - executed and measured in s14-sup-source-carriers",
@@ -1896,10 +1901,10 @@
       "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
     },
     "theme": {
-      "ledgerLine": "PENDING",
+      "ledgerLine": 928,
       "role": "cowork",
-      "line": "PENDING",
-      "lineSha256": "PENDING"
+      "line": "- 2026-10-11 · cowork · THEME M2-S14-HOLD - the SEALED reseal child that places the hold/bodyweight slice (hold: last real load, plan line hidden; bodyweight: no weight offer) on the sealed S11 parent, carrying every S13 polish byte (S13 retired above); delta contract rebuild/lanes/b/S14-HOLD-BW-BRIEF.md (rev5, accepted by sha on the next line); parent M2-S11-NATIVE-LOAD, acceptance-s11-native-load.json sha256 bde69f156c4f88e15c65ae79790d0e7ad34c522af058e22438c7ea1fef5ccac4 (receipt :896, seal tip 7c79ef1); under the owner grants of :913 it moves native-load.cjs and FC03 native-load-effects.cjs, re-pins production-mapping.cjs:68 (E10) and moves the coach ENGINE_REVISION at T23; spec paper rebuild/coach/NATIVE-LOAD-SPEC.md (bd7f91b, :922 (d)); copy approved :913 (5); gates retired under the GATE-SUPERSESSION line. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "8b18524cd52fff6a9a553eca818a74184b93645a8f0b13f5e2e902c39703cb6e"
     },
     "review": {
       "role": "cowork",
