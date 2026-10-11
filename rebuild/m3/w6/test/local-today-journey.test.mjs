@@ -716,8 +716,17 @@ export const PAGE_PINS = Object.freeze({
      the host's projection and opens no store; today-bindings.mjs spendLifts is a pure function of the fold and the
      resolver and opens no store either; an INJECTED installation is still never closed by this page
      (today-entry.mjs:687 `owned = options.hosts ? null : hosts`); and a declared-day caller still gets no watcher at
-     all. gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move. */
-  'today-entry.mjs': 'b3de1c31801714f800c36536cf338fade41432fee297c25f563a1c0b4b29e97d',
+     all. gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move.
+     S14 HOLD re-pin (M2-S14-HOLD, R4; THEME DECISIONS:928, copy approved :913 (5)). today-entry.mjs moves by TWO hunks and
+     nothing else: (1) the frozen NATIVE_LOAD_BODYWEIGHT_COPY constant (today-entry.mjs:180-186); (2) inside
+     createNativeLoadController's status rendering (today-entry.mjs:287-289), one <p> in the status line's own style for each
+     refusal the host answered NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT, the lift's display name as data. Re-read against
+     today-bindings.mjs at this re-pin, as every re-pin must: boot() is byte-unchanged, so it still opens the local era BY
+     DEFAULT (today-entry.mjs:534 `hosts = options.hosts || null`, :545 openTodayHosts only when none was injected) and the
+     `hosts` branch is untouched; the new hunk only READS the host's view.refusals and opens no store; an INJECTED
+     installation is still never closed by this page (today-entry.mjs:698 `owned = options.hosts ? null : hosts`); and a
+     declared-day caller still gets no watcher at all. gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move. */
+  'today-entry.mjs': '5adab952dc9eb42a81aa53aa5070e3f0cb90fa1b24fb56359de5d104eb5725fc',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',
