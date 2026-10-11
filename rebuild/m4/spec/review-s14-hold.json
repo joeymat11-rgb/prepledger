@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "8ac68126a8c3bcafd6f8ac407cc0106389ddf743",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-10-11 · cowork · POSTFIX-ACCEPTANCE M2-S14-HOLD 3e22a3baef67bffd3e3f841ba3bba8d36af2b90d rebuild/m4/spec/acceptance-s14-hold.json a0e143369d2e479fb39cf339b5f9491aebadeeb416f9c251223fd25212317795 ACCEPTED",
+    "lineSha256": "dbc046a05529e542e4065029969325edde506706c9ad26a99eb835b003f4c8e2"
+  }
+}
