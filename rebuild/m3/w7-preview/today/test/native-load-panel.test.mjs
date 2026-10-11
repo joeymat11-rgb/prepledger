@@ -2202,7 +2202,7 @@ test('R30-L20B10-DOM-NOT-NOW-WRITES-NOTHING [Y] (spec :60 "No ... automatic acce
 // L20-B1 (product; the FIX is builder P's, round 30): RED on the round 29b bytes (bd7654a plus FC03 b7d90a15). The row pins the
 // specified outcome only: no adoption is minted over a configuration working weight, and any offer that IS returned and acknowledged
 // must survive into the next projection. R28B-CONFIGURATION-CAPTURE (FC12) is not edited here.
-test('R30-L20B1-HOST-CONFIGURATION-NO-ADOPTION [Y] (spec :156 (c3) "By kind: \'earn\' and \'adopt-observed\' need a numeric w (a configuration or null w is underivable for them); \'adopt-baseline\' needs w null or ABSENT"; :110 base_load "Load is existing {value,unit:\'lb\'} or typed configuration, never an inferred magnitude"; :139 "The displayed reason and vector are part of the issuance checked at yes"; :172 "Return acknowledged:true only after the existing durable commit"; Astra L20-B1 at E/native-load.cjs:254-264 versus :499-502 and L/today-bindings.mjs:725; PM ruling DECISIONS:856 (1)): demo-press working weight the configuration \'BW\', D1 completed at 45 on both sets, the durable host on D1: check() on demo-press shows NO offer (c3), and any offer it does show whose yes is acknowledged survives into the next projection (w is the acknowledged target, no NATIVE_LOAD_RECORD_INVALID). On the round 29b bytes the check offers adopt-observed [45,45] with no current load on either set, its yes is acknowledged, and the next projection has w null and RECORD_INVALID base_load', async () => {
+test('R30-L20B1-HOST-CONFIGURATION-NO-ADOPTION [Y] (spec :156 (c3) "By kind: \'earn\' and \'adopt-observed\' need a numeric w (a configuration or null w is underivable for them); \'adopt-baseline\' needs w null or ABSENT"; :110 base_load "Load is existing {value,unit:\'lb\'} or typed configuration, never an inferred magnitude"; :139 "The displayed reason and vector are part of the issuance checked at yes"; :172 "Return acknowledged:true only after the existing durable commit"; Astra L20-B1 at E/native-load.cjs:254-264 versus :499-502 and L/today-bindings.mjs:725; PM ruling DECISIONS:856 (1)): demo-press working weight the configuration \'BW\', D1 completed at 45 on both sets, the durable host on D1: check() on demo-press shows NO offer (c3), and any offer it does show whose yes is acknowledged survives into the next projection (w is the acknowledged target, no NATIVE_LOAD_RECORD_INVALID). On the round 29b bytes the check offers adopt-observed [45,45] with no current load on either set, its yes is acknowledged, and the next projection has w null and RECORD_INVALID base_load (S14, PM 12.2: the check now carries NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT base_load refs [])', async () => {
   const fault = faultDatabase(), era = await reopenAt(fault, D1);
   hostGate(era);
   const base = withPress(D1, { w: 'BW' }), one = await dayEntryWith(era, D1, base);
@@ -2223,8 +2223,32 @@ test('R30-L20B1-HOST-CONFIGURATION-NO-ADOPTION [Y] (spec :156 (c3) "By kind: \'e
   }
   host.close(); era.close();
   assert.deepEqual({ offers: shown.map(o => [o.kind, o.current, o.loads]), lost }, { offers: [], lost: [] }, 'c3: no adoption over a configuration w, and no acknowledged yes is lost ' + JSON.stringify({ status: c.status, refusal: c.refusal }));
+  assert.deepEqual([c.status, c.refusal], ['refused', { code: 'NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT', refs: [], field: 'base_load' }], 'S14 (PM ruling 12.2, O-Q1): the refusal the check carries is the bodyweight code');
 });
 
+// S14 R4 (brief S13-HOLD-BW-BRIEF.md sections 3 R4, 10 string 2; PM ruling 12.2; cell name keeps the brief's S13- prefix,
+// DECISIONS :918). The look state is drawn in the pack later (W-46, D:817); this cell pins the live panel only. Every value is invented.
+test('S13-R4-LINE [Y] (S14 R4; brief 3 R4 "the panel says why a bodyweight lift has no offer", 10 string 2; mutant M7): demo-press working weight the bodyweight marker BW, D1 completed at 45 on both sets (as he logs it today), demo-row on its 40 lb card; the real panel after Check next weight draws, right after its status line and before any notice or card, exactly ONE line for the code NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT: "Chest press: bodyweight sets have no weight to agree to. Your sets are saved." (a p with data-native-load status, data-lift demo-press, data-code the code, no second live region); demo-row, refused by another code, draws nothing; no offer card for demo-press. RED on the round-1 bytes: paint() draws no refusal', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = withPress(D1, { w: 'BW' }), { entry } = await dayEntryWith(era, D1, base);
+  assert.equal((await train(entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true);
+  const doc = await r30Open(entry);
+  await r30Check(entry, doc);
+  const view = entry.nativeLoad.view();
+  const codes = Object.fromEntries(view.refusals.map(r => [r.lift, r.code]));
+  assert.equal(codes['demo-press'], 'NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT', 'fixture: the bodyweight lift is refused by its code ' + JSON.stringify(view.refusals));
+  assert.ok(codes['demo-row'] && codes['demo-row'] !== 'NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT', 'fixture: the other lift is refused by another code ' + JSON.stringify(view.refusals));
+  const region = q(doc, '[data-native-load="region"]') || q(doc, '[data-native-load="check"]').parentElement;
+  const parts = [...region.children].map(el => [el.tagName.toLowerCase(), el.getAttribute('data-native-load'), el.getAttribute('data-code'), el.getAttribute('role')]);
+  const lines = qa(doc, '[data-native-load="status"][data-code]');
+  assert.deepEqual(lines.map(el => [el.getAttribute('data-lift'), el.getAttribute('data-code'), el.getAttribute('role'), el.textContent]),
+    [['demo-press', 'NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT', null, 'Chest press: bodyweight sets have no weight to agree to. Your sets are saved.']], 'one line, for the bodyweight code only ' + JSON.stringify(parts));
+  const at = [...region.children].indexOf(lines[0]);
+  assert.deepEqual(parts.slice(at - 1, at + 1).map(p => [p[1], p[3]]), [['status', 'status'], ['status', null]], 'directly after the one live status line ' + JSON.stringify(parts));
+  assert.equal(qa(doc, '[data-native-load="offer"]').filter(c => c.getAttribute('data-lift') === 'demo-press').length, 0, 'no offer card for the bodyweight lift');
+  entry.gymHost.close(); era.close();
+});
 // ---- Round 31 builder U (PM ruling DECISIONS:861): Claude R30 B-R30C-2 and Astra L21-B7 pinned at the REAL rendered panel over the
 // genuine durable host, and the specified-live members of the hosted sweep's TE family (today-entry.mjs:241-313) and of Claude R30
 // RC-16/RC-17/RC-22. Every value is invented. The round 30 helpers (r30Open, r30Check, r30Card, r30Shown, r30Agree, r30Press) are reused.

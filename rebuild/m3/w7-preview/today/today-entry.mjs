@@ -177,6 +177,13 @@ export const NATIVE_LOAD_PROPOSED_COPY = Object.freeze({
   disputed: "a workout behind your agreed weight was corrected, so this lift is left off your workouts for now. Check next weight to undo the agreed weight.",
   conflict: "your working weight changed after you agreed to a new one, so this lift is left off your workouts for now. Check next weight to undo the agreed weight.",
 });
+/* S14 R4 (brief S13-HOLD-BW-BRIEF.md section 3 R4, section 10 string 2; PM approval under the owner's standing Yes to OQ-4 is
+   PM ruling 12.11, recorded on the copy-lock approval line at T3). Drawn only for a lift whose check answered
+   NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT; the lift's display name is prefixed as "Name: ", as for the notices above (the name is
+   the athlete's data, not copy). Every other refusal stays unpainted. */
+export const NATIVE_LOAD_BODYWEIGHT_COPY = Object.freeze({
+  line: "bodyweight sets have no weight to agree to. Your sets are saved.",
+});
 // The fold issues that make a lift's new prescription unavailable and carry the spend
 // whose compensation resolves them (spec :157 BASIS_REPAIR_REQUIRED; R8 :156 load_basis).
 // Spec R9.2 :158: a hold superseded by a later adoption is history, never a notice.
@@ -277,6 +284,9 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
     button.addEventListener("click", () => { api.check(); });
     const children = [button];
     if (view.copy) children.push(make("p", { "data-native-load": "status", role: "status" }, view.copy));
+    // S14 R4: one line per bodyweight refusal, in the status line's own style (same data-native-load), never a second live region.
+    for (const refusal of view.refusals || []) if (refusal && refusal.code === "NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT")
+      children.push(make("p", { "data-native-load": "status", "data-lift": refusal.lift, "data-code": refusal.code }, nameOf(refusal.lift) + ": " + NATIVE_LOAD_BODYWEIGHT_COPY.line));
     for (const notice of view.notices || [])
       children.push(make("p", { "data-native-load": "notice", "data-lift": notice.lift }, nameOf(notice.lift) + ": " + NATIVE_LOAD_PROPOSED_COPY[notice.code]));
     for (const offer of view.offers) {

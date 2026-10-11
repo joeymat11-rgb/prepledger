@@ -284,6 +284,21 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     return at ? 'Last time: ' + at.load + ' lb × ' + at.reps : null;
   }
 
+  /* S14 R1 (brief S13-HOLD-BW-BRIEF.md section 3 R1, PQ-1, PQ-1b): A HOLD CARD SHOWS THE LAST REAL LOAD. When the active
+     set's prescribed load is a text working load (a configuration) that is not a bodyweight marker, the box is pre-filled
+     with the load the "Last time" line shows for that position (previousAt above: the governing last completed workout,
+     original sets only, pounds only, the first hole ends the line), so the plan line hides once both boxes are filled, as
+     on every numeric card (gym-app.mjs). No previous real load leaves the box empty. A bodyweight marker (the CLOSED list
+     of spec R9.14-A, the same list as native-load.cjs isBodyweightKey: "BW" or "bodyweight", trimmed, any case) is never
+     pre-filled. This is not a write: Log saves whatever is in the box when it is tapped. */
+  const BODYWEIGHT_KEYS = Object.freeze(['bw', 'bodyweight']);
+  function lastRealLoad(load, liftId, position) {
+    const key = load && load.kind === 'configuration' && typeof load.configuration_key === 'string' ? load.configuration_key.trim().toLowerCase() : '';
+    if (!key || BODYWEIGHT_KEYS.includes(key)) return null;
+    const at = previousAt(previousByLift.get(liftId), position);
+    return at ? at.load : null;
+  }
+
   /* The host's pre-write order guard, in the shape every other refusal here
      takes. It never invents a reason: the host derives both the code and the
      sentence from the durable log. */
@@ -363,7 +378,7 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
         effortCell: cell(active.effort) ? cell(active.effort).display : null,
         reason: reason && reason.state === 'specified' ? reason.display.split('\n').filter(Boolean) : [],
         setup: setup && setup.state === 'specified' ? setup.display : null },
-      entry: { load: load && Number.isFinite(load.value) ? load.value : null,
+      entry: { load: load && Number.isFinite(load.value) ? load.value : lastRealLoad(load, active.lift_lineage_id, position),
         reps: reps && Number.isSafeInteger(reps.value) ? reps.value : null,
         step: stepFor(active.lift_lineage_id) },
       previous: previousLine(active.lift_lineage_id, position),

@@ -29,6 +29,12 @@ const text = (x) => typeof x === 'string' && x.length > 0;
 const lb = (value) => ({ value, unit: 'lb' });
 const byOp = (a, b) => (a.op_id < b.op_id ? -1 : a.op_id > b.op_id ? 1 : 0);
 const sorted = (xs) => [...new Set(xs)].sort();
+// Spec R9.14-A (S14; PM ruling 12.2): the CLOSED bodyweight-marker list, ONE predicate for issuance and DERIVABLE (c3): a text
+// equal, ignoring case and surrounding spaces, to "BW" or "bodyweight".
+const isBodyweightKey = (v) => typeof v === 'string' && ['bw', 'bodyweight'].includes(v.trim().toLowerCase());
+// Spec R9.14-A (1) (S14 round 3, Fable R2 section 5): a text working load is a NON-BLANK string, the capture writer's own rule
+// (W/engine-capture.cjs configuration(): trim().length > 0); ONE predicate for issuance, DERIVABLE (c3) and setLoads.
+const textLoad = (v) => typeof v === 'string' && v.trim().length > 0;
 
 // A refusal is thrown internally and returned as data: {code, refs, field}.
 function refuse(code, refs = [], field = null) {
@@ -153,8 +159,10 @@ function spendIdOf(ex, lift, consumes) {
 }
 
 // ---------- native explanation (spec B step 9): facts only, no training claim ----------
+// Spec R9.14-A / brief R2b (S14 E1 (c)): a configuration position prints as its own key, the card's text shown unchanged (data,
+// not copy), so a configuration offer names what the card said (hold), never a missing load; numeric and null positions print as before.
 const setLoads = (vector) => {
-  const values = vector.map((x) => (x && typeof x.value === 'number' ? x.value + ' lb' : 'no load'));
+  const values = vector.map((x) => (x && typeof x.value === 'number' ? x.value + ' lb' : x && x.kind === 'configuration' && textLoad(x.configuration_key) ? x.configuration_key : 'no load'));
   return values.every((v) => v === values[0]) ? values[0] + ' on every set' : values.join(', ');
 };
 function earnReason(ex, cand, rows, target, base, terminal, hot) {
@@ -263,10 +271,16 @@ function evaluate(state, request) {
     if (!complete || !values.every((v) => typeof v === 'number' && Number.isFinite(v) && v > 0)) refuse('PREFIX_UNRESOLVED', [closeRef]);
     if (!values.every((v) => v === values[0]) || Array.isArray(ex.wSets)) refuse('VECTOR_ADOPTION_UNDEFINED', [closeRef]);
     const kind = ex.w == null ? 'adopt-baseline' : 'adopt-observed';
-    // Spec :156 DERIVABLE (c3) (Astra L20-B1, DECISIONS:856 (1) (a)): an adopt-observed needs a numeric w, so over a configuration w it is
-    // never minted; it is refused as DERIVABLE refuses that record (RECORD_INVALID, field base_load), as :156 refuses an unsupported
-    // wSets "at issuance and here" (the SUPPORTED wSets refusal above). No template or displayed string changes.
-    if (kind === 'adopt-observed' && !(typeof ex.w === 'number' && Number.isFinite(ex.w))) refuse('RECORD_INVALID', [], 'base_load');
+    // Spec :156 DERIVABLE (c3) (Astra L20-B1, DECISIONS:856 (1) (a)) as R9.14-A rewrites it (S14 E1 (a), CONFIGURATION ADOPTION): an
+    // adopt-observed needs a numeric w or a text w that is not a bodyweight marker (its base is then that configuration, its target
+    // the actual pounds), exactly what DERIVABLE (c3) admits. Over a bodyweight marker no offer is minted: NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT,
+    // answered at this place only (after LEGACY_PENDING, PLAN_CHANGED, SET_COUNT_BASIS_UNPROVEN, PREFIX_UNRESOLVED and
+    // VECTOR_ADOPTION_UNDEFINED above), with this clause's refs [] and field base_load (PM ruling O-Q1). Any other w that is not a
+    // finite number keeps RECORD_INVALID base_load, a blank text included (round 3). No template or displayed string changes.
+    if (kind === 'adopt-observed' && !(typeof ex.w === 'number' && Number.isFinite(ex.w))) {
+      if (isBodyweightKey(ex.w)) refuse('BODYWEIGHT_NO_WEIGHT', [], 'base_load');
+      if (!textLoad(ex.w)) refuse('RECORD_INVALID', [], 'base_load');
+    }
     const spent = new Set(frontier.map((f) => (map(f) ? decodeSpend(f.spend_id) : null)).filter((x) => x && x.lift === lift).flatMap((x) => x.consumes));
     const root = rootOf(cur, lift);
     if (spent.has(root)) refuse('SOURCE_OVERLAP', [closeRef]);
@@ -519,9 +533,11 @@ function derivable(d, spent, refs, ex) {
     }
     return;
   }
-  // (c3) by kind: earn and adopt-observed need a numeric w; adopt-baseline needs w null or
+  // (c3) by kind: earn needs a numeric w; adopt-observed a numeric w or (spec R9.14-A CONFIGURATION ADOPTION, S14 E1 (b)) a text
+  // w that is non-blank and not a bodyweight marker, its base that configuration by (c2) above; adopt-baseline needs w null or
   // ABSENT (scalar null, vector all null by c2).
-  if ((d.kind === 'earn' || d.kind === 'adopt-observed') && !(typeof w === 'number' && Number.isFinite(w))) bad('base_load');
+  if (d.kind === 'earn' && !(typeof w === 'number' && Number.isFinite(w))) bad('base_load');
+  if (d.kind === 'adopt-observed' && !((typeof w === 'number' && Number.isFinite(w)) || (textLoad(w) && !isBodyweightKey(w)))) bad('base_load');
   if (d.kind === 'adopt-baseline' && !noW) bad('base_load');
   const last = d.evidence.length ? d.evidence[d.evidence.length - 1] : null;
   const originals = last && Array.isArray(last.sets) ? last.sets.filter((x) => map(x) && x.origin !== 'added') : [];

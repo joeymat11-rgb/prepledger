@@ -6858,10 +6858,10 @@ test('R28B-ONE-SET-VECTOR spec :152 SELECTED ENTRY, L FIT: sets 1, wSets [100]; 
  const f=EFFECTS.m.foldNativeLoad(foldArgs([...cs,C(3,{date:'2026-10-12',reps:[10],loads:105,prescribed:105,effort:e(2)})],[acceptOp(ev.offers[0],{after:2})],R1,b()));
  assert.deepEqual([exOf(f.state).w,exOf(f.state).wSets,liveQ(f,decisionOf(ev.offers[0]).spend_id)],[105,[105],[[true,'ESTABLISH']]]);
 });
-test('R28B-CONFIGURATION-CAPTURE spec :127 step 2: w BW; host v1 C1 captured BW on every slot, performed at 100 -> never PLAN_CHANGED (the plan did not change); and spec :156 DERIVABLE (c3) (\'earn\' and \'adopt-observed\' need a numeric w): no adopt-observed offer is minted over the configuration w, refused RECORD_INVALID base_load refs [] (CORRECTED in round 30 by DECISIONS:856 (1) (a): the round-28 assertion pinned that forbidden offer, Astra L20-B1)',()=>{
+test('R28B-CONFIGURATION-CAPTURE spec :127 step 2: w BW; host v1 C1 captured BW on every slot, performed at 100 -> never PLAN_CHANGED (the plan did not change); and spec :156 DERIVABLE (c3) (\'earn\' and \'adopt-observed\' need a numeric w): no adopt-observed offer is minted over the configuration w, refused RECORD_INVALID base_load refs [] (CORRECTED in round 30 by DECISIONS:856 (1) (a): the round-28 assertion pinned that forbidden offer, Astra L20-B1) (S14, PM 12.2: now refused NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT base_load refs [])',()=>{
  effectsGate();const c1=v1Of(C(1,{reps:TOP,loads:100,effort:e(2,1,1)})),a=foldArgs([c1],[],R1,F0({w:'BW'}));
  a.generation.collections.ops[c1.start].prescription_capture={slots:c1.session.record.entries[0].slots.map(s=>({logical_set_slot:s.logical_set_slot,lift_lineage_id:LIFT,load:{state:'specified',display:'BW',source_json:JSON.stringify({kind:'configuration',configuration_key:'BW'})}}))};
- const ev=checkOf(a,LIFT,c1);assert.notEqual(ev.refusal&&ev.refusal.code,'NATIVE_LOAD_PLAN_CHANGED');assert.deepEqual([ev.status,ev.offers,ev.refusal],['refused',[],{code:'NATIVE_LOAD_RECORD_INVALID',refs:[],field:'base_load'}],'spec :156 (c3): no adopt-observed over a configuration w '+JSON.stringify(ev.refusal));
+ const ev=checkOf(a,LIFT,c1);assert.notEqual(ev.refusal&&ev.refusal.code,'NATIVE_LOAD_PLAN_CHANGED');assert.deepEqual([ev.status,ev.offers,ev.refusal],['refused',[],{code:'NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT',refs:[],field:'base_load'}],'spec :156 (c3): no adopt-observed over a configuration w '+JSON.stringify(ev.refusal));
 });
 test('R28B-HOST-V1-VECTOR-PLAN spec :156 (c2), :127, N11: host v1 slots on a vector plan captured exactly as planned -> the N11 earn [105,100] is offered; unequal loads refuse VECTOR_ADOPTION_UNDEFINED; never PLAN_CHANGED',()=>{
  effectsGate();const tops=[1,2].map(n=>v1Of(C(n,{reps:[10,9],loads:[100,95],prescribed:[100,95],effort:e(2,1)}))),a=foldArgs(tops,[],R1,F0(N11EX));for(const c of tops)captureReps(a.generation,c,[100,95],10,10);
@@ -7223,7 +7223,7 @@ test("R30-CONTAINMENT spec :175 (a malformed native accept is refused NATIVE_LOA
   let g;assert.doesNotThrow(()=>{g=EFFECTS.m.foldNativeLoad({...foldArgs([...two.cs,c3],recs,R1,two.base()),engine:land});},'landing: the fold never throws');
   assert.deepEqual([r27issues(g),r27native(g,LIFT),exOf(g.state).w,g.state.exercises.find(x=>x.id===ROW).w],[[['NATIVE_LOAD_RECORD_INVALID','payload',LIFT]],[],100,105],'landing '+JSON.stringify(g.issues));}
 });
-test("R30-L20B1-ACKNOWLEDGED-OFFER-SURVIVES spec :156 DERIVABLE (c3) ('earn and adopt-observed need a numeric w (a configuration or null w is underivable for them)'), :110 (a Load is {value,unit:lb} or typed configuration), :139 step 9 (the displayed vector is part of the issuance checked at yes), :172 ('Return acknowledged:true only after the existing durable commit ... report already-saved only if found and folded'), DECISIONS:856 (1) (a) (Astra L20-B1: a bodyweight-configured card, two complete sets at 45 -> the head offers adopt-observed [45,45] over the configuration, the yes is recorded, and the next projection refuses it RECORD_INVALID base_load: the acknowledged load is lost): for a configured lift (w BW, sets 2) and a numeric control (w 40, sets 2), host v1 and typed v2, two complete sets at 45, every offer the check mints is accepted (R1 and R2) and must survive into the next projection (no RECORD_INVALID, w = its target); the configured lift mints NO offer (refused RECORD_INVALID base_load, refs [], the refusal DERIVABLE (c3) gives that record) and its projection keeps w BW with no issue; the control is offered adopt-observed [45,45] and adopts 45",()=>{
+test("R30-L20B1-ACKNOWLEDGED-OFFER-SURVIVES spec :156 DERIVABLE (c3) ('earn and adopt-observed need a numeric w (a configuration or null w is underivable for them)'), :110 (a Load is {value,unit:lb} or typed configuration), :139 step 9 (the displayed vector is part of the issuance checked at yes), :172 ('Return acknowledged:true only after the existing durable commit ... report already-saved only if found and folded'), DECISIONS:856 (1) (a) (Astra L20-B1: a bodyweight-configured card, two complete sets at 45 -> the head offers adopt-observed [45,45] over the configuration, the yes is recorded, and the next projection refuses it RECORD_INVALID base_load: the acknowledged load is lost): for a configured lift (w BW, sets 2) and a numeric control (w 40, sets 2), host v1 and typed v2, two complete sets at 45, every offer the check mints is accepted (R1 and R2) and must survive into the next projection (no RECORD_INVALID, w = its target); the configured lift mints NO offer (refused RECORD_INVALID base_load, refs [], the refusal DERIVABLE (c3) gives that record) and its projection keeps w BW with no issue; the control is offered adopt-observed [45,45] and adopts 45 (S14, PM 12.2: the configured lift is now refused NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT base_load refs [])",()=>{
  effectsGate();
  const mk=(w,host)=>{const c=C(1,{reps:[10,9],loads:45,prescribed:typeof w==='number'?w:100,effort:e(2,1)});
   if(typeof w!=='number')for(const slot of c.session.record.entries[0].slots)slot.prescribed_load={state:'specified',source:{kind:'configuration',configuration_key:w}};
@@ -7239,7 +7239,7 @@ test("R30-L20B1-ACKNOWLEDGED-OFFER-SURVIVES spec :156 DERIVABLE (c3) ('earn and 
    assert.deepEqual([f.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'),exOf(f.state).w],[[],decisionOf(o).target_load.scalar.value],label+' '+rev+': the acknowledged yes survives into the next projection '+JSON.stringify(f.issues));
   }
   if(w==='BW'){
-   assert.deepEqual([ev.status,ev.offers,ev.refusal],['refused',[],{code:'NATIVE_LOAD_RECORD_INVALID',refs:[],field:'base_load'}],label+': no offer c3 forbids is minted');
+   assert.deepEqual([ev.status,ev.offers,ev.refusal],['refused',[],{code:'NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT',refs:[],field:'base_load'}],label+': no offer c3 forbids is minted');
    const f=EFFECTS.m.foldNativeLoad(args);assert.deepEqual([f.issues,exOf(f.state).w],[[],'BW'],label+': the projection is unchanged');
   } else assert.deepEqual(ev.offers.map(o=>[decisionOf(o).kind,decisionOf(o).target_load.vector.map(x=>x.value)]),[['adopt-observed',[45,45]]],label);
  }
@@ -9329,4 +9329,279 @@ test('FC09-LINEAGE-TQ A QUEUED PRE-IMPORT EARN NAMES ITS AUTHORITY AS ONE ID WOU
   assert.deepEqual(shapeOf(pu),shapeOf(tu),name+'the Undo of the queued earn');
   assert.deepEqual(verdictOf(pu),['offer',null,['compensate']]);
  }
+});
+
+// ---------- S14 ENGINE ROUND 1 (the hold/bodyweight slice; brief of record rebuild/lanes/b/S13-HOLD-BW-BRIEF.md sha256 FC8B4A4B,
+// DECISIONS :913, renumbered S13 -> S14 at :918; cell names keep the brief's S13- prefix). Spec R9.14 part A: CONFIGURATION
+// ADOPTION (an adopt-observed over a text w that is not a bodyweight marker; base the configuration, target the actual pounds),
+// judged identically at issuance (FC01 :269), DERIVABLE (c3) (FC01 :524, re-run by the fold) and the fold's S8 anchor (FC03 :806);
+// the CLOSED bodyweight-marker list ("BW", "bodyweight", trimmed, case-insensitive) answers NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT at :269's
+// own place with :269's refs [] and field base_load (PM ruling O-Q1), classified AFTER_STEP_2 only in FC03. Every value is INVENTED.
+const S14_CFG=key=>({kind:'configuration',configuration_key:key});
+// One completion on a configured card: every slot prescribed the configuration `key` (typed v2; host v1 drops it), performed at loads.
+function s14comp(n,key,{loads=140,reps=TOP,effort=e(2,1,1),host=false,unresolvedAt=[]}={}){
+ const c=C(n,{reps,loads,effort,unresolvedAt});
+ for(const slot of c.session.record.entries[0].slots)slot.prescribed_load={state:'specified',source:S14_CFG(key)};
+ return host?v1Of(c):c;
+}
+// The Start capture of one completion in the engine-capture.cjs loadCell shape: a configuration key or a number on every slot; a reps
+// cell the fixture's FC16 capture already wrote is kept.
+function s14cells(gen,c,cell){
+ const had=new Map(((gen.collections.ops[c.start].prescription_capture||{}).slots||[]).map(x=>[x.logical_set_slot,x.reps]));
+ gen.collections.ops[c.start].prescription_capture={slots:c.session.record.entries[0].slots.map(s=>({logical_set_slot:s.logical_set_slot,lift_lineage_id:LIFT,
+  load:typeof cell==='number'?{state:'specified',display:cell+' lb',source_json:JSON.stringify({value:cell,unit:'lb'})}:{state:'specified',display:cell,source_json:JSON.stringify(S14_CFG(cell))},
+  ...(had.get(s.logical_set_slot)?{reps:had.get(s.logical_set_slot)}:{})}))};
+}
+const s14args=(comps,caps,extra,base)=>{const a=foldArgs(comps,extra,R1,base);comps.forEach((c,i)=>{if(caps[i]!==undefined)s14cells(a.generation,c,caps[i]);});return a;};
+// The CONFIGURATION ADOPTION record built by hand from its spec fields (:104-:112): adopt-observed, base_load the configuration of
+// the state's text w (scalar, one per slot, FieldImage), target the C1 actuals, consumes [C1 root], spend_id as spec B encodes it.
+function s14record(s,c1,req){
+ const ex=exOf(s),img=k=>Object.hasOwn(ex,k)?{present:true,value:structuredClone(ex[k])}:{present:false,value:null},root=JSON.stringify([c1.start,LIFT,c1.close]);
+ const loads=c1.session.record.entries[0].slots.map(x=>x.fact.current.load.value);
+ return {profile:'earned/native-load-decision/v1',kind:'adopt-observed',lift_lineage_id:LIFT,basis:structuredClone(req.basis),
+  evidence:[{start:ref(c1.start),close:ref(c1.close),sets:c1.session.record.entries[0].slots.map(evidenceSet)}],
+  base_load:{scalar:S14_CFG(ex.w),vector:loads.map(()=>S14_CFG(ex.w)),fields:Object.fromEntries(FIELD_KEYS.map(k=>[k,img(k)]))},
+  target_load:{scalar:lb(loads[0]),vector:loads.map(lb)},candidate:null,reason_key:'observed-load',
+  spend_id:JSON.stringify(['native-load',LIFT,null,null,[root]]),consumes:[root],compensates:null};
+}
+const s14accept=(E,s,body)=>E.applyNativeLoadDecision(s,body,{event:'accept',basis:body.basis,spent:[],completion:null,
+ authority:{response_refs:[ref('fx-resp-1')],issuance:{reason:'fx-reason'},source_cut:body.basis.source}});
+test("S13-R2-OFFER (S14 E1 (a); brief 3 R2, spec R9.14-A CONFIGURATION ADOPTION at issuance :269): w 'hold' (a text working load that is not a bodyweight marker), sets 3, C1 prescribed hold on every slot and performed at 140 on every set, typed v2 and host v1 (Start captured hold) -> exactly one adopt-observed offer: base_load the configuration hold (scalar, every slot, FieldImage w hold), target 140 x 3, candidate null, consumes [C1 root]. RED on the unchanged bytes: refused RECORD_INVALID base_load at FC01 :269",()=>{
+ effectsGate();
+ for(const host of [false,true]){
+  const label=host?'host v1':'typed v2',c1=s14comp(1,'hold',{host}),ev=checkOf(s14args([c1],['hold'],[],F0({w:'hold'})),LIFT,c1);
+  assert.equal(ev.status,'offer',label+': an offer is minted over the text working load '+JSON.stringify(ev.refusal));
+  const d=decisionOf(ev.offers[0]);
+  assert.deepEqual([ev.offers.length,d.kind,d.reason_key,d.base_load.scalar,d.base_load.vector,d.base_load.fields.w,d.target_load,d.candidate,d.consumes],
+   [1,'adopt-observed','observed-load',S14_CFG('hold'),[S14_CFG('hold'),S14_CFG('hold'),S14_CFG('hold')],{present:true,value:'hold'},{scalar:lb(140),vector:Loads(140,140,140)},null,[JSON.stringify([c1.start,LIFT,c1.close])]],label);
+ }
+});
+test("S13-R2-DERIVABLE (S14 E1 (b); spec :156 DERIVABLE (c3) as R9.14-A rewrites it; brief 5: pure native-load.cjs, builder seat; mutant M10): the R2 record built by hand from its spec fields (adopt-observed, base_load the configuration hold, load_basis.w {present:true,value:'hold'}, target 140 x 3 = the C1 actuals) is accepted by FC01's own transition: 'applied', w 140, wAt C1's date, topAt null, topRun 0, authority 'adopted' whose prior.w is {present:true,value:'hold'}; earn over the same text w stays underivable; and the hand-built body is exactly the body FC01 mints for that state. RED on the unchanged bytes: the transition refuses RECORD_INVALID base_load at :524",()=>{
+ const E=engineAt(CARD_DAY);nativeGate(E);
+ const c1=s14comp(1,'hold'),s=withFacts(F0({w:'hold'}),[c1]),req=request(s,[c1],c1),body=s14record(s,c1,req);
+ const t=s14accept(E,s,body);
+ assert.equal(t.status,'applied','DERIVABLE (c3) admits adopt-observed over a non-bodyweight text w '+JSON.stringify(t.refusal));
+ const x=exOf(t.state);
+ assert.deepEqual([x.w,x.wAt,x.topAt,x.topRun,x.native_load_authority.kind,x.native_load_authority.prior.w,t.effect.kind],[140,c1.date,null,0,'adopted',{present:true,value:'hold'},'adopted']);
+ const earn={...structuredClone(body),kind:'earn',reason_key:'canonical-earn',candidate:{kind:'debut',newW:140,newWSets:null,state:'DEBUT',t:'x',gate:'x',rule:'x'}};
+ assert.deepEqual(s14accept(E,s,earn).refusal,{code:'NATIVE_LOAD_RECORD_INVALID',refs:[ref('fx-resp-1')],field:'base_load'},'earn still needs a numeric w');
+ const ev=evaluate(E,s,req);assert.equal(ev.status,'offer',JSON.stringify(ev.refusal));
+ assert.deepEqual(decisionOf(ev.offers[0]),body,'the hand-built record is the record FC01 mints');
+});
+test("S13-R2-ACK-PROJ (S14 E1 (a)+(b), E2 (1); spec :156 DERIVABLE, :155 S8, :172; I-YES; mutants M9, M10): the hold fixture, typed v2 and host v1: the offer's Yes, recorded under the present revision R1 (re-evaluated, then DERIVABLE via the fold's transition, FC03 :1119) and under an absent revision R2 (S1-S8 correspondence with the S8 anchor, then DERIVABLE), is applied by the fold that records it (no issue, w 140, authority adopted with prior.w hold), and every later projection keeps it: with C2 on the next card (captured and performed 140) the fold still has w 140 and no issue, the card generated from the projection prescribes 140, and C2's check is never PLAN_CHANGED; the Undo of the Yes is offered and restores w hold. RED on the unchanged bytes: no offer (:269); under M10 (:269 narrowed alone) the Yes is refused RECORD_INVALID base_load at accept (:524 via :1119); under M9 (:524 narrowed, :806 not) the R2 Yes is held RECORD_INVALID base_load by S8",()=>{
+ effectsGate();
+ for(const host of [false,true]){
+  const label=host?'host v1':'typed v2',base=()=>F0({w:'hold'}),c1=s14comp(1,'hold',{host});
+  const ev=checkOf(s14args([c1],['hold'],[],base()),LIFT,c1);
+  assert.equal(ev.status,'offer',label+': the offer is minted '+JSON.stringify(ev.refusal));
+  const o=ev.offers[0],sp=decisionOf(o).spend_id,c2=C(2,{reps:TOP,loads:140,prescribed:140,effort:e(2,1,1)});
+  for(const rev of [R1,R2]){
+   const yes=acceptOp(o,{after:1,revision:rev}),tag=label+' '+rev;
+   const f=EFFECTS.m.foldNativeLoad(s14args([c1],['hold'],[yes],base()));
+   assert.deepEqual([r27issues(f),exOf(f.state).w],[[],140],tag+': the fold that records the Yes applies it '+JSON.stringify(f.issues));
+   assert.deepEqual([exOf(f.state).native_load_authority.kind,exOf(f.state).native_load_authority.prior.w],['adopted',{present:true,value:'hold'}],tag);
+   const g=EFFECTS.m.foldNativeLoad(s14args([c1,c2],['hold',140],[yes],base()));
+   assert.deepEqual([r27issues(g),exOf(g.state).w],[[],140],tag+': the next projection keeps the Yes '+JSON.stringify(g.issues));
+   const card=engineAt(CARD_DAY).genSession(f.state,CARD_DAY,{}).ex.find(x=>x.id===LIFT);
+   assert.equal(card&&card.w,140,tag+': the next card prescribes 140');
+   const k=checkOf(s14args([c1,c2],['hold',140],[yes],base()),LIFT,c2);
+   assert.notEqual(k.refusal&&k.refusal.code,'NATIVE_LOAD_PLAN_CHANGED',tag+': C2 on the 140 card is no plan change '+JSON.stringify(k.refusal));
+   const u=checkOf(s14args([c1],['hold'],[yes],base()),LIFT,c1,{compensate:sp});
+   assert.equal(u.status,'offer',tag+': the Undo is offered '+JSON.stringify(u.refusal));
+   const h=EFFECTS.m.foldNativeLoad(s14args([c1],['hold'],[yes,acceptOp(u.offers[0],{op_id:'fx-resp-2',after:1})],base()));
+   assert.deepEqual([r27issues(h),exOf(h.state).w],[[],'hold'],tag+': the Undo restores hold '+JSON.stringify(h.issues));
+  }
+ }
+});
+test("S13-R2-READOPT (S14; spec :153-:154 compensation, :156 RESTORE; Fable l2 E-4; I-YES): the hold fixture, typed v2: Yes 1 adopts C1's 140 (w 140) and its Undo restores hold; C2 on the restored hold card, performed at 145, is offered adopt-observed again over the configuration; Yes 2 adopts 145 and its Undo restores hold again. Every Undo is offered (never COMPENSATION_DESCENDANTS), every fold has no issue, both spends end cancelled. RED on the unchanged bytes: no offer (:269)",()=>{
+ effectsGate();
+ const base=()=>F0({w:'hold'}),c1=s14comp(1,'hold'),c2=s14comp(2,'hold',{loads:145}),A1=x=>s14args([c1],['hold'],x,base()),A2=x=>s14args([c1,c2],['hold','hold'],x,base());
+ const ev1=checkOf(A1([]),LIFT,c1);assert.equal(ev1.status,'offer','adopt 1 '+JSON.stringify(ev1.refusal));
+ const y1=acceptOp(ev1.offers[0],{op_id:'fx-resp-1',after:1}),sp1=decisionOf(ev1.offers[0]).spend_id;
+ const f1=EFFECTS.m.foldNativeLoad(A1([y1]));assert.deepEqual([r27issues(f1),exOf(f1.state).w],[[],140],'adopt 1 applied '+JSON.stringify(f1.issues));
+ const u1=checkOf(A1([y1]),LIFT,c1,{compensate:sp1});assert.equal(u1.status,'offer','undo 1 offered '+JSON.stringify(u1.refusal));
+ const n1=acceptOp(u1.offers[0],{op_id:'fx-resp-2',after:1});
+ const f2=EFFECTS.m.foldNativeLoad(A1([y1,n1]));assert.deepEqual([r27issues(f2),exOf(f2.state).w],[[],'hold'],'undo 1 restores hold '+JSON.stringify(f2.issues));
+ const ev2=checkOf(A2([y1,n1]),LIFT,c2);assert.equal(ev2.status,'offer','adopt 2 '+JSON.stringify(ev2.refusal));
+ const d2=decisionOf(ev2.offers[0]);assert.deepEqual([d2.kind,d2.base_load.scalar,d2.target_load.scalar],['adopt-observed',S14_CFG('hold'),lb(145)],'adopt 2 is over the configuration again');
+ const y2=acceptOp(ev2.offers[0],{op_id:'fx-resp-3',after:2}),sp2=d2.spend_id;
+ const f3=EFFECTS.m.foldNativeLoad(A2([y1,n1,y2]));assert.deepEqual([r27issues(f3),exOf(f3.state).w],[[],145],'adopt 2 applied '+JSON.stringify(f3.issues));
+ const u2=checkOf(A2([y1,n1,y2]),LIFT,c2,{compensate:sp2});assert.equal(u2.status,'offer','undo 2 offered '+JSON.stringify(u2.refusal));
+ const n2=acceptOp(u2.offers[0],{op_id:'fx-resp-4',after:2});
+ const f4=EFFECTS.m.foldNativeLoad(A2([y1,n1,y2,n2]));assert.deepEqual([r27issues(f4),exOf(f4.state).w],[[],'hold'],'undo 2 restores hold '+JSON.stringify(f4.issues));
+ assert.deepEqual([sp1,sp2].map(sp=>f4.spent.filter(x=>x.spend_id===sp&&x.cancelled_by).length),[1,1],'both spends cancelled');
+});
+test("S13-R2-LOST-ACK (S14; spec :172 'Return acknowledged:true only after the existing durable commit ... report already-saved only if found and folded'; I-YES): the hold fixture, typed v2 and host v1: the Yes is durable (its response is in the generation) but its acknowledgement never reached the page. The fold finds it and folds it (w 140, one spend naming fx-resp-1, no issue); the page's re-check of C1 offers nothing to answer again; and the same response sent once more (fx-resp-2, the page retrying the Yes) folds to that same single effect: w 140, one spend, no issue. RED on the unchanged bytes: no offer (:269)",()=>{
+ effectsGate();
+ for(const host of [false,true]){
+  const label=host?'host v1':'typed v2',base=()=>F0({w:'hold'}),c1=s14comp(1,'hold',{host}),A=x=>s14args([c1],['hold'],x,base());
+  const ev=checkOf(A([]),LIFT,c1);assert.equal(ev.status,'offer',label+' '+JSON.stringify(ev.refusal));
+  const o=ev.offers[0],sp=decisionOf(o).spend_id,yes=acceptOp(o,{after:1}),again=acceptOp(o,{op_id:'fx-resp-2',after:1});
+  const f=EFFECTS.m.foldNativeLoad(A([yes]));
+  assert.deepEqual([r27issues(f),exOf(f.state).w,f.spent.filter(x=>x.spend_id===sp).map(x=>x.response_refs.map(r=>r.op_id))],[[],140,[['fx-resp-1']]],label+': found and folded '+JSON.stringify(f.issues));
+  const k=checkOf(A([yes]),LIFT,c1);
+  assert.deepEqual([k.status,k.offers],['refused',[]],label+': nothing to answer again '+JSON.stringify(k.refusal));
+  const g=EFFECTS.m.foldNativeLoad(A([yes,again]));
+  assert.deepEqual([r27issues(g),exOf(g.state).w,g.spent.filter(x=>x.spend_id===sp).length],[[],140,1],label+': the retried Yes is the same single effect '+JSON.stringify(g.issues));
+ }
+});
+test("S13-R2-FOLD-FORGERY (S14 E2 (1); spec :155 S8 anchor for CONFIGURATION ADOPTION; mutant M2): the hold fixture's genuine Yes recorded under the absent revision R2 (so S1-S8 judge it), typed v2 and host v1: on the genuine generation it applies (w 140, no issue; control); when the consumed Start captured a key the record's base does not carry (BW, heavy) or a number (140), it is refused RECORD_INVALID base_load; when its target is unlike the actual loads (150 x 3), RECORD_INVALID target_load; when its base vector does not carry the key on every slot, RECORD_INVALID base_load. Nothing of a refused record applies (w hold). RED on the unchanged bytes: no offer (:269)",()=>{
+ effectsGate();
+ for(const host of [false,true]){
+  const label=host?'host v1':'typed v2',base=()=>F0({w:'hold'}),c1=s14comp(1,'hold',{host});
+  const ev=checkOf(s14args([c1],['hold'],[],base()),LIFT,c1);assert.equal(ev.status,'offer',label+' '+JSON.stringify(ev.refusal));
+  const o=ev.offers[0],yes=acceptOp(o,{after:1,revision:R2}),fold=(cap,rec)=>EFFECTS.m.foldNativeLoad(s14args([c1],[cap],[rec],base()));
+  const ok=fold('hold',yes);assert.deepEqual([r27issues(ok),exOf(ok.state).w],[[],140],label+': control, the genuine record applies '+JSON.stringify(ok.issues));
+  const cases=[['captured BW','BW',yes,'base_load'],['captured heavy','heavy',yes,'base_load'],['captured 140 lb',140,yes,'base_load'],
+   ['target 150 x 3','hold',r27forge(o,x=>{x.body.target_load={scalar:lb(150),vector:Loads(150,150,150)};},R2,1),'target_load'],
+   ['base vector 140 lb on its last slot','hold',r27forge(o,x=>{x.body.base_load.vector[2]=lb(140);},R2,1),'base_load']];
+  for(const [k,cap,rec,field] of cases){
+   const f=fold(cap,rec);
+   assert.deepEqual([r27issues(f),exOf(f.state).w],[[['NATIVE_LOAD_RECORD_INVALID',field,LIFT]],'hold'],label+' '+k+': '+JSON.stringify(f.issues));
+  }
+ }
+});
+test("S13-R2-BWKEY (S14 E1 (a)+(b); spec R9.14-A the CLOSED bodyweight-marker list; PM ruling 12.2 and O-Q1; mutant M1 and its position twin): for w BW, bodyweight, ' bw ' and Bodyweight, typed v2 and host v1 (Start captured the key): every set logged at one same 45 lb -> refused NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT, refs [], field base_load, no offer; logged at 45/40/35 -> VECTOR_ADOPTION_UNDEFINED [C1 Close] as on any lift (the bodyweight code is answered only at :269's place); the hand-built CONFIGURATION ADOPTION record over the marker is never admitted by DERIVABLE (RECORD_INVALID base_load) and its R2 Yes is refused RECORD_INVALID base_load by the fold, w unchanged. Control: w hold mints the offer. RED on the unchanged bytes: the equal-pounds check answers RECORD_INVALID base_load",()=>{
+ effectsGate();const E=engineAt(CARD_DAY);
+ for(const key of ['BW','bodyweight',' bw ','Bodyweight'])for(const host of [false,true]){
+  const label=JSON.stringify(key)+(host?' host v1':' typed v2'),base=()=>F0({w:key});
+  const c1=s14comp(1,key,{host,loads:45}),ev=checkOf(s14args([c1],[key],[],base()),LIFT,c1);
+  assert.deepEqual([ev.status,ev.offers,ev.refusal],['refused',[],{code:'NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT',refs:[],field:'base_load'}],label+' equal pounds '+JSON.stringify(ev.refusal));
+  const cu=s14comp(1,key,{host,loads:[45,40,35]}),eu=checkOf(s14args([cu],[key],[],base()),LIFT,cu);
+  assert.deepEqual([eu.status,eu.refusal&&eu.refusal.code,eu.refusal&&eu.refusal.refs.map(r=>r.op_id)],['refused','NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED',[cu.close]],label+' unequal pounds '+JSON.stringify(eu.refusal));
+  if(host)continue;
+  const s=withFacts(base(),[c1]),req=request(s,[c1],c1),body=s14record(s,c1,req);
+  assert.deepEqual(s14accept(E,s,body).refusal,{code:'NATIVE_LOAD_RECORD_INVALID',refs:[ref('fx-resp-1')],field:'base_load'},label+': DERIVABLE never admits the marker');
+  const f=EFFECTS.m.foldNativeLoad(s14args([c1],[key],[acceptOp({body,reason:'fx-reason'},{after:1,revision:R2})],base()));
+  assert.deepEqual([r27issues(f),exOf(f.state).w],[[['NATIVE_LOAD_RECORD_INVALID','base_load',LIFT]],key],label+': the fold refuses its Yes '+JSON.stringify(f.issues));
+ }
+ const c1=s14comp(1,'hold'),ev=checkOf(s14args([c1],['hold'],[],F0({w:'hold'})),LIFT,c1);
+ assert.deepEqual([ev.status,ev.offers.map(o=>decisionOf(o).kind)],['offer',['adopt-observed']],'control: hold is no marker '+JSON.stringify(ev.refusal));
+});
+test("S13-BW-PLANCHANGED (S14 E2 (2); FC03 :414 AFTER_STEP_2, :1425, :1458; brief 3 R4, I-SILENT; mutant M13): a bodyweight lift (w BW, sets 3), host v1, every set at 100: when its Start captured BW the check answers NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT (refs [], field base_load); when its Start captured 100 lb (the card said 100, the lift was set to bodyweight after) or bodyweight, the fold's capture-vs-plan check replaces it with PLAN_CHANGED [C1 Close], never the bodyweight code; typed v2 with the 100 lb card is PLAN_CHANGED by FC01's own step 2 (control). The code is in AFTER_STEP_2 only: never BLOCKING (no dispute), never HELD_BACK (nothing spent and waiting), never a HOLD_CODE (the lift is not held). RED on the unchanged bytes: the matching capture answers RECORD_INVALID base_load",()=>{
+ effectsGate();
+ const CODE='NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT',base=()=>F0({w:'BW'}),c1=s14comp(1,'BW',{host:true,loads:100});
+ const ev=checkOf(s14args([c1],['BW'],[],base()),LIFT,c1);
+ assert.deepEqual([ev.status,ev.offers,ev.refusal],['refused',[],{code:CODE,refs:[],field:'base_load'}],'captured BW: the bodyweight code '+JSON.stringify(ev.refusal));
+ for(const cap of [100,'bodyweight']){
+  const p=checkOf(s14args([c1],[cap],[],base()),LIFT,c1);
+  assert.deepEqual([p.status,p.refusal&&p.refusal.code,p.refusal&&p.refusal.refs.map(r=>r.op_id)],['refused','NATIVE_LOAD_PLAN_CHANGED',[c1.close]],'captured '+cap+': PLAN_CHANGED, never the bodyweight code '+JSON.stringify(p.refusal));
+ }
+ const t=C(1,{reps:TOP,loads:100,prescribed:100,effort:e(2,1,1)}),pt=checkOf(foldArgs([t],[],R1,base()),LIFT,t);
+ assert.deepEqual([pt.status,pt.refusal&&pt.refusal.code,pt.refusal&&pt.refusal.refs.map(r=>r.op_id)],['refused','NATIVE_LOAD_PLAN_CHANGED',[t.close]],'typed v2 control '+JSON.stringify(pt.refusal));
+ assert.ok(!EFFECTS.m.BLOCKING_CODES.includes(CODE),'never BLOCKING');assert.ok(!EFFECTS.m.HOLD_CODES.includes(CODE),'never a HOLD_CODE');
+ const src=require('node:fs').readFileSync(EFFECTS_FILE,'utf8'),held=src.match(/\nconst HELD_BACK = new Set\(\[([^\]]*)\]\);/),after=src.match(/\nconst AFTER_STEP_2 = new Set\(\[([^\]]*)\]\);/);
+ assert.ok(held&&after,'FC03 declares HELD_BACK and AFTER_STEP_2');
+ assert.deepEqual([held[1].includes("'"+CODE+"'"),after[1].includes("'"+CODE+"'")],[false,true],'AFTER_STEP_2 only, never HELD_BACK');
+});
+// ---------- S14 ROUND 2 (brief sections 3 R2b, 5; Fable R1 conditions 6.1, 6.3, 6.4) ----------
+const S14_ADOPT_TAIL='. Offer: make that your working weight. This sets your working weight; it is not an earned increase. Nothing changes unless you say yes.';
+const S14_UNDO=to=>'Fx Press: undo the choice you agreed to before any workout used it. Your working weight goes back to '+to+'. The workouts it came from stay recorded and are not counted again.';
+test("S13-R2B-WORDS (S14 E1 (c); brief 3 R2b and 10 the piece '<key> on every set'; Fable R1 condition 6.1; I-SILENT, I-COPY, CL-ENGINE-OUTPUT; mutant M8): the hold offer's reason says what the card said, '(the card said hold on every set)', never 'no load'; the Undo of its Yes says the weight goes back to 'hold on every set'. Every existing sentence is byte-identical: the numeric adopt-observed (the card said 100 lb on every set), the Undo of that adoption (100 lb on every set), the adopt-baseline sentence (no working weight was on file), the Undo of a baseline adoption (no load on every set), and the earn sentence's load pieces. RED on the round-1 bytes: '(the card said no load on every set)'",()=>{
+ effectsGate();
+ const c1=s14comp(1,'hold'),A=x=>s14args([c1],['hold'],x,F0({w:'hold'})),ev=checkOf(A([]),LIFT,c1);
+ assert.equal(ev.status,'offer',JSON.stringify(ev.refusal));
+ assert.equal(ev.offers[0].reason,'Fx Press: on '+c1.date+' you completed every set at 140 lb on every set (the card said hold on every set)'+S14_ADOPT_TAIL,'the hold offer says what the card said');
+ const u=checkOf(A([acceptOp(ev.offers[0],{after:1})]),LIFT,c1,{compensate:decisionOf(ev.offers[0]).spend_id});
+ assert.equal(u.status,'offer',JSON.stringify(u.refusal));assert.equal(u.offers[0].reason,S14_UNDO('hold on every set'),'its Undo names the card text');
+ // Controls, byte-identical on the round-1 bytes and after (no existing sentence moves).
+ const FX=r30fx(),num=FX.oneA,nr=checkOf(foldArgs(num.cs,[],R1),LIFT,num.cs[1]);
+ assert.equal(nr.offers[0].reason,'Fx Press: on '+num.cs[1].date+' you completed every set at 95 lb on every set (the card said 100 lb on every set)'+S14_ADOPT_TAIL,'numeric adopt-observed');
+ const nu=checkOf(foldArgs(num.cs,[acceptOp(nr.offers[0],{after:2})],R1),LIFT,num.cs[1],{compensate:decisionOf(nr.offers[0]).spend_id});
+ assert.equal(nu.offers[0].reason,S14_UNDO('100 lb on every set'),'numeric Undo');
+ const b1=C(1,{reps:TOP,loads:100,prescribed:null,effort:e(2,1,1)}),bb=()=>F0({w:null}),br=checkOf(foldArgs([b1],[],R1,bb()),LIFT,b1);
+ assert.equal(br.status,'offer',JSON.stringify(br.refusal));
+ assert.equal(br.offers[0].reason,'Fx Press: on '+b1.date+' you completed every set at 100 lb on every set, and no working weight was on file'+S14_ADOPT_TAIL,'adopt-baseline');
+ const bu=checkOf(foldArgs([b1],[acceptOp(br.offers[0],{after:1})],R1,bb()),LIFT,b1,{compensate:decisionOf(br.offers[0]).spend_id});
+ assert.equal(bu.status,'offer',JSON.stringify(bu.refusal));assert.equal(bu.offers[0].reason,S14_UNDO('no load on every set'),'baseline Undo');
+ const er=landingScenario('fx-revision-1').offer.reason;
+ assert.ok(er.startsWith('Fx Press: you topped the rep window at 100 lb on every set (workouts on ')&&er.includes('. Offer: 105 lb on every set, '),'earn sentence: '+er);
+});
+test("S13-R2-UNEQUAL / -PENDING / -WSETS (S14 controls; brief 3 R2, R5; Fable R1 condition 6.3): on the hold fixture (w hold, typed v2, C1 prescribed hold) the earlier refusals keep their own codes, as today: sets at 140/135/130 -> VECTOR_ADOPTION_UNDEFINED [C1 Close]; a legacy PROPOSED entry of the lift in the queue -> LEGACY_PENDING [C1 Close] field queue; a per-set weight list (wSets [null,null,null], so the card still reads hold) -> VECTOR_ADOPTION_UNDEFINED [C1 Close]. No offer in any case. Green on 88cc92c, round 1 and now",()=>{
+ effectsGate();
+ const run=(label,c,base,code,field)=>{const ev=checkOf(s14args([c],['hold'],[],base),LIFT,c);
+  assert.deepEqual([ev.status,ev.offers,ev.refusal],['refused',[],{code,refs:[ref(c.close)],field}],label+' '+JSON.stringify(ev.refusal));};
+ run('unequal',s14comp(1,'hold',{loads:[140,135,130]}),F0({w:'hold'}),'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED',null);
+ const pend=F0({w:'hold'});pend.queue.push({id:'fx-legacy-1',kind:'debut',exId:LIFT,newW:150,state:'PROPOSED',done:false,t:'FX PRESS 150',gate:'x',rule:'x'});
+ run('pending',s14comp(1,'hold'),pend,'NATIVE_LOAD_LEGACY_PENDING','queue');
+ run('wSets',s14comp(1,'hold'),F0({w:'hold',wSets:[null,null,null]}),'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED',null);
+});
+const fv0=f=>[r27issues(f),exOf(f.state).w];
+// S14 FUZZ fixture: one Close, two lifts: fx-press on a hold card (prescribed and captured hold), fx-row on a 100 lb card; both
+// performed at 140 on every set, so both are offered adopt-observed 140 (fx-press over the configuration, fx-row over 100).
+function s14keepCells(gen,c,key){
+ const pc=gen.collections.ops[c.start].prescription_capture||{slots:[]};
+ gen.collections.ops[c.start].prescription_capture={slots:pc.slots.map(x=>x.lift_lineage_id!==LIFT?x:{...x,load:{state:'specified',display:key,source_json:JSON.stringify(S14_CFG(key))}})};
+}
+let S14TWO=null;const s14two=()=>S14TWO||(S14TWO=(()=>{
+ const c=twoLift(1,{reps:TOP,loads:140,prescribed:100,effort:e(2,1,1)});
+ for(const slot of c.session.record.entries[0].slots)slot.prescribed_load={state:'specified',source:S14_CFG('hold')};
+ const base=()=>{const s=withRow();exOf(s).w='hold';return s;};
+ const args=x=>{const a=foldArgs([c],x,R1,base());s14keepCells(a.generation,c,'hold');return a;};
+ const press=checkOf(args([]),LIFT,c),row=checkOf(args([]),ROW,c);
+ assert.deepEqual([press.status,row.status],['offer','offer'],'fixture: both lifts are offered '+JSON.stringify([press.refusal,row.refusal]));
+ assert.deepEqual([decisionOf(press.offers[0]).base_load.scalar,decisionOf(row.offers[0]).base_load.scalar],[S14_CFG('hold'),lb(100)]);
+ return {c,base,args,press:press.offers[0],row:row.offers[0]};})());
+const S14_FUZZ_RUNS=400,S14_FUZZ_SEED=20141011;
+function s14fuzzCase(seed,controls){
+ const S=s14two(),rnd=r30rng(seed),rev=rnd()<0.5?R1:R2,first=rnd()<0.5,pressId=first?'fx-resp-0':'fx-resp-2',key=rev+'|'+first;
+ const order=(p,r)=>first?[p,r]:[r,p],rowRec=acceptOp(S.row,{op_id:'fx-resp-1',after:1});
+ if(!controls.has(key)){const a=S.args(order(acceptOp(S.press,{op_id:pressId,after:1,revision:rev}),rowRec)),f=EFFECTS.m.foldNativeLoad(a);
+  assert.deepEqual([r27issues(f),exOf(f.state).w,f.state.exercises.find(x=>x.id===ROW).w],[[],140,140],'control '+key+' '+JSON.stringify(f.issues));
+  controls.set(key,{row:r30rowSnap(f),check:r30rowCheck(a,{cs:[S.c,S.c]})});}
+ const rec=acceptOp(S.press,{op_id:pressId,after:1,revision:rev}),sites=r30sites(rec.payload,R30Z('adopt-observed'),[],[]);
+ const site=sites[Math.floor(rnd()*sites.length)];site.go(rec.payload);
+ if(site.p[0]!=='proposal_id'){const iss=rec.payload.issuance;try{rec.payload.proposal_id=EFFECTS.m.proposalDigest(iss.producer,iss.body,iss.reason);}catch(_){/* an unencodable body keeps the old id */}}
+ const label='s14 fuzz seed '+seed+' '+rev+(first?' press first':' press second')+' at '+JSON.stringify(site.p)+': '+site.what,args=S.args(order(rec,rowRec));
+ let f;assert.doesNotThrow(()=>{f=EFFECTS.m.foldNativeLoad(args);},label+': the fold never throws');
+ assert.equal(f.status,'ready',label);
+ const mine=f.issues.filter(i=>i.code==='NATIVE_LOAD_RECORD_INVALID'&&(i.refs||[]).some(r=>r.op_id===pressId));
+ assert.ok(mine.length>0&&mine.every(i=>i.lift===LIFT),label+': RECORD_INVALID for the record '+JSON.stringify(f.issues));
+ assert.deepEqual([exOf(f.state).w,f.spent.some(x=>x.response_refs.some(r=>r.op_id===pressId))],['hold',false],label+': nothing of it applied, the configuration kept');
+ assert.equal(r30rowSnap(f),controls.get(key).row,label+': the other lift is unaffected');
+ assert.doesNotThrow(()=>EFFECTS.m.checkNativeLoad({...args,request:{lift_lineage_id:LIFT,completion_op_id:S.c.close,intent:'check'}}),label+': its own lift\'s check never throws');
+ let rc;assert.doesNotThrow(()=>{rc=r30rowCheck(args,{cs:[S.c,S.c]});},label+': the other lift\'s check never throws');
+ assert.equal(rc,controls.get(key).check,label+': the other lift\'s check is unaffected');
+ return site.what.split(' ').slice(0,2).join(' ');
+}
+test("S13-FUZZ (S14; brief 5 S13-FUZZ: the round-30 fuzz plus configuration bases; spec :101-:112, :117-:120, :61, :175, :155 per lift; Fable R1 condition 6.3): seeded (NATIVE_LOAD_S14_FUZZ_SEED, default 20141011; NATIVE_LOAD_S14_FUZZ_RUNS, default 400) malformed fx-press CONFIGURATION ADOPTION records (base the configuration hold, target 140), each ONE violation of the record definition at any depth (R30Z's sites: container and type swaps, a missing or an extra member, a bad element), R1 or R2, folded before or after fx-row's genuine numeric adoption on the same Close -> the fold and both checks never throw; RECORD_INVALID for the record (its lift only), nothing of it applied (w stays hold, not in the spend index); fx-row's projection, spend and check equal the genuine-record control. No configuration performed set is generated (none can be written, STOP-S13-BW-CUT)",()=>{
+ effectsGate();
+ const runs=Number(process.env.NATIVE_LOAD_S14_FUZZ_RUNS||S14_FUZZ_RUNS),seed0=Number(process.env.NATIVE_LOAD_S14_FUZZ_SEED||S14_FUZZ_SEED),seen={},controls=new Map();
+ for(let i=0;i<runs;i++){const c=s14fuzzCase(seed0+i,controls);seen[c]=(seen[c]||0)+1;}
+ if(runs>=S14_FUZZ_RUNS)for(const c of ['container swap','type swap','extra member','missing member','bad element'])assert.ok(seen[c]>0,'every malformation class is generated: '+JSON.stringify(seen));
+});
+test("S13-FUZZ-WHITESPACE-W (S14 round 3; Fable R2 section 5 REQUIRED and R1 condition 6.4; spec R9.14-A (1) reworded: a text working load is a NON-BLANK string, engine-capture.cjs :23 configuration() trim().length > 0): w ' ' (whitespace only) is no text working load at any site: (a) typed v2 slots prescribed ' ' are refused by the typed reader's own name, PERFORMED_ENTRY_INVALID, no offer; (b) a host v1 completion whose Start carries a ' ' capture (forged: no capture layer writes one) is refused at issuance RECORD_INVALID base_load refs [] (as for ''), the hand-built CONFIGURATION ADOPTION over ' ' is refused by DERIVABLE (c3) RECORD_INVALID base_load, and its Yes is refused RECORD_INVALID base_load by the fold under R1 and R2, w ' ' kept; (c) setLoads never prints a blank key: the Undo of a pending earn on a lift that now carries ' ' reads 'goes back to no load on every set' (one that now carries hold reads 'hold on every set'); (d) a capture-less host v1 completion, a state engine-history.cjs :69 refuses (fixture only; round-12 seed 20261315), behaves as its numeric twin under both revisions (applied under R1, RECORD_INVALID base_load under R2), pinned so a divergence shows. RED on the round-2 bytes: (b) is offered over ' '",()=>{
+ effectsGate();const E=engineAt(CARD_DAY);
+ const c1=s14comp(1,' '),ta=checkOf(s14args([c1],[' '],[],F0({w:' '})),LIFT,c1);
+ assert.deepEqual([ta.status,ta.offers,ta.refusal&&ta.refusal.code],['refused',[],'PERFORMED_ENTRY_INVALID'],'(a) '+JSON.stringify(ta.refusal));
+ const h1=s14comp(1,' ',{host:true}),A=x=>s14args([h1],[' '],x,F0({w:' '})),ev=checkOf(A([]),LIFT,h1);
+ assert.deepEqual([ev.status,ev.offers,ev.refusal],['refused',[],{code:'NATIVE_LOAD_RECORD_INVALID',refs:[],field:'base_load'}],'(b) issuance '+JSON.stringify(ev.refusal));
+ const s=withFacts(F0({w:' '}),[h1]),body=s14record(s,h1,request(s,[h1],h1));
+ assert.deepEqual(s14accept(E,s,body).refusal,{code:'NATIVE_LOAD_RECORD_INVALID',refs:[ref('fx-resp-1')],field:'base_load'},'(b) DERIVABLE (c3) never admits a blank w');
+ for(const rev of [R1,R2])assert.deepEqual(fv0(EFFECTS.m.foldNativeLoad(A([acceptOp({body,reason:'fx-reason'},{after:1,revision:rev})]))),[[['NATIVE_LOAD_RECORD_INVALID','base_load',LIFT]],' '],'(b) fold '+rev);
+ const L=landingScenario(R1),sp=decisionOf(L.offer).spend_id;
+ for(const [w,to] of [[' ','no load on every set'],['hold','hold on every set']]){
+  const u=checkOf(foldArgs(L.cs,[L.resp],R1,F0({w})),LIFT,L.cs[1],{compensate:sp});
+  assert.equal(u.status,'offer','(c) '+JSON.stringify(w)+' '+JSON.stringify(u.refusal));
+  assert.equal(u.offers[0].reason,S14_UNDO(to),'(c) '+JSON.stringify(w)+': setLoads never prints a blank key');
+ }
+ const out=w=>{const h=v1Of(C(1,{reps:TOP,loads:140,prescribed:100,effort:e(2,1,1)})),B=x=>foldArgs([h],x,R1,F0({w})),k=checkOf(B([]),LIFT,h);
+  assert.equal(k.status,'offer',JSON.stringify(w)+' '+JSON.stringify(k.refusal));
+  return [R1,R2].map(rev=>{const f=EFFECTS.m.foldNativeLoad(B([acceptOp(k.offers[0],{after:1,revision:rev})]));return [r27issues(f),exOf(f.state).w===w?'w kept':exOf(f.state).w];});};
+ assert.deepEqual(out('hold'),out(100),'(d) a capture-less host v1 completion (engine-history.cjs :69 refuses it; fixture only): the text w behaves as its numeric twin');
+ assert.deepEqual(out(100),[[[],140],[[['NATIVE_LOAD_RECORD_INVALID','base_load',LIFT]],'w kept']],'(d) the fixture-only outcome, pinned so a divergence shows');
+});
+test("S13-FUZZ-MISSED-DEBUT-TEXT-W (S14; Fable R1 condition 6.4; spec R9.9 :152 MISSED CLOSE, :155 MISSED-DEBUT ANCHOR, R8 :156 UNPROVABLE ORDER): (a) the real path: the earn Yes (DEBUT 105) pending, the working weight then a text (hold) in the base, C3 on the 105 card performed at 100 -> the fold holds fx-press EFFECT_CONFLICT load_basis (the base moved under the Yes; nothing applied, the DEBUT stays pending, not missed) and the check of C3 offers nothing (EFFECT_CONFLICT [fx-resp-1]): no configuration record with a missed-debut claim is minted, so no such Yes exists to lose; (b) a forged CONFIGURATION ADOPTION over hold that claims C1's Close as a missed debut (load_basis.authority_refs [C1 Close]) recorded under the absent revision R2 takes the missed-debut anchor, not the configuration arm, finds no earn of the lift and is refused RECORD_INVALID base_load, w stays hold; (c) under R1 the same forged claim is re-evaluated (FC01 reads the claim only beside a MISSED mark, so it reproduces) and applies, EXACTLY as the same forged claim on the numeric adopt-observed does (pre-existing on the S11 bytes; reported to the PM)",()=>{
+ effectsGate();
+ const L=landingScenario(R1),c3=C(3,{date:'2026-10-12',reps:TOP,loads:100,prescribed:105,effort:e(2,1,1)}),a=foldArgs([...L.cs,c3],[L.resp],R1,F0({w:'hold'}));
+ const f=EFFECTS.m.foldNativeLoad(a);
+ assert.deepEqual([r27issues(f),exOf(f.state).w,f.state.queue.filter(q=>q.native_load_spend).map(q=>[q.done,q.state])],[[['NATIVE_LOAD_EFFECT_CONFLICT','load_basis',LIFT]],'hold',[[false,'DEBUT']]],'(a) '+JSON.stringify(f.issues));
+ const k=checkOf(a,LIFT,c3);
+ assert.deepEqual([k.status,k.offers,k.refusal&&k.refusal.code,k.refusal&&k.refusal.refs.map(r=>r.op_id)],['refused',[],'NATIVE_LOAD_EFFECT_CONFLICT',['fx-resp-1']],'(a) '+JSON.stringify(k.refusal));
+ const c1=s14comp(1,'hold'),A=x=>s14args([c1],['hold'],x,F0({w:'hold'})),ev=checkOf(A([]),LIFT,c1);assert.equal(ev.status,'offer',JSON.stringify(ev.refusal));
+ const claim=(offer,close)=>o=>{o.body.basis.load_basis.authority_refs=[ref(close)];};
+ const hold=[R1,R2].map(rev=>fv0(EFFECTS.m.foldNativeLoad(A([r27forge(ev.offers[0],claim(ev.offers[0],c1.close),rev,1)])))).map(([i,w])=>[i,w==='hold'?'w kept':w===140?'applied':w]);
+ assert.deepEqual(hold[1],[[['NATIVE_LOAD_RECORD_INVALID','base_load',LIFT]],'w kept'],'(b) R2 '+JSON.stringify(hold[1]));
+ const num=r30fx().oneA,nv=[R1,R2].map(rev=>fv0(EFFECTS.m.foldNativeLoad(foldArgs(num.cs,[r27forge(num.offer,claim(num.offer,num.cs[1].close),rev,2)],R1)))).map(([i,w])=>[i,w===100?'w kept':w===95?'applied':w]);
+ assert.deepEqual(hold,nv,'(c) the configuration record behaves as its numeric twin under both revisions');
 });

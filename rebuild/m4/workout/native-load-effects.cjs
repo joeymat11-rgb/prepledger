@@ -304,6 +304,22 @@ function captureOf(start, entry) {
   return entry.slots.filter((s) => s.origin !== 'added').map((s) => (cells.has(s.logical_set_slot) ? cellValue(cells.get(s.logical_set_slot))
     : s.prescribed_load && s.prescribed_load.state === 'specified' && s.prescribed_load.source ? s.prescribed_load.source.value : null));
 }
+// A configuration key is NON-BLANK (spec R9.14-A (1), round 3; W/engine-capture.cjs configuration(): trim().length > 0).
+const nonBlank = (x) => typeof x === 'string' && x.trim().length > 0;
+// Spec R9.14-A (S14 E2 (1)): the same per-original-slot capture with a configuration read as its key (startPlanCapture's cell
+// reading), for the CONFIGURATION ADOPTION arm of S8 only: a numeric load, a configuration key, or null.
+function captureKeys(start, entry) {
+  const cells = new Map();
+  const pc = start && map(start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
+  for (const cell of pc) if (map(cell) && sameLift(cell.lift_lineage_id, entry.lift_lineage_id) && text(cell.logical_set_slot)) cells.set(cell.logical_set_slot, cell.load);
+  const read = (load) => {
+    if (!map(load) || load.state !== 'specified' || !text(load.source_json)) return null;
+    try { const v = JSON.parse(load.source_json); return map(v) && v.unit === 'lb' && Number.isFinite(v.value) ? v.value : map(v) && v.kind === 'configuration' && nonBlank(v.configuration_key) ? v.configuration_key : null; } catch (_) { return null; }
+  };
+  const typed = (p) => (!p || p.state !== 'specified' || !map(p.source) ? null : p.source.kind === 'configuration' ? (nonBlank(p.source.configuration_key) ? p.source.configuration_key : null)
+    : Number.isFinite(p.source.value) ? p.source.value : null);
+  return entry.slots.filter((s) => s.origin !== 'added').map((s) => (cells.has(s.logical_set_slot) ? read(cells.get(s.logical_set_slot)) : typed(s.prescribed_load)));
+}
 // One Start's captured load vector for one lift, in position order (the same cells).
 function startCapture(start, lift) {
   const pc = map(start.prescription_capture) && Array.isArray(start.prescription_capture.slots) ? start.prescription_capture.slots : [];
@@ -412,7 +428,7 @@ function windowUnproven(cells, hi) {
 }
 // FC01 refusals that come after its step 2 (plan identity) in the evaluation order.
 const AFTER_STEP_2 = new Set(['NATIVE_LOAD_PREFIX_UNRESOLVED', 'NATIVE_LOAD_VECTOR_ADOPTION_UNDEFINED', 'NATIVE_LOAD_SOURCE_OVERLAP', 'NATIVE_LOAD_PROVISIONAL',
-  'NATIVE_LOAD_WINDOW_NOT_TOP', 'NATIVE_LOAD_EFFORT_UNRESOLVED', 'NATIVE_LOAD_ORDER_RULE_UNREPRESENTABLE', 'NATIVE_LOAD_NO_NEXT_LOAD', 'NATIVE_LOAD_HELD_OR_HOT']);
+  'NATIVE_LOAD_WINDOW_NOT_TOP', 'NATIVE_LOAD_EFFORT_UNRESOLVED', 'NATIVE_LOAD_ORDER_RULE_UNREPRESENTABLE', 'NATIVE_LOAD_NO_NEXT_LOAD', 'NATIVE_LOAD_HELD_OR_HOT', 'NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT']);
 // FC01 refusals that only the earn branch (steps 4-10) makes (native-load.cjs:259-301).
 const EARN_READER_CODES = new Set(['NATIVE_LOAD_PROVISIONAL', 'NATIVE_LOAD_WINDOW_NOT_TOP', 'NATIVE_LOAD_EFFORT_UNRESOLVED',
   'NATIVE_LOAD_ORDER_RULE_UNREPRESENTABLE', 'NATIVE_LOAD_NO_NEXT_LOAD', 'NATIVE_LOAD_HELD_OR_HOT']);
@@ -766,6 +782,7 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
     const item = body.evidence.find((x) => x.close.op_id === latest.close);
     const actual = item.sets.filter((s) => s.origin !== 'added').map((s) => (map(s.current) && map(s.current.load) ? s.current.load.value : null));
     const ar = map(body.basis.load_basis) && Array.isArray(body.basis.load_basis.authority_refs) ? body.basis.load_basis.authority_refs : [];
+    const fw = map(body.base_load.fields) ? body.base_load.fields.w : null, cfgKey = map(fw) && fw.present === true && nonBlank(fw.value) ? fw.value : null;
     if (body.kind === 'adopt-baseline') {
       // Spec R9.9 :155 ADOPT-BASELINE ANCHOR (the other-hold anchor): the base is the record's own
       // projection (all null, DERIVABLE c2); a NUMERIC capture of the consumed Start is admitted
@@ -802,6 +819,15 @@ function correspondence(body, { facts, byId, source, issues = [], spent = [], gr
       const rb = pick.body.base_load, bf = map(body.base_load.fields) ? body.base_load.fields : {};
       if (!map(rb) || !map(rb.fields) || !same(body.base_load.scalar, rb.scalar) || !same(bf.w, rb.fields.w) || !same(bf.wSets, rb.fields.wSets)) return 'base_load';
       if (!same(body.base_load.vector, projectBase(rb.fields, cap.length))) return 'base_load';
+    } else if (body.kind === 'adopt-observed' && cfgKey !== null) {
+      // Spec R9.14-A CONFIGURATION ADOPTION (S14 E2 (1)), the S8 arm beside the numeric anchor below: an adopt-observed whose base
+      // is the configuration of a text w (fields.w) is anchored when every original slot of the consumed Start captured exactly that
+      // key, the base is that key (scalar and every slot), and the actual loads are one positive weight (equal to the target, below).
+      // DERIVABLE (FC01, run for every record at :1119) keeps the bodyweight markers out.
+      const keys = captureKeys(byId.get(latest.start), { ...hit.entry, slots: originals });
+      if (!keys.length || !keys.every((k) => k === cfgKey) || !same(body.base_load.scalar, { kind: 'configuration', configuration_key: cfgKey }) ||
+          !same(body.base_load.vector, keys.map((k) => ({ kind: 'configuration', configuration_key: k })))) return 'base_load';
+      if (!actual.every((v) => typeof v === 'number' && Number.isFinite(v) && v > 0 && v === actual[0])) return 'target_load';
     }
     else if (!cap.every((v) => typeof v === 'number') || !same(baseVec, cap)) return 'base_load';
     if (body.kind === 'earn' && !same(actual, cap)) return 'base_load';
@@ -1483,7 +1509,7 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:f4955594d9532949789cd7031b650a7eb84c84f499dee69330a2d220290d7366';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:eb9194850896c371fe2d80f40230fa69627fa3441ff5126417a1244b1ac86ca8';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf,
   heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]), isHold, LINEAGE_PROFILE,

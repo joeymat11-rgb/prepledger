@@ -469,6 +469,147 @@ test('A2/C4d — a prior NATIVE session prints "Last time" with the engine\'s ow
   });
 });
 
+/* ---------------------------------------------------------------------------
+   S14 R1 (brief of record rebuild/lanes/b/S13-HOLD-BW-BRIEF.md sections 3 R1, 5, 9.2 PQ-1/PQ-1b; cell names keep the
+   brief's S13- prefix, DECISIONS :918): A HOLD CARD SHOWS THE LAST REAL LOAD. Day 1 trains the U lifts at their 40 lb
+   card; on day+3 the same lifts carry a text working load. A non-bodyweight text (hold) pre-fills the box with the
+   load the "Last time" line shows for that position, so the plan line hides as on any numeric card (C3 option (ii));
+   a bodyweight marker never pre-fills; no previous real load leaves the box empty with the plan line shown; nothing
+   is written before Log. Every value is invented.
+   --------------------------------------------------------------------------- */
+const s14Dom = () => new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
+  { url: 'http://127.0.0.1:4178/' }).window.document;
+const s14Text = (state, w) => { const s = JSON.parse(JSON.stringify(state)); for (const ex of s.exercises) if (ex.day === 'U') ex.w = w; return s; };
+async function s14Device(name) {
+  const fresh = createTodayModel({}).stateFromOps();
+  fresh.sessionLog = {};
+  const fault = faultDatabase();
+  const on = async (day, engineState) => {
+    const era = await openTodayInstallation({ indexedDB: fault.indexedDB, crypto: webcrypto,
+      databaseName: name, namespace: 'earned/' + name, athleteId: 'owner', day, nativeTrendContext: qualifiedTrendContext });
+    const host = await era.createGymHost({ day, engineState, plannedSplitSlotId: 'slot' });
+    return { era, host, model: createGymModel({ gymHost: host, sessionTitle: 'T' }), close() { host.close(); era.close(); } };
+  };
+  return { fresh, on };
+}
+// Day 1: every set at the card's own load, except where loadAt(lift, position) names another; skipAt(lift, position) skips that
+// set through the accepted client's own skip command (scope set), so the next day's line has a hole there.
+async function s14DayOne(kit, { loadAt = () => null, skipAt = () => false } = {}) {
+  const handle = await kit.on(DAY, kit.fresh);
+  assert.equal((await handle.model.start()).ok, true);
+  let logged = 0, startId = null;
+  for (let guard = 0; guard < 30; guard++) {
+    const view = await handle.model.read();
+    if (view.phase === 'saved') { if (view.complete) break; handle.model.forget(); continue; }
+    if (view.phase !== 'active') break;
+    startId = view.startId;
+    if (skipAt(view.set.lift, view.set.position)) {
+      const client = handle.host.host.client, prepared = await client.prepareWorkoutContinuation({ session_start_op_id: view.startId });
+      assert.equal(prepared.prepared, true, 'day 1 skip prepares');
+      const skipped = await client.executeResumedWorkout({ resumeId: prepared.resumeId, action: 'skip', input: { session_start_op_id: view.startId,
+        logical_set_slot: view.set.slot, lift_lineage_id: view.set.lift, skip_scope: 'set' } });
+      assert.equal(skipped.acknowledged, true, 'day 1 skip: ' + skipped.code);
+      continue;
+    }
+    const load = loadAt(view.set.lift, view.set.position);
+    const result = await handle.model.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
+      load: String(load === null ? view.entry.load : load), reps: String(view.entry.reps), effort: CHOSEN });
+    assert.equal(result.ok, true, 'day 1 set refused: ' + result.code);
+    handle.model.forget();
+    logged += 1;
+  }
+  assert.equal((await handle.model.finish({ startId })).ok, true, 'day 1 closes');
+  handle.close();
+}
+async function s14Active(kit, w) {
+  const handle = await kit.on(offsetDay(DAY, 3), s14Text(kit.fresh, w));
+  const ready = await handle.model.read();
+  assert.equal(ready.phase, 'ready', ready.code || '');
+  assert.equal((await handle.model.start()).ok, true);
+  return handle;
+}
+const s14Plan = async (model) => {
+  const doc = s14Dom();
+  await mountGym(doc, doc.getElementById('phone'), { model, onBack: () => {}, onChanged: () => {} });
+  return { box: doc.getElementById('gym-weight').value, planHidden: doc.querySelector('[data-slot="plan"]').hidden,
+    plan: [...doc.querySelector('[data-slot="plan"]').children].map(c => c.textContent).join(' ') };
+};
+
+test('S13-R1-PREFILL (S14 R1; brief 3 R1, PQ-1, PQ-1b; mutant M4): the hold card (day+3, the U lifts at w hold) pre-fills the box with the load its "Last time" line shows, 40, set 1; the plan line "hold x 12 reps" HIDES because both boxes are filled, as on any numeric card; the Last time line is unchanged; nothing is written before Log; Log saves what is in the box. RED on the round-1 bytes: the box is empty and the plan line shows', async () => {
+  const kit = await s14Device('s14-r1-prefill');
+  await s14DayOne(kit);
+  const handle = await s14Active(kit, 'hold');
+  const view = await handle.model.read();
+  assert.equal(view.phase, 'active');
+  assert.equal(view.prescription.line.startsWith('hold '), true, 'fixture: the card says hold: ' + view.prescription.line);
+  assert.match(String(view.previous), /^Last time: 40 lb \u00d7 \d+$/, 'fixture: the Last time line says 40 lb');
+  assert.equal(view.entry.load, 40, 'the box holds the Last time load of this position');
+  const shown = await s14Plan(handle.model);
+  assert.deepEqual([shown.box, shown.planHidden], ['40', true], 'the screen: box 40, the plan line hidden ' + JSON.stringify(shown));
+  const again = await handle.model.read();
+  assert.deepEqual([again.phase, again.set.position, again.strip.filter(s => s.done).length], ['active', 1, 0], 'nothing written before Log');
+  const saved = await handle.model.logSet({ startId: again.startId, slot: again.set.slot, lift: again.set.lift, load: '42.5', reps: String(again.entry.reps), effort: CHOSEN });
+  assert.equal(saved.ok, true, saved.code);
+  const facts = (await handle.model.read()).saved;
+  assert.ok(facts && /42\.5/.test(facts.facts), 'Log saved what was in the box: ' + JSON.stringify(facts));
+  handle.close();
+});
+
+test('S13-R1-PERPOS (S14 R1; brief 3 R1 "for that set position", previousAt: the first hole ends the line; mutant M4-POS): day 1 logs set 1 of the first U lift at 40 and set 2 at 45 -> on the hold card set 1 is pre-filled 40 and set 2 45; a second athlete whose day 1 SKIPPED set 2 of that lift (a hole) -> set 1 pre-filled 40, set 2 empty with its plan line shown. RED on the round-1 bytes: every box empty', async () => {
+  const kit = await s14Device('s14-r1-perpos');
+  let first = null;
+  await s14DayOne(kit, { loadAt: (lift, position) => { first = first || lift; return lift === first && position === 2 ? 45 : null; } });
+  const handle = await s14Active(kit, 'hold');
+  const one = await handle.model.read();
+  assert.deepEqual([one.set.lift, one.set.position, one.entry.load], [first, 1, 40], 'set 1');
+  assert.equal((await handle.model.logSet({ startId: one.startId, slot: one.set.slot, lift: one.set.lift, load: String(one.entry.load), reps: String(one.entry.reps), effort: CHOSEN })).ok, true);
+  handle.model.forget();
+  const two = await handle.model.read();
+  assert.deepEqual([two.set.lift, two.set.position, two.entry.load], [first, 2, 45], 'set 2 reads its own position');
+  assert.match(String(two.previous), /^Last time: 45 lb \u00d7 \d+$/, 'and its own Last time line');
+  handle.close();
+  const hole = await s14Device('s14-r1-hole');
+  let lead = null;
+  await s14DayOne(hole, { skipAt: (lift, position) => { lead = lead || lift; return lift === lead && position === 2; } });
+  const h = await s14Active(hole, 'hold');
+  const a = await h.model.read();
+  assert.deepEqual([a.set.position, a.entry.load], [1, 40], 'hole fixture: set 1');
+  assert.equal((await h.model.logSet({ startId: a.startId, slot: a.set.slot, lift: a.set.lift, load: String(a.entry.load), reps: String(a.entry.reps), effort: CHOSEN })).ok, true);
+  h.model.forget();
+  const b = await h.model.read();
+  assert.deepEqual([b.set.position, b.entry.load, b.previous], [2, null, null], 'the hole ends the line: set 2 is not pre-filled');
+  const shown = await s14Plan(h.model);
+  assert.deepEqual([shown.box, shown.planHidden], ['', false], 'set 2: box empty, plan line shown ' + JSON.stringify(shown));
+  h.close();
+});
+
+test('S13-R1-LEGACY (S14 R1 control; brief 3 R1 "No previous real load (legacy-only history): the box stays empty and the plan line shows as today"): an athlete whose U lifts carry hold and whose only history is the legacy log of those lifts written with no numeric weight -> the box is empty, the plan line "hold x ..." shows, no Last time line. Green on the round-1 bytes and after', async () => {
+  const base = createTodayModel({}).stateFromOps();
+  const state = s14Text(base, 'hold');
+  for (const day of Object.values(state.sessionLog || {})) for (const entry of day.entries || []) if (state.exercises.some(ex => ex.id === entry.id && ex.day === 'U')) entry.w = null;
+  const kit = await device({ engineState: state });
+  assert.equal((await kit.model.start()).ok, true);
+  const view = await kit.model.read();
+  assert.equal(view.phase, 'active', view.code || '');
+  assert.deepEqual([view.entry.load, view.previous], [null, null], 'no previous real load: nothing pre-filled');
+  const shown = await s14Plan(kit.model);
+  assert.deepEqual([shown.box, shown.planHidden, shown.plan.startsWith('hold')], ['', false, true], JSON.stringify(shown));
+  kit.gymHost.close();
+});
+
+test('S13-R1-BW-NOFILL (S14 R1, R5 control; brief 3 R1 "never for a bodyweight marker", R3 note): day 1 at 40 lb, then the U lifts carry BW -> the box is NEVER pre-filled with pounds: empty, the plan line "BW x ..." shown, the Last time line still says 40 lb. Green on the round-1 bytes and after', async () => {
+  for (const marker of ['BW', 'bodyweight']) {
+    const kit = await s14Device('s14-r1-' + marker);
+    await s14DayOne(kit);
+    const handle = await s14Active(kit, marker);
+    const view = await handle.model.read();
+    assert.equal(view.entry.load, null, marker + ': never pre-filled');
+    assert.match(String(view.previous), /^Last time: 40 lb \u00d7 \d+$/, marker + ': the Last time line is unchanged');
+    const shown = await s14Plan(handle.model);
+    assert.deepEqual([shown.box, shown.planHidden, shown.plan.startsWith(marker)], ['', false, true], marker + ' ' + JSON.stringify(shown));
+    handle.close();
+  }
+});
 test('A2 — the gym screens render the capture, with nothing preselected', async t => {
   const dom = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
     { url: 'http://127.0.0.1:4178/' });
