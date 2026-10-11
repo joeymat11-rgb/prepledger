@@ -1,10 +1,5 @@
 # VERDICT - M2-S14-HOLD - lane B seal - PASS on the `DECISIONS:932` receipt
 
-<!-- DRAFT (builder, claude-opus-5-5, 2026-10-11), for rebuild/lanes/b/VERDICT-S14.md. Written from the PM's FILTERed lines and the
-     builder's own round reports only; no raw log, no private value, count or prose. Every value is filled from the
-     PM's filtered T20/T23/T24/CI-2 lines before C2/C4; nothing else changes then. Remove this comment and the placeholder list at the
-     end before C2. -->
-
 M2-S14-HOLD is the SEALED reseal child of M2-S11-NATIVE-LOAD that places the hold/bodyweight slice and carries every byte of the
 S13 polish (S13 retired by supersession, `DECISIONS:923`). This verdict names the sealed-run receipt, the artifact, spec and runner
 it stands on, every red of the slice and of its seal chain, every ruling, and every debt it carries. Nothing is excused.
@@ -266,9 +261,3 @@ can offer that load as the next weight to agree to with one Yes. A bodyweight li
 the finished screen says, for that lift, that bodyweight sets have no weight to agree to and his sets are saved. Nothing changes
 without his Yes, a Yes already given is never lost, and every new string was approved under :913 (5). It stands on the sealed S11
 parent and carries the S13 polish.
-
-<!-- PLACEHOLDERS TO FILL BEFORE C2 (from the PM's filtered lines only):
-  T23: PLACEHOLDER-T23-COACH-COUNT, -T23-PROD-COUNT, -C3-7
-  T24: PLACEHOLDER-T24-PINNED-COUNT, -T24-FILTERED-LINES
-  CI-2: PLACEHOLDER-C4-7, -CI2-RUN-ID, -CI2-RESULT
-  Other: PLACEHOLDER-T21-T26-REDS, -T21-T28-INCIDENTS, -none (Fable T22: only the t09 README wording note) -->
