@@ -256,6 +256,39 @@ function plannedDaysOf(E, state, from, to) {
   return out;
 }
 
+/* COACH PLAIN ANSWERS (polish batch on rebuild/c-weekly). Today's workout as the ENGINE composes it, for the
+   coach's "What am I hitting today?" and "Why this weight?": rebuild/engine/today.cjs genSession's own session
+   name and cards, and nothing computed here. Per card: the display name, the set count and reps per set (card.tgt),
+   the load (card.w), whether the card asks for a first weight (card.baselineAsk: no load yet), whether it is the
+   first workout at a new load (card.isDebutNow with a numeric load), and from the replayed lift its hold flag and
+   the top of its rep range (state.exercises holdFlag, hi). A day with no session answers `available:false`; a
+   refusal is carried as its code. It reads the replayed state only and writes nothing. */
+function sessionPlanOf(E, state, day) {
+  let session;
+  try {
+    session = E.genSession(state, day, null);
+  } catch (error) {
+    return { available: false, code: error && error.code ? error.code : "WORKOUT_PREPARATION_UNAVAILABLE", name: null, exercises: [] };
+  }
+  if (!session || !Array.isArray(session.ex)) return { available: false, code: null, name: null, exercises: [] };
+  const lifts = Array.isArray(state.exercises) ? state.exercises : [];
+  const exercises = session.ex.map((card) => {
+    const lift = lifts.find((e) => e && e.id === card.id) || {};
+    const reps = Array.isArray(card.tgt) ? card.tgt.slice() : [];
+    return {
+      id: card.id, name: card.n,
+      sets: reps.length,
+      reps,
+      weight: card.w == null ? null : card.w,
+      firstTime: card.baselineAsk === true,
+      newWeight: card.isDebutNow === true && typeof card.w === "number",
+      held: lift.holdFlag === true,
+      repTop: typeof lift.hi === "number" ? lift.hi : null,
+    };
+  });
+  return { available: true, code: null, name: session.name || null, exercises };
+}
+
 function projectionOf(E, state) {
   const nowModel = E.nowModel(state);
   const move = planMove(E, state, nowModel);
@@ -580,6 +613,8 @@ function createTodayModel(options = {}) {
     adoptedRead: (date) => adoptedRead(stateFromOps(), date || day),
     /* WEEKLY REVIEW: the days the engine plans a workout on, from the replayed state (plannedDaysOf above). */
     plannedDays: (from, to) => plannedDaysOf(E, stateFromOps(), from, to),
+    /* COACH PLAIN ANSWERS: today's session as the engine composes it (sessionPlanOf above). */
+    sessionPlan: () => sessionPlanOf(E, stateFromOps(), day),
     ALREADY_RECORDED, OUT_OF_RANGE, NO_STORE, FORM_MIN, FORM_MAX,
   };
 }

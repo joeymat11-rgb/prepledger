@@ -2200,26 +2200,42 @@ function mountToday(doc, model, options = {}) {
       },
     };
   }
-  /* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling option A). On the first day of a training week (the engine's
-     Monday, page-coach.cjs weekStarts) Today shows the review of the week just ended, below the workout and the
-     proposal card, in the proposal card's own look (tcard, kind, change, reason; no new class): the heading, the
-     workouts done against the workouts planned, each lift's standing with the engine's own reason behind Why? (the
-     S18 control, the same button the proposal card uses), the open suggestion and the trend. It is drawn only when
-     the coach's turn shipped (every number a tool result) and the workout lane is open; otherwise Today is unchanged.
-     It reads and writes nothing of its own. The same review is always one tap away on the Coach screen. */
+  /* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling option A; polish batch). On the first day of a training week
+     (the engine's Monday, page-coach.cjs weekStarts) Today shows the review of the week just ended as its OWN card in
+     the feed, directly under the workout card (a sibling in the timeline, never inside another card), in the coach
+     proposal card's own look (tcard proposal, its dot, the head's kind as the heading, change lines in the body text
+     colour): the heading, the workouts done against the workouts planned, each lift's standing with the engine's own
+     reason behind Why? (on its own row, opening inline; the S18 control), the open suggestion and, only when the
+     device holds a trend weight, one short trend line. It is drawn only when the coach's turn shipped (every number a
+     tool result) and the workout lane is open; otherwise Today is unchanged. It reads and writes nothing of its own.
+     The same review is always one tap away on the Coach screen. */
   function paintWeekReview(map, day, token) {
     if (!PageCoach.weekStarts(day) || !facade.workout()) return;
-    const proposal = map.get("proposal");
-    const anchor = proposal && proposal.isConnected ? proposal : map.get("workout-count");
-    if (!anchor) return;
+    const count = map.get("workout-count");
+    const trainCard = count && typeof count.closest === "function" ? count.closest(".tcard") : null;
+    if (!trainCard) return;
     coachHandle().week().then((lines) => {
-      if (token !== mountToken || !lines || !anchor.isConnected || !anchor.parentNode) return;
+      if (token !== mountToken || !lines || !trainCard.isConnected || !trainCard.parentNode) return;
       const card = doc.createElement("div");
-      card.className = "tcard";
+      card.className = "tcard proposal";
       card.setAttribute("data-slot", "week-review");
+      const dot = doc.createElement("span");
+      dot.className = "tdot";
+      dot.setAttribute("aria-hidden", "true");
+      card.append(dot);
       lines.forEach((line, i) => {
+        if (line.heading) {
+          const head = doc.createElement("div");
+          head.className = "head";
+          const kind = doc.createElement("div");
+          kind.className = "kind";
+          kind.textContent = line.text;
+          head.append(kind);
+          card.append(head);
+          return;
+        }
         const row = doc.createElement("div");
-        row.className = line.heading ? "kind" : "change";
+        row.className = "change";
         row.textContent = line.text;
         card.append(row);
         if (!line.why) return;
@@ -2242,7 +2258,7 @@ function mountToday(doc, model, options = {}) {
         });
         card.append(why, reason);
       });
-      anchor.parentNode.insertBefore(card, anchor.nextSibling);
+      trainCard.parentNode.insertBefore(card, trainCard.nextSibling);
     }, () => { /* the review is optional; Today stands without it */ });
   }
   function closeCoach() {

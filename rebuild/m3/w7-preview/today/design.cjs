@@ -110,6 +110,10 @@ const PREVIEW_COPY = Object.freeze([
   /* P1 review, optional item 5, taken: a comma reads better here than a colon, and
      DECISIONS:114 allows "a colon, comma, full stop or a new sentence". */
   "No, answer it here",
+  /* COACH V1 POLISH (the PM's polish batch, ui-pass7 shot 02): Today's Coach entry is a compact row in the feed above
+     Start, one line. The board's Talk row words ("Talk through today's plan") went with the old link; these words are
+     the preview's, PM-approved short plain copy (:913 (5)). */
+  "Ask Coach",
 ]);
 // Static copy that MUST come from the approved references.
 const APPROVED_COPY = Object.freeze([
@@ -125,9 +129,10 @@ const APPROVED_COPY = Object.freeze([
      its two lines ("Talk through today's plan" and "Your plan, progress and the reasons behind
      it."), so neither is declared here; the Coach screen's own "Talk through today's plan." is
      bound by assertCoachBinding. */
-  /* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"): the Coach entry is back on Today, in the board's own Talk
-     row words (#talk-today), as a link under the day; the row's second line stays off Today. */
-  "Talk through today’s plan",
+  /* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"): the Coach entry came back on Today in the board's own Talk
+     row words (#talk-today), as a link under the day. COACH V1 POLISH: the entry is now the compact "Ask Coach" row in
+     the feed (PREVIEW_COPY above), so the Talk row words left Today and this list; the Coach screen's own "Talk through
+     today's plan." is bound by assertCoachBinding. */
   "Weight (lb)",
   /* C-UI-2 round 3, DECISIONS:820 (2): the approved board's words win on Today where the
      app named the same thing differently. Each is on the board (app/app.html) and in the

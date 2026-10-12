@@ -117,16 +117,25 @@ test("C-UI-2 R3: the board's words on Today (DECISIONS:820 (2))", () => {
     assert(decl >= 0 && design.lastIndexOf("DECISIONS:820", decl) >= 0, "declared in design.cjs under :820: " + w);
   }
   /* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"; red first on the S19 template): the Coach entry is back
-     on Today because the coach now answers from the device's records. It is ONE quiet link under the day, in the
-     board's Talk row words, so the workout and Start stay first: the row itself (#talk-today, its orb and mic, its
-     second line and its coach-state marker) stays off Today, and design.cjs declares the one line it shows. */
-  const entry = /<button class="link on-scene day-foot" type="button" data-go="coach" data-slot="coach-entry">([^<]*)<\/button>/.exec(today);
-  assert(entry, "Today carries one quiet link to the Coach screen");
-  assert.equal(entry[1], "Talk through today\u2019s plan", "in the board's own Talk row words");
-  assert(board.includes("Talk through today\u2019s plan"), "which are on the approved board");
-  const declared = design.indexOf(JSON.stringify("Talk through today\u2019s plan"));
-  assert(declared >= 0 && design.lastIndexOf("COACH V1", declared) >= 0, "declared in design.cjs under Coach v1");
+     on Today because the coach now answers from the device's records. COACH V1 POLISH (the PM's polish batch, ui-pass7
+     shot 02: the quiet link sat below Start, off the first screen): it is ONE compact row in the feed, in the food
+     card's own look (tcard nav, the feed's dot, a chevron), one preview-owned line "Ask Coach", so it is above Start and
+     nothing sits under Start. The board's Talk row (#talk-today, its orb and mic, its second line and its coach-state
+     marker) stays off Today, and so do its words now; design.cjs declares the entry's one line as preview copy. */
+  const entry = /<button class="tcard nav" id="card-coach" type="button" data-go="coach" data-slot="coach-entry">([\s\S]*?)<\/button>/.exec(today);
+  assert(entry, "Today carries one compact row to the Coach screen");
+  assert.match(entry[1], /^\s*<span class="tdot" aria-hidden="true"><\/span>\s*<div class="title">Ask Coach<\/div>\s*<span class="chev" aria-hidden="true">/,
+    "the feed's dot, one line, and a chevron");
+  const timeline = today.slice(today.indexOf('<div class="timeline">'), today.indexOf('<span data-slot="sleep-entry-label">'));
+  assert(timeline.includes(entry[0]), "inside the feed");
+  assert(today.indexOf(entry[0]) < today.indexOf('<div class="stack">'), "above Start's stack");
+  const declared = design.indexOf(JSON.stringify("Ask Coach"));
+  const preview = design.indexOf("const PREVIEW_COPY"), approved = design.indexOf("const APPROVED_COPY");
+  assert(declared > preview && declared < approved, "declared in design.cjs as preview copy");
+  assert(!board.includes("Ask Coach"), "which the approved board does not already say");
   assert.equal((today.match(/data-go="coach"/g) || []).length, 1, "exactly one route to the Coach screen");
+  assert(!today.includes("Talk through today\u2019s plan"), "the Talk row's words left Today with the old link");
+  assert(!design.includes(JSON.stringify("Talk through today\u2019s plan")), "and are no longer declared");
   assert(!today.includes("Your plan, progress and the reasons behind it."), "the Talk row's second line stays off Today");
   assert(!design.includes(JSON.stringify("Your plan, progress and the reasons behind it.")), "and is not declared");
   assert(board.includes('id="talk-today"'), "the board still draws the Talk row");

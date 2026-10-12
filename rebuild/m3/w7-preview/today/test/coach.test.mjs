@@ -482,13 +482,23 @@ async function tap(phone, intent) {
   return phone.querySelector("#coach-answer");
 }
 
-test("CV1-1 the Coach entry is back on Today, in the board's words, and it opens the live coach's questions", async () => {
+test("CV1-1 the Coach entry is a compact row in Today's feed above Start, and it opens the live coach's questions", async () => {
   const { COACH_QUESTIONS } = await import("../coach-app.mjs");
   const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
   const { doc, phone, api } = await liveCoach();
   const entry = doc.querySelector('[data-go="coach"]');
   assert(entry, "Today carries a route to the Coach screen");
-  assert.equal(entry.textContent.trim(), "Talk through today\u2019s plan", "in the board's own Talk row words");
+  /* Polish batch (shot 02: the link sat below Start, off the first screen): one line, "Ask Coach", in the food card's
+     row look (tcard nav, dot, chevron), inside the feed, so it comes before Start and nothing sits under Start. */
+  assert.equal(norm(entry.textContent), "Ask Coach", "one plain line");
+  assert.equal(entry.id, "card-coach");
+  assert(entry.classList.contains("tcard") && entry.classList.contains("nav"), "a row of the feed, in the food card's look");
+  assert(entry.querySelector(".tdot") && entry.querySelector(".chev"), "with the feed's dot and a chevron");
+  assert.equal(entry.parentElement && entry.parentElement.classList.contains("timeline"), true, "inside the feed");
+  const start = doc.getElementById("start");
+  assert(start, "Start is on Today");
+  assert.equal(Boolean(entry.compareDocumentPosition(start) & 4), true, "the entry comes before Start");
+  assert.equal(start.closest(".stack").querySelector('[data-go="coach"]'), null, "nothing of the coach sits in Start's stack");
   entry.click();
   await new Promise((r) => setTimeout(r, 0));
   const chips = [...phone.querySelectorAll("#prompts .prompt")];
@@ -498,14 +508,18 @@ test("CV1-1 the Coach entry is back on Today, in the board's words, and it opens
      may not open a second time, so that question waits for a sealed read of the lane (coach-app.mjs COACH_QUESTIONS) */
   assert.deepEqual(COACH_QUESTIONS.map((q) => q.intent), Intents.PAGE_INTENT_IDS.filter((id) => id !== "machine_seat"),
     "every question is one of the coach's page intents, and no question asks for a lane the page cannot open");
-  for (const chip of chips) assert(chip.querySelector(".icon-square") && chip.querySelector(".chev"), "each is the pack's own prompt button");
+  /* Polish batch (shot 04: six calendars): each is the pack's own prompt button with its chevron and no icon. */
+  for (const chip of chips) {
+    assert(chip.classList.contains("prompt") && chip.querySelector(".chev"), "each is the pack's own prompt button");
+    assert.equal(chip.querySelector(".icon-square, svg.icon"), null, "with no icon");
+  }
   assert.equal(phone.querySelector('.header .pill[title]').hidden, true, "the example pill is off: these answers are the device's own");
   api.dispose();
 });
 
 test("CV1-2 a tapped question is answered from this device's records, and every number in it is a tool result of that turn", async () => {
   const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
-  const Tools = (await import("../../../../coach/tools.cjs")).default;
+  const ReadTools = (await import("../../../../coach/read-tools.cjs")).default;
   const Wave1 = (await import("../../../../coach/wave1-tools.cjs")).default;
   const { doc, phone, api, model } = await liveCoach();
   doc.querySelector('[data-go="coach"]').click();
@@ -519,7 +533,8 @@ test("CV1-2 a tapped question is answered from this device's records, and every 
     /* the same question asked of the same tools over the same model, outside the page: the same sentence, and a
        clean traceability verdict for the turn that produced it */
     const world = { today: model };
-    const tools = Wave1.createWave1Tools({ world, coach: Tools.createCoachTools(world) });
+    /* the page's own composition, the read tools (since the polish batch today's plan also reads today_session) */
+    const tools = Wave1.createWave1Tools({ world, coach: ReadTools.createReadTools(world) });
     const again = await Intents.ask(tools, intent, { turnId: "cv1-2-" + intent });
     assert.equal(again.shipped, true, intent + " ships");
     assert.deepEqual(again.untraceable, [], intent + ": every number is a tool result of the turn");
@@ -528,16 +543,25 @@ test("CV1-2 a tapped question is answered from this device's records, and every 
   api.dispose();
 });
 
-test("CV1-3 a question no lane on this device can answer says why in the tool's own words, as a refusal", async () => {
-  const { doc, phone, api } = await liveCoach();
+test("CV1-3 a question no lane on this device can answer says why in plain words, as a refusal; why this weight needs no lane", async () => {
+  const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
+  const { doc, phone, api, model } = await liveCoach();
   doc.querySelector('[data-go="coach"]').click();
   await new Promise((r) => setTimeout(r, 0));
-  for (const intent of ["why_weight", "last_time", "my_checkin"]) {
+  /* Polish batch: a refusal is the question's own plain sentence, never a tool's or the engine's words. */
+  for (const intent of ["last_time", "my_checkin"]) {
     const card = await tap(phone, intent);
     assert.equal(card.classList.contains("is-refusal"), true, intent + " is a refusal with no lane open");
     assert.equal(card.querySelector(".from").hidden, true, "a refusal carries no provenance line");
     assert.equal(/\d/.test(phone.querySelector("#coach-answer-text").textContent), false, intent + " invents no figure");
+    assert.equal(phone.querySelector("#coach-answer-text").textContent, Intents.PLAIN_REFUSALS[intent], intent + " in plain words");
   }
+  /* "Why this weight?" reads today's session from the Today model: one plain line per exercise, with the source line. */
+  const card = await tap(phone, "why_weight");
+  assert.equal(card.classList.contains("is-refusal"), false, "why this weight is answered");
+  assert.equal(card.querySelector(".from").textContent, COACH_COPY.fromStore);
+  const lines = phone.querySelector("#coach-answer-text").textContent.split("\n");
+  assert.deepEqual(lines.map((line) => line.split(":")[0]), model.sessionPlan().exercises.map((ex) => ex.name), "one line per exercise");
   api.dispose();
 });
 
@@ -569,7 +593,7 @@ test("CV1-4 an answer carrying a number no tool returned is discarded, never sho
   view.close();
 });
 
-test("CV1-5 typing or speaking says, once, that those come later; nothing listens and nothing is sent", async () => {
+test("CV1-5 tap to ask only: the text mode, the tap link and the mic are hidden; nothing listens and nothing is sent", async () => {
   const { win, doc, phone, api } = await liveCoach();
   let mic = 0, net = 0;
   win.navigator.mediaDevices = { getUserMedia: () => { mic += 1; return Promise.reject(new Error("no")); } };
@@ -577,6 +601,15 @@ test("CV1-5 typing or speaking says, once, that those come later; nothing listen
   const { COACH_LIVE_COPY } = await import("../coach-app.mjs");
   doc.querySelector('[data-go="coach"]').click();
   await new Promise((r) => setTimeout(r, 0));
+  /* Polish batch (shot 04): until a model coach exists the stack under the questions is hidden, so the six questions and
+     the answer have the screen; "Use text mode", "I'll tap instead" and "Tap to speak" are not drawn. */
+  const stack = phone.querySelector(".stack");
+  assert.equal(stack.hidden, true, "the stack is hidden on the live screen");
+  for (const id of ["#mic", "#mic-label", "#coach-text-mode", "#coach-tap", "#coach-text"]) {
+    assert.equal(stack.contains(phone.querySelector(id)), true, id + " is inside the hidden stack");
+  }
+  assert.equal(phone.querySelector("#prompts").hidden, false, "the questions are on the screen");
+  /* and were they reached anyway, they still only say that those come later */
   for (const ask of [() => phone.querySelector("#mic").click(),
     () => { phone.querySelector("#coach-text-mode").click(); phone.querySelector("#coach-text button").click(); }]) {
     ask();
@@ -642,13 +675,25 @@ test("CV1-8 the first day of a week shows last week's review on Today, its reaso
   const { default: TodayModel } = await import("../today-model.cjs");
   const { doc, api } = await weekToday(TodayModel.SYNTHETIC_DAY, WEEK_LANE);
   const card = await tickUntil(() => doc.querySelector('[data-slot="week-review"]'), "the weekly review card");
-  const rows = [...card.children].filter((el) => el.classList.contains("kind") || el.classList.contains("change")).map((el) => norm(el.textContent));
+  /* Polish batch (shots 01, 03): its own card in the feed, directly after the workout card and never inside it, in the
+     proposal card's look (tcard proposal, the feed's dot, the head's kind as the heading "Last week"). */
+  const train = doc.getElementById("card-train");
+  assert.equal(train.contains(card), false, "not drawn inside the workout card");
+  assert.equal(card.parentElement, train.parentElement, "a card of the feed, beside the workout card");
+  assert.equal(card.previousElementSibling, train, "directly after the workout card");
+  assert(card.classList.contains("proposal"), "in the coach proposal card's look");
+  assert.equal(card.firstElementChild.classList.contains("tdot"), true, "with the feed's dot");
+  assert.equal(norm(card.querySelector(".head > .kind").textContent), "Last week", "headed Last week");
+  const rows = [...card.querySelectorAll(".kind, .change")].map((el) => norm(el.textContent));
   assert.equal(rows[0], Intents.WEEK_WORDS.lastWeek);
   assert.match(rows[1], /^Workouts done: 2 of \d+\.$/);
   assert.ok(rows.includes("Chest press: " + Intents.WEEK_WORDS.up));
   assert.ok(rows.includes("Row: " + Intents.WEEK_CODE_WORDS.NATIVE_LOAD_PROVISIONAL));
   const why = card.querySelector('[data-slot="week-review-why"]');
   const reason = doc.getElementById(why.getAttribute("aria-controls"));
+  assert.equal(norm(why.previousElementSibling.textContent), "Chest press: " + Intents.WEEK_WORDS.up, "Why? follows its line");
+  assert.equal(why.nextElementSibling, reason, "and opens its reason inline, right under it");
+  assert.ok(rows.some((row) => /^Trend weight: \d+(\.\d+)? lb\.$/.test(row)), "the bodyweight line is one short line");
   assert.equal(why.textContent, "Why?");
   assert.equal(reason.hidden, true, "the reason waits behind Why?");
   why.click();

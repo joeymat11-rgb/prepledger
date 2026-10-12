@@ -667,3 +667,23 @@
 [data-native-load="offer"] > button[data-native-load="why"] { grid-column: 1 / -1; justify-self: start; height: auto;
   min-height: var(--hit); margin-top: 2px; padding: 0; background: none; border: 0; border-radius: 0; color: var(--text-soft); }
 /* ===== S19: END ===== */
+/* ===== COACH V1 POLISH (ui-pass7 shots 01 to 10, 2026-10-12): BEGIN =====
+   1. The weekly review is its own card in the Today feed (today-app.cjs paintWeekReview: a timeline sibling right after
+      the workout card, never inside it), in the proposal card's look. On a training day the workout card is drawn first
+      (order -1 above), so the review takes the same order and stays directly under it. Its lines are body text (the
+      09-08 .change green on the card measured below contrast), and Why? is a quiet control on a row of its own that
+      opens the reason inline beneath it. */
+.scene-frame > .view.ui > .body[data-day="train"] > .timeline > [data-slot="week-review"] { order: -1; }
+.scene-frame > .view.ui [data-slot="week-review"] .change { color: var(--text); }
+.view [data-slot="week-review-why"] { display: block; min-height: var(--hit); padding: 0; background: none; border: 0;
+  text-align: left; color: var(--text-soft); }
+/* 4. A coach answer is one item per line: coach-intents.cjs joins the lines with a line break. */
+.scene-frame > .view.ui #coach-answer-text { white-space: pre-line; }
+/* 5. Content scrolled up under the status band is gone, not dimmed: the pack's top fade (app.css:868, 40 px to 72 px)
+      began inside the 47 px band the header clears, so a heading or a card line scrolled up read through the status bar
+      (shots 03, 10 at 430). The fade now starts at the band's foot, or the device's own safe area when that is taller. */
+.scene-frame.screen > .view.ui > .body.can-scroll:not(.at-start),
+.scene-frame.screen > .view.ui > [data-native-load="gym"] > .body.can-scroll:not(.at-start) {
+  --fade-top: max(47px, env(safe-area-inset-top, 0px));
+  --fade-top-end: calc(max(47px, env(safe-area-inset-top, 0px)) + 32px); }
+/* ===== COACH V1 POLISH: END ===== */

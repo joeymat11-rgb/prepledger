@@ -1687,6 +1687,16 @@
    "lists": []
   },
   {
+   "text": "Ask Coach",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "PREVIEW_COPY"
+   ]
+  },
+  {
    "text": "Ask your coach.",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
@@ -6168,16 +6178,6 @@
    "lists": []
   },
   {
-   "text": "Talk through today’s plan",
-   "files": {
-    "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/screens.template.html": 1
-   },
-   "lists": [
-    "APPROVED_COPY"
-   ]
-  },
-  {
    "text": "Talk through today’s plan.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -10146,7 +10146,7 @@
    "text": "tcard proposal",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    "rebuild/m3/w7-preview/today/today-app.cjs": 2
    },
    "lists": []
   },

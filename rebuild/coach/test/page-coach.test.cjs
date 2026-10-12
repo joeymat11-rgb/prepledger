@@ -21,7 +21,9 @@ test("PC-1: ask() is coach-intents ask() over the same tools and world, turn by 
   const today = fakeToday();
   const page = createPageCoach({ today });
   const world = { today, gym: null, checkin: null };
-  const tools = Wave1.createWave1Tools({ world, coach: Tools.createCoachTools(world) });
+  /* The page's own composition, the read tools (read-tools.cjs): since the polish batch today's plan also reads
+     today_session, a page read tools.cjs does not carry (as week_review before it). */
+  const tools = Wave1.createWave1Tools({ world, coach: require("../read-tools.cjs").createReadTools(world) });
   for (const [n, intent] of [[1, "today_plan"], [2, "weight_trend"], [3, "my_checkin"]]) {
     const got = await page.ask(intent);
     const want = await Intents.ask(tools, intent, { turnId: "coach-" + n });
@@ -45,17 +47,24 @@ test("PC-2: the page gets ask() and nothing else, and only page intents are aske
   const { TIERS } = Wave1.createWave1Tools({ world, coach: require("../read-tools.cjs").createReadTools(world) });
   for (const intent of Intents.PAGE_INTENT_IDS) {
     const spec = Intents.PAGE_INTENTS[intent];
-    assert.equal(TIERS[spec.tool], Tools.TIER.READ, intent + " runs a READ tool");
+    for (const tool of spec.tools) assert.equal(TIERS[tool], Tools.TIER.READ, intent + " runs " + tool + ", a READ tool");
   }
 });
 
-test("PC-3: with no lane open the reads refuse in the tools' own words, and the machine seat has no lane", async () => {
+test("PC-3: with no lane open the lane reads refuse in plain words, and the machine seat has no lane", async () => {
   const page = createPageCoach({ today: fakeToday() });
-  for (const intent of ["why_weight", "last_time", "my_checkin", "machine_seat"]) {
+  /* Polish batch: why_weight reads today's session from the Today model (today_session), which needs no lane, so it is
+     answered here (PC-5 and coach-intents CI-6 hold its words); the three lane reads are refused, each in its question's
+     own plain sentence. */
+  for (const intent of ["last_time", "my_checkin", "machine_seat"]) {
     const got = await page.ask(intent);
     assert.equal(got.answered, false, intent + " is refused with no lane open");
     assert.equal(/\d/.test(got.answer), false, intent + " invents no figure");
+    assert.equal(got.answer, Intents.PLAIN_REFUSALS[intent], intent + " says its own plain sentence");
   }
+  const why = await page.ask("why_weight");
+  assert.equal(why.answered, true, "why this weight reads the Today model's session, which needs no lane");
+  assert.deepEqual(why.untraceable, []);
 });
 
 /* Fable D1: the world the tools hold carries only the read methods the READ intents use, and no writer of the page's
@@ -101,8 +110,12 @@ test("PC-5: the coach's world is read-only wrappers; no writer of the Today mode
   const page = createPageCoach({ today, gym, checkin });
   for (const intent of Intents.PAGE_INTENT_IDS) await page.ask(intent);
   assert.deepEqual(called, [], "no writer was called by any page question");
-  /* the wrappers still read through: the gym's read and the check-in's read reach the coach */
-  assert.equal((await page.ask("why_weight")).answered, true, "a READ through the gym wrapper is answered");
+  /* the wrappers still read through: the gym's read and the check-in's read reach the coach (polish batch: "What did I
+     do last time?" is the gym wrapper's read now; why_weight reads the Today model's session) */
+  const last = await page.ask("last_time");
+  assert.equal(last.answered, true, "a READ through the gym wrapper is answered");
+  assert.equal(last.answer, "No earlier session of Lift yet.");
+  assert.equal((await page.ask("why_weight")).answered, true, "a READ through the Today wrapper's sessionPlan is answered");
 });
 
 test("PC-4: page-coach.cjs takes no edge but the three coach modules, and no network word", () => {
@@ -195,8 +208,11 @@ test("PC-7: the weekly review ships traced, Monday reviews the week just ended, 
   assert.equal(said("Curl").text, "Curl: " + Intents.WEEK_FALLBACK, "an unmapped code names nothing of its own");
   assert.equal(said("Squat").text, "Squat: " + Intents.WEEK_HOLD_WORDS.disputed);
   assert.ok(lines.some((l) => l.text.startsWith(Intents.WEEK_WORDS.suggestion)), "the open suggestion on Today is named");
-  assert.ok(lines.some((l) => /^Your trend weight is \d/.test(l.text)), "the trend line is the weight_trend sentence");
+  /* Polish batch: the bodyweight paragraph is one short line when the device holds a trend weight (and none without). */
+  assert.ok(lines.some((l) => /^Trend weight: \d+(\.\d+)? lb\.$/.test(l.text)), "the trend line is one short line");
+  assert.equal(lines.some((l) => /rate is not measured|No reading is stored/.test(l.text)), false, "no trend paragraph");
   assert.equal(asked.answer.includes(WEEK_ROWS[0].reason), false, "the Coach answer leaves the reasons to Why?");
+  assert.deepEqual(asked.answer.split("\n"), lines.map((l) => (l.heading ? l.text + "." : l.text)), "one line per item");
   const midweek = weekWorld("2026-10-14");
   const mid = await createPageCoach(midweek).week();
   assert.deepEqual(midweek.windows, [["2026-10-12", "2026-10-14"]], "midweek the window is this week so far");
@@ -230,4 +246,11 @@ test("PC-9: with no workout record the review is refused in the tool's own words
   const noLifts = createPageCoach(weekWorld("2026-10-14", { week: null }));
   const lines = (await noLifts.week()).lines;
   assert.ok(lines.some((l) => l.text === Intents.WEEK_WORDS.liftsUnknown), "with no lift read it says the lifts could not be checked");
+  /* Polish batch: with no trend weight on the device the review has no bodyweight line at all. */
+  const unweighed = weekWorld("2026-10-14");
+  const real = unweighed.today;
+  unweighed.today = Object.assign(Object.create(real), { stateFromOps: () => ({ ...real.stateFromOps(), trend: null }) });
+  const quiet = (await createPageCoach(unweighed).week()).lines;
+  assert.ok(quiet.length > 2, "the review is still drawn");
+  assert.equal(quiet.some((l) => /trend|weight on this device|reading/i.test(l.text)), false, "no bodyweight line without a reading");
 });

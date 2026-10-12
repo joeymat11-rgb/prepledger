@@ -667,12 +667,17 @@ export function openCoach({ doc, phone, back = () => {}, focus = false, state, l
     const model = prompts.querySelector(".prompt");
     const made = COACH_QUESTIONS.map((question) => {
       const node = model.cloneNode(true);
-      const words = [...node.children].find((child) => !child.classList.contains("icon-square") && !child.classList.contains("chev"));
+      /* Polish batch: no icon on a live question (the pack's one calendar icon said nothing about five of the six). */
+      for (const icon of node.querySelectorAll(".icon-square")) icon.remove();
+      const words = [...node.children].find((child) => !child.classList.contains("chev"));
       words.textContent = question.label;
       node.setAttribute("data-intent", question.intent);
       return node;
     });
     prompts.replaceChildren(...made);
+    /* Polish batch: v1 is tap to ask only. The text mode, the tap-instead link and the mic say nothing a tap does not,
+       so the whole stack is hidden until a model coach exists, and the six questions and the answer have the screen. */
+    stack.hidden = true;
     /* The header pill says "example" over the sample screens; these answers are this device's own. */
     const example = phone.querySelector('.header .pill[title]');
     if (example) example.hidden = true;

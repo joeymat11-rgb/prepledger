@@ -70,7 +70,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // adoption offer's heading that states its weight (CL-S15-DELTA 44 -> 46; was 9bee3abe...). Coach v1 (S19 amend): re-measured
 // for exactly the Coach v1 pieces and counts (CL-COACH-V1-DELTA; the value before is S19_CORPUS_SHA256). Coach v1 piece 2
 // (the weekly review): re-measured for exactly one more piece, the Coach question "How did my week go?" (was e61da75a...).
-const CORPUS_SHA256 = '6041133783c9357c9ee64e24642e91584d77d54cede51f8d4b35a2a493832bf0';
+// Coach v1 polish: re-measured for exactly the polish delta, "Ask Coach" in, the Talk row words out and one count
+// (CL-COACH-POLISH-DELTA; the value before is PIECE2_CORPUS_SHA256, 60411337...).
+const CORPUS_SHA256 = '218da3dc82a04fca3d958679b7896093cc77a36497e15bdc4b2b5980223bedde';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -567,7 +569,55 @@ const COACH_V1_CHANGED = Object.freeze([
   ['" carries a dash', { [CV1_DESIGN]: 1 }, { [CV1_DESIGN]: 2 }],
 ]);
 const COACH_V1_COPY_APPROVAL = 'DECISIONS:964';
-function beforeCoachV1(corpus) {
+/* Coach v1 polish (the PM's polish batch on rebuild/c-weekly, ui-pass7 shot 02): the Coach entry on Today is a compact
+   row in the feed, "Ask Coach" (preview-owned, design.cjs PREVIEW_COPY), and the board's Talk row words left Today with
+   the old link (no longer declared in APPROVED_COPY; the Coach screen's own "Talk through today's plan." stays). Nothing
+   else moves. beforePolish gives every older view the corpus as Coach v1 piece 2 sealed it (PIECE2_CORPUS_SHA256, the
+   value CORPUS_SHA256 held before this re-measure), and beforeCoachV1 starts from that view. */
+const PIECE2_CORPUS_SHA256 = '6041133783c9357c9ee64e24642e91584d77d54cede51f8d4b35a2a493832bf0';
+const POLISH_NEW = Object.freeze([['Ask Coach', { [CV1_DESIGN]: 1, [CV1_SCREENS]: 1 }, ['PREVIEW_COPY']]]);
+const POLISH_REMOVED = Object.freeze([['Talk through today\u2019s plan', { [CV1_DESIGN]: 1, [CV1_SCREENS]: 1 }, ['APPROVED_COPY']]]);
+/* And one existing piece's count: the weekly review card is drawn in the proposal card's own classes (today-app.cjs
+   paintWeekReview), so "tcard proposal" gains its second literal there. No word moves with it. */
+const POLISH_CHANGED = Object.freeze([['tcard proposal', { [CV1_APP]: 1, [T + '/today-app.cjs']: 1 }, { [CV1_APP]: 1, [T + '/today-app.cjs']: 2 }]]);
+/* The PM's polish brief names the words; short plain copy is PM-approved under DECISIONS:913 (5). */
+const POLISH_COPY_APPROVAL = 'DECISIONS:913';
+function beforePolish(corpus) {
+  const added = new Set(POLISH_NEW.map(([text]) => text));
+  const back = POLISH_REMOVED.map(([text, files, lists]) => ({ text, files: sortedFiles(files), lists }));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
+    const row = POLISH_CHANGED.find(([text]) => text === e.text);
+    return row ? { ...e, files: sortedFiles(row[1]) } : e;
+  }).concat(back).sort(byTextOrder) };
+}
+test('CL-COACH-POLISH-DELTA: the corpus is the piece 2 corpus plus "Ask Coach" and minus the Talk row words, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of POLISH_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-COACH-POLISH-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text] of POLISH_REMOVED) if (byText.has(text)) failed.push('CL-COACH-POLISH-DELTA REMOVED-STILL-THERE ' + JSON.stringify(text));
+  for (const [text, , now] of POLISH_CHANGED) {
+    const want = { text, files: sortedFiles(now), lists: [] };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-COACH-POLISH-DELTA CHANGED ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  const piece2 = lock.sha256(Buffer.from(serialize(beforePolish(corpus)), 'utf8'));
+  if (piece2 !== PIECE2_CORPUS_SHA256) failed.push('CL-COACH-POLISH-DELTA PIECE2-VIEW ' + piece2);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the piece 2 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-COACH-POLISH-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforePolish(moved)), 'utf8')) === PIECE2_CORPUS_SHA256) failed.push('CL-COACH-POLISH-DELTA PIECE2-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-COACH-POLISH-DELTA');
+});
+test('CL-COACH-POLISH-APPROVAL: the polish copy delta names the ledger line that approves it', () => {
+  assert.match(POLISH_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-COACH-POLISH-APPROVAL-PENDING: the polish copy is not approved');
+});
+function beforeCoachV1(polished) {
+  const corpus = beforePolish(polished);
   const added = new Set(COACH_V1_NEW.map(([text]) => text));
   return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
     const row = COACH_V1_CHANGED.find(([text]) => text === e.text);
@@ -576,7 +626,9 @@ function beforeCoachV1(corpus) {
 }
 test('CL-COACH-V1-DELTA: the corpus is the S19 corpus plus exactly the listed Coach v1 pieces and counts, both directions', () => {
   const { corpus } = loaded();
-  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  // Polish batch: the Coach v1 pieces are judged on the piece 2 corpus, which beforePolish rebuilds byte for byte
+  // (CL-COACH-POLISH-DELTA); beforeCoachV1 below starts from that same view.
+  const byText = new Map(beforePolish(corpus).entries.map((e) => [e.text, e]));
   const failed = [];
   for (const [text, files, lists] of COACH_V1_NEW) {
     const want = { text, files: sortedFiles(files), lists };

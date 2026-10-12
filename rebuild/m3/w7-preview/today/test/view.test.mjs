@@ -377,10 +377,18 @@ test("every screen this slice does not build says so and shows no invented value
   assert.equal(coach.querySelector("#coach-answer").hidden, false, "asking is answered");
   const told = coach.querySelector("#coach-answer-text").textContent;
   const todayView = kit.model.read();
+  /* COACH V1 POLISH (plain answers): today's plan names the workout and each exercise's set target, so its figures are
+     the Today model's own calorie band and protein target AND the engine's own session cards (sessionPlan). */
+  const plan = kit.model.sessionPlan();
+  const own = [todayView.calorieTarget && todayView.calorieTarget.lo, todayView.calorieTarget && todayView.calorieTarget.hi,
+    todayView.proteinTarget && todayView.proteinTarget.g,
+    ...plan.exercises.flatMap((ex) => [ex.sets, ...ex.reps, ex.weight, ex.repTop])].filter((v) => v !== null && v !== undefined).map(String);
   for (const figure of told.match(/\d+(?:\.\d+)?/g) || []) {
-    assert([todayView.calorieTarget && todayView.calorieTarget.lo, todayView.calorieTarget && todayView.calorieTarget.hi, todayView.proteinTarget && todayView.proteinTarget.g]
-      .map(String).includes(figure), "every figure in the answer is the Today model's own: " + figure);
+    assert(own.includes(figure), "every figure in the answer is the Today model's own: " + figure);
   }
+  /* COACH V1 POLISH (shot 04): v1 is tap to ask only, so the text mode, the tap link and the mic are hidden with their
+     stack; reached anyway, typing still says it is not a question yet. */
+  assert.equal(coach.querySelector(".stack").hidden, true, "no text mode and no mic on the live screen");
   coach.querySelector("#coach-text-mode").click();
   coach.querySelector("#coach-text button").click();
   assert.match(coach.querySelector("#coach-answer").textContent, /Typed and spoken questions come later\./, "typing is not a question yet");
@@ -609,8 +617,10 @@ test("every unwired entry point says so on Today's own face, in secondary text",
      template's #talk-today), and Today's face no longer says "Ask your coach". The label moves to
      the board's; the marker, its .sub placement (asserted above), app.NOT_WIRED and the
      120-character window are unchanged. */
-  /* COACH V1: the link says the Talk row's words; the row and its marker stay off Today (above). */
-  assert(face.includes("Talk through today\u2019s plan"), "the Coach entry says the board's words");
+  /* COACH V1 POLISH (the PM's polish batch, ui-pass7 shot 02): the entry is the compact feed row, one preview-owned line
+     "Ask Coach"; the Talk row's words left Today with the old link, and the row and its marker stay off Today (above). */
+  assert(face.includes("Ask Coach"), "the Coach entry says its one line");
+  assert(!face.includes("Talk through today\u2019s plan"), "the Talk row's words left Today");
   for (const label of ["Your full nutrition plan"]) {
     const at = face.indexOf(label);
     assert(at >= 0, label);

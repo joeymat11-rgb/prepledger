@@ -276,9 +276,10 @@ const WAVE1_TEMPLATES = Object.freeze({
 
 /* COACH V1. The Coach screen asks by TAP, never by free text: each chip is one of these ids, and the screen's
    own words for it live in coach-app.mjs. Every answer is one of the templates above, filled only from the tool
-   results of the turn that asked. `why_weight` and `last_time` read the gym card's own prescription and its
-   last comparable line for the lift on the card; `machine_seat` reads the settings the athlete kept for that lift.
-   With no session composed, each says so in the tool's own words. */
+   results of the turn that asked. `today_plan` and `why_weight` read today's session as the engine composes it
+   (today_session); `last_time` reads the last comparable line for the lift on the gym card; `machine_seat` reads the
+   settings the athlete kept for that lift. With no session composed, each says so in its own plain sentence (the
+   polish batch's PLAIN_REFUSALS below). */
 /* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling option A). The words of the "This week" review, on the Today
    card and in the Coach answer. A lift the engine offers a new weight for says so, with the engine's own offer
    reason behind Why? (native-load.cjs earnReason / adoptReason). A lift it does not raise says ONE plain sentence per
@@ -295,6 +296,7 @@ const WEEK_WORDS = Object.freeze({
   noLifts: "No lift finished a workout in this week.",
   liftsUnknown: "Your lifts could not be checked on this device.",
   suggestion: "Suggestion waiting on Today: ",
+  trend: "Trend weight: ",
 });
 const WEEK_CODE_WORDS = Object.freeze({
   // native-load.cjs:232 - a new weight the athlete agreed to is queued for a later workout.
@@ -338,67 +340,222 @@ function weekLines(v) {
     lines.push({ text: WEEK_WORDS.suggestion + d(v.suggestion.title, "text") + (has(v.suggestion.lift) ? " (" + d(v.suggestion.lift, "text") + ")" : "") + ".",
       why: has(v.suggestion.why) ? d(v.suggestion.why, "text") : null });
   }
-  if (v.trend) lines.push({ text: TEMPLATES_2.weight_trend(v.trend), why: null });
+  /* The bodyweight line (polish batch): one short line when the device holds a trend weight, and none without one. */
+  if (v.trend && has(v.trend.trend)) lines.push({ text: WEEK_WORDS.trend + d(v.trend.trend, "lb") + " lb.", why: null });
   return lines;
 }
-/* The Coach answer: the lines, without the whys (a subset of what ask() checked). */
-const weekAnswer = (lines) => lines.map((line) => (line.heading ? line.text + "." : line.text)).join(" ");
+/* The Coach answer: the lines, without the whys (a subset of what ask() checked), one line per item. */
+const weekAnswer = (lines) => lines.map((line) => (line.heading ? line.text + "." : line.text)).join("\n");
 
+/* ----------------------------------------------------- the plain answers -- */
+
+/* COACH PLAIN ANSWERS (polish batch on rebuild/c-weekly). What the Coach screen says is plain language: no engine
+   code, no engine shorthand (the card notes' DEBUT, "baseline ask", "IS the line"; the tools' "qualified comparable
+   performance"; the check-in model's "never none, never zero") ever reaches it. Each page answer is built from the
+   turn's own tool VALUES by the templates below, one item per line; a tool's refusal is never shown in the tool's
+   words but as the intent's own plain sentence (PLAIN_REFUSALS), whatever its code. Every number is still a tagged
+   tool result of the turn, and ask() still discards a draft the untraceable() check or the charter refuses.
+   PM-approved short plain copy under :913 (5). */
+const PLAIN = Object.freeze({
+  sessionNames: Object.freeze({ UPPER: "Upper body", LOWER: "Lower body" }),
+  today: "Today: ",
+  todaysWorkout: "your workout",
+  noWorkout: "No workout is planned today.",
+  setOne: " set of ",
+  setMany: " sets of ",
+  reps: " reps",
+  at: " at ",
+  bodyweightTail: ", bodyweight",
+  firstTimeShort: ": first time, find your weight.",
+  calories: "Eat between ",
+  caloriesAnd: " and ",
+  caloriesTail: " calories.",
+  protein: "Protein: at least ",
+  proteinTail: " grams.",
+  /* "Why this weight?" */
+  firstTime: ": first time. Pick a weight you can control for about ",
+  firstTimeTail: " reps; what you log becomes your starting point.",
+  firstTimeNoTop: ": first time. Pick a weight you can control for every set; what you log becomes your starting point.",
+  working: " lb is your working weight. A new weight can be offered once you reach the top of your rep range",
+  newWeight: " lb is your new weight, and this is its first workout.",
+  held: ", held for now. Your first set went to failure twice, so the weight stays until a first set ends with a rep or more in reserve.",
+  heldNoLoad: ": held for now. Your first set went to failure twice, so the weight stays until a first set ends with a rep or more in reserve.",
+  /* the setting is said LAST: a setting's own figure ("Pin 7") is then bare at the end of its clause, as the tool said it */
+  setting: ": your working setting is ",
+  bodyweight: ": bodyweight, so there is no weight to set.",
+  noLoad: ": no weight is set for this lift yet.",
+  noWorkoutWhy: "No workout is planned today, so there is no weight to explain.",
+  /* "What did I do last time?" */
+  noEarlier: "No earlier session of ",
+  noEarlierTail: " yet.",
+  lastTime: ". ",
+  /* The check-in. */
+  notCheckedIn: "You have not checked in today.",
+  sleepKnown: "Your sleep record already has last night: ",
+  sleepKnownTail: " hours.",
+  leftBlank: "You left ",
+  leftBlankTail: " blank.",
+});
+/* The check-in's core questions: checkin-model.mjs LABELS (the approved wording each recorded line starts with, as
+   "Label: answer"), beside the plain word for a blank one. coach.test.mjs holds this list to checkin-model.mjs. */
+const CHECKIN_CORE = Object.freeze([
+  Object.freeze(["Last night\u2019s sleep", "sleep"]),
+  Object.freeze(["How was the quality?", "sleep quality"]),
+  Object.freeze(["Energy right now", "energy"]),
+  Object.freeze(["Muscle soreness right now", "soreness"]),
+  Object.freeze(["Stress right now", "stress"]),
+]);
+/* A tool's refusal, said as the intent's own plain sentence (never the tool's words, whatever the code). */
+const PLAIN_REFUSALS = Object.freeze({
+  today_plan: "Today's workout could not be prepared on this device.",
+  why_weight: "Today's workout could not be prepared on this device.",
+  last_time: "There is no workout open right now, so there is no lift to look back on.",
+  my_checkin: "Your check-in could not be read on this device.",
+  machine_seat: "No machine settings are kept for this lift yet.",
+  week_review: "No workout record is open on this device, so there is no week to review.",
+  weight_trend: "Your weight could not be read on this device.",
+});
+const PLAIN_DISCARDED = "I cannot answer that from what the app holds.";
+
+const sentence = (line) => (/[.?!]$/.test(line) ? line : line + ".");
+const listWords = (words) => (words.length < 2 ? words.join("")
+  : words.slice(0, -1).join(", ") + " and " + words[words.length - 1]);
+const flag = (tag) => !!(tag && tag.value === true);
+function sessionTitle(v) {
+  const code = v.name && v.name.value;
+  return typeof code === "string" && Object.hasOwn(PLAIN.sessionNames, code) ? PLAIN.sessionNames[code] : PLAIN.todaysWorkout;
+}
+/* One exercise's set target: "Chest press: 3 sets of 10 reps at 100 lb." (or "of 10, 10, 9 reps"), or the first-time
+   line when the engine asks for a first weight. */
+function targetLine(ex) {
+  const name = d(ex.name, "text");
+  if (flag(ex.firstTime)) return name + PLAIN.firstTimeShort;
+  const reps = (ex.reps || []).filter(has);
+  const same = reps.length > 0 && reps.every((r) => r.display === reps[0].display);
+  const repWords = !reps.length ? "" : (same ? d(reps[0], "rep") : reps.map((r) => d(r, "rep")).join(", ")) + PLAIN.reps;
+  const sets = has(ex.sets) ? d(ex.sets, "set") + (repWords ? (ex.sets.value === 1 ? PLAIN.setOne : PLAIN.setMany) + repWords
+    : (ex.sets.value === 1 ? " set" : " sets")) : repWords;
+  const load = has(ex.load) ? PLAIN.at + d(ex.load, "lb") + " lb"
+    : has(ex.textLoad) ? PLAIN.at + d(ex.textLoad, "text")
+    : flag(ex.bodyweight) ? PLAIN.bodyweightTail : "";
+  return sentence(name + ": " + sets + load);
+}
+/* One exercise's "why this weight", in plain words. */
+function whyLine(ex) {
+  const name = d(ex.name, "text");
+  if (flag(ex.firstTime)) {
+    return has(ex.repTop) ? name + PLAIN.firstTime + d(ex.repTop, "rep") + PLAIN.firstTimeTail : name + PLAIN.firstTimeNoTop;
+  }
+  if (flag(ex.held)) return has(ex.load) ? name + ": " + d(ex.load, "lb") + " lb" + PLAIN.held : name + PLAIN.heldNoLoad;
+  if (has(ex.load) && flag(ex.newWeight)) return name + ": " + d(ex.load, "lb") + PLAIN.newWeight;
+  if (has(ex.load)) {
+    return name + ": " + d(ex.load, "lb") + PLAIN.working + (has(ex.repTop) ? " (" + d(ex.repTop, "rep") + " reps)." : ".");
+  }
+  if (has(ex.textLoad)) return sentence(name + PLAIN.setting + d(ex.textLoad, "text"));
+  if (flag(ex.bodyweight)) return name + PLAIN.bodyweight;
+  return name + PLAIN.noLoad;
+}
+const planned = (v) => !!(v && flag(v.available) && Array.isArray(v.lifts) && v.lifts.length);
+
+/* Each page template takes the turn's results by tool name and returns the answer's lines, or null when a tool
+   refused (the intent's PLAIN_REFUSALS sentence is said instead). */
 const PAGE_TEMPLATES = Object.freeze({
-  /* The reason under today's weight for the lift on the card: the capture's own prescription line and its reason
-     cells, carried unedited. With no reason cell the sentence says the engine gave none (C-20's own words). */
-  why_weight: (v) => join([
-    has(v.liftLabel) ? d(v.liftLabel, "text") + ". " : "",
-    has(v.prescription) ? d(v.prescription, "text") + ". " : "",
-    (v.reason || []).filter(has).length
-      ? (v.reason || []).filter(has).map((line) => d(line, "text")).join(" ")
-      : "The engine gave no reasoning for that number.",
-  ]),
+  /* "What am I hitting today?": the workout, each exercise with its set target, then the calorie band and the
+     protein target only when the engine holds one. No marching order. */
+  plan: (got) => {
+    const s = got.today_session, t = got.today_plan;
+    if (!s || !s.ok) return null;
+    const lines = planned(s.values) ? [PLAIN.today + sessionTitle(s.values) + ".", ...s.values.lifts.map(targetLine)] : [PLAIN.noWorkout];
+    const v = t && t.ok ? t.values : {};
+    if (has(v.kcalLo) && has(v.kcalHi)) lines.push(PLAIN.calories + d(v.kcalLo, "kcal") + PLAIN.caloriesAnd + d(v.kcalHi, "kcal") + PLAIN.caloriesTail);
+    if (has(v.proteinG)) lines.push(PLAIN.protein + d(v.proteinG, "g") + PLAIN.proteinTail);
+    return lines;
+  },
+  /* "Why this weight?": one plain line per exercise. */
+  why_weight: (got) => {
+    const s = got.today_session;
+    if (!s || !s.ok) return null;
+    return planned(s.values) ? s.values.lifts.map(whyLine) : [PLAIN.noWorkoutWhy];
+  },
+  /* "What did I do last time?": the lift on the gym card and its last comparable line, or that there is none yet. */
+  last_time: (got) => {
+    const cur = got.current_set, last = got.last_comparable_performance;
+    if (!cur || !cur.ok || !has(cur.values.liftLabel) || !last) return null;
+    const lift = d(cur.values.liftLabel, "text");
+    if (last.ok && has(last.values.line)) return [lift + PLAIN.lastTime + sentence(d(last.values.line, "text"))];
+    if (!last.ok && last.unavailable.code === T.CODES.NO_QUALIFIED_COMPARISON) return [PLAIN.noEarlier + lift + PLAIN.noEarlierTail];
+    return null;
+  },
+  /* The trend sentences, one per line (a sentence ends at a full stop followed by a capital, so "1.19" stays whole). */
+  weight_trend: (got) => (got.weight_trend && got.weight_trend.ok
+    ? TEMPLATES_2.weight_trend(got.weight_trend.values).split(/(?<=\.) (?=[A-Z])/) : null),
+  /* The check-in: what is recorded, in the model's own "Label: answer" lines, and which core question was left blank. */
+  checkin: (got) => {
+    const r = got.today_checkin;
+    if (!r || !r.ok) return null;
+    const v = r.values;
+    if (!flag(v.answered)) {
+      const lines = [PLAIN.notCheckedIn];
+      if (has(v.sleepRecordHours)) lines.push(PLAIN.sleepKnown + d(v.sleepRecordHours, "h") + PLAIN.sleepKnownTail);
+      return lines;
+    }
+    const said = (v.lines || []).filter(has).map((l) => d(l, "text"));
+    const blank = CHECKIN_CORE.filter(([label]) => !said.some((l) => l.startsWith(label + ": "))).map(([, word]) => word);
+    const lines = [];
+    if (has(v.provenance)) lines.push(sentence(d(v.provenance, "text")));
+    lines.push(...said.map(sentence));
+    if (blank.length) lines.push(PLAIN.leftBlank + listWords(blank) + PLAIN.leftBlankTail);
+    if (has(v.note)) lines.push(sentence(d(v.note, "text")));
+    return lines;
+  },
+  machine_seat: (got) => (got.machine_settings && got.machine_settings.ok ? [WAVE1_TEMPLATES.machine_settings(got.machine_settings.values)] : null),
   /* The weekly review (Coach v1 piece 2): every line and every why, so the turn's check covers all of it. */
-  week_review: (v) => weekLines(v).flatMap((line) => [line.text, line.why || ""]).filter(Boolean).join(" "),
+  week_review: (got) => (got.week_review && got.week_review.ok
+    ? weekLines(got.week_review.values).flatMap((line) => [line.text, line.why || ""]).filter(Boolean) : null),
 });
 
+/* One page question: the tools it reads, in order, and its template. A later tool is not called once one refuses. */
 const PAGE_INTENTS = Object.freeze({
-  today_plan: { tool: "today_plan", template: "today_plan" },
-  why_weight: { tool: "current_set", template: "why_weight" },
-  last_time: { tool: "last_comparable_performance", template: "last_comparable" },
-  weight_trend: { tool: "weight_trend", template: "weight_trend" },
-  my_checkin: { tool: "today_checkin", template: "checkin" },
-  machine_seat: { tool: "machine_settings", template: "machine_settings" },
-  week_review: { tool: "week_review", template: "week_review" },
+  today_plan: Object.freeze({ tools: Object.freeze(["today_session", "today_plan"]), template: "plan" }),
+  why_weight: Object.freeze({ tools: Object.freeze(["today_session"]), template: "why_weight" }),
+  last_time: Object.freeze({ tools: Object.freeze(["current_set", "last_comparable_performance"]), template: "last_time" }),
+  weight_trend: Object.freeze({ tools: Object.freeze(["weight_trend"]), template: "weight_trend" }),
+  my_checkin: Object.freeze({ tools: Object.freeze(["today_checkin"]), template: "checkin" }),
+  machine_seat: Object.freeze({ tools: Object.freeze(["machine_settings"]), template: "machine_seat" }),
+  week_review: Object.freeze({ tools: Object.freeze(["week_review"]), template: "week_review" }),
 });
 const PAGE_INTENT_IDS = Object.freeze(Object.keys(PAGE_INTENTS));
 
-/* ONE TAP, ONE TURN. `tools` is createWave1Tools(...) (its openTurn binds the C5 fifteen and the wave-one four into
+/* ONE TAP, ONE TURN. `tools` is createWave1Tools(...) (its openTurn binds the read tools and the wave-one four into
    one results array); `liftId` answers the id of the lift on the gym card, or null. The returned `answer` is what
-   the screen may show: the template's sentence when the turn is clean, or the general refusal when a number in it
-   is not among the turn's own tool results or the charter forbids a phrase (the draft is kept as `draft` for the
-   test, never shown). */
+   the screen may show: the template's lines (joined one per line) when the turn is clean, the intent's plain refusal
+   when a tool refused, or the general refusal when a number in the draft is not among the turn's own tool results or
+   the charter forbids a phrase (the draft is kept as `draft` for the test, never shown). */
 async function ask(tools, intent, { turnId, liftId = async () => null } = {}) {
   const spec = PAGE_INTENTS[intent];
   if (!spec) throw new Error("COACH_UNKNOWN_PAGE_INTENT:" + intent);
   if (!tools || typeof tools.openTurn !== "function") throw new TypeError("ask: the coach tools are required");
   const turn = tools.openTurn(turnId || "page-" + intent);
-  let draft, answered;
-  if (intent === "machine_seat") {
-    const id = await liftId();
-    const r = await turn.call.machine_settings({ exercise_id: typeof id === "string" ? id : "" });
-    answered = r.ok === true;
-    draft = r.ok ? WAVE1_TEMPLATES.machine_settings(r.values) : WAVE1_TEMPLATES.unavailable(r.unavailable);
-  } else {
-    const r = await turn.call[spec.tool]({});
-    const tpl = { ...ALL_TEMPLATES, ...PAGE_TEMPLATES };
-    answered = r.ok === true;
-    draft = r.ok ? tpl[spec.template](r.values) : ALL_TEMPLATES.unavailable(r.unavailable);
+  const got = {};
+  for (const name of spec.tools) {
+    let args = {};
+    if (name === "machine_settings") { const id = await liftId(); args = { exercise_id: typeof id === "string" ? id : "" }; }
+    const r = await turn.call[name](args);
+    got[name] = r;
+    /* A refusal ends the reads; the template decides whether it is an answer ("No earlier session of X yet" is). */
+    if (!r.ok) break;
   }
+  const lines = PAGE_TEMPLATES[spec.template](got);
+  const answered = Array.isArray(lines) && lines.length > 0;
+  const draft = answered ? lines.join("\n") : PLAIN_REFUSALS[intent] || PLAIN_DISCARDED;
   const untraceable = turn.untraceable(draft);
   const charter = T.charterViolations(draft);
   const shipped = untraceable.length === 0 && charter.length === 0 && typeof draft === "string" && draft !== "";
   /* The weekly review also hands back its lines (the Today card draws them, whys behind Why?), and its answer is the
      lines without the whys; only a shipped, answered turn has lines. */
-  const week = intent === "week_review" && shipped && answered ? weekLines(turn.results[0].values) : null;
-  /* `answered` is false when the tool itself refused (no session, no lane, nothing kept): the sentence is then the
-     tool's own refusal, and the screen shows it as one. */
+  const week = intent === "week_review" && shipped && answered ? weekLines(got.week_review.values) : null;
+  /* `answered` is false when a tool refused (no session, no lane, nothing kept): the sentence is then the intent's
+     plain refusal, and the screen shows it as one. */
   return Object.freeze({ intent, turn_id: turn.turn_id, results: turn.results.slice(), draft, untraceable, charter,
     shipped, answered: shipped && answered, lines: week,
     answer: !shipped ? ALL_TEMPLATES.unavailable({ code: "COACH_ANSWER_DISCARDED", reason: null }) : week ? weekAnswer(week) : draft });
@@ -408,4 +565,5 @@ module.exports = {
   d, has, join, list, TEMPLATES, TEMPLATES_2, ALL_TEMPLATES, READ_INTENTS, FACT_INTENTS, TIER3_INTENTS, answerOne,
   WAVE1_TEMPLATES, PAGE_TEMPLATES, PAGE_INTENTS, PAGE_INTENT_IDS, ask,
   WEEK_WORDS, WEEK_CODE_WORDS, WEEK_HOLD_WORDS, WEEK_FALLBACK, weekLines,
+  PLAIN, CHECKIN_CORE, PLAIN_REFUSALS, PLAIN_DISCARDED,
 };

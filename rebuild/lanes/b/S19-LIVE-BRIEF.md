@@ -156,11 +156,65 @@ only at milestones.
   this device, so there is no week to review." (read-tools.cjs), the eight code sentences, the two hold sentences
   and the fallback above. "Why?" is the S18 word.
 
+## Coach v1 polish (PM polish batch 2026-10-12, ui-pass7 shots 01 to 10)
+- The weekly review is its own card in the Today feed, a sibling of the workout card right after it (never inside it,
+  where the timeline line ran through it): the proposal card's look (tcard proposal, the feed's dot), headed "Last
+  week" by the head's kind, its lines in the body text colour (the 09-08 .change green failed contrast), Why? a quiet
+  control on a row of its own that opens the engine's reason inline beneath it. The bodyweight paragraph is gone: one
+  short line, "Trend weight: <n> lb.", when the device holds a trend weight, and none without one.
+- The Coach entry is a compact row in the feed after the food card, in its row look (tcard nav, dot, chevron), one
+  line "Ask Coach" (preview-owned, design.cjs PREVIEW_COPY), so it sits above Start and nothing sits under Start. The
+  board's Talk row words left Today with the old link (no longer in APPROVED_COPY); the Coach screen keeps its own
+  "Talk through today's plan.".
+- The live Coach screen is tap to ask only: its stack (the text box, "Use text mode", "I'll tap instead" and the mic)
+  is hidden until a model coach exists, so the six questions and the answer have the screen; the questions carry no
+  icon (the pack's one calendar said nothing about five of them). A review state still paints the pack's board.
+- Plain answers. No engine code or engine shorthand reaches the screen: each page answer is built from the turn's
+  tool values, one item per line, and a tool's refusal is said as the question's own plain sentence, never in the
+  tool's or the engine's words. "What am I hitting today?" names the workout ("Today: Upper body.") and each
+  exercise's set target ("<lift>: 3 sets of 10 reps at 100 lb.", uneven reps listed, a setting or bodyweight said as
+  such, "<lift>: first time, find your weight." when the engine asks for a first weight), then the calorie band and
+  the protein target only when the engine holds them; no marching order. "Why this weight?" is one plain line per
+  exercise (first time: "Pick a weight you can control for about <top> reps; what you log becomes your starting
+  point."; working weight, new weight, held, setting, bodyweight). "What did I do last time?" says "No earlier
+  session of <lift> yet." as an answer, with the source line, or "<lift>. Last time: ...". The check-in names each
+  core question left blank ("You left sleep blank.") and says "You have not checked in today." with nothing
+  recorded. "How did my week go?" is one line per item. The number check is unchanged: ask() still discards a draft
+  with any number its turn's tool results do not hold.
+- One new READ seam and tool: today-model.cjs sessionPlan() (rebuild/engine/today.cjs genSession's own session name
+  and cards, with the lift's hold flag and top of range from the replayed state; reads only) and read-tools.cjs
+  today_session (tools.cjs unchanged); page-coach.cjs READS.today gains sessionPlan, and no writer is reachable (PC-5).
+  A page question may read more than one tool, each a READ (today_plan reads today_session and today_plan; last_time
+  reads current_set and last_comparable_performance).
+- Safe area: a scrolled body's top fade now starts at the foot of the 47 px status band (or the device's own safe
+  area when taller), so a heading or card line scrolled up never reads through the status bar (preview.css).
+- New strings (PM-approved short plain copy, :913 (5)): "Ask Coach"; in coach-intents.cjs PLAIN, PLAIN_REFUSALS and
+  WEEK_WORDS.trend "Trend weight: ", every sentence part above, the session names "Upper body" and "Lower body", and
+  the refusals "Today's workout could not be prepared on this device.", "There is no workout open right now, so there
+  is no lift to look back on.", "Your check-in could not be read on this device.", "No machine settings are kept for
+  this lift yet.", "Your weight could not be read on this device." (the week refusal is piece 2's sentence).
+- Red first: coach-intents.test.cjs CI-6 (each plain answer, word for word, over a session with every kind of card),
+  CI-7 (over five worlds built to carry every engine code and engine phrase the tools can see, no page answer holds a
+  code string, DEBUT, "baseline ask", "IS the line", "qualified comparable", "never none", "never zero", "engine",
+  "RIR" or "governor") and CI-8 (no figure or dash in the plain words; the check-in's core labels are checkin-model's)
+  fail on d664fdd's sources and pass on these, as do CI-2, CI-3, page-coach.test.cjs PC-2, PC-3, PC-5, PC-7 and PC-9
+  (10 of 17 red there), coach.test.mjs CV1-1, CV1-3, CV1-5, CV1-8 and look-cui2's entry cell (5 of 25 red there;
+  CV1-2, asked on the page and again through the tools, passes on both). The copy lock re-measured for exactly the
+  polish delta (CL-COACH-POLISH-DELTA: "Ask Coach" in, the Talk row words out, "tcard proposal" today-app.cjs 1 -> 2;
+  beforePolish rebuilds the piece 2 corpus byte for byte; corpus 60411337 -> 218da3dc). Seat-only: view.test.mjs
+  SC-5 (the plan's figures are the Today model's and the session's own; the stack is hidden).
+- At the builder seat: the today batch 630/651 (628/649 plus the two polish copy-lock rows, the same 21 seat-only
+  build failures), the fences batch 2195/2197, the coach suite 394/394 without the seat-only engine-revision-gap file,
+  the writer fence 404/404 (no edge, model count or binding moves), the 76 layout invariants and the deployed-shell
+  probe (24 of 24) unchanged, and a Chromium probe of the live Coach screen at 390x844 and 430x932 (six questions, no
+  icon, no stack, answers one item per line, the scrolled top fade from the status band's foot) 42 of 42.
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above, no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 and s12-look 64 -> 71 -> 72 (piece 2's
-CV1-8); the fence and workflow
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 (the polish's CL-COACH-POLISH-DELTA
+and CL-COACH-POLISH-APPROVAL) and s12-look 64 -> 71 -> 72 (piece 2's CV1-8; the polish edits cells, adds none); the
+fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS
 lines and their comments (no `--jobs` option). The duplicate suites (steps that re-run files a package child

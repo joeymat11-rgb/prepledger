@@ -1,7 +1,8 @@
 "use strict";
 
 /* read-tools.cjs - the coach's seven TIER.READ tools (Coach v1, S19 amend), moved byte for byte out of tools.cjs, and
-   the page's weekly review read (week_review, Coach v1 piece 2, written here; not in tools.cjs). tools.cjs
+   the page's weekly review read (week_review, Coach v1 piece 2, written here; not in tools.cjs) and today's session
+   read for the page's plain answers (today_session, the polish batch, written here; not in tools.cjs). tools.cjs
    createCoachTools takes the seven from here. createReadTools(world) is the same shape createCoachTools
    returns ({ TOOLS, TIERS, TIER, openTurn, day }) with the read tools only: no FACT tool, no proposal, no consent
    path. It is what the page composes (page-coach.cjs), so the Today page carries the coach's reads and none of
@@ -50,6 +51,51 @@ function createReadTools(world) {
         : text(turn_id, "today.genSession.refusal", view.workout.unavailableReason),
     };
     return assertNoLeak(ok("today_plan", TIER.READ, turn_id, values));
+  }
+
+  /* COACH PLAIN ANSWERS (polish batch on rebuild/c-weekly). Today's session as the engine composes it, card by card
+     (today-model.cjs sessionPlan, rebuild/engine/today.cjs genSession): the page's "What am I hitting today?" and
+     "Why this weight?" read it. Every figure is tagged in the unit it is spoken in: a set count as "set", reps per
+     set and the top of the rep range as "rep", a numeric load as "lb"; a text load (a machine setting) is carried as
+     text and a bodyweight marker as a flag. It writes nothing. */
+  const BODYWEIGHT_KEYS = Object.freeze(["bw", "bodyweight"]);
+  async function today_session(_args, turn_id) {
+    const plan = typeof today.sessionPlan === "function" ? today.sessionPlan() : null;
+    if (!plan || plan.available !== true) {
+      if (plan && plan.code) {
+        return unavailable("today_session", TIER.READ, turn_id, plan.code, null, "today-model.sessionPlan (engine genSession)");
+      }
+      return assertNoLeak(ok("today_session", TIER.READ, turn_id, {
+        available: tagged(turn_id, "today-model.sessionPlan.available", false, "flag", ""),
+        name: blank(turn_id, "today-model.sessionPlan.name", "code", "no session is planned today"),
+        lifts: [],
+      }));
+    }
+    const exercises = plan.exercises.map((ex, i) => {
+      const at = "today-model.sessionPlan.exercises[" + i + "]";
+      const textLoad = typeof ex.weight === "string" ? ex.weight.trim() : "";
+      const bodyweight = textLoad !== "" && BODYWEIGHT_KEYS.includes(textLoad.toLowerCase());
+      return Object.freeze({
+        name: text(turn_id, at + ".name (genSession card.n)", ex.name),
+        sets: num(turn_id, at + ".sets (genSession card.tgt length)", ex.sets, "set"),
+        reps: ex.reps.map((r, k) => num(turn_id, at + ".reps[" + k + "] (genSession card.tgt)", r, "rep")),
+        load: typeof ex.weight === "number" ? num(turn_id, at + ".weight (genSession card.w)", ex.weight, "lb")
+          : blank(turn_id, at + ".weight", "lb", "no numeric load"),
+        textLoad: textLoad !== "" && !bodyweight ? text(turn_id, at + ".weight (genSession card.w, a setting)", textLoad)
+          : blank(turn_id, at + ".weight", "text", "no text load"),
+        bodyweight: tagged(turn_id, at + ".weight (bodyweight marker)", bodyweight, "flag", ""),
+        firstTime: tagged(turn_id, at + ".firstTime (genSession card.baselineAsk)", ex.firstTime === true, "flag", ""),
+        newWeight: tagged(turn_id, at + ".newWeight (genSession card.isDebutNow)", ex.newWeight === true, "flag", ""),
+        held: tagged(turn_id, at + ".held (engine lift holdFlag)", ex.held === true, "flag", ""),
+        repTop: num(turn_id, at + ".repTop (engine lift hi)", ex.repTop, "rep"),
+      });
+    });
+    return assertNoLeak(ok("today_session", TIER.READ, turn_id, {
+      available: tagged(turn_id, "today-model.sessionPlan.available", true, "flag", ""),
+      name: tagged(turn_id, "today-model.sessionPlan.name (genSession name)", plan.name, "code", ""),
+      /* `lifts`, not `exercises`: the leak check refuses a key the engine state uses (tool-kernel FORBIDDEN_KEYS). */
+      lifts: exercises,
+    }));
   }
 
   async function weight_trend(_args, turn_id) {
@@ -292,12 +338,12 @@ function createReadTools(world) {
 
   const TOOLS = Object.freeze({
     today_plan, current_set, next_set, last_comparable_performance, weight_trend,
-    today_checkin, why_this_instruction, week_review,
+    today_checkin, why_this_instruction, week_review, today_session,
   });
   const TIERS = Object.freeze({
     today_plan: TIER.READ, current_set: TIER.READ, next_set: TIER.READ,
     last_comparable_performance: TIER.READ, weight_trend: TIER.READ, today_checkin: TIER.READ,
-    why_this_instruction: TIER.READ, week_review: TIER.READ,
+    why_this_instruction: TIER.READ, week_review: TIER.READ, today_session: TIER.READ,
   });
 
   /* A TURN, exactly as tools.cjs openTurn: one id, one results array, and the traceability check scoped to it. */
