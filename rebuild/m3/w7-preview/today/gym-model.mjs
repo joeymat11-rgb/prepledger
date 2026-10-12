@@ -288,6 +288,25 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     return null;
   }
 
+  /* COACH V1 BATCH 2 ("What did I do last time?", every lift of today's workout). The "Last time" sets of EVERY lift
+     the engine composes today, read off the same genSession call readPrevious() makes (card.prev), position by position
+     through previousAt above: original sets only, pounds only, the first hole ends the line. A lift with no qualified
+     comparison has no sets; nothing is invented, averaged or reformatted. It reads and writes nothing else. */
+  function lastTimes() {
+    readPrevious();
+    const out = [];
+    for (const [lift, prev] of previousByLift) {
+      const sets = [];
+      for (let position = 1; position <= 50; position += 1) {
+        const at = previousAt(prev, position);
+        if (!at) break;
+        sets.push({ load: at.load, reps: at.reps });
+      }
+      out.push({ lift, sets });
+    }
+    return out;
+  }
+
   function previousLine(liftId, position) {
     const at = previousAt(previousByLift.get(liftId), position);
     return at ? 'Last time: ' + at.load + ' lb × ' + at.reps : null;
@@ -750,7 +769,7 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
   }
 
   return Object.freeze({ read: readTracked, start, logSet, undo, finish, forget, closeUnfinished, rebase, holdForAdoption,
-    discardOpenedEmpty, weekSessions,
+    discardOpenedEmpty, weekSessions, lastTimes,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
     previous: () => previousByLift,
     /* P0-B r2 (review finding 4) - a LIVE getter, not a value captured at

@@ -31,10 +31,11 @@ const { ask } = require("./coach-intents.cjs");
    model's plannedDays() (the engine's planned workout days), the gym card's weekSessions() (its closed sessions in a
    window) and the workout lane's weekLifts() (each lift's check, kept as data, today-entry.mjs), as `week.lifts`.
    The polish batch (plain answers) adds one READ: the Today model's sessionPlan() (today's session as the engine
-   composes it, read-tools.cjs today_session). */
+   composes it, read-tools.cjs today_session). Batch 2 adds one more: the gym card's lastTimes() (every lift's "Last
+   time" sets, read-tools.cjs last_times). */
 const READS = Object.freeze({
   today: Object.freeze(["read", "stateFromOps", "plannedDays", "sessionPlan"]),
-  gym: Object.freeze(["read", "weekSessions"]),
+  gym: Object.freeze(["read", "weekSessions", "lastTimes"]),
   checkin: Object.freeze(["refresh", "read"]),
   week: Object.freeze(["lifts"]),
 });

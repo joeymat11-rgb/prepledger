@@ -561,7 +561,9 @@ test("CV1-3 a question no lane on this device can answer says why in plain words
   assert.equal(card.classList.contains("is-refusal"), false, "why this weight is answered");
   assert.equal(card.querySelector(".from").textContent, COACH_COPY.fromStore);
   const lines = phone.querySelector("#coach-answer-text").textContent.split("\n");
-  assert.deepEqual(lines.map((line) => line.split(":")[0]), model.sessionPlan().exercises.map((ex) => ex.name), "one line per exercise");
+  /* batch 2 (item 2): lifts that share a reason share a line, so every exercise is named once, in order */
+  assert.deepEqual(lines.flatMap((line) => line.split(":")[0].split(", ")), model.sessionPlan().exercises.map((ex) => ex.name), "every exercise, named once");
+  assert.equal(new Set(lines.map((line) => line.slice(line.indexOf(":")))).size, lines.length, "no two lines give the same reason");
   api.dispose();
 });
 
@@ -667,7 +669,8 @@ async function weekToday(day, lane) {
 const WEEK_LANE = Object.freeze({
   gym: { read: async () => ({ phase: "ready" }), weekSessions: async () => ({ ok: true, done: 2, dates: [] }) },
   nativeLoad: { weekLifts: async () => ({ ok: true, lifts: [
-    { lift: "demo-press", name: "Chest press", status: "offer", kind: "earn", reason: "Chest press: every set at 100 lb reached the top of the range." },
+    { lift: "demo-press", name: "Chest press", status: "offer", kind: "earn", date: "2030-01-30", loads: [105, 105], current: [100, 100],
+      reason: "Chest press: every set at 100 lb reached the top of the range." },
     { lift: "demo-row", name: "Row", status: "refused", code: "NATIVE_LOAD_PROVISIONAL" }] }) },
 });
 test("CV1-8 the first day of a week shows last week's review on Today, its reasons behind Why?, and no other day does", async () => {
@@ -698,7 +701,8 @@ test("CV1-8 the first day of a week shows last week's review on Today, its reaso
   assert.equal(reason.hidden, true, "the reason waits behind Why?");
   why.click();
   assert.equal(reason.hidden, false);
-  assert.equal(reason.textContent, "Chest press: every set at 100 lb reached the top of the range.");
+  /* batch 2 (item 4): the offer in plain words, never the engine's reason */
+  assert.equal(reason.textContent, "You reached the top of your rep range at 100 lb on Jan 30. Make 105 lb your working weight? Nothing changes unless you say yes; it then applies on a later workout.");
   assert.equal(why.getAttribute("aria-expanded"), "true");
   assert.equal(card.classList.contains("tcard"), true, "the proposal card's own look");
   api.dispose();

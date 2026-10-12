@@ -209,11 +209,60 @@ only at milestones.
   probe (24 of 24) unchanged, and a Chromium probe of the live Coach screen at 390x844 and 430x932 (six questions, no
   icon, no stack, answers one item per line, the scrolled top fade from the status band's foot) 42 of 42.
 
+## Coach v1, batch 2 (PM 2026-10-12, on 0ccc74d, rebuild/c-coach2)
+- "What did I do last time?" covers every lift of today's workout, one line each, in the workout's order: "<lift>:
+  last time 200 lb for 10, 10, 9 reps." (each set's weight when they differ), or "No earlier session of <lift> yet.";
+  on a day with no workout, "No workout is planned today, so there is no lift to look back on." The sets are the gym
+  card's own: gym-model.mjs lastTimes() reads card.prev off the same genSession call the card's "Last time" line reads,
+  position by position through the same previousAt (original sets only, pounds only, the first hole ends the line). One
+  new READ tool, last_times (read-tools.cjs; tools.cjs unchanged), and page-coach.cjs READS.gym gains lastTimes only.
+- "Why this weight?" says each reason once: lifts whose reasons read the same share one line, named in the workout's
+  order ("Plank, Leg press, Nordic curl: first time. Pick a weight you can control for about 10 reps; what you log
+  becomes your starting point."); a different top of range or weight keeps its own line.
+- Today's quiet links (Sleep, the trend link, Report a problem, Measure, Import my history, Change my routine) take the
+  pack's protective cloud for a tertiary link over the art (app.css .links .link::before, the same shape, a little
+  denser) and --text-soft, their quiet markers too; Today's bottom fade runs only in the band under the stack's edge,
+  so no link above Start is drawn faded. Measured at the builder seat in Chromium (a foot probe over measure17's Today
+  at 390x844 and 430x932, top and end of the scroll: each link's words against the brightest 5% of the pixels behind
+  them): 34 of 40 on 0ccc74d (two links faded, four under 4.5:1, the lowest 3.33:1), 40 of 40 on this tree (the lowest
+  4.77:1).
+- The weekly card's Why? says the offer in plain words, from the offer's own facts (its kind, its day and its target and
+  base weights, which today-entry.mjs weekLifts now carries beside the engine's reason): adopt-baseline "You did every
+  set at 40 lb on Oct 6. Make 40 lb your working weight? This sets your starting point; it is not an increase. Nothing
+  changes unless you say yes."; adopt-observed "... This sets your working weight to what you lifted; it is not an
+  earned increase. Nothing changes unless you say yes."; earn "You reached the top of your rep range at 140 lb on Oct 1.
+  Make 145 lb your working weight? Nothing changes unless you say yes; it then applies on a later workout."; weights
+  that differ by set, or are not in pounds: "Your last workout here earned a new weight. Nothing changes unless you say
+  yes." The day is said at the end of its clause ("... at 40 lb on Oct 6.") rather than first as in the PM's example,
+  because the number check reads a figure by the words beside it: "On Oct 6 you did" would read 6 as a count of "you"
+  and discard the line, and the check is not loosened. Every figure is a tool result of the turn (week_review tags the
+  day as the text "Oct 6" and each weight "lb" only when every set carries it).
+- Not built: "Where's my seat set?" (item 5). The machine settings live in the store only the sealed gym lane
+  (gym-settings-lane.mjs) opens, lazily, while the workout card is mounted; the writer fence refuses any other module an
+  edge to machine-settings-host.mjs and the page may not open that store a second time. A read for the Coach screen
+  needs a sealed-file change or a ruling; the options are with the PM.
+- New strings (PM-approved short plain copy, :913 (5)): coach-intents.cjs WEEK_WHY (the sentence parts above),
+  PLAIN.noWorkoutLast, PLAIN.lastTime ": last time ", PLAIN.lbFor " lb for " (PLAIN.lastTime ". " is gone). No page
+  string moves: the copy lock re-measures to the same corpus, 218da3dc.
+- Pins, measured: PAGE_PINS today-entry.mjs fbdcd96a -> 2387a971 (local-today-journey.test.mjs; the one hunk in
+  weekLifts). s12-look 72 -> 73 (look-cui2's new quiet-links cell). No page module or edge is added; the writer fence's
+  edges, model count and bindings do not move.
+- Red first: on 0ccc74d's sources (coach-intents.cjs, read-tools.cjs, page-coach.cjs, gym-model.mjs, today-entry.mjs,
+  preview.css) 8 of 45 rows fail and pass on these: coach-intents.test.cjs CI-6 (every lift's last time), CI-9 (shared
+  reasons share a line) and CI-10 (the plain Why?, every figure through the number check, and a planted day the turn
+  did not read is discarded); page-coach.test.cjs PC-5 and PC-7; coach.test.mjs CV1-3 and CV1-8; look-cui2's
+  quiet-links cell.
+- At the builder seat: the today batch 631/652 (630/651 plus look-cui2's quiet-links cell, the same 21 seat-only build
+  failures), the fences batch 2195/2197 (the writer fence in it unchanged), the coach suite 396/396 without the
+  seat-only engine-revision-gap file, the 76 layout invariants and the deployed-shell probe (24 of 24) unchanged, the
+  live Coach screen probe 42 of 42 over the real booted page (its last-time answer now one line per lift), and the
+  foot probe 40 of 40.
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above, no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
 s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 (the polish's CL-COACH-POLISH-DELTA
-and CL-COACH-POLISH-APPROVAL) and s12-look 64 -> 71 -> 72 (piece 2's CV1-8; the polish edits cells, adds none); the
+and CL-COACH-POLISH-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

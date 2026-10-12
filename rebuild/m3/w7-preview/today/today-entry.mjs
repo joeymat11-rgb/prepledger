@@ -361,7 +361,10 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
         if (!target.normal) { rows.push({ ...row, status: "refused", code: "NATIVE_LOAD_COMPLETION_REQUIRED" }); continue; }
         const result = await h.check({ lift_lineage_id: lift, completion_op_id: target.completion_op_id });
         const offer = result.status === "offer" ? result.offers.find(o => o.kind !== "compensate") || null : null;
-        if (offer) rows.push({ ...row, status: "offer", kind: offer.kind, reason: offer.reason });
+        /* Coach v1 batch 2: the offer's own target and base vectors ride along (as data), so the review can say the
+           offer in plain words; the engine's reason is kept beside them. */
+        if (offer) rows.push({ ...row, status: "offer", kind: offer.kind, reason: offer.reason,
+          loads: Array.isArray(offer.loads) ? offer.loads.slice() : null, current: Array.isArray(offer.current) ? offer.current.slice() : null });
         else rows.push({ ...row, status: "refused", code: result.refusal ? result.refusal.code : null });
       }
       return { ok: true, lifts: rows };

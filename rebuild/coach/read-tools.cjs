@@ -76,6 +76,8 @@ function createReadTools(world) {
       const textLoad = typeof ex.weight === "string" ? ex.weight.trim() : "";
       const bodyweight = textLoad !== "" && BODYWEIGHT_KEYS.includes(textLoad.toLowerCase());
       return Object.freeze({
+        /* batch 2: the card's lift id, so "What did I do last time?" matches each lift to the gym card's last sets */
+        id: tagged(turn_id, at + ".id (genSession card.id)", ex.id, "id", ""),
         name: text(turn_id, at + ".name (genSession card.n)", ex.name),
         sets: num(turn_id, at + ".sets (genSession card.tgt length)", ex.sets, "set"),
         reps: ex.reps.map((r, k) => num(turn_id, at + ".reps[" + k + "] (genSession card.tgt)", r, "rep")),
@@ -95,6 +97,28 @@ function createReadTools(world) {
       name: tagged(turn_id, "today-model.sessionPlan.name (genSession name)", plan.name, "code", ""),
       /* `lifts`, not `exercises`: the leak check refuses a key the engine state uses (tool-kernel FORBIDDEN_KEYS). */
       lifts: exercises,
+    }));
+  }
+
+  /* COACH V1 BATCH 2 ("What did I do last time?", every lift). The "Last time" sets of every lift the engine composes
+     today, as the gym card reads them (gym-model.mjs lastTimes: card.prev through previousAt, the same reader the card's
+     own "Last time" line uses). The card is read first, as current_set reads it, so its projection is today's. Each set's
+     load is tagged "lb" and its reps "rep"; a lift with no earlier session has no sets. It writes nothing. */
+  async function last_times(_args, turn_id) {
+    const got = await gymView("last_times", turn_id);
+    if (got.fail) return got.fail;
+    if (typeof gym.lastTimes !== "function") {
+      return unavailable("last_times", TIER.READ, turn_id, CODES.GYM_SESSION_ABSENT, null, "gym-model.mjs lastTimes");
+    }
+    const rows = gym.lastTimes();
+    return assertNoLeak(ok("last_times", TIER.READ, turn_id, {
+      lifts: (Array.isArray(rows) ? rows : []).map((row, i) => Object.freeze({
+        id: tagged(turn_id, "gym-model.lastTimes[" + i + "].lift", row.lift, "id", ""),
+        sets: (row.sets || []).map((set, k) => Object.freeze({
+          load: num(turn_id, "gym-model.lastTimes[" + i + "].sets[" + k + "].load (card.prev)", set.load, "lb"),
+          reps: num(turn_id, "gym-model.lastTimes[" + i + "].sets[" + k + "].reps (card.prev)", set.reps, "rep"),
+        })),
+      })),
     }));
   }
 
@@ -295,6 +319,13 @@ function createReadTools(world) {
     const from = shiftDay(iso, -sinceMonday);
     return { which: "this", from, to: iso, planEnd: shiftDay(from, 6) };
   }
+  /* "2026-10-06" -> "Oct 6" (a calendar day, no year), or null for anything that is not an ISO day. */
+  const MONTHS = Object.freeze(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]);
+  const monthDay = (iso) => (typeof iso === "string" && /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(iso)
+    ? MONTHS[Number(iso.slice(5, 7)) - 1] + " " + Number(iso.slice(8, 10)) : null);
+  /* One weight for every set, or null: a vector whose sets differ, or that carries a position with no pounds, has none. */
+  const sameLoad = (vector) => (Array.isArray(vector) && vector.length > 0
+    && vector.every((v) => typeof v === "number" && Number.isFinite(v) && v > 0 && v === vector[0]) ? vector[0] : null);
   const WEEK_NO_RECORD = "No workout record is open on this device, so there is no week to review.";
   async function week_review(_args, turn_id) {
     if (typeof day !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(day) || !gym || typeof gym.weekSessions !== "function"
@@ -325,6 +356,17 @@ function createReadTools(world) {
         code: tagged(turn_id, "today-entry.weekLifts[" + i + "].code (native-load.cjs refusal)", row.code || null, "code", ""),
         reason: row.status === "offer" ? text(turn_id, "native-load.cjs offer reason (today-entry.weekLifts[" + i + "])", row.reason)
           : blank(turn_id, "native-load.cjs offer reason", "text", "a refused or held lift carries no offer reason"),
+        /* COACH V1 BATCH 2 (the plain Why?): the offer's own facts, so the card can say it in plain words. Its kind
+           (native-load.cjs: earn, adopt-baseline, adopt-observed), the workout's day as "Oct 6", and the offered
+           weight and the weight it was earned at, each tagged "lb" only when every set carries the same pounds (the
+           offer's target_load and base_load vectors, today-bindings.mjs loads / current). */
+        kind: tagged(turn_id, "today-entry.weekLifts[" + i + "].kind (native-load offer kind)", row.status === "offer" ? row.kind || null : null, "code", ""),
+        day: row.status === "offer" ? text(turn_id, "today-entry.weekLifts[" + i + "].date (month and day)", monthDay(row.date))
+          : blank(turn_id, "today-entry.weekLifts.date", "text", "only an offer is explained"),
+        targetLb: row.status === "offer" ? num(turn_id, "today-entry.weekLifts[" + i + "].loads (offer target_load, every set)", sameLoad(row.loads), "lb")
+          : blank(turn_id, "today-entry.weekLifts.loads", "lb", "only an offer carries a target"),
+        baseLb: row.status === "offer" ? num(turn_id, "today-entry.weekLifts[" + i + "].current (offer base_load, every set)", sameLoad(row.current), "lb")
+          : blank(turn_id, "today-entry.weekLifts.current", "lb", "only an offer carries a base"),
       })) : [],
       suggestion: open ? Object.freeze({
         title: text(turn_id, "today-model.proposal.title (engine proposal)", open.title),
@@ -338,12 +380,12 @@ function createReadTools(world) {
 
   const TOOLS = Object.freeze({
     today_plan, current_set, next_set, last_comparable_performance, weight_trend,
-    today_checkin, why_this_instruction, week_review, today_session,
+    today_checkin, why_this_instruction, week_review, today_session, last_times,
   });
   const TIERS = Object.freeze({
     today_plan: TIER.READ, current_set: TIER.READ, next_set: TIER.READ,
     last_comparable_performance: TIER.READ, weight_trend: TIER.READ, today_checkin: TIER.READ,
-    why_this_instruction: TIER.READ, week_review: TIER.READ, today_session: TIER.READ,
+    why_this_instruction: TIER.READ, week_review: TIER.READ, today_session: TIER.READ, last_times: TIER.READ,
   });
 
   /* A TURN, exactly as tools.cjs openTurn: one id, one results array, and the traceability check scoped to it. */

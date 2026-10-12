@@ -96,7 +96,7 @@ test("PC-5: the coach's world is read-only wrappers; no writer of the Today mode
   const today = spyWriters(Object.assign(Object.create(real), { read: () => real.read(), stateFromOps: () => real.stateFromOps(), today: real.today }));
   const gym = spyWriters({ read: async () => ({ phase: "ready", lift: { id: "x", label: "Lift", index: 1, count: 1 }, set: { position: 1, count: 1 },
     prescription: { line: "", effort: "", reason: [], setup: "" }, previous: null }),
-    weekSessions: async () => ({ ok: true, done: 1, dates: [] }) });
+    weekSessions: async () => ({ ok: true, done: 1, dates: [] }), lastTimes: () => [] });
   const checkin = spyWriters({ refresh: async () => {}, read: () => ({ day: real.today, recorded: null, note: "", recordedLines: [] }) });
   const held = readOnlyWorld({ today, gym, checkin });
   assert.deepEqual(Object.keys(held), ["today", "gym", "checkin", "week"]);
@@ -114,7 +114,8 @@ test("PC-5: the coach's world is read-only wrappers; no writer of the Today mode
      do last time?" is the gym wrapper's read now; why_weight reads the Today model's session) */
   const last = await page.ask("last_time");
   assert.equal(last.answered, true, "a READ through the gym wrapper is answered");
-  assert.equal(last.answer, "No earlier session of Lift yet.");
+  /* batch 2: every lift of today's workout, one line each (the fake card holds no earlier sets) */
+  assert.deepEqual(last.answer.split("\n"), real.sessionPlan().exercises.map((ex) => "No earlier session of " + ex.name + " yet."));
   assert.equal((await page.ask("why_weight")).answered, true, "a READ through the Today wrapper's sessionPlan is answered");
 });
 
@@ -173,7 +174,8 @@ test("PC-6: the page's coach reaches no plan writer, no tools.cjs, no engine rev
    offer reason behind Why?, or ONE plain sentence for its refusal or hold code, or the fallback for a code with no
    sentence; with no workout record the tool refuses in its own words and the card has nothing to draw. */
 const WEEK_ROWS = Object.freeze([
-  { lift: "a", name: "Chest press", status: "offer", kind: "earn", reason: "Chest press: on 2026-10-01 you completed every set at 140 lb on every set. Offer: make 145 lb your working weight." },
+  { lift: "a", name: "Chest press", status: "offer", kind: "earn", date: "2026-10-01", loads: [145, 145], current: [140, 140],
+    reason: "Chest press: on 2026-10-01 you completed every set at 140 lb on every set. Offer: make 145 lb your working weight." },
   { lift: "b", name: "Row", status: "refused", code: "NATIVE_LOAD_WINDOW_NOT_TOP" },
   { lift: "c", name: "Curl", status: "refused", code: "NATIVE_LOAD_SOMETHING_UNMAPPED" },
   { lift: "d", name: "Squat", status: "held", code: "disputed" },
@@ -202,7 +204,8 @@ test("PC-7: the weekly review ships traced, Monday reviews the week just ended, 
   assert.equal(lines[1].text, "Workouts done: 3 of " + monday.today.plannedDays("2026-10-05", "2026-10-11").length + ".");
   const said = (name) => lines.find((l) => l.text.startsWith(name + ": "));
   assert.equal(said("Chest press").text, "Chest press: " + Intents.WEEK_WORDS.up);
-  assert.equal(said("Chest press").why, WEEK_ROWS[0].reason, "the engine's own offer reason, unedited, behind Why?");
+  /* batch 2 (item 4): the offer said plainly behind Why?, its figures the offer's own (the engine's reason is not shown) */
+  assert.equal(said("Chest press").why, "You reached the top of your rep range at 140 lb on Oct 1. Make 145 lb your working weight? Nothing changes unless you say yes; it then applies on a later workout.");
   assert.equal(said("Row").text, "Row: " + Intents.WEEK_CODE_WORDS.NATIVE_LOAD_WINDOW_NOT_TOP);
   assert.equal(said("Row").why, null);
   assert.equal(said("Curl").text, "Curl: " + Intents.WEEK_FALLBACK, "an unmapped code names nothing of its own");

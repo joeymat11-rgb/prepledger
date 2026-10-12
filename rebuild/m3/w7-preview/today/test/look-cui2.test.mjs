@@ -195,3 +195,29 @@ test("C-UI-2 R3: the status line says the prototype's words for each state, and 
     if (want) assert(proto.includes("'" + want + "'"), label + ": the prototype draws exactly these words");
   }
 });
+
+/* COACH V1 BATCH 2 (PM item 3; red first on 0ccc74d's preview.css). Today's quiet links under the cards read at
+   secondary-text contrast over the scene and are never drawn faded above Start. Measured at the builder seat in Chromium
+   (the foot probe: each link's words against the brightest 5% of the pixels behind them, 4.5:1 or more, at 390x844 and
+   430x932, top and end of the scroll); held here in the stylesheet: every quiet link takes the pack's protective cloud
+   for a tertiary link over the art (app.css .links .link::before, the same shape) and --text-soft, its quiet marker
+   too, and Today's bottom fade runs only in the band under the stack's edge. */
+test("C-UI batch 2: Today's quiet links take the pack's protective cloud and are never faded above Start", () => {
+  const css = fs.readFileSync(PREVIEW_CSS, "utf8");
+  const pack = fs.readFileSync(PACK_CSS, "utf8");
+  assert.match(pack, /\.links \.link::before[^{]*\{ content: ""; position: absolute; left: -26px; right: -26px; top: -10px; bottom: -10px; z-index: -1;/,
+    "the pack's own cloud for a tertiary link over the art");
+  const LINKS = ':is(button.day-foot, [data-slot="measure-tile"], [data-slot="import-entry"], [data-slot="routine-entry"])';
+  const at = css.indexOf(':root[data-fade="full"] .scene-frame > .view.ui > .body > ' + LINKS + '::before {');
+  assert(at >= 0, "every quiet link on Today carries the cloud");
+  const rule = css.slice(at, css.indexOf("}", at));
+  for (const want of ['content: ""', "position: absolute", "left: -26px", "right: -26px", "top: -10px", "bottom: -10px", "z-index: -1",
+    "pointer-events: none", "radial-gradient(ellipse 50% 50% at 50% 50%", "var(--surface)"]) assert(rule.includes(want), "the cloud is the pack's shape: " + want);
+  assert(css.includes(".scene-frame > .view.ui > .body > " + LINKS + " {\n  position: relative; isolation: isolate; color: var(--text-soft); }"),
+    "the cloud sits under its own link, which reads in --text-soft");
+  assert(css.includes(".scene-frame > .view.ui > .body > button.day-foot .muted { color: var(--text-soft); }"), "its quiet marker too");
+  assert(css.includes(".scene-frame.screen-today > .view.ui > .body.can-scroll:not(.at-end) { --fade-bot: calc(100% - var(--fade-bot-inset, 0px)); --fade-bot-end: 100%; }"),
+    "Today's bottom fade runs only under the stack's edge");
+  assert.match(css, /\.scene-frame\.screen-today > \.view\.ui > \.body \{ padding-bottom: 34px; --fade-bot-inset: 14px; \}/,
+    "inside the band S18 keeps under the stack");
+});

@@ -277,12 +277,13 @@ const WAVE1_TEMPLATES = Object.freeze({
 /* COACH V1. The Coach screen asks by TAP, never by free text: each chip is one of these ids, and the screen's
    own words for it live in coach-app.mjs. Every answer is one of the templates above, filled only from the tool
    results of the turn that asked. `today_plan` and `why_weight` read today's session as the engine composes it
-   (today_session); `last_time` reads the last comparable line for the lift on the gym card; `machine_seat` reads the
+   (today_session); `last_time` reads that session and the gym card's last sets of each of its lifts (last_times,
+   batch 2); `machine_seat` reads the
    settings the athlete kept for that lift. With no session composed, each says so in its own plain sentence (the
    polish batch's PLAIN_REFUSALS below). */
 /* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling option A). The words of the "This week" review, on the Today
-   card and in the Coach answer. A lift the engine offers a new weight for says so, with the engine's own offer
-   reason behind Why? (native-load.cjs earnReason / adoptReason). A lift it does not raise says ONE plain sentence per
+   card and in the Coach answer. A lift the engine offers a new weight for says so, with the offer said in plain words
+   behind Why? (batch 2, offerWhy below; it was the engine's earnReason / adoptReason). A lift it does not raise says ONE plain sentence per
    refusal code, each true to the line of rebuild/engine/native-load.cjs that refuses it (cited); a hold says one per
    held notice (today-entry.mjs noticesOf: BASIS_REPAIR_REQUIRED is "disputed", EFFECT_CONFLICT on load_basis is
    "conflict"); any other code says WEEK_FALLBACK, which names no cause. PM-approved short plain copy (:913 (5)). A
@@ -321,7 +322,37 @@ const WEEK_HOLD_WORDS = Object.freeze({
   conflict: "held. Your working weight changed after you agreed to a new one, so this lift is paused.",
 });
 const WEEK_FALLBACK = "no new weight from its latest workout.";
-/* The review as lines: { text, why } where `why` is the engine's own reason, shown behind Why?. Every number in a
+/* COACH V1 BATCH 2 (PM, item 4): an offer's Why? in plain words, from the offer's own facts (read-tools.cjs week_review:
+   its kind, its day as "Oct 6", the weight it offers and the weight it was earned at, each in pounds only when every set
+   carries the same). The day is said last in its clause, so the number check reads it as the tool said it. An offer
+   whose weights are not one per workout (or not in pounds) says the plain fallback, which names no figure. PM-approved
+   short plain copy (:913 (5)). */
+const WEEK_WHY = Object.freeze({
+  did: "You did every set at ",
+  topped: "You reached the top of your rep range at ",
+  on: " lb on ",
+  make: ". Make ",
+  yours: " lb your working weight?",
+  baseline: " This sets your starting point; it is not an increase. Nothing changes unless you say yes.",
+  observed: " This sets your working weight to what you lifted; it is not an earned increase. Nothing changes unless you say yes.",
+  earned: " Nothing changes unless you say yes; it then applies on a later workout.",
+  fallback: "Your last workout here earned a new weight. Nothing changes unless you say yes.",
+});
+function offerWhy(lift) {
+  const kind = lift.kind && lift.kind.value;
+  const day = has(lift.day) ? d(lift.day, "text") : "";
+  if (!day || !has(lift.targetLb)) return WEEK_WHY.fallback;
+  const target = d(lift.targetLb, "lb");
+  if (kind === "adopt-baseline" || kind === "adopt-observed") {
+    return WEEK_WHY.did + target + WEEK_WHY.on + day + WEEK_WHY.make + target + WEEK_WHY.yours
+      + (kind === "adopt-baseline" ? WEEK_WHY.baseline : WEEK_WHY.observed);
+  }
+  if (kind === "earn" && has(lift.baseLb)) {
+    return WEEK_WHY.topped + d(lift.baseLb, "lb") + WEEK_WHY.on + day + WEEK_WHY.make + target + WEEK_WHY.yours + WEEK_WHY.earned;
+  }
+  return WEEK_WHY.fallback;
+}
+/* The review as lines: { text, why } where `why` is the offer said plainly (offerWhy above), shown behind Why?. Every number in a
    line or a why is a tool result of the turn (ask() checks the whole draft, whys included). */
 function weekLines(v) {
   const lines = [{ text: v.which && v.which.value === "last" ? WEEK_WORDS.lastWeek : WEEK_WORDS.thisWeek, why: null, heading: true }];
@@ -334,7 +365,7 @@ function weekLines(v) {
     const said = status === "offer" ? WEEK_WORDS.up
       : status === "held" ? (Object.hasOwn(WEEK_HOLD_WORDS, code) ? WEEK_HOLD_WORDS[code] : WEEK_FALLBACK)
       : (Object.hasOwn(WEEK_CODE_WORDS, code) ? WEEK_CODE_WORDS[code] : WEEK_FALLBACK);
-    lines.push({ text: d(lift.name, "text") + ": " + said, why: status === "offer" && has(lift.reason) ? d(lift.reason, "text") : null });
+    lines.push({ text: d(lift.name, "text") + ": " + said, why: status === "offer" ? offerWhy(lift) : null });
   }
   if (v.suggestion && has(v.suggestion.title)) {
     lines.push({ text: WEEK_WORDS.suggestion + d(v.suggestion.title, "text") + (has(v.suggestion.lift) ? " (" + d(v.suggestion.lift, "text") + ")" : "") + ".",
@@ -388,7 +419,9 @@ const PLAIN = Object.freeze({
   /* "What did I do last time?" */
   noEarlier: "No earlier session of ",
   noEarlierTail: " yet.",
-  lastTime: ". ",
+  noWorkoutLast: "No workout is planned today, so there is no lift to look back on.",
+  lastTime: ": last time ",
+  lbFor: " lb for ",
   /* The check-in. */
   notCheckedIn: "You have not checked in today.",
   sleepKnown: "Your sleep record already has last night: ",
@@ -440,20 +473,31 @@ function targetLine(ex) {
     : flag(ex.bodyweight) ? PLAIN.bodyweightTail : "";
   return sentence(name + ": " + sets + load);
 }
-/* One exercise's "why this weight", in plain words. */
-function whyLine(ex) {
-  const name = d(ex.name, "text");
+/* One exercise's "why this weight", in plain words: what follows its name (": first time. ...", ": 200 lb is your
+   working weight. ..."). */
+function whyAfterName(ex) {
   if (flag(ex.firstTime)) {
-    return has(ex.repTop) ? name + PLAIN.firstTime + d(ex.repTop, "rep") + PLAIN.firstTimeTail : name + PLAIN.firstTimeNoTop;
+    return has(ex.repTop) ? PLAIN.firstTime + d(ex.repTop, "rep") + PLAIN.firstTimeTail : PLAIN.firstTimeNoTop;
   }
-  if (flag(ex.held)) return has(ex.load) ? name + ": " + d(ex.load, "lb") + " lb" + PLAIN.held : name + PLAIN.heldNoLoad;
-  if (has(ex.load) && flag(ex.newWeight)) return name + ": " + d(ex.load, "lb") + PLAIN.newWeight;
+  if (flag(ex.held)) return has(ex.load) ? ": " + d(ex.load, "lb") + " lb" + PLAIN.held : PLAIN.heldNoLoad;
+  if (has(ex.load) && flag(ex.newWeight)) return ": " + d(ex.load, "lb") + PLAIN.newWeight;
   if (has(ex.load)) {
-    return name + ": " + d(ex.load, "lb") + PLAIN.working + (has(ex.repTop) ? " (" + d(ex.repTop, "rep") + " reps)." : ".");
+    return ": " + d(ex.load, "lb") + PLAIN.working + (has(ex.repTop) ? " (" + d(ex.repTop, "rep") + " reps)." : ".");
   }
-  if (has(ex.textLoad)) return sentence(name + PLAIN.setting + d(ex.textLoad, "text"));
-  if (flag(ex.bodyweight)) return name + PLAIN.bodyweight;
-  return name + PLAIN.noLoad;
+  if (has(ex.textLoad)) return sentence(PLAIN.setting + d(ex.textLoad, "text"));
+  if (flag(ex.bodyweight)) return PLAIN.bodyweight;
+  return PLAIN.noLoad;
+}
+/* COACH V1 BATCH 2 (PM, item 2): lifts whose reasons read the same say it once, on one line, their names listed in
+   the workout's order ("Plank, Leg press, Nordic curl: first time. ..."); a line keeps the place of its first lift. */
+function whyLines(lifts) {
+  const groups = new Map();
+  for (const ex of lifts) {
+    const after = whyAfterName(ex);
+    if (!groups.has(after)) groups.set(after, []);
+    groups.get(after).push(d(ex.name, "text"));
+  }
+  return [...groups].map(([after, names]) => names.join(", ") + after);
 }
 const planned = (v) => !!(v && flag(v.available) && Array.isArray(v.lifts) && v.lifts.length);
 
@@ -471,20 +515,31 @@ const PAGE_TEMPLATES = Object.freeze({
     if (has(v.proteinG)) lines.push(PLAIN.protein + d(v.proteinG, "g") + PLAIN.proteinTail);
     return lines;
   },
-  /* "Why this weight?": one plain line per exercise. */
+  /* "Why this weight?": one plain line per reason, the lifts that share it named together (batch 2). */
   why_weight: (got) => {
     const s = got.today_session;
     if (!s || !s.ok) return null;
-    return planned(s.values) ? s.values.lifts.map(whyLine) : [PLAIN.noWorkoutWhy];
+    return planned(s.values) ? whyLines(s.values.lifts) : [PLAIN.noWorkoutWhy];
   },
-  /* "What did I do last time?": the lift on the gym card and its last comparable line, or that there is none yet. */
+  /* "What did I do last time?" (batch 2): every lift of today's workout, one line each, in the workout's order: its
+     "Last time" sets as the gym card reads them, or that there is no earlier session of it yet. */
   last_time: (got) => {
-    const cur = got.current_set, last = got.last_comparable_performance;
-    if (!cur || !cur.ok || !has(cur.values.liftLabel) || !last) return null;
-    const lift = d(cur.values.liftLabel, "text");
-    if (last.ok && has(last.values.line)) return [lift + PLAIN.lastTime + sentence(d(last.values.line, "text"))];
-    if (!last.ok && last.unavailable.code === T.CODES.NO_QUALIFIED_COMPARISON) return [PLAIN.noEarlier + lift + PLAIN.noEarlierTail];
-    return null;
+    const s = got.today_session, l = got.last_times;
+    if (!s || !s.ok) return null;
+    if (!planned(s.values)) return [PLAIN.noWorkoutLast];
+    if (!l || !l.ok) return null;
+    const byId = new Map((l.values.lifts || []).map((row) => [row.id && row.id.value, row]));
+    return s.values.lifts.map((ex) => {
+      const name = d(ex.name, "text");
+      const row = ex.id ? byId.get(ex.id.value) : null;
+      const sets = row ? (row.sets || []).filter((set) => has(set.load) && has(set.reps)) : [];
+      if (!sets.length) return PLAIN.noEarlier + name + PLAIN.noEarlierTail;
+      const same = sets.every((set) => set.load.display === sets[0].load.display);
+      const said = same
+        ? d(sets[0].load, "lb") + PLAIN.lbFor + sets.map((set) => d(set.reps, "rep")).join(", ") + PLAIN.reps
+        : sets.map((set) => d(set.load, "lb") + PLAIN.lbFor + d(set.reps, "rep") + PLAIN.reps).join(", ");
+      return name + PLAIN.lastTime + said + ".";
+    });
   },
   /* The trend sentences, one per line (a sentence ends at a full stop followed by a capital, so "1.19" stays whole). */
   weight_trend: (got) => (got.weight_trend && got.weight_trend.ok
@@ -518,7 +573,7 @@ const PAGE_TEMPLATES = Object.freeze({
 const PAGE_INTENTS = Object.freeze({
   today_plan: Object.freeze({ tools: Object.freeze(["today_session", "today_plan"]), template: "plan" }),
   why_weight: Object.freeze({ tools: Object.freeze(["today_session"]), template: "why_weight" }),
-  last_time: Object.freeze({ tools: Object.freeze(["current_set", "last_comparable_performance"]), template: "last_time" }),
+  last_time: Object.freeze({ tools: Object.freeze(["today_session", "last_times"]), template: "last_time" }),
   weight_trend: Object.freeze({ tools: Object.freeze(["weight_trend"]), template: "weight_trend" }),
   my_checkin: Object.freeze({ tools: Object.freeze(["today_checkin"]), template: "checkin" }),
   machine_seat: Object.freeze({ tools: Object.freeze(["machine_settings"]), template: "machine_seat" }),
@@ -565,5 +620,5 @@ module.exports = {
   d, has, join, list, TEMPLATES, TEMPLATES_2, ALL_TEMPLATES, READ_INTENTS, FACT_INTENTS, TIER3_INTENTS, answerOne,
   WAVE1_TEMPLATES, PAGE_TEMPLATES, PAGE_INTENTS, PAGE_INTENT_IDS, ask,
   WEEK_WORDS, WEEK_CODE_WORDS, WEEK_HOLD_WORDS, WEEK_FALLBACK, weekLines,
-  PLAIN, CHECKIN_CORE, PLAIN_REFUSALS, PLAIN_DISCARDED,
+  PLAIN, CHECKIN_CORE, PLAIN_REFUSALS, PLAIN_DISCARDED, WEEK_WHY,
 };

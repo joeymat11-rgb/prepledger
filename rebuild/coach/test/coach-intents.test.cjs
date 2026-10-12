@@ -76,8 +76,11 @@ const withPlan = (plan, day = SYNTHETIC_DAY) => {
   const real = createTodayModel({ today: day });
   return Object.assign(Object.create(real), { sessionPlan: () => plan });
 };
-const gymAt = (label, previous, extra = {}) => ({ read: async () => ({ phase: "ready", lift: { id: "x", label, index: 1, count: 1 },
-  set: { position: 1, count: 2 }, prescription: { line: "", effort: "", reason: [], setup: "" }, previous, ...extra }) });
+/* The gym card: its read, and (batch 2) the last sets of each lift it reads off genSession (gym-model.mjs lastTimes). */
+const LAST_TIMES = Object.freeze([{ lift: "plank", sets: [] }, { lift: "press", sets: [{ load: 200, reps: 10 }, { load: 200, reps: 10 }, { load: 200, reps: 9 }] },
+  { lift: "curl", sets: [{ load: 55, reps: 12 }, { load: 60, reps: 10 }] }]);
+const gymAt = (label, previous, rows = LAST_TIMES, extra = {}) => ({ read: async () => ({ phase: "ready", lift: { id: "x", label, index: 1, count: 1 },
+  set: { position: 1, count: 2 }, prescription: { line: "", effort: "", reason: [], setup: "" }, previous, ...extra }), lastTimes: () => rows });
 
 test("CI-6 the plain answers: the workout and each set target, one plain why per exercise, last time, the check-in's blanks", async () => {
   const today = withPlan(PLAN);
@@ -108,13 +111,26 @@ test("CI-6 the plain answers: the workout and each set target, one plain why per
     "Dip: bodyweight, so there is no weight to set.",
     "Hack squat: your working setting is Pin 7.",
   ]);
-  const none = await I.ask(tools, "last_time", { turnId: "ci6-none" });
-  assert.equal(none.answered, true, "no earlier session is an answer, so it carries the source line");
-  assert.equal(none.answer, "No earlier session of Plank yet.");
-  const before = await I.ask(toolsOver({ today, gym: gymAt("Leg press", "Last time: 200 lb x 10") }), "last_time", { turnId: "ci6-last" });
-  assert.equal(before.answered, true);
-  assert.deepEqual(before.untraceable, []);
-  assert.equal(before.answer, "Leg press. Last time: 200 lb x 10.");
+  /* BATCH 2 (item 1): every lift of today's workout, one line each, in the workout's order, from the gym card's own
+     last sets (gym-model.mjs lastTimes); a lift with none says so. */
+  const last = await I.ask(tools, "last_time", { turnId: "ci6-last" });
+  assert.equal(last.answered, true, "the answer carries the source line");
+  assert.deepEqual(last.untraceable, []);
+  assert.deepEqual(last.answer.split("\n"), [
+    "No earlier session of Plank yet.",
+    "Leg press: last time 200 lb for 10, 10, 9 reps.",
+    "Leg curl: last time 55 lb for 12 reps, 60 lb for 10 reps.",
+    "No earlier session of Calf raise yet.",
+    "No earlier session of Dip yet.",
+    "No earlier session of Hack squat yet.",
+  ]);
+  const lonely = await I.ask(toolsOver({ today, gym: gymAt("Plank", null, []) }), "last_time", { turnId: "ci6-none" });
+  assert.equal(lonely.answered, true, "no earlier session is an answer, so it carries the source line");
+  assert.equal(lonely.answer.split("\n").length, PLAN.exercises.length, "one line per lift, never only the first");
+  assert.ok(lonely.answer.split("\n").every((line) => /^No earlier session of .+ yet\.$/.test(line)));
+  const resting = await I.ask(toolsOver({ today: withPlan({ available: false, code: null, name: null, exercises: [] }), gym: gymAt("Plank", null) }),
+    "last_time", { turnId: "ci6-rest-last" });
+  assert.equal(resting.answer, I.PLAIN.noWorkoutLast);
   /* No band and no target: no calorie or protein line at all. */
   const bare = Object.assign(Object.create(today), { read: () => ({ ...today.read(), calorieTarget: null, proteinTarget: null }) });
   const noBand = await I.ask(toolsOver({ today: bare }), "today_plan", { turnId: "ci6-noband" });
@@ -195,6 +211,56 @@ test("CI-8 the plain words carry no figure and no dash; the check-in's core ques
   const { LABELS } = (await import("../../m3/w7-preview/today/checkin-model.mjs")).default;
   assert.deepEqual(I.CHECKIN_CORE.map(([label]) => label),
     [LABELS.sleep_hours, LABELS.sleep_quality, LABELS.energy, LABELS.soreness, LABELS.stress]);
+});
+
+/* BATCH 2 (item 2): lifts whose reasons read the same are said once, on one line, named in the workout's order; a
+   lift whose reason differs (another top of range, another weight) keeps a line of its own. */
+test("CI-9 why this weight: lifts that share a reason share one line", async () => {
+  const first = (id, name, repTop) => ({ id, name, sets: 2, reps: [0, 0], weight: null, firstTime: true, newWeight: false, held: false, repTop });
+  const working = (id, name, weight) => ({ id, name, sets: 2, reps: [12, 12], weight, firstTime: false, newWeight: false, held: false, repTop: 12 });
+  const plan = { available: true, code: null, name: "LOWER", exercises: [first("plank", "Plank", 10), working("row", "Row", 40),
+    first("press", "Leg press", 10), first("nordic", "Nordic curl", 10), working("fly", "Fly", 40), first("calf", "Calf raise", 15)] };
+  const got = await I.ask(toolsOver({ today: withPlan(plan) }), "why_weight", { turnId: "ci9" });
+  assert.equal(got.answered, true);
+  assert.deepEqual(got.untraceable, []);
+  assert.deepEqual(got.answer.split("\n"), [
+    "Plank, Leg press, Nordic curl: first time. Pick a weight you can control for about 10 reps; what you log becomes your starting point.",
+    "Row, Fly: 40 lb is your working weight. A new weight can be offered once you reach the top of your rep range (12 reps).",
+    "Calf raise: first time. Pick a weight you can control for about 15 reps; what you log becomes your starting point.",
+  ]);
+});
+
+/* BATCH 2 (item 4): an offer's Why? on the weekly card is the offer in plain words, every figure a tool result of the
+   turn (the offer's own target and base weights and its day); an offer whose sets carry different weights says the
+   plain fallback, which names no figure; the engine's own reason is never what the card says. */
+test("CI-10 the weekly card's Why? says the offer plainly, and the number check still reads every figure", async () => {
+  const ENGINE = "Chest press machine: on 2026-10-06 you completed every set at 40 lb on every set, and no working weight was on file. Offer: make that your working weight. This sets your working weight; it is not an earned increase. Nothing changes unless you say yes.";
+  const rows = [
+    { lift: "a", name: "Chest press machine", status: "offer", kind: "adopt-baseline", date: "2026-10-06", loads: [40, 40], current: [null, null], reason: ENGINE },
+    { lift: "b", name: "Row", status: "offer", kind: "adopt-observed", date: "2026-10-07", loads: [45, 45], current: [40, 40], reason: "engine words" },
+    { lift: "c", name: "Leg press", status: "offer", kind: "earn", date: "2026-10-08", loads: [210, 210], current: [200, 200], reason: "engine words" },
+    { lift: "d", name: "Fly", status: "offer", kind: "earn", date: "2026-10-09", loads: [145, 140], current: [140, 135], reason: "engine words" },
+  ];
+  const world = { today: createTodayModel({ today: "2026-10-12" }),
+    gym: { read: async () => ({ phase: "idle" }), weekSessions: async () => ({ ok: true, done: 2, dates: [] }) },
+    week: { lifts: async () => ({ ok: true, lifts: rows.map((row) => ({ ...row })) }) } };
+  const got = await I.ask(toolsOver(world), "week_review", { turnId: "ci10" });
+  assert.equal(got.shipped, true);
+  assert.deepEqual(got.untraceable, [], "every figure in every Why? is a tool result of the turn");
+  const why = (name) => got.lines.find((line) => line.text.startsWith(name + ": ")).why;
+  assert.equal(why("Chest press machine"), "You did every set at 40 lb on Oct 6. Make 40 lb your working weight? This sets your starting point; it is not an increase. Nothing changes unless you say yes.");
+  assert.equal(why("Row"), "You did every set at 45 lb on Oct 7. Make 45 lb your working weight? This sets your working weight to what you lifted; it is not an earned increase. Nothing changes unless you say yes.");
+  assert.equal(why("Leg press"), "You reached the top of your rep range at 200 lb on Oct 8. Make 210 lb your working weight? Nothing changes unless you say yes; it then applies on a later workout.");
+  assert.equal(why("Fly"), I.WEEK_WHY.fallback, "different weights per set: the plain fallback, no figure");
+  for (const line of got.lines) assert.equal(/engine words|no working weight was on file|earned increase\. Offer/.test(line.why || ""), false, "the engine's reason is not said");
+  for (const words of Object.values(I.WEEK_WHY)) {
+    assert.equal(/\d/.test(words), false, words + " carries a figure of its own");
+    assert.equal(/[\u2013\u2014]/.test(words), false, words + " carries a dash");
+  }
+  /* and the check has teeth: a Why? whose day the turn did not read is discarded, never shown */
+  const planted = I.ask({ openTurn(turn_id) { const turn = toolsOver(world).openTurn(turn_id);
+    return { ...turn, untraceable: (answer) => T.untraceable(answer.replace("Oct 6.", "Oct 16."), turn.results, turn_id) }; } }, "week_review", { turnId: "ci10-plant" });
+  assert.equal((await planted).shipped, false, "a day the turn did not read fails the check");
 });
 
 test("CI-4 a draft whose numbers the turn did not read is discarded: the general refusal is said instead", async () => {

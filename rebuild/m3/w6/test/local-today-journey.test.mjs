@@ -790,9 +790,14 @@ export const PAGE_PINS = Object.freeze({
      nothing, and the api gains the one serialized accessor. boot() is byte-unchanged, no store of its own is opened by
      the hunk (the host it may open first is the one ensure() opens for every check, over the same store), and gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move. Re-read against today-bindings.mjs at this
      re-pin: its createNativeLoadHost project() and check() are unchanged and write nothing; only respond() writes, and
-     weekLifts never calls it. MEASURED: dac88dd5afadc03e3c5ce32bafd874ec75286d421a59191e8644ff45b76af52d -> the value
-     below. */
-  'today-entry.mjs': 'fbdcd96abd55b7111c6419afd89045d9b3fce56208f69827f391012e1ee8e423',
+     weekLifts never calls it. MEASURED: dac88dd5afadc03e3c5ce32bafd874ec75286d421a59191e8644ff45b76af52d -> fbdcd96a...
+     COACH V1 BATCH 2 re-pin (PM item 4, the weekly card's Why? in plain words). today-entry.mjs moves by ONE hunk in
+     weekLifts: an offer's row also carries copies of the offer's own target and base vectors (offer.loads and
+     offer.current, as today-bindings.mjs check() already returns them), so the review can say the offer plainly. No
+     call, handle, store or write is added; boot() is byte-unchanged and gym-host.mjs, reading-host.mjs and
+     checkin-host.mjs did not move. Re-read against today-bindings.mjs at this re-pin: check() is unchanged and writes
+     nothing. MEASURED: fbdcd96abd55b7111c6419afd89045d9b3fce56208f69827f391012e1ee8e423 -> the value below. */
+  'today-entry.mjs': '2387a9714a200a5b68dadde275fa46a9697272def54acf50c5de525681a95bab',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',
