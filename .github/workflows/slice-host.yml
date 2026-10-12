@@ -22,6 +22,7 @@
 # HOW IT IS RUN. By PUSH, to rebuild/t2-client-core or rebuild/c-live, touching one of the paths below.
 # rebuild/c-live is the branch deployed from day to day (M2-S19-LIVE, PM ruling 2026-10-12); both deploy to the
 # same site, so the newest push to either is what the phone gets.
+# A new branch's first push may not start this workflow; rebuild/c-live's first deploy came from its second push.
 # `workflow_dispatch` is declared so the button exists IF this file ever reaches the
 # default branch, but GitHub only lists a workflow_dispatch workflow once its file is on
 # the DEFAULT branch (main) — and this file is deliberately never on main. So there is no
