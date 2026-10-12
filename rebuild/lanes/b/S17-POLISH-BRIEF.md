@@ -31,6 +31,10 @@ standing step runs `--package S17` and gains the S17-REGEN.test step. S16-REGEN 
    scrolling; at the end of the scroll every offer stands above it.
 6. Today: the weigh-in dot sits on the centre of its row; the day keeps 34 px above Start at the end of
    its scroll.
+7. The deployed page on a phone (capture 4 of db6a054): the phone is the screen less the deployed stage's
+   top and bottom paddings (preflight.css, at least 24 px each), so the page itself never scrolls; Back to
+   Today, the set screen's bar and the check-in card under Start are on the screen as it opens, and Change
+   my routine is never drawn under Today's bottom fade. A1's preview page is untouched.
 Product A moves no JavaScript and adds no words.
 
 ## Product B: a routine change may start today (PM ruling on the owner's "I wanna hit upper on Mondays now")
@@ -75,7 +79,10 @@ No rebuild/engine file and none of the protected five moves.
 Red first: RT-14 (new) and RT-13's clamp cell fail on the S16 stylesheet and pass on this one; RT-15, RT-16,
 RT-17, RT-05's tomorrow step and five model cells fail on the S16 product and pass on this one (PE-I3, the real
 admission of a same-day change, runs at the PM seat); the two D1 cells (the deferral, and Today keeping every
-other change) fail on the refusing rule and pass on the deferral. Builder-seat
+other change) fail on the refusing rule and pass on the deferral; RT-18 (item 7) fails on the db6a054
+stylesheet and passes on this one, and a deployed-shell probe at the four sizes below reads the page 48 px
+taller than the screen and Back to Today ending 4 px under it on db6a054 (7 of 20) and neither on this one
+(20 of 20). Builder-seat
 layout probe at 390x844, 393x852, 430x932 and 402x781 (a 402x874 phone less its safe areas): 76 of 76
 invariants pass (23 of 76 on the S16 stylesheet). No :is() selector list carries a font size (the 16px
 law's parser).

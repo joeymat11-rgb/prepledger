@@ -650,6 +650,24 @@ test('RT-14 S17: the set screen bar, the whole reason, Setup, the example pill, 
     'the pill the rule hides is the board\'s own header marker, alone on the right of the header');
 });
 
+/* S17 capture 4 (db6a054 on the deployed shell at 390x844 and 430x932): Back to Today ended 4 px under the screen and
+   Today's Change my routine sat faded at the foot of the day. The deployed shell's stage keeps its own top and bottom
+   padding (preflight.css, at least 24 px each) while the phone was the full screen height, so the page itself scrolled by
+   both and every screen's foot began below the fold. Measured at the builder seat (the same four sizes): the phone is the
+   screen less the two paddings, so the page never scrolls, Back to Today and the check-in card under Start are on the
+   screen, and Change my routine is never drawn under the fade. A1's preview page (no data-earned-app) is untouched. */
+test('RT-18 S17: on the deployed page a phone is the screen less the stage\'s two paddings, so the page itself never scrolls', () => {
+  const css = fs.readFileSync(new URL('../preview.css', import.meta.url), 'utf8');
+  const begin = css.indexOf('/* ===== S17 POLISH'), end = css.indexOf('/* ===== S17 POLISH: END');
+  const rules = css.slice(begin, end).replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(rules, /@media \(max-width: 430px\) \{\s*body\[data-earned-app\] \.phone \{ height: calc\(100dvh - max\(24px, env\(safe-area-inset-top, 0px\)\) - max\(24px, env\(safe-area-inset-bottom, 0px\)\)\); \}\s*\}/,
+    'the phone is the screen less the stage\'s top and bottom paddings');
+  const shell = fs.readFileSync(new URL('../../../../slice/pwa/preflight.css', import.meta.url), 'utf8');
+  assert.match(shell, /body\[data-earned-app\] \.stage \{\s*padding-top: max\(24px, env\(safe-area-inset-top, 0px\)\);\s*padding-bottom: max\(24px, env\(safe-area-inset-bottom, 0px\)\);\s*\}/,
+    'the two paddings the phone gives back are exactly the deployed stage\'s');
+  assert.doesNotMatch(rules, /(^|[,{}])\s*\.phone \{/m, 'the preview page\'s own phone frame is not touched');
+});
+
 /* S17 (PM ruling, the owner's words: "I should be able to elect to change my workout today (I wanna hit upper on Mondays
    now)"). A routine change may start TODAY while today's workout has not begun on this device; the editor offers
    "Start today" (the default) or "Start tomorrow" with the date shown, says in one plain line why when today is closed,
