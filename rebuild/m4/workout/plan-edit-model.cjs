@@ -96,6 +96,15 @@ function importPresentIn(generation) {
     !!metadata.localSources || !!metadata.localSourceApplication ||
     !!(collections.derived && collections.derived.localSource);
 }
+/* S17 (PM ruling): HAS A WORKOUT OF `date` STARTED on this record (before device_seq `before`, when given)? A
+   session-start operation of that local date, whatever became of it after (logged, closed, edited or abandoned):
+   a workout that began keeps the basis it began on. The one reader the saving host and the projector share, so
+   they cannot disagree about what counts as a begun day. */
+function startedOn(ops, date, before = Infinity) {
+  return (Array.isArray(ops) ? ops : Object.values(ops || {})).some(o => o && o.class === 'session' &&
+    o.kind === 'session-start' && o.effective && o.effective.local_date === date &&
+    Number.isSafeInteger(o.device_seq) && o.device_seq < before);
+}
 function createPlanEditProjector({ basisState, setupOperation, validateTags, projectNewExerciseTags,
   hashBasis, admittedBasisOf, basisSource = 'first-run' } = {}) {
   if (typeof hashBasis !== 'function') fail('PLAN_EDIT_BASIS_HASH_UNAVAILABLE');
@@ -308,12 +317,21 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
     }
     const statuses = new Map(edits.map(op => [op.op_id,
       dead.has(op.op_id) ? 'tombstoned' : superseded.has(op.op_id) ? 'superseded' : 'active']));
-    const intents = new Set(), added = new Set(baseIds);
+    const intents = new Set(), added = new Set(baseIds), starts = new Map();
     for (const op of edits) {
       const value = op.members[0].value;
       if (intents.has(value.intent_id)) fail('PLAN_EDIT_DUPLICATE_INTENT'); intents.add(value.intent_id);
       if (value.edit.exercise) { if (added.has(value.edit.exercise.id)) fail('PLAN_EDIT_ID_REUSED'); added.add(value.edit.exercise.id); }
       if (statuses.get(op.op_id) === 'active' && op.causal_parents.some(id => statuses.has(id) && statuses.get(id) !== 'active')) fail('PLAN_EDIT_BASIS_INVALIDATED');
+      /* S17 (PM ruling on Fable l1 D1): A SAME-DAY CHANGE NEVER REACHES A WORKOUT ALREADY BEGUN THAT DAY. A change dated
+         for its own authored day applies from that day only when no workout of that day had started before it was
+         recorded: no session-start of that date earlier on this device's record, and no session of that date in the
+         basis's own history. The saving host refuses such a save; on EVERY replay a record that has one anyway is
+         DEFERRED, deterministically, to the next local date - exactly as a next-day change would apply - so the begun
+         day keeps its basis, the read never refuses, the change is never dropped and nothing new is recorded. */
+      const recorded = value.starts_on;
+      starts.set(op.op_id, recorded === op.effective.local_date && (startedOn(rows, recorded, op.device_seq) ||
+        Object.hasOwn(base.sessionLog || {}, recorded)) ? C.nextLocalDate(recorded) : recorded);
     }
     const basisAt = before => hash({ origin: coreOrigin,
       edits: edits.filter(op => op.device_seq < before).map(op => ({ op_id: op.op_id, commitment: op.canonical_content_commitment,
@@ -323,9 +341,10 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
     for (let i = 0; i < active.length; i++) {
       const op = active[i], parents = [origin.op_id, ...active.slice(0, i).map(o => o.op_id)];
       if (!equal([...op.causal_parents].sort(), [...parents].sort()) || op.seen_plan_basis !== basisAt(op.device_seq)) fail('PLAN_EDIT_BASIS_INVALIDATED');
-      if (i && active[i - 1].members[0].value.starts_on > op.members[0].value.starts_on) fail('PLAN_EDIT_DATE_ORDER_UNPROVEN');
+      // Judged on the date each change applies from (S17: a deferred same-day change applies from the next date).
+      if (i && starts.get(active[i - 1].op_id) > starts.get(op.op_id)) fail('PLAN_EDIT_DATE_ORDER_UNPROVEN');
     }
-    return { generation, edits, active, statuses, basis: basisAt(Infinity), parents: [origin.op_id, ...active.map(op => op.op_id)], added };
+    return { generation, edits, active, statuses, starts, basis: basisAt(Infinity), parents: [origin.op_id, ...active.map(op => op.op_id)], added };
   }
   function orderOf(state) {
     const order = state.exOrder || (state.exOrder = {});
@@ -433,9 +452,9 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
     // supply a trusted seen basis just because the current date precedes them.
     const complete = clone(base);
     for (const op of info.active) {
-      const value = op.members[0].value; apply(complete, value.edit, value.starts_on, op);
-      if (value.starts_on <= date) { state = clone(complete); applied.push(op.op_id); }
-      else pending.add(value.starts_on);
+      const value = op.members[0].value, from = info.starts.get(op.op_id); apply(complete, value.edit, from, op);
+      if (from <= date) { state = clone(complete); applied.push(op.op_id); }
+      else pending.add(from);
     }
     return freeze({ state, plan_basis: info.basis, causal_parents: info.parents.slice(),
       pending_dates: [...pending].sort(), applied_ids: applied,
@@ -455,5 +474,5 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
   }
   return Object.freeze({ read, preview });
 }
-module.exports = { createPlanEditProjector, importPresentIn,
+module.exports = { createPlanEditProjector, importPresentIn, startedOn,
   planEditCollections: () => COLLECTIONS.slice(), P2_ROW: P2_ROW.slice() };

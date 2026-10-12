@@ -19,7 +19,7 @@ const { COPY } = M;
 const withValue = (options, value) => (options.includes(value) || !Number.isSafeInteger(value) ? options.slice()
   : [...options, value].sort((a, b) => a - b));
 
-export function mountRoutine(doc, root, { routine, onBack } = {}) {
+export function mountRoutine(doc, root, { routine, onBack, onTodayChanged = null } = {}) {
   if (!root) throw new Error('Change my routine: no host element');
   let session = null, view = null, failure = null, alive = true;
   let screen = 'list', message = '', busy = false, focusNext = true;
@@ -30,6 +30,10 @@ export function mountRoutine(doc, root, { routine, onBack } = {}) {
   let week = null;             // the week draft
   let query = '';
   let pending = Promise.resolve();
+  /* S17 (PM ruling): when today's workout has not begun, a change may start today or tomorrow, today by default;
+     the choice stays until he changes it. When it may not, the one plain line under the date says why. */
+  let when = 'today';
+  const startsToday = () => !!view && view.today_allowed === true && when === 'today';
 
   const el = (tag, slot, text) => {
     const node = doc.createElement(tag);
@@ -89,7 +93,7 @@ export function mountRoutine(doc, root, { routine, onBack } = {}) {
   function save(edit, after) {
     busy = true; paint();
     return run(async () => {
-      const result = await session.save(edit, view.starts_on);
+      const result = await session.save(edit, startsToday() ? view.today : view.starts_on);
       if (!alive) return;
       if (!result.ok) {
         message = M.refusalWords(result.code);
@@ -105,6 +109,14 @@ export function mountRoutine(doc, root, { routine, onBack } = {}) {
         return;
       }
       message = M.withDate(COPY.savedFor, result.starts_on);
+      /* S17: a change that starts today is adopted now: the page re-opens on today with it (routine-host mount). */
+      if (result.today === true && typeof onTodayChanged === 'function') {
+        alive = false;
+        try { session.close(); } catch (_) { /* the page re-opens either way */ }
+        session = null;
+        onTodayChanged();
+        return;
+      }
       await load();
       if (after) after();
       screen = 'list'; target = null; draft = null; form = null; week = null; query = ''; focusNext = true;
@@ -126,9 +138,23 @@ export function mountRoutine(doc, root, { routine, onBack } = {}) {
     p.setAttribute('role', 'status');
     body.append(p);
   }
+  /* S17: the start date line every editing screen shows, with the today / tomorrow choice when today is open. */
+  function starts(body) {
+    if (view.today_allowed === true) {
+      const row = el('div', 'routine-when');
+      row.className = 'options';
+      row.append(chip('routine-when-today', COPY.startToday, when === 'today', () => { when = 'today'; }),
+        chip('routine-when-tomorrow', COPY.startTomorrow, when === 'tomorrow', () => { when = 'tomorrow'; }));
+      body.append(row);
+    }
+    body.append(el('p', 'routine-starts', startsToday() ? M.withDate(COPY.startsToday, view.today)
+      : M.withDate(COPY.startsOn, view.starts_on)));
+    const why = view.today_allowed === true ? null : M.todayWhy(view.today_code);
+    if (why) body.append(el('p', 'routine-today-why', why));
+  }
   function listScreen(body) {
     head(body, COPY.entry);
-    body.append(el('p', 'routine-starts', M.withDate(COPY.startsOn, view.starts_on)));
+    starts(body);
     note(body);
     const { rows, order: now } = served();
     for (const kind of DAY_KINDS) {
@@ -177,7 +203,7 @@ export function mountRoutine(doc, root, { routine, onBack } = {}) {
   }
   function exerciseScreen(body) {
     head(body, target.n);
-    body.append(el('p', 'routine-starts', M.withDate(COPY.startsOn, view.starts_on)));
+    starts(body);
     note(body);
     body.append(field('routine-name', SETUP_COPY.exerciseNameLabel, draft.n, (v) => { draft.n = v; }));
     choices(body, 'routine-sets', COPY.setsLabel, withValue(SETS_OPTIONS, target.sets), draft.sets, (v) => { draft.sets = v; });
@@ -196,14 +222,14 @@ export function mountRoutine(doc, root, { routine, onBack } = {}) {
   }
   function removeScreen(body) {
     head(body, M.withName(COPY.removeAsk, target.n));
-    body.append(el('p', 'routine-starts', M.withDate(COPY.startsOn, view.starts_on)));
+    starts(body);
     note(body);
     body.append(button('routine-remove-yes', COPY.removeYes, () => save(M.removeEdit(target.id)), 'cta'));
     body.append(button('routine-keep', COPY.keep, () => go('exercise'), 'link'));
   }
   function newScreen(body, replacing) {
     head(body, replacing ? M.withName(COPY.replaceHead, target.n) : COPY.newHead);
-    body.append(el('p', 'routine-starts', M.withDate(COPY.startsOn, view.starts_on)));
+    starts(body);
     body.append(el('p', 'routine-new-rule', M.newRuleLine()));
     note(body);
     const search = field('routine-search', SETUP_COPY.searchLabel, query, (v) => { query = v; });
@@ -245,7 +271,7 @@ export function mountRoutine(doc, root, { routine, onBack } = {}) {
   }
   function weekScreen(body) {
     head(body, COPY.weekHead);
-    body.append(el('p', 'routine-starts', M.withDate(COPY.startsOn, view.starts_on)));
+    starts(body);
     note(body);
     const word = (k) => (k === REST ? SETUP_COPY.restWord : DAY_KIND_WORDS[k]);
     for (const d of WEEKDAYS) {

@@ -116,3 +116,35 @@ test('PE-I2 - a routine change saved AFTER the import is used as normal: the edi
   assert.deepEqual(adopted.sessionLog, state.sessionLog, 'the imported history was rewritten');
   assert.deepEqual(await imported(era, scope), state, 'the admitted import itself moved');
 });
+
+/* S17 (PM ruling): a routine change may start TODAY while today's workout has not begun. F10 judges a plan-mutation with
+   the producer's own validate(), which admits the authored day and the next one, so a same-day change saved BEFORE the
+   import is admitted and superseded exactly as a next-day one is (PE-I1), and stays on the record byte for byte. */
+test('PE-I3 - a routine change saved for TODAY before the import: the import is ADMITTED, F10 answers for it as '
+  + 'superseded, it is still on the record byte for byte, and the routine is the imported one', async t => {
+  const { era, scope } = await open(t, 'same-day');
+  const session = await createRoutineEntry({ installation: era, day: DAY }).session();
+  assert.equal(session.ok, true, 'the routine would not open: ' + session.code);
+  let change;
+  try {
+    const view = await session.view();
+    assert.equal(view.today_allowed, true, 'today is open before any workout: ' + view.today_code);
+    const row = Routine.rowsOf(view.state).U[0];
+    const saved = await session.save(Routine.updateEdit(row, { ...row, sets: row.sets + 1 }).edit, view.today);
+    assert.equal(saved.ok, true, 'the same-day change was refused: ' + saved.code);
+    assert.equal(saved.starts_on, DAY, 'it starts today');
+    change = saved;
+  } finally { session.close(); }
+  const before = await planOps(era);
+  assert.deepEqual(Object.keys(before), [change.op_id]);
+  assert.equal(before[change.op_id].members[0].value.starts_on, before[change.op_id].effective.local_date);
+  const result = await admit(era, SEALED, { day: DAY, ...scope });
+  assert.equal(result.admitted, true, 'a same-day change blocked the import: ' + JSON.stringify(result.codes || result.code || result.stage));
+  assert.deepEqual(result.view.families.filter(row => row.family === 'F10'),
+    [{ family: 'F10', state: 'superseded', op_id: change.op_id }]);
+  assert.deepEqual(await planOps(era), before, 'the import moved or deleted the same-day change');
+  const state = await imported(era, scope);
+  assert.ok(state, 'the admitted import is not visible to Today');
+  assert.deepEqual(await createRoutineEntry({ installation: era, day: DAY }).adopt(copy(state)), state,
+    'Today adopted a same-day change the import superseded');
+});

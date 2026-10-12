@@ -212,7 +212,11 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // rebuild/lanes/b/S16-POLISH-BRIEF.md), holds the one parent claim, so a runnable S15 would be a second claim on the same
 // parent, which parent()'s single-parent scan refuses. packages/S15.json stays as the record with its parent claim
 // withdrawn; S16 sits where S15 sat, directly behind S14 and still ahead of B1. No CHILD_ROOTS hunk.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S16', 'B1', 'B2', 'B4', 'B3'];
+// S16 LEAVES IDS in its turn (S16 RETIRED BY SUPERSESSION, the same shape) and 'S17' takes its place: S16 merged onto the
+// chain (DECISIONS:944), so M2-S17-POLISH, the UNSEALED --ci child of the SEALED M2-S14-HOLD that carries every byte
+// M2-S16-POLISH declared plus the S17 polish (brief rebuild/lanes/b/S17-POLISH-BRIEF.md), holds the one parent claim;
+// packages/S16.json stays as the record with its parent claim withdrawn. S17 sits where S16 sat. No CHILD_ROOTS hunk.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S17', 'B1', 'B2', 'B4', 'B3'];
 // RETIRED IDS, and why this list has to exist at all. Removing an id from IDS and deleting
 // its spec file are ONE act - DECISIONS:487 stop 2 orders both for B-LOM - but TOOLING_FILES
 // below is derived from IDS, so the moment the id goes the deleted path stops being named
@@ -388,7 +392,9 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // register D-id. It is an S- id, so the shape assertion below admits it without a PM by-name ruling.
 // 'S16' is in for the same reason a thirteenth time, and 'S15' LEAVES with its id (S15 RETIRED BY SUPERSESSION): M2-S16-POLISH
 // carries the S15 editor and its round 5 and 6 polish over the sealed S14, with no rebuild/engine byte and no register D-id.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S16']);
+// 'S17' is in for the same reason a fourteenth time, and 'S16' LEAVES with its id (S16 RETIRED BY SUPERSESSION): M2-S17-POLISH
+// carries S16 and the S17 polish over the sealed S14, with no rebuild/engine byte and no register D-id.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S17']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).

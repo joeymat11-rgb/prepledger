@@ -1708,7 +1708,11 @@ test('N2-08 - a saved night is what the check-in own reader finds, with no A3 ed
    (S15 retired by supersession, the DECISIONS:920 / :923 shape): the files it moves are declared in packages/S16.json, so the
    declaring-spec chain has to know about it. S16 releases nothing. Youngest first, so 'S16' goes last and is consulted first;
    the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15', 'S16'];
+/* S17 ADDS 'S17', and the cell is unchanged in every other way. S17 (M2-S17-POLISH, brief rebuild/lanes/b/S17-POLISH-BRIEF.md)
+   is the UNSEALED --ci reseal child of the SEALED S14 that carries every byte S16 declared plus the S17 polish (S16 retired by
+   supersession): the files it moves are declared in packages/S17.json, so the declaring-spec chain has to know about it. S17
+   releases nothing. Youngest first, so 'S17' goes last and is consulted first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17'];
 
 test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', () => {
   /* The reuse path already existed and was dead because nothing wrote a night. N2 is

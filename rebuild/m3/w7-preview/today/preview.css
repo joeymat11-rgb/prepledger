@@ -576,18 +576,13 @@
 .scene-frame > .view.ui > .body > [data-slot="build-id"] { position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip-path: inset(50%); white-space: nowrap; margin: 0; }
 .scene-frame > .view.ui > .body[data-day="train"] > section > :is(.label, .greeting, [data-slot="instruction-why"]) { display: none; }
-/* B. THE SET SCREEN. Everything above the effort row fits above it at 390x844: the engine's reason reads two
-      lines until Why? opens the rest, the prescription line under the empty boxes is set in the pack's quiet
-      sans (.w-reason's 14 px), and the body ends where the effort row begins, so no row is drawn beneath it. */
-.scene-frame.screen-workout .w-reasons .w-reason { display: -webkit-box; -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
-.scene-frame.screen-workout .w-reasons:has(> [data-slot="reason-more"]:not([hidden])) .w-reason { -webkit-line-clamp: unset;
-  line-clamp: none; overflow: visible; }
+/* B. THE SET SCREEN. The prescription line under the empty boxes is set in the pack's quiet sans (.w-reason's
+      14 px), and the body ends where the effort row begins, so no row is drawn beneath it. (The two-line clamp
+      on the engine's reason that stood here is gone in S17: the reason is shown whole.) */
 .scene-frame.screen-workout .setcard .w-presc { font-family: var(--sans); font-size: 14px; line-height: 1.35; margin-top: 8px; }
 .scene-frame.screen-workout #setcard { margin-top: 8px; }
 .scene-frame.screen-workout #machine { min-height: 52px; padding-top: 6px; padding-bottom: 6px; }
 .scene-frame.screen-workout .body > .rowcard[data-action="checkin"] { min-height: 52px; margin-top: 0; padding-top: 6px; padding-bottom: 6px; }
-.screen-workout .ui > [data-native-load="gym"] > .body, .screen-workout .ui > .body { padding-bottom: 0; --fade-bot-inset: 0px; }
 .screen-workout .ui > [data-native-load="gym"] > .stack, .screen-workout .ui > .stack { margin-top: 0; }
 /* C. THE RECORDED WORKOUT. The heading is the session's name in a size that keeps it on one line, and the
       weight offers sit straight under "N sets recorded", above Back to Today: the recorded page lays its parts
@@ -608,3 +603,35 @@
   border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; background: none; padding: 0 4px; }
 .view [data-slot="routine-screen"] [data-slot="routine-search-results"] > button[aria-pressed="true"] { color: var(--gold); }
 /* ===== S15 ROUND 6 POLISH: END ===== */
+/* ===== S17 POLISH (the owner's iPhone, 2026-10-12, Hack squat set 1; measured at 390x844, 393x852, 430x932 and 402x781): BEGIN =====
+   1. THE SET SCREEN'S BOTTOM BAR. The effort row, Log and the clean-rep help are one bar: it stands in the column under the
+      scrolling body (never over it), full width, on the scene's own surface with a hairline above, and keeps the bottom
+      safe area. The body ends at the bar's top edge and keeps 20 px of room under its last row, so at any height the last
+      card scrolls fully clear of the bar and nothing is drawn behind it. While a set is open the next-weight panel holding
+      only its Check button steps aside (the check is the recorded workout's, where it stays); an offer, a status or a
+      notice in it still shows. */
+.screen-workout .ui > [data-native-load="gym"] > .body, .screen-workout .ui > .body { padding-bottom: 20px; --fade-bot-inset: 20px; }
+.scene-frame.screen-workout > .view.ui > [data-native-load="gym"] > .stack { margin: 0 calc(-1 * var(--inset)); padding-top: 12px;
+  padding-left: var(--inset); padding-right: var(--inset); background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border-top: 1px solid var(--line-soft); }
+.scene-frame.screen-workout > .view.ui:has(> [data-native-load="gym"] > .stack) > [data-native-load="region"]:not(:has([data-native-load="offer"])):not(:has([data-native-load="status"])):not(:has([data-native-load="notice"])) { display: none; }
+/* 2. THE ENGINE'S REASON is shown whole, wrapping (the clamp of round 6 is gone above). */
+.scene-frame.screen-workout .w-reasons .w-reason { display: inline; overflow: visible; white-space: normal; }
+/* 3. SETUP (W-14: the engine's setup sentence behind its link) sits under the machine row it belongs to, with the same
+      room above and below, instead of floating mid-way to the check-in row. */
+.scene-frame.screen-workout .body > .w-setup { align-self: flex-start; display: inline-flex; align-items: center;
+  min-height: var(--hit); margin: -12px 0 0; font-size: 14px; color: var(--text-soft); }
+/* 4. THE "example" PILL on the workout header is the design board's static marker (it is drawn whatever the data, unlike
+      Today's bound example-pill slot, which is left alone): it stays in the document and leaves the screen. */
+.scene-frame.screen-workout .header > .right > .pill { position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; margin: 0; }
+/* 5. THE RECORDED WORKOUT'S Back to Today is the same kind of bar: full width on the surface with a hairline above, so an
+      offer passing under it while the page scrolls reads as scrolling, and at the end every offer stands above it. */
+.scene-frame > .view.ui > [data-native-load="gym"] > article.page > .bottom { margin-left: calc(-1 * var(--inset));
+  margin-right: calc(-1 * var(--inset)); padding-left: var(--inset); padding-right: var(--inset); padding-top: 12px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent); border-top: 1px solid var(--line-soft); }
+/* 6. TODAY. The morning weigh-in's dot sits on the centre of its one row (measured: 29 px puts the dot's centre on the
+      row's), and the day keeps 34 px of room above Start at the end of its scroll. */
+.scene-frame > .view.ui > .body[data-day="train"] #card-weigh:has(> #weigh-form) > .tdot { top: 29px; }
+.scene-frame.screen-today > .view.ui > .body { padding-bottom: 34px; --fade-bot-inset: 34px; }
+/* ===== S17 POLISH: END ===== */

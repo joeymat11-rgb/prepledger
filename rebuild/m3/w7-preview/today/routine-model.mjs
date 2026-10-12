@@ -54,6 +54,12 @@ export const COPY = Object.freeze({
   uncovered: 'Each workout that has exercises needs at least one day.',
   weekEmpty: 'Your routine needs at least one exercise.',
   workoutEmpty: 'Each workout with days needs at least one exercise.',
+  // S17 (PM ruling, the owner's "I wanna hit upper on Mondays now"): a change may start today.
+  startToday: 'Start today',
+  startTomorrow: 'Start tomorrow',
+  startsToday: 'Changes start today, DATE.',
+  todayStarted: 'Today\u2019s workout has started, so this starts tomorrow.',
+  todayAfterPending: 'A change already starts tomorrow, so this starts tomorrow too.',
 });
 
 /* "Monday, October 12" for a YYYY-MM-DD local date. Read as a calendar date at
@@ -166,16 +172,23 @@ export function refusalWords(code) {
   if (code === 'PLAN_EDIT_WORKOUT_EMPTY') return COPY.workoutEmpty;
   if (code === 'PLAN_EDIT_NO_CHANGE') return COPY.nothingChanged;
   if (code === 'PLAN_EDIT_DAY_TURNED') return COPY.dayTurned;
+  if (code === 'PLAN_EDIT_TODAY_STARTED' || code === 'PLAN_EDIT_TODAY_AFTER_PENDING') return todayWhy(code);
   if (['PLAN_EDIT_REVIEW_STALE', 'PLAN_EDIT_STALE_BASIS', 'PLAN_EDIT_ORDER_MISMATCH',
     'PLAN_EDIT_TARGET_UNAVAILABLE'].includes(code)) return COPY.stale;
   return COPY.refused.replace('CODE', String(code || 'UNKNOWN'));
 }
 /* Fable l1 N1: the refusals after which the editor reads the routine again, keeping the draft. */
 export const RELOAD_CODES = Object.freeze(['PLAN_EDIT_DAY_TURNED', 'PLAN_EDIT_REVIEW_STALE', 'PLAN_EDIT_STALE_BASIS',
-  'PLAN_EDIT_ORDER_MISMATCH', 'PLAN_EDIT_TARGET_UNAVAILABLE']);
+  'PLAN_EDIT_ORDER_MISMATCH', 'PLAN_EDIT_TARGET_UNAVAILABLE', 'PLAN_EDIT_TODAY_STARTED', 'PLAN_EDIT_TODAY_AFTER_PENDING']);
+/* S17: why a change cannot start today, in one plain line; null when the lane gave no such reason. */
+export function todayWhy(code) {
+  if (code === 'PLAN_EDIT_TODAY_STARTED') return COPY.todayStarted;
+  if (code === 'PLAN_EDIT_TODAY_AFTER_PENDING') return COPY.todayAfterPending;
+  return null;
+}
 export const unavailableWords = code => COPY.unavailable.replace('CODE', String(code || 'UNKNOWN'));
 export const newRuleLine = () => COPY.newRule.replace('SETS', String(STANDARD_SETS));
 export const sameOrder = same;
 
 export default { COPY, dateWords, withDate, withName, rowsOf, weekOf, moved, reorderEdit, splitEdit,
-  removeEdit, updateEdit, newExerciseEdit, refusalWords, RELOAD_CODES, unavailableWords, newRuleLine, sameOrder };
+  removeEdit, updateEdit, newExerciseEdit, refusalWords, RELOAD_CODES, unavailableWords, newRuleLine, sameOrder, todayWhy };

@@ -757,8 +757,18 @@ export const PAGE_PINS = Object.freeze({
      branch is untouched, no store is opened by the new hunks, an INJECTED installation is still never closed by
      this page, and a declared-day caller still gets no watcher. gym-host.mjs, reading-host.mjs and
      checkin-host.mjs did not move. MEASURED: 559463e09b64df729db0ba7e643c3ed1930174e8301d258a760767dd75defd40 ->
-     the value below. */
-  'today-entry.mjs': '82db0b146a0e00175676d1e9891bad1b767c9cdbd4f5fb45937e3c5e0c63766c',
+     82db0b146a0e00175676d1e9891bad1b767c9cdbd4f5fb45937e3c5e0c63766c.
+     S17 SAME-DAY ROUTINE CHANGE re-pin (PM ruling: a routine change may start today while today's workout has not
+     begun, and Today shows it at once). today-entry.mjs moves inside boot() by THREE hunks and nothing else: (1) the
+     routine entry is created with an onTodayChanged hook that calls reopenNow; (2) reopenNow is bound after teardown:
+     it stops the rollover watcher when there is one, tears the page down and boots it again with the SAME options -
+     the rollover's own re-open, by the same three calls - and keeps that boot's promise; (3) the returned object
+     gains reopened(), which hands that promise back. The local era is still opened BY DEFAULT, the `hosts` branch is
+     untouched, no store is opened by the new hunks, an INJECTED installation is still never closed by this page (the
+     re-boot passes it on as the rollover does), and a declared-day caller still gets no watcher. gym-host.mjs,
+     reading-host.mjs and checkin-host.mjs did not move. MEASURED: 82db0b146a0e00175676d1e9891bad1b767c9cdbd4f5fb45937e3c5e0c63766c
+     -> the value below. */
+  'today-entry.mjs': 'f09c23e34f67ffecebcf4265769667e2e0998a37031c1bad43fb88af8229c088',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

@@ -230,6 +230,10 @@ test('RT-05 the real Today page: open, reorder, add, change days; the date is sh
   try {
     const basisBefore = copy(page.booted.model.basisState());
     await openEditor(page);
+    /* S17 (PM ruling): today's workout has not begun, so the editor offers today (the default) or tomorrow. This cell
+       is the TOMORROW path, so it chooses tomorrow first; RT-15 to RT-17 are the today paths. */
+    assert.equal(slot(page.doc, 'routine-when-today').getAttribute('aria-pressed'), 'true', 'today is the default');
+    tap(slot(page.doc, 'routine-when-tomorrow'));
     assert.equal(slot(page.doc, 'routine-starts').textContent,
       'Changes start on Thursday, September 17. Today\u2019s workout stays as it is.');
     // REORDER Upper: move the first lift down, then save the order.
@@ -590,7 +594,8 @@ test('RT-13 round 6: Today is workout-first with its controls at the foot; the s
   assert.match(rules, /\.body\[data-day="train"\] > section > :is\(\.label, \.greeting, \[data-slot="instruction-why"\]\) \{ display: none; \}/,
     'the headline and its long sentence give way on a training day');
   // B. The set screen ends above the effort row.
-  assert.match(rules, /\.w-reasons \.w-reason \{[^}]*-webkit-line-clamp: 2;/, 'the reason reads two lines until Why? opens it');
+  // S17 (the owner's iPhone, PM item: show the instruction fully): the round 6 two-line clamp is gone from this block.
+  assert.doesNotMatch(rules, /line-clamp/, 'the reason is no longer clamped here (S17 shows it whole)');
   assert.match(rules, /#setcard \{ margin-top: 8px; \}/, 'the card sits close under the reason');
   assert.match(rules, /#machine \{ min-height: 52px;/, 'the machine row is compact');
   assert.match(rules, /\.rowcard\[data-action="checkin"\] \{ min-height: 52px; margin-top: 0;/, 'the check-in row is compact');
@@ -608,4 +613,154 @@ test('RT-13 round 6: Today is workout-first with its controls at the foot; the s
   assert.match(rules, /\[data-slot="routine-search-results"\]:not\(\[hidden\]\) \{ display: flex; flex-direction: column;/,
     'the picks are a list under the box');
   assert.doesNotMatch(rules, /#[0-9a-f]{3,8}\b|rgba?\(/i, 'no colour is invented');
+});
+
+/* S17 POLISH (the owner's iPhone, 2026-10-12, Hack squat set 1). Measured at the builder seat at 390x844, 393x852, 430x932
+   and 402x781 (a 402x874 phone less its safe areas): the set screen's effort row, Log and the clean-rep help are one bar on
+   the surface, the body ends at the bar and keeps room under its last card, the reason is whole, Setup sits under its machine
+   row, the board's "example" pill leaves the screen, the next-weight panel holding only its Check button steps aside while a
+   set is open, the recorded workout's Back to Today is the same bar, and Today's weigh-in dot sits on its row with room
+   above Start. Layout is the look gate's to measure; these cells pin the hooks and the rules (RT-12 style), and the
+   document keeps every node the cells and the problem report read. */
+test('RT-14 S17: the set screen bar, the whole reason, Setup, the example pill, the recorded bar and Today\'s weigh dot', () => {
+  const css = fs.readFileSync(new URL('../preview.css', import.meta.url), 'utf8');
+  const begin = css.indexOf('/* ===== S17 POLISH'), end = css.indexOf('/* ===== S17 POLISH: END');
+  assert.ok(begin >= 0 && end > begin, 'the S17 block is in preview.css');
+  const rules = css.slice(begin, end).replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(rules, /\.screen-workout \.ui > \[data-native-load="gym"\] > \.body, \.screen-workout \.ui > \.body \{ padding-bottom: 20px; --fade-bot-inset: 20px; \}/,
+    'the body keeps 20px of room under its last card');
+  assert.match(rules, /> \[data-native-load="gym"\] > \.stack \{[^}]*background: color-mix\(in srgb, var\(--surface\) 94%, transparent\);[^}]*border-top: 1px solid var\(--line-soft\);/,
+    'the effort row, Log and the help are one bar on the surface with a hairline');
+  assert.doesNotMatch(rules, /\.stack \{[^}]*position: (fixed|absolute)/, 'the bar stands in the column, never over the body');
+  assert.match(rules, /> \[data-native-load="region"\]:not\(:has\(\[data-native-load="offer"\]\)\):not\(:has\(\[data-native-load="status"\]\)\):not\(:has\(\[data-native-load="notice"\]\)\) \{ display: none; \}/,
+    'the next-weight panel steps aside on the set screen only while it holds nothing but its Check button');
+  assert.match(rules, /\.w-reasons \.w-reason \{ display: inline; overflow: visible; white-space: normal; \}/, 'the reason is shown whole');
+  assert.doesNotMatch(css, /line-clamp: 2/, 'no rule clamps the reason anywhere in the file');
+  assert.match(rules, /\.body > \.w-setup \{[^}]*margin: -12px 0 0;/, 'Setup sits straight under the machine row');
+  assert.match(rules, /\.scene-frame\.screen-workout \.header > \.right > \.pill \{ position: absolute;[^}]*clip-path: inset\(50%\)/,
+    'the board\'s example pill leaves the screen');
+  assert.match(rules, /article\.page > \.bottom \{[^}]*background: color-mix\(in srgb, var\(--surface\) 94%, transparent\);[^}]*border-top: 1px solid var\(--line-soft\);/,
+    'Back to Today is the same bar');
+  assert.match(rules, /#card-weigh:has\(> #weigh-form\) > \.tdot \{ top: 29px; \}/, 'the weigh-in dot sits on its row');
+  assert.match(rules, /\.screen-today > \.view\.ui > \.body \{ padding-bottom: 34px; --fade-bot-inset: 34px; \}/, 'room above Start');
+  assert.doesNotMatch(rules, /:is\(/, 'no :is() list (the 16px law reads selector lists split on commas)');
+  assert.doesNotMatch(rules, /#[0-9a-f]{3,8}\b|rgba?\(/i, 'no colour is invented');
+  const markup = fs.readFileSync(new URL('../../../../m1/approved-2026-09-18/app/app.html', import.meta.url), 'utf8');
+  assert.ok(markup.includes('<div class="right"><span class="pill" title='),
+    'the pill the rule hides is the board\'s own header marker, alone on the right of the header');
+});
+
+/* S17 (PM ruling, the owner's words: "I should be able to elect to change my workout today (I wanna hit upper on Mondays
+   now)"). A routine change may start TODAY while today's workout has not begun on this device; the editor offers
+   "Start today" (the default) or "Start tomorrow" with the date shown, says in one plain line why when today is closed,
+   and a change that starts today is adopted at once: the page re-opens on today and Today shows the new workout.
+   History is never rewritten and a begun workout keeps its basis. Weekdays here: 2026-09-21 Monday (Upper),
+   2026-09-22 Tuesday (Lower), 2026-09-16 (DAY1) Wednesday (rest). */
+const TUESDAY = '2026-09-22', MONDAY = '2026-09-21';
+const upperIds = state => state.exercises.filter(e => e.day === 'U').map(e => e.id).sort();
+test('RT-15 a change that starts TODAY on a training day: chosen by default, saved for today, and Today shows the new '
+  + 'workout at once (Tuesday becomes Upper and the gym card prepares Upper)', { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('today');
+  era.close();
+  const page = await bootOn(indexedDB, 'today', TUESDAY);
+  let next = null;
+  try {
+    const title = () => (slot(page.doc, 'workout-title') || {}).textContent || '';
+    assert.match(title(), /LOWER/, 'Tuesday is a Lower day before the change: ' + title());
+    const before = copy((await ops(page.era)).ops);
+    await openEditor(page);
+    assert.equal(slot(page.doc, 'routine-when-today').getAttribute('aria-pressed'), 'true');
+    assert.equal(slot(page.doc, 'routine-when-today').textContent, COPY.startToday);
+    assert.equal(slot(page.doc, 'routine-when-tomorrow').textContent, COPY.startTomorrow);
+    assert.equal(slot(page.doc, 'routine-starts').textContent, 'Changes start today, Tuesday, September 22.');
+    assert.equal(slot(page.doc, 'routine-today-why'), null, 'no reason line while today is open');
+    tap(slot(page.doc, 'routine-week'));
+    tap(slot(page.doc, 'routine-day-2-U'));
+    tap(slot(page.doc, 'routine-day-1-L'));
+    tap(slot(page.doc, 'routine-save'));
+    next = await until(() => page.booted.reopened(), 'the page re-opening on today');
+    next = await next; await next.api.ready;
+    const after = await ops(page.era);
+    for (const [id, op] of Object.entries(before)) assert.deepEqual(copy(after.ops[id]), op, 'op ' + id + ' untouched');
+    const plan = Object.values(after.ops).filter(op => op.kind === 'plan-mutation');
+    assert.equal(plan.length, 1);
+    assert.equal(plan[0].members[0].value.starts_on, TUESDAY, 'it starts today');
+    assert.equal(plan[0].effective.local_date, TUESDAY);
+    await until(() => /UPPER/.test(title()), 'Today showing the Upper workout');
+    const card = await next.workout.gym.read();
+    assert.equal(card.phase, 'ready', card.code || card.phase);
+    assert.ok(upperIds(next.model.stateFromOps()).includes(card.lift.id), 'the gym card opens an Upper lift: ' + card.lift.id);
+    assert.deepEqual(membership(next.model.stateFromOps(), TUESDAY).exercise_ids.slice().sort(), upperIds(next.model.stateFromOps()));
+  } finally {
+    if (next) { try { next.rollover && next.rollover.stop(); next.teardown(); } catch (_) { /* closed */ } }
+    page.close();
+  }
+});
+
+test('RT-16 a change for TODAY on a REST day makes today a training day; two same-day saves compose; a change still '
+  + 'waiting for tomorrow closes today, by name and in plain words', { timeout: 60000 }, async () => {
+  const { era } = await enrolled('restday');
+  try {
+    const routine = createRoutineEntry({ installation: era, day: DAY1, live: AT(DAY1) });
+    const session = await routine.session();
+    assert.equal(session.ok, true, session.code);
+    let view = await session.view();
+    assert.equal(view.today_allowed, true, 'today is open: ' + view.today_code);
+    const week = { 0: 'REST', 1: 'U', 2: 'L', 3: 'U', 4: 'REST', 5: 'U', 6: 'L' };
+    const split = await session.save(M.splitEdit(week), DAY1);
+    assert.equal(split.ok, true, split.code); assert.equal(split.starts_on, DAY1); assert.equal(split.today, true);
+    view = await session.view();
+    const rows = M.rowsOf(view.state);
+    const order = [rows.U[2].id, rows.U[0].id, rows.U[1].id];
+    const reorder = await session.save(M.reorderEdit('U', order), DAY1);
+    assert.equal(reorder.ok, true, reorder.code); assert.equal(reorder.starts_on, DAY1);
+    const { createCleanInitState } = await import('../setup-model.mjs');
+    const basis = createCleanInitState({ setup: shipped(DAY1).setup });
+    const adopted = await createRoutineEntry({ installation: era, day: DAY1, live: AT(DAY1) }).adopt(copy(basis));
+    assert.deepEqual(membership(adopted, DAY1).exercise_ids, order, 'Wednesday is Upper today, in the new order');
+    assert.deepEqual(adopted.sessionLog, basis.sessionLog, 'history is never rewritten');
+    // A change saved for TOMORROW now waits; a same-day change after it would put the start dates out of order.
+    const later = await session.save(M.updateEdit(rows.U[0], { ...rows.U[0], sets: 4 }).edit, view.starts_on);
+    assert.equal(later.ok, true, later.code); assert.equal(later.starts_on, DAY2); assert.equal(later.today, false);
+    view = await session.view();
+    assert.equal(view.today_allowed, false); assert.equal(view.today_code, 'PLAN_EDIT_TODAY_AFTER_PENDING');
+    assert.equal(M.todayWhy(view.today_code), COPY.todayAfterPending);
+    const count = Object.keys((await ops(era)).ops).length;
+    const refused = await session.save(M.reorderEdit('U', order.slice().reverse()), DAY1);
+    assert.equal(refused.ok, false); assert.equal(refused.code, 'PLAN_EDIT_TODAY_AFTER_PENDING');
+    assert.equal(Object.keys((await ops(era)).ops).length, count, 'a refusal writes nothing');
+    session.close();
+  } finally { era.close(); }
+});
+
+test('RT-17 once today\'s workout has started (a set logged), a change cannot start today: the editor says why in one '
+  + 'line, a today save is refused by name and writes nothing, tomorrow still saves, and Today keeps its workout',
+  { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('started');
+  era.close();
+  const page = await bootOn(indexedDB, 'started', MONDAY);
+  try {
+    const gym = page.booted.workout.gym;
+    assert.equal((await gym.start()).ok, true);
+    const set = await gym.read();
+    const reserve = gym.effortChoices().find(c => c.label === '1').reserve;
+    const logged = await gym.logSet({ startId: set.startId, slot: set.set.slot, lift: set.set.lift, load: '40', reps: '8', effort: reserve });
+    assert.equal(logged.ok, true, logged.code);
+    const basisBefore = copy(page.booted.model.basisState());
+    const session = await createRoutineEntry({ installation: page.era, day: MONDAY, live: AT(MONDAY) }).session();
+    const view = await session.view();
+    assert.equal(view.today_allowed, false); assert.equal(view.today_code, 'PLAN_EDIT_TODAY_STARTED');
+    const before = copy((await ops(page.era)).ops);
+    const week = { 0: 'REST', 1: 'L', 2: 'U', 3: 'REST', 4: 'REST', 5: 'U', 6: 'L' };
+    const refused = await session.save(M.splitEdit(week), MONDAY);
+    assert.equal(refused.ok, false); assert.equal(refused.code, 'PLAN_EDIT_TODAY_STARTED');
+    assert.deepEqual(copy((await ops(page.era)).ops), before, 'a refused today save writes nothing');
+    const tomorrow = await session.save(M.splitEdit(week), view.starts_on);
+    assert.equal(tomorrow.ok, true, tomorrow.code); assert.equal(tomorrow.starts_on, '2026-09-22');
+    session.close();
+    await openEditor(page);
+    assert.equal(slot(page.doc, 'routine-when-today'), null, 'no choice when today is closed');
+    assert.equal(slot(page.doc, 'routine-today-why').textContent, 'Today\u2019s workout has started, so this starts tomorrow.');
+    assert.deepEqual(page.booted.model.basisState(), basisBefore, 'Today keeps the workout it began');
+  } finally { page.close(); }
 });

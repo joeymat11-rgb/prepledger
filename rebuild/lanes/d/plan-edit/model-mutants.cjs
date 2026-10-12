@@ -29,6 +29,16 @@ const cases = [
      "        return !op || op.kind === 'plan-mutation';\n        seen.add(op.op_id);"]] },
   { id:'next-local-date', file:'commands', test:'the built operation must start on the next authored local date', replacements:[
     ["input.starts_on !== nextLocalDate(op.effective.local_date) || ", '']] },
+  // S17 (PM ruling): the authored day itself is a start date too, and the begun-day rule holds on every replay.
+  { id:'same-day-refused', file:'commands', test:'S17 a change may start on its authored day or the next one, and on no other day', replacements:[
+    ["input.starts_on !== op.effective.local_date && ", '']] },
+  // S17 (PM ruling on Fable l1 D1): a same-day change recorded after that day's workout began is deferred, never refused.
+  { id:'same-day-after-session', file:'model', test:'S17 a same-day change recorded after that day\'s session start on a hand-built record replays as a next-day change, and Today keeps every other routine change', replacements:[
+    ["? C.nextLocalDate(recorded) : recorded);", '? recorded : recorded);']] },
+  { id:'same-day-after-session-refused', file:'model', test:'S17 a same-day change recorded after that day\'s workout started replays from the next day; one recorded before it applies today', replacements:[
+    ["? C.nextLocalDate(recorded) : recorded);", "? fail('PLAN_EDIT_SAME_DAY_AFTER_SESSION') : recorded);"]] },
+  { id:'order-ignores-deferral', file:'model', test:'S17 a deferred same-day change keeps date order: a later record that would start before it refuses', replacements:[
+    ["starts.get(active[i - 1].op_id) > starts.get(op.op_id)", 'active[i - 1].members[0].value.starts_on > op.members[0].value.starts_on']] },
   { id:'empty-tags-fall-back', file:'model', test:'explicit empty original tag snapshots require exact provenance and survive rename', replacements:[
     ["  if (!tagsOk) fail('PLAN_EDIT_TAG_BASIS_UNPROVEN');", '  void tagsOk;']] },
   // An unknown collection is an effect nobody mapped; projecting over it anyway
@@ -43,7 +53,7 @@ const cases = [
   { id:'rename-overwrites-history', file:'model', test:'rename and repeated same-date rename use names seams without technique forks', replacements:[
     ["(target.renames || (target.renames = [])).push({ from: starts_on, prevN: target.n });", 'void starts_on;']] },
   { id:'future-applies-today', file:'model', test:'two pending saves compose globally while current state and history remain exact', replacements:[
-    ['if (value.starts_on <= date)', 'if (true)']] },
+    ['if (from <= date)', 'if (true)']] },
   { id:'remove-deletes-history', file:'model', test:'dated remove retains old record and historical projection while excluding future order', replacements:[
     ["const retirements = state.retirements || (state.retirements = {}); put(retirements, target.id, op?.op_id || 'preview');",
       "state.exercises = state.exercises.filter(e => e.id !== target.id); const retirements = state.retirements || (state.retirements = {}); put(retirements, target.id, op?.op_id || 'preview');"]] },
@@ -74,7 +84,9 @@ if (process.env.PLAN_EDIT_MUTANT) {
     if (Module._cache[file]) return Module._cache[file].exports;
     const altered = new Module(file, parent); altered.filename = file;
     altered.paths = Module._nodeModulePaths(path.dirname(file));
-    const allowed = new Set([files.commands, files.canonical]);
+    /* S17: the model has required ./lift-correspondence.cjs (no requires of its own) since P3-REAL-SHAPE, and this
+       closed list never named it, so every MODEL mutant failed to load and none could be counted as killed. */
+    const allowed = new Set([files.commands, files.canonical, path.join(root, 'rebuild/m4/workout/lift-correspondence.cjs')]);
     altered.require = function(name) {
       const dependency = Module._resolveFilename(name, altered);
       if (!allowed.has(dependency)) throw new Error('Mutant dependency outside closed allowlist');

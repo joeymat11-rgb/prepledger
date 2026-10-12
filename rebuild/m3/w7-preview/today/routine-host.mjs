@@ -8,7 +8,9 @@
 //
 // Two jobs, and only two:
 //   session() - the editor's lane: read the routine that starts tomorrow, and
-//               save ONE change through review + save (dated next local day).
+//               save ONE change through review + save (dated next local day, or,
+//               S17, today itself when the athlete chose today and today's
+//               workout has not begun).
 //   adopt(s)  - the adoption chain's hook: hand Today the routine IN FORCE TODAY
 //               (basis plus every saved change whose start date has come), and
 //               the basis unchanged whenever anything at all is in doubt.
@@ -83,7 +85,7 @@ function intentIds(crypto) {
   };
 }
 
-export function createRoutineEntry({ installation, day, live = null, crypto = globalThis.crypto } = {}) {
+export function createRoutineEntry({ installation, day, live = null, crypto = globalThis.crypto, onTodayChanged = null } = {}) {
   if (!installation || !installation.client || typeof installation.generation !== 'function'
     || typeof installation.liveDay !== 'function' || typeof day !== 'string') return null;
   if (!crypto || typeof crypto.getRandomValues !== 'function') return null;
@@ -124,15 +126,22 @@ export function createRoutineEntry({ installation, day, live = null, crypto = gl
         catch (error) { return { ok: false, code: (error && error.code) || 'PLAN_EDIT_DATE_INVALID' }; }
         const read = await host.read(startsOn);
         if (!read.read) return { ok: false, code: read.code || 'PLAN_EDIT_READ_REFUSED' };
+        /* S17: may a change start today? The editor offers the choice only when it may, and says why when not. */
+        const open = await host.todayOpen();
         const taken = new Set(read.state.exercises.map(e => e.id));
         for (const row of basis.origin.payload.setup.exercises || []) taken.add(row.id);
         for (const intent of read.intents || []) if (intent.edit && intent.edit.exercise) taken.add(intent.edit.exercise.id);
         return { ok: true, today, starts_on: startsOn, state: detached(read.state),
-          pending_dates: [...read.pending_dates], taken: [...taken] };
+          pending_dates: [...read.pending_dates], taken: [...taken],
+          today_allowed: open.ok === true && open.open === true, today_code: open.ok ? open.code : (open.code || 'PLAN_EDIT_READ_REFUSED') };
       },
       async save(edit, shownStartsOn) {
         if (!alive) return { ok: false, code: 'LOCAL_CLIENT_CLOSED' };
-        const review = await host.review(edit);
+        /* S17: the date he was shown says which he chose: today's date asks for today, any other for the next day. The
+           companion judges today again on its own read and refuses it by name when today's workout has begun. */
+        let liveToday = null;
+        try { liveToday = installation.liveDay(); } catch (_) { liveToday = null; }
+        const review = await host.review(edit, { startsToday: shownStartsOn !== undefined && shownStartsOn === liveToday });
         if (!review.reviewed) return { ok: false, code: review.code || 'PLAN_EDIT_INPUT_INVALID', message: review.message || null };
         if (shownStartsOn !== undefined && review.starts_on !== shownStartsOn) {
           host.cancel(review.review_id);
@@ -143,7 +152,7 @@ export function createRoutineEntry({ installation, day, live = null, crypto = gl
           host.cancel(review.review_id);
           return { ok: false, code: saved.code || 'PLAN_EDIT_SAVE_REFUSED', message: saved.message || null };
         }
-        return { ok: true, starts_on: saved.starts_on, op_id: saved.op_id };
+        return { ok: true, starts_on: saved.starts_on, op_id: saved.op_id, today: saved.starts_on === liveToday };
       },
       close() { alive = false; host.close(); } });
   }
@@ -172,7 +181,10 @@ export function createRoutineEntry({ installation, day, live = null, crypto = gl
      edge and the boot path carries none of the editor until it is opened. */
   async function mount(doc, root, { onBack } = {}) {
     const Screen = await import('./routine-app.mjs');
-    return Screen.mountRoutine(doc, root, { routine: entry, onBack });
+    /* S17: a change that starts today is adopted now - the page re-opens on today (the rollover's own re-boot), so
+       Today shows the new workout at once instead of on the next boot. */
+    return Screen.mountRoutine(doc, root, { routine: entry, onBack,
+      ...(typeof onTodayChanged === 'function' ? { onTodayChanged } : {}) });
   }
   const entry = Object.freeze({ session, adopt, mount });
   return entry;

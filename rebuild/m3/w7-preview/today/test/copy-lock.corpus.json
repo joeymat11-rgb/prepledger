@@ -1085,6 +1085,13 @@
    "lists": []
   },
   {
+   "text": "A change already starts tomorrow, so this starts tomorrow too.",
+   "files": {
+    "rebuild/m3/w7-preview/today/routine-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "A few details to help put today’s training in context. Answer what you can; leave the rest blank.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -2140,6 +2147,13 @@
   },
   {
    "text": "Changes start on DATE. Today’s workout stays as it is.",
+   "files": {
+    "rebuild/m3/w7-preview/today/routine-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Changes start today, DATE.",
    "files": {
     "rebuild/m3/w7-preview/today/routine-model.mjs": 1
    },
@@ -5937,6 +5951,20 @@
    ]
   },
   {
+   "text": "Start today",
+   "files": {
+    "rebuild/m3/w7-preview/today/routine-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Start tomorrow",
+   "files": {
+    "rebuild/m3/w7-preview/today/routine-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Start using Earned",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
@@ -7042,6 +7070,13 @@
    "lists": [
     "RUNTIME_COPY"
    ]
+  },
+  {
+   "text": "Today’s workout has started, so this starts tomorrow.",
+   "files": {
+    "rebuild/m3/w7-preview/today/routine-model.mjs": 1
+   },
+   "lists": []
   },
   {
    "text": "Today’s workout is recorded on this device.",

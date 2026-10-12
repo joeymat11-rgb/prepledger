@@ -78,6 +78,20 @@ export async function createPlanEditHost({ client, clock, liveDay, basisState, s
     return projector;
   }
   const read = (generation, date) => projectorFor(generation).read(generation, date);
+  /* S17 (PM ruling): MAY A CHANGE START TODAY? Only while today's workout has not begun (no session-start of today on
+     the record, Model.startedOn, the reader the projector replays with; no session of today in the basis's own
+     history) and while no saved change is still waiting for a later day (a same-day change after it would put the
+     record's start dates out of order, which the projector refuses as PLAN_EDIT_DATE_ORDER_UNPROVEN). Null when it
+     may; otherwise the code that says why. */
+  function todayClosed(generation, day) {
+    if (Model.startedOn(generation?.collections?.ops, day)) return 'PLAN_EDIT_TODAY_STARTED';
+    const now = read(generation, day);
+    if (Object.hasOwn(now.state.sessionLog || {}, day)) return 'PLAN_EDIT_TODAY_STARTED';
+    if (now.pending_dates.length) return 'PLAN_EDIT_TODAY_AFTER_PENDING';
+    return null;
+  }
+  // The date an entry starts on, from the live day: its own day when it was reviewed to start today, else the next.
+  const startsFor = (entry, day) => entry.startsToday ? day : Commands.nextLocalDate(day);
   const bindings = await client.hostBindings({ workoutCommands:commands, clock });
   if (typeof bindings?.stage !== 'function' || typeof bindings?.validateCommit !== 'function')
     throw new TypeError('Existing stage and final validator required');
@@ -89,7 +103,7 @@ export async function createPlanEditHost({ client, clock, liveDay, basisState, s
       view.plan_basis === entry.args.input.seen_plan_basis &&
       same(view.causal_parents, entry.args.input.causal_parents) &&
       localDay() === entry.authoredDay &&
-      Commands.nextLocalDate(localDay()) === entry.args.input.starts_on;
+      startsFor(entry, localDay()) === entry.args.input.starts_on;
   }
   function exactBatch(context, entry) {
     const op = context.batch?.operations?.[0], action = entry.prepared;
@@ -119,6 +133,13 @@ export async function createPlanEditHost({ client, clock, liveDay, basisState, s
         try { view = read(generation,localDay()); }
         catch (error) { return { generation,result:refusal(error.code || 'PLAN_EDIT_READ_REFUSED'),view:null }; }
         if (!matches(active,view)) return { generation,result:stale(),view:null };
+        // S17: a same-day change is re-judged against the very generation it would be committed over.
+        if (active.startsToday) {
+          let closed;
+          try { closed = todayClosed(generation,localDay()); }
+          catch (error) { return { generation,result:refusal(error.code || 'PLAN_EDIT_READ_REFUSED'),view:null }; }
+          if (closed) return { generation,result:refusal(closed),view:null };
+        }
         if (candidate.result?.acknowledged === true) {
           try { read(candidate.generation,localDay()); }
           catch (error) { return { generation,result:refusal(error.code || 'PLAN_EDIT_PROJECTION_REFUSED'),view:null }; }
@@ -134,7 +155,7 @@ export async function createPlanEditHost({ client, clock, liveDay, basisState, s
       if (!active || reviews.get(active.args.input.intent_id) !== active || !exactBatch(context,active))
         return refusal('PLAN_EDIT_BATCH_MISMATCH');
       if (localDay() !== active.authoredDay ||
-          Commands.nextLocalDate(localDay()) !== active.args.input.starts_on) return stale();
+          startsFor(active, localDay()) !== active.args.input.starts_on) return stale();
       // The upstream guard may discover a revoked era during its own validation.
       const final = bindings.validateCommit(context);
       if (final) return final;
@@ -160,12 +181,22 @@ export async function createPlanEditHost({ client, clock, liveDay, basisState, s
   }
   const handle = Object.freeze({
     async read(date) { return enqueue(() => readVerified(date)); },
-    async review(edit) { return enqueue(async () => {
+    /* S17: may a change start today? { ok, open, code } over a fresh authenticated read. */
+    async todayOpen() { return enqueue(async () => {
+      const current = await readVerified();
+      if (!current.read) return { ok:false,open:false,code:current.code || 'PLAN_EDIT_READ_REFUSED' };
+      try { const code = todayClosed(lastGeneration,localDay()); return { ok:true,open:code === null,code }; }
+      catch (error) { return { ok:false,open:false,code:error.code || 'PLAN_EDIT_READ_REFUSED' }; }
+    }); },
+    async review(edit, { startsToday = false } = {}) { return enqueue(async () => {
       const current = await readVerified();
       if (!current.read) return { reviewed:false,...current };
       try {
-        // THE date the athlete is shown before Save, on his own calendar.
-        const authoredDay = localDay(), starts_on = Commands.nextLocalDate(authoredDay);
+        // THE date the athlete is shown before Save, on his own calendar: the next day, or (S17) today when he chose
+        // today and today's workout has not begun.
+        const authoredDay = localDay(), today = startsToday === true;
+        if (today) { const closed = todayClosed(lastGeneration,authoredDay); if (closed) return { reviewed:false,...refusal(closed) }; }
+        const starts_on = today ? authoredDay : Commands.nextLocalDate(authoredDay);
         const future = read(lastGeneration,starts_on);
         const intent_id = newIntentId();
         if (reviews.has(intent_id) || future.intents.some(x => x.intent_id === intent_id))
@@ -181,7 +212,7 @@ export async function createPlanEditHost({ client, clock, liveDay, basisState, s
         // Preview is the same pure replay implementation over a synthetic intent,
         // never an operation passed to the real store or represented as committed.
         const after = projectorFor(lastGeneration).preview(lastGeneration,starts_on,args.input);
-        reviews.set(intent_id,{ args,prepared:freeze(copy(prepared)),authoredDay,result:null });
+        reviews.set(intent_id,{ args,prepared:freeze(copy(prepared)),authoredDay,startsToday:today,result:null });
         return freeze({ reviewed:true,review_id:intent_id,intent_id,starts_on,
           current:current.state,before:future.state,after:after.state,
           plan_basis:future.plan_basis,edit:copy(value.edit) });
@@ -213,7 +244,9 @@ export async function createPlanEditHost({ client, clock, liveDay, basisState, s
          there now and the start date a fresh review would offer. */
       if (!matches(entry,current)) return { ...stale(), current:copy(current.state),
         plan_basis:current.plan_basis, pending_dates:copy(current.pending_dates),
-        starts_on:Commands.nextLocalDate(localDay()) };
+        starts_on:startsFor(entry,localDay()) };
+      // S17: a same-day change is judged again on this read: a workout begun since the review closes today.
+      if (entry.startsToday) { const closed = todayClosed(lastGeneration,entry.authoredDay); if (closed) return refusal(closed); }
       /* THE STAMP CLOCK AND THE LIVE DAY MUST AGREE BEFORE ANYTHING IS BUILT.
          In the page they do by construction (clientClockFor takes the host's own
          day). When they do not, the operation this Save would build carries an

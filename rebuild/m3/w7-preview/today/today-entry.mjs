@@ -681,8 +681,12 @@ export async function boot(options = {}) {
   const setupFirst = options.setupFirst !== undefined ? !!options.setupFirst : !!live;
   /* S15. Only over a real installation with a first-run lane; with neither there
      is no routine to change and nothing to adopt, exactly as before. */
+  /* S17 (PM ruling): a routine change saved to start TODAY is adopted now, not on the next boot: the page re-opens on
+     today exactly as the midnight rollover re-opens it (teardown, then boot), and the adoption chain reads the change
+     already in force. `reopenNow` is bound below, once teardown exists. */
+  let reopenNow = null;
   const routine = hosts && setup ? createRoutineEntry({ installation: hosts, day: today,
-    live, ...(web ? { crypto: web } : {}) }) : null;
+    live, ...(web ? { crypto: web } : {}), onTodayChanged: () => (reopenNow ? reopenNow() : null) }) : null;
   const api = mountToday(doc, model, { ...(workout ? { workout } : {}), ...(checkin ? { checkin } : {}),
     ...(setup ? { setup } : {}), ...(hosts ? { installation: hosts } : {}), ...(routine ? { routine } : {}), setupFirst });
 
@@ -756,12 +760,19 @@ export async function boot(options = {}) {
     }
   }
   let rollover = null;
+  let reopened = null;
+  reopenNow = () => {
+    if (rollover) rollover.stop();
+    teardown();
+    reopened = boot({ ...options, document: doc });
+    return reopened;
+  };
   if (live) {
     rollover = watchDayRollover(doc, { day: today, now: live,
       reopen: () => { rollover.stop(); teardown(); return boot({ ...options, document: doc }); } });
   }
   return { api, workout, checkin, setup, model, readings, hosts, restoreRequired, failures,
-    today, live, rollover, teardown };
+    today, live, rollover, teardown, reopened: () => reopened };
 }
 
 /* The watcher, separated from boot() so a cell can drive it on a chosen instant

@@ -49,7 +49,8 @@ const CHANGES = ['n', 'day', 'sets', 'hi', 'inc', 'steps'];
    projector checks it is exactly that kind's lifts. 'split' names the whole
    week, weekday '0' (Sunday) to '6', each Upper, Lower or a rest day, the same
    keys and words setup writes. Both are structural and dated like every other
-   edit here: they start on the next local day and rewrite nothing before it. */
+   edit here: they start on the next local day (or, since S17, on the authored day itself while that day's
+   workout has not started) and rewrite nothing before it. */
 const WEEKDAYS = ['0', '1', '2', '3', '4', '5', '6'];
 const SPLIT_KINDS = ['U', 'L', 'REST'];
 function fieldOf(k, v) {
@@ -134,7 +135,12 @@ function createPlanEditCommands({ validateTags } = {}) {
       const intent = exact(member.value, ['profile','intent_id','starts_on','edit']); if (intent.profile !== PROFILE) return false;
       const input = validateInput({ intent_id: intent.intent_id, starts_on: intent.starts_on, edit: intent.edit,
         seen_plan_basis: op.seen_plan_basis, causal_parents: op.causal_parents }, { validateTags });
-      if (input.starts_on !== nextLocalDate(op.effective.local_date) || input.causal_parents.includes(op.op_id)) return false;
+      /* S17 (PM ruling, the owner's "I wanna hit upper on Mondays now"): a change starts on its authored local
+         date itself or on the next one, and on no other date. Same-day is admitted here as a SHAPE only; whether
+         that day's workout had already started is the saving host's check (plan-edit-host.mjs) and, on every
+         replay, the projector's (plan-edit-model.cjs defers such a change to the next date). Every operation recorded
+         before S17 starts on the next date and validates exactly as it did. */
+      if (input.starts_on !== op.effective.local_date && input.starts_on !== nextLocalDate(op.effective.local_date) || input.causal_parents.includes(op.op_id)) return false;
       if (readOperation !== undefined) {
         if (typeof readOperation !== 'function') return false;
         for (const id of input.causal_parents) { const parent = plain(readOperation(id)); if (parent?.op_id !== id || parent.athlete_id !== op.athlete_id) return false; }

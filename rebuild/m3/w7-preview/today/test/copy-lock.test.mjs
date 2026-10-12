@@ -65,7 +65,7 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // S14 (M2-S14-HOLD, E12): re-measured for exactly one new piece, the R4 panel line (CL-S14-DELTA; the S13 value is S13_CORPUS_SHA256).
 // S15 (Change my routine, PM S15 round 2): re-measured for exactly the S15 pieces and three scanned files (CL-S15-DELTA;
 // the S14 value is S14_CORPUS_SHA256).
-const CORPUS_SHA256 = 'b28f9f05c0f752ffba4f6fe07ad705b82eec8ec686eba51c695042f8a86e5765';
+const CORPUS_SHA256 = '019b94742a9bb31383653f3797e19e2658de6a5b5ba90f712a753aed9a2658c9';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -504,6 +504,13 @@ const S15_NEW = Object.freeze([
   ['Enter the reps as a whole number, like 10.', { [T + '/gym-model.mjs']: 1 }],
   [' clean rep left', { [T + '/gym-model.mjs']: 1 }],
   [' clean rep left.', { [T + '/gym-model.mjs']: 1 }],
+  // S17 (PM ruling, the owner's same-day routine change; short plain strings PM-approved): the editor's today or
+  // tomorrow choice, the today date line and the two one-line reasons a change cannot start today.
+  ['Start today', { [S15_MODEL]: 1 }],
+  ['Start tomorrow', { [S15_MODEL]: 1 }],
+  ['Changes start today, DATE.', { [S15_MODEL]: 1 }],
+  ['Today\u2019s workout has started, so this starts tomorrow.', { [S15_MODEL]: 1 }],
+  ['A change already starts tomorrow, so this starts tomorrow too.', { [S15_MODEL]: 1 }],
 ]);
 const S15_SCANNED = Object.freeze([T + '/routine-app.mjs', T + '/routine-host.mjs', T + '/routine-model.mjs']);
 const S15_COPY_APPROVAL = 'DECISIONS:913';
@@ -518,7 +525,7 @@ test('CL-S15-DELTA: the S15 corpus is the S14 corpus plus exactly the approved S
   const { corpus } = loaded();
   const byText = new Map(corpus.entries.map((e) => [e.text, e]));
   const failed = [];
-  assert.equal(S15_NEW.length, 38, 'CL-S15-DELTA-COUNT');
+  assert.equal(S15_NEW.length, 43, 'CL-S15-DELTA-COUNT');
   for (const [text, files] of S15_NEW) {
     const want = { text, files: sortedFiles(files), lists: [] };
     const got = byText.get(text) || null;

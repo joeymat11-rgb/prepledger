@@ -517,3 +517,108 @@ test('PE16 f2-adapter-identity the injected tag collaborator is the published F2
     assert.equal(/f2-tag-adapter|setup-tags/.test(
       readFileSync(require('node:path').resolve(__dirname,'../../../m4/workout',file),'utf8')),false,file);
 });
+
+/* S17 (PM ruling, the owner's "I wanna hit upper on Mondays now"): a change may start on its authored day itself while
+   that day's workout has not begun. validate() admits the authored day and the next one and nothing else; every
+   change recorded before S17 (next day) validates and replays exactly as it did; the projector holds the begun-day rule
+   on every replay. 2026-09-12 (`today`) is a Saturday, a rest day in this fixture's week; 2026-09-14 is a Monday, Upper. */
+function appendOn(f, edit, id, day, startsOn) {
+  const r = f.model.read(f.generation, day);
+  const value = { intent_id:id, seen_plan_basis:r.plan_basis, starts_on:startsOn, edit, causal_parents:r.causal_parents };
+  const last = Object.values(f.generation.collections.ops).sort((a,b)=>a.device_seq-b.device_seq).at(-1);
+  const op = build(f.commands.prepare({ action:Commands.ACTION, input:value }), last.device_seq+1, last.op_id, day);
+  f.generation.collections.ops[op.op_id] = op; return op;
+}
+function startOn(f, day) {
+  const last = Object.values(f.generation.collections.ops).sort((a,b)=>a.device_seq-b.device_seq).at(-1), seq = last.device_seq+1;
+  const op = { op_id:'op-synthetic-'+seq, athlete_id:'synthetic-athlete', device_id:'synthetic-device', device_seq:seq,
+    device_predecessor_op_id:last.op_id, causal_parents:[], class:'session', kind:'session-start', payload:null,
+    effective:{ local_date:day, local_time:'09:00', utc_offset:'+00:00' }, canonical_content_commitment:'c'.repeat(64) };
+  f.generation.collections.ops[op.op_id] = op; return op;
+}
+const saturdayUpper = { kind:'split', map:{0:'REST',1:'U',2:'L',3:'REST',4:'U',5:'L',6:'U'} };
+test('S17 a change may start on its authored day or the next one, and on no other day',()=>{
+  const f=fixture(), op=appendOn(f, change('press',{sets:3}), 'same-day', today, today);
+  assert.equal(f.commands.validate(op, id=>f.generation.collections.ops[id]), true, 'the authored day itself');
+  for (const other of ['2026-09-11','2026-09-14']) {
+    const bad = copy(op); bad.members[0].value.starts_on = other; assert.equal(f.commands.validate(bad), false, other);
+  }
+  const next = fixture().append(change('press',{sets:3}));
+  assert.equal(next.members[0].value.starts_on, tomorrow); assert.equal(fixture().commands.validate(next), true, 'a pre-S17 next-day change');
+});
+test('S17 a next-day change recorded before S17 replays exactly as it did: not today, from tomorrow',()=>{
+  const f=fixture(), before=f.model.read(f.generation,today).state;
+  f.append(change('press',{sets:3}));
+  assert.deepEqual(f.model.read(f.generation,today).state, before, 'today keeps its basis');
+  assert.equal(f.model.read(f.generation,tomorrow).state.exercises[0].sets, 3);
+  assert.deepEqual(f.model.read(f.generation,tomorrow).pending_dates, []);
+  assert.deepEqual(f.model.read(f.generation,today).pending_dates, [tomorrow]);
+});
+test('S17 a same-day split on a REST day makes today a training day, from today, and the days before keep their week',()=>{
+  const f=fixture();
+  appendOn(f, saturdayUpper, 'saturday-upper', today, today);
+  const now=f.model.read(f.generation,today);
+  assert.equal(now.applied_ids.length, 1); assert.deepEqual(now.pending_dates, []);
+  assert.deepEqual(now.state.split.at(-1), { from:today, map:saturdayUpper.map });
+  assert.deepEqual(now.state.split.slice(0,-1), f.state.split, 'every earlier period is kept');
+  assert.deepEqual(f.model.read(f.generation,'2026-09-11').state.split, f.state.split, 'the day before keeps its week');
+  assert.deepEqual(now.state.sessionLog, f.state.sessionLog, 'history is never rewritten');
+});
+test('S17 a same-day split on a TRAINING day: Monday becomes Lower today, and two saves on one day compose',()=>{
+  const f=fixture(), monday='2026-09-14';
+  appendOn(f, { kind:'split', map:{0:'REST',1:'L',2:'L',3:'REST',4:'U',5:'L',6:'REST'} }, 'monday-lower', monday, monday);
+  appendOn(f, change('legs',{sets:4}), 'monday-legs', monday, monday);
+  const now=f.model.read(f.generation,monday);
+  assert.equal(now.applied_ids.length, 2, 'both same-day saves are in force today');
+  assert.equal(now.state.split.at(-1).map['1'], 'L'); assert.equal(now.state.exercises.find(e=>e.id==='legs').sets, 4);
+  assert.deepEqual(f.model.read(f.generation,'2026-09-13').applied_ids, [], 'the day before is untouched');
+});
+test('S17 a same-day change recorded after that day\'s workout started replays from the next day; one recorded before it applies today',()=>{
+  const ok=fixture();
+  appendOn(ok, saturdayUpper, 'before-start', today, today); startOn(ok, today);
+  assert.equal(ok.model.read(ok.generation,today).applied_ids.length, 1, 'a change before the start stands');
+  const late=fixture(); startOn(late, today);
+  const op=appendOn(late, saturdayUpper, 'after-start', today, today); let now;
+  assert.doesNotThrow(()=>{ now=late.model.read(late.generation,today); }, 'a begun day never refuses the read');
+  assert.deepEqual(now.applied_ids, [], 'the begun day keeps its basis'); assert.deepEqual(now.state.split, late.state.split);
+  assert.deepEqual(now.pending_dates, [tomorrow]);
+  assert.deepEqual(late.model.read(late.generation,tomorrow).applied_ids, [op.op_id], 'applied from the next day, never dropped');
+  const tomorrowOk=fixture(); startOn(tomorrowOk, today);
+  appendOn(tomorrowOk, saturdayUpper, 'next-day', today, tomorrow);
+  assert.equal(tomorrowOk.model.read(tomorrowOk.generation,tomorrow).applied_ids.length, 1, 'a begun day still takes a change for tomorrow');
+});
+test('S17 a same-day change after a change still waiting for a later day refuses on replay (start dates in order)',()=>{
+  const f=fixture();
+  appendOn(f, change('press',{sets:3}), 'tomorrow-first', today, tomorrow);
+  appendOn(f, saturdayUpper, 'then-today', today, today);
+  assert.throws(()=>f.model.read(f.generation,today), {code:'PLAN_EDIT_DATE_ORDER_UNPROVEN'});
+});
+test('S17 a same-day change recorded after that day\'s session start on a hand-built record replays as a next-day change, and Today keeps every other routine change',()=>{
+  const f=fixture();
+  const kept=appendOn(f, change('legs',{sets:4}), 'kept-today', today, today);
+  startOn(f, today);
+  const late=appendOn(f, saturdayUpper, 'late-today', today, today);
+  const after=appendOn(f, change('press',{sets:3}), 'then-tomorrow', today, tomorrow);
+  const now=f.model.read(f.generation,today);
+  assert.deepEqual(now.applied_ids, [kept.op_id], 'today keeps the change saved before its workout began');
+  assert.equal(now.state.exercises.find(e=>e.id==='legs').sets, 4);
+  assert.deepEqual(now.state.split, f.state.split, 'the begun day keeps its week');
+  assert.deepEqual(now.pending_dates, [tomorrow]);
+  const next=f.model.read(f.generation,tomorrow);
+  assert.deepEqual(next.applied_ids, [kept.op_id, late.op_id, after.op_id], 'nothing is dropped and the order holds');
+  assert.deepEqual(next.state.split.at(-1), { from:tomorrow, map:saturdayUpper.map });
+  assert.equal(next.state.exercises.find(e=>e.id==='legs').sets, 4); assert.equal(next.state.exercises.find(e=>e.id==='press').sets, 3);
+  assert.equal(next.intents.find(x=>x.op_id===late.op_id).starts_on, today, 'the record is replayed, not rewritten');
+  const g=fixture();
+  appendOn(g, change('legs',{sets:4}), 'kept-today', today, today); startOn(g, today);
+  appendOn(g, saturdayUpper, 'late-today', today, tomorrow); appendOn(g, change('press',{sets:3}), 'then-tomorrow', today, tomorrow);
+  assert.deepEqual(g.model.read(g.generation,tomorrow).state, next.state, 'exactly as if it had been saved for tomorrow');
+  assert.deepEqual(g.model.read(g.generation,today).state, now.state);
+});
+test('S17 a deferred same-day change keeps date order: a later record that would start before it refuses',()=>{
+  const f=fixture(); startOn(f, today);
+  appendOn(f, saturdayUpper, 'deferred', today, today);
+  assert.deepEqual(f.model.read(f.generation,today).pending_dates, [tomorrow]);
+  appendOn(f, change('press',{sets:3}), 'clock-back', '2026-09-11', today);
+  assert.throws(()=>f.model.read(f.generation,tomorrow), {code:'PLAN_EDIT_DATE_ORDER_UNPROVEN'});
+});
