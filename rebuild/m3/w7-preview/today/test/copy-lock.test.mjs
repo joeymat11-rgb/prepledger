@@ -72,7 +72,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // (the weekly review): re-measured for exactly one more piece, the Coach question "How did my week go?" (was e61da75a...).
 // Coach v1 polish: re-measured for exactly the polish delta, "Ask Coach" in, the Talk row words out and one count
 // (CL-COACH-POLISH-DELTA; the value before is PIECE2_CORPUS_SHA256, 60411337...).
-const CORPUS_SHA256 = '218da3dc82a04fca3d958679b7896093cc77a36497e15bdc4b2b5980223bedde';
+// Coach v1 seat read: re-measured for exactly one more piece, the Coach question "Where's my seat set?" (CL-COACH-SEAT-DELTA;
+// the value before is PRE_SEAT_CORPUS_SHA256, 218da3dc...).
+const CORPUS_SHA256 = '5bdf2c2ef26c090681262788f951eda7a3986798b2f3678315b642a226e848e5';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -582,7 +584,38 @@ const POLISH_REMOVED = Object.freeze([['Talk through today\u2019s plan', { [CV1_
 const POLISH_CHANGED = Object.freeze([['tcard proposal', { [CV1_APP]: 1, [T + '/today-app.cjs']: 1 }, { [CV1_APP]: 1, [T + '/today-app.cjs']: 2 }]]);
 /* The PM's polish brief names the words; short plain copy is PM-approved under DECISIONS:913 (5). */
 const POLISH_COPY_APPROVAL = 'DECISIONS:913';
-function beforePolish(corpus) {
+/* Coach v1 seat read (PM ruling option A): exactly one more piece, the seventh Coach question, owned by coach-app.mjs's
+   live copy and design.cjs's COACH_LIVE_APPROVED. beforeSeat gives every older view the corpus as the polish sealed it
+   (PRE_SEAT_CORPUS_SHA256), and beforePolish starts from that view. Short plain copy, PM-approved under :913 (5). */
+const PRE_SEAT_CORPUS_SHA256 = '218da3dc82a04fca3d958679b7896093cc77a36497e15bdc4b2b5980223bedde';
+const SEAT_NEW = Object.freeze([["Where's my seat set?", CV1_LIVE, []]]);
+const SEAT_COPY_APPROVAL = 'DECISIONS:913';
+function beforeSeat(corpus) {
+  const added = new Set(SEAT_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)) };
+}
+test('CL-COACH-SEAT-DELTA: the corpus is the polish corpus plus exactly the seat question, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of SEAT_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-COACH-SEAT-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforeSeat(corpus)), 'utf8'));
+  if (before !== PRE_SEAT_CORPUS_SHA256) failed.push('CL-COACH-SEAT-DELTA PRE-SEAT-VIEW ' + before);
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-COACH-SEAT-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeSeat(moved)), 'utf8')) === PRE_SEAT_CORPUS_SHA256) failed.push('CL-COACH-SEAT-DELTA PRE-SEAT-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-COACH-SEAT-DELTA');
+});
+test('CL-COACH-SEAT-APPROVAL: the seat copy delta names the ledger line that approves it', () => {
+  assert.match(SEAT_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-COACH-SEAT-APPROVAL-PENDING: the seat copy is not approved');
+});
+function beforePolish(sealed) {
+  const corpus = beforeSeat(sealed);
   const added = new Set(POLISH_NEW.map(([text]) => text));
   const back = POLISH_REMOVED.map(([text, files, lists]) => ({ text, files: sortedFiles(files), lists }));
   return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {

@@ -22,6 +22,9 @@ import { createGymHost, openTodayHosts, RESTORE_REQUIRED, localDayOf } from "./g
 import { createReadingHost } from "./reading-host.mjs";
 import { createGymModel } from "./gym-model.mjs";
 import { mountGym, newGymDraft } from "./gym-app.mjs";
+/* COACH V1 SEAT READ (S19 brief, PM ruling option A): the ONE read the writer fence admits out of the sealed gym lane.
+   It reads the machine settings already saved, through the lane's own single store handle; it writes nothing. */
+import { readSavedSettings } from "./gym-settings-lane.mjs";
 import { createCheckInHost, PROFILE as CHECKIN_PROFILE } from "./checkin-host.mjs";
 import CheckInCommands from "./checkin-commands.cjs";
 import { createCheckInModel } from "./checkin-model.mjs";
@@ -577,6 +580,9 @@ export async function createWorkoutEntry(model, options = {}) {
         onCheckIn: checkIn, draft: gymDraft });
     },
     gymDraft: () => gymDraft,
+    /* COACH V1 SEAT READ: the settings saved for today's lifts, by id, for the Coach's "Where's my seat set?" (a read;
+       `view` is the page's window, whose store the gym lane itself opens). */
+    seatSettings: (view, liftIds) => readSavedSettings(view, gym.day, liftIds),
     gym, gymHost,
     ...(nativeLoad ? { nativeLoad } : {}),
   };

@@ -25,7 +25,7 @@ import { faultDatabase } from '../../../w6/test/support.mjs';
 import { createGymHost } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES } from '../gym-model.mjs';
 import GymApp, { mountGym } from '../gym-app.mjs';
-import { createGymSettingsLane } from '../gym-settings-lane.mjs';
+import { createGymSettingsLane, readSavedSettings } from '../gym-settings-lane.mjs';
 import { createMachineSettingsHost, PROFILE, ACTION } from '../machine-settings-host.mjs';
 import MachineSettingsView from '../machine-settings-view.mjs';
 import MachineSettings from '../../../../coach/machine-settings-commands.cjs';
@@ -1756,4 +1756,67 @@ test('GSS-PENDING-GYM / GSS-INDEPENDENT-LANES / GSS-FORGET-NO-PUT', async () => 
     'forget never creates a durable settings operation');
   paintHeld.resolve(); await forgetSettled.promise;
   unit.dom.window.close();
+});
+
+/* ==========================================================================
+   COACH V1 SEAT READ (S19 brief "Coach v1, the seat read"; PM ruling option A).
+   The one read out of the sealed lane reads the settings already saved, through the
+   SAME store handle the lane opens: whichever asks first opens it, the other reuses
+   it, and the store is never opened a second time. Counted at the IndexedDB factory
+   itself: every open() the era makes goes through it.
+   ========================================================================== */
+const countingView = (fault) => {
+  const counter = { opens: 0 };
+  const idb = new Proxy(fault.indexedDB, { get(target, key) {
+    const value = Reflect.get(target, key);
+    if (key === 'open') return (...args) => { counter.opens += 1; return value.apply(target, args); };
+    return typeof value === 'function' ? value.bind(target) : value;
+  } });
+  return { view: { indexedDB: idb, crypto: webcrypto }, counter };
+};
+const laneOver = (view) => createGymSettingsLane({ defaultView: view }, null, { day: DAY }, null, { repaint() {} });
+
+test('MS-SEAT-1: the seat read reads what the lane saved through the lane\'s own handle, and never opens the store again', async () => {
+  const { view, counter } = countingView(faultDatabase());
+  const lane = laneOver(view);
+  await lane.hooks.open();
+  const host = lane.api.lane();
+  assert(host, 'the lane opened its store');
+  const opened = counter.opens;
+  assert(opened > 0, 'the open went through the counted factory');
+  const saved = await host.save({ exercise_id: 'leg-press', settings: [{ name: 'seat', value: '4' }, { name: 'back pad', value: '2' }], cues: 'Chest up' });
+  assert.equal(saved.ok, true, 'the lane saved a setting');
+  const read = await readSavedSettings(view, DAY, ['leg-press', 'row']);
+  assert.equal(counter.opens, opened, 'the read opened nothing: it used the lane\'s handle');
+  assert.equal(read.ok, true);
+  assert.deepEqual(Object.keys(read), ['ok', 'rows'], 'the read hands out rows, never the handle');
+  assert.equal(Object.isFrozen(read) && Object.isFrozen(read.rows[0]), true, 'frozen rows');
+  assert.deepEqual(read.rows.map((row) => row.lift), ['leg-press', 'row']);
+  assert.deepEqual(read.rows[0].latest.machine.settings, [{ name: 'seat', value: '4' }, { name: 'back pad', value: '2' }]);
+  assert.equal(read.rows[0].latest.machine.cues, 'Chest up');
+  assert.equal(read.rows[1].latest, null, 'nothing saved for row');
+  const again = await readSavedSettings(view, DAY, ['leg-press']);
+  assert.equal(counter.opens, opened, 'a second read opens nothing either');
+  assert.deepEqual(again.rows[0].latest, read.rows[0].latest);
+});
+
+test('MS-SEAT-2: with the card never mounted, the read opens the store lazily, and the lane then reuses that one handle', async () => {
+  const { view, counter } = countingView(faultDatabase());
+  assert.equal(counter.opens, 0, 'nothing is opened until something asks');
+  const read = await readSavedSettings(view, DAY, ['leg-press']);
+  assert.equal(read.ok, true);
+  assert.equal(read.rows[0].latest, null, 'a fresh device holds no settings');
+  const opened = counter.opens;
+  assert(opened > 0, 'the read opened the store, lazily');
+  const lane = laneOver(view);
+  await lane.hooks.open();
+  assert(lane.api.lane(), 'the lane has its store');
+  assert.equal(counter.opens, opened, 'the lane reused the read\'s handle: the store was opened once');
+  const other = laneOver(view);
+  await other.hooks.open();
+  assert.equal(counter.opens, opened, 'a second card mounted on the page reuses it too');
+  assert.equal(other.api.lane(), lane.api.lane(), 'one handle for the page and the day');
+  /* a device with no store to open: nothing is read, nothing is opened */
+  const none = await readSavedSettings({}, DAY, ['leg-press']);
+  assert.deepEqual({ ok: none.ok, rows: none.rows }, { ok: false, rows: [] });
 });

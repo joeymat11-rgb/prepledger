@@ -258,11 +258,83 @@ only at milestones.
   live Coach screen probe 42 of 42 over the real booted page (its last-time answer now one line per lift), and the
   foot probe 40 of 40.
 
+## Coach v1, the seat read (PM ruling 2026-10-12, option A; on 11262f8, rebuild/c-seat)
+DECLARING SPEC for the one change to a sealed module this amend makes. The sealed gym lane,
+rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and nothing else:
+- One store handle. The machine-settings store is opened in exactly one place in the lane, openSharedHost (one
+  dynamic import of ./machine-settings-host.mjs, one createMachineSettingsHost call), keyed by the device's IndexedDB
+  factory and the day. The lane's own open (openSettingsLane) goes through it, and so does the read below, so the
+  store is never opened a second time on a page: a second card mounted on the page, or the Coach, reuses the handle
+  the first opened. If the card has not mounted, the read opens it lazily, by the same function, and the card then
+  reuses it. An open that fails is forgotten, so a later ask may try again. Nothing in the open writes beyond what the
+  lane's own open already did.
+- One read. export async function readSavedSettings(view, day, liftIds): for each lift id, the host's own read,
+  latest(), and nothing else; it returns frozen detached rows { ok, rows: [{ lift, latest }] } and never the handle.
+  It is the lane's fourth export (machineFromDraft, acceptable and createGymSettingsLane are unchanged, and so is the
+  default export).
+- One edge. Exactly one module outside the card's own pair (gym-app.mjs, machine-settings-view.mjs) imports the lane:
+  today-entry.mjs, which imports readSavedSettings and nothing else, and hands the workout lane one accessor,
+  seatSettings(view, liftIds). today-app.cjs gives the coach that accessor over the page's own window (doc.defaultView,
+  the store the lane itself opens); page-coach.cjs READS gains seats: ["read"]; read-tools.cjs gains one READ tool,
+  seat_settings (tools.cjs unchanged). No writer gains reach: the lane's writers, its frozen interfaces, its api.lane
+  mapping, its listeners and every released file's writers, edges and bindings are unchanged.
+- The writer fence admits exactly that and nothing wider (rebuild/lanes/c/today-split/writer-fence.test.mjs):
+  FENCE-SEAT-READ holds the lane's shape (its four named exports and its unchanged default export, one
+  createMachineSettingsHost call, one dynamic host import, three openSharedHost spellings: its definition, the lane's
+  open and the read; inside the read the handle is declared, assigned and used by .latest( only, never returned, and
+  the read names neither the lane's own handle nor the shared table, nor any save or close); FENCE-SEAT-EDGE holds the
+  importers of the lane across the WHOLE repository (Fable c88a3fe9 D2: every .mjs, .cjs and .js file, its import,
+  export-from, require and dynamic import specifiers resolved; test files, node_modules, .git, the build output, src/,
+  ledger folders, rebuild/conform/private, soak paths, the five protected engine files and links are not read) to exactly
+  gym-app.mjs { createGymSettingsLane }, machine-settings-view.mjs { machineFromDraft, acceptable } and today-entry.mjs
+  { readSavedSettings }. Eleven RED rows plant each widening and fail: a write through the read's handle, the handle handed out, a second export, a second
+  open of the store, the lane opening outside the shared handle, the read reaching the lane's own handle, a second
+  importer of the read (today-app.cjs), the reader importing the writer lane too, a namespace import of the seal, an
+  importer in rebuild/coach (page-coach.cjs) and a named import in rebuild/lanes (b-package.cjs). The lane's header
+  comment states the shared handle's lifetime (Fable c88a3fe9 D1): one per device store and day, never closed by the
+  lane or the read, alive as long as the page.
+  Every earlier fence row is unchanged (FENCE-VIEW-IMPORT still reads one dynamic host edge and one static import;
+  GSS-NO-HOST-LEAK, GSS-API-PARITY and FENCE-COPY-IN-SEAL hold as they were).
+- The question. "Where's my seat set?" is the seventh Coach question (coach-app.mjs COACH_LIVE_COPY, design.cjs
+  COACH_LIVE_APPROVED): one line per lift of today's workout, in its order, the settings as the athlete saved them,
+  then his cue: "Leg press: seat 4; back pad 2." The settings are joined by semicolons, not commas, because the number
+  check reads a figure by the word after it, and "seat 4, back pad 2" would read 4 as a count of "back" and discard the
+  line; the check is not loosened. Nothing saved: "No machine settings saved for Leg press yet."; no workout today: "No
+  workout is planned today, so there are no machine settings to look up."; no store to read: "Your machine settings
+  could not be read on this device."
+- Fable 4713c98f D2: the batch-2 CSS block lists its four quiet links as plain selectors, one per link, with no :is()
+  list (look-cui2's quiet-links cell now holds that).
+- New strings (PM-approved short plain copy, :913 (5)): "Where's my seat set?" (copy lock CL-COACH-SEAT-DELTA, corpus
+  218da3dc -> 5bdf2c2e); in coach-intents.cjs PLAIN.noWorkoutSeat, PLAIN.noSeat "No machine settings saved for ",
+  PLAIN.noSeatTail " yet.", and PLAIN_REFUSALS.machine_seat (was "No machine settings are kept for this lift yet.").
+- Pins and needles, measured: copy lock 218da3dc -> 5bdf2c2e (CL-COACH-SEAT-DELTA, CL-COACH-SEAT-APPROVAL; beforeSeat
+  rebuilds the polish corpus byte for byte and beforePolish starts from it); PAGE_PINS today-entry.mjs 2387a971 -> 57782256
+  (local-today-journey.test.mjs); needles s10-copy-lock 23 -> 25, s12-look 73 -> 74 (coach.test.mjs
+  CV1-9), today-split-fence 404 -> 417 (the two seat rows and eleven RED rows) and today-17 850 -> 852
+  (machine-settings-ui.test.mjs MS-SEAT-1, MS-SEAT-2), the last OBSERVED at the PM seat.
+- Red first: on 11262f8's sources (coach-intents.cjs, read-tools.cjs, page-coach.cjs, gym-settings-lane.mjs,
+  today-entry.mjs, today-app.cjs, coach-app.mjs, design.cjs, preview.css) 15 rows fail and pass on these:
+  coach-intents.test.cjs CI-11, page-coach.test.cjs PC-5, coach.test.mjs CV1-1 and CV1-9, look-cui2's quiet-links
+  cell, the writer fence's FENCE-SEAT-READ, FENCE-SEAT-EDGE and the RED rows whose plant needs the read's own lines,
+  and machine-settings-ui.test.mjs (MS-SEAT-1: the read reads what the lane saved through the lane's handle and opens
+  nothing; MS-SEAT-2: with no card mounted the read opens the store lazily, and the lane and a second card reuse that
+  one handle, counted at the IndexedDB factory).
+- At the builder seat: the today batch 636/657 (631/652 plus CV1-9, MS-SEAT-1, MS-SEAT-2 and the two seat copy-lock
+  rows; the same 21 seat-only build failures), the fences batch 2206/2208 (the writer fence then 415/415, and 417/417 with
+  Fable c88a3fe9 D2's two RED rows; the same two
+  seat-only failures, P-MEASURE (g) among them, failing at this seat before and after), the coach suite 397/397 without
+  the seat-only engine-revision-gap file, the 76 layout invariants, the deployed-shell probe (24 of 24), the foot probe
+  (40 of 40) and the live Coach screen probe over the real booted page (42 of 42: seven questions, the seventh
+  reachable by scrolling, its answer read through the real lane's read, opened lazily).
+
 ## Not changed
-No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above, no
+No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
+gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 (the polish's CL-COACH-POLISH-DELTA
-and CL-COACH-POLISH-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell); the
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 (the polish's CL-COACH-POLISH-DELTA
+and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74
+(piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9), and with the
+seat read today-split-fence 404 -> 417 and today-17 850 -> 852; the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

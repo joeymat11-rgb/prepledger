@@ -32,12 +32,15 @@ const { ask } = require("./coach-intents.cjs");
    window) and the workout lane's weekLifts() (each lift's check, kept as data, today-entry.mjs), as `week.lifts`.
    The polish batch (plain answers) adds one READ: the Today model's sessionPlan() (today's session as the engine
    composes it, read-tools.cjs today_session). Batch 2 adds one more: the gym card's lastTimes() (every lift's "Last
-   time" sets, read-tools.cjs last_times). */
+   time" sets, read-tools.cjs last_times). The seat read adds one more, and only a read: the settings already saved for
+   today's lifts, `seats.read(liftIds)` (today-entry.mjs seatSettings over the sealed gym lane's readSavedSettings, the
+   lane's own single store handle; read-tools.cjs seat_settings). */
 const READS = Object.freeze({
   today: Object.freeze(["read", "stateFromOps", "plannedDays", "sessionPlan"]),
   gym: Object.freeze(["read", "weekSessions", "lastTimes"]),
   checkin: Object.freeze(["refresh", "read"]),
   week: Object.freeze(["lifts"]),
+  seats: Object.freeze(["read"]),
 });
 function readOnly(source, methods, extra = {}) {
   if (!source || typeof source !== "object" && typeof source !== "function") return null;
@@ -55,6 +58,7 @@ function readOnlyWorld(world) {
     gym: readOnly(shape.gym, READS.gym),
     checkin: readOnly(shape.checkin, READS.checkin),
     week: readOnly(shape.week, READS.week),
+    seats: readOnly(shape.seats, READS.seats),
   });
 }
 

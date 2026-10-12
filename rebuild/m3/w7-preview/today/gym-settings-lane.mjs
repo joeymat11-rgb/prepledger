@@ -4,6 +4,13 @@
  * can enter the four durable subjects or the transient advance. Refusal depth exists only
  * for a synchronous callback frame; pending reservations remain held until their named
  * asynchronous settlement completes.
+ *
+ * THE STORE HANDLE'S LIFETIME (Coach v1 seat read; Fable c88a3fe9 D1). The machine-settings store is opened once per
+ * device store (IndexedDB factory) and per day, by openSharedHost below, and that one handle is shared by every lane
+ * mounted on the page and by readSavedSettings. It lives as long as the page: neither the lane nor the read closes it
+ * (the lane never closed its own handle before either). A different day gets its own handle (a card rebased to another
+ * day, or the page past local midnight before its reboot), and the earlier day's handle stays open, unused, until the
+ * page goes. An open that fails is forgotten, so the next ask opens again.
  */
 import MachineSettings from '../../../coach/machine-settings-commands.cjs';
 
@@ -42,6 +49,46 @@ export function acceptable(machine) {
   if (!machine) return false;
   try { machineOf(JSON.parse(JSON.stringify(machine))); return true; }
   catch (_) { return false; }
+}
+
+/* COACH V1 SEAT READ (S19 brief, "Coach v1, the seat read", PM ruling option A). ONE machine-settings store handle per
+   device store and day: every lane mounted on this page opens the store through openSharedHost, and so does the one
+   read below, so the store is never opened a second time. The handle is opened lazily, by whichever asks first; an
+   open that fails is forgotten, so a later ask may try again. Nothing here writes. */
+const sharedHosts = new WeakMap();
+function openSharedHost(view, day) {
+  const idb = (view && view.indexedDB) || (typeof globalThis !== 'undefined' ? globalThis.indexedDB : undefined);
+  const web = (view && view.crypto) || (typeof globalThis !== 'undefined' ? globalThis.crypto : undefined);
+  if (!idb || !web || !web.subtle || typeof day !== 'string' || !day) return null;
+  let byDay = sharedHosts.get(idb);
+  if (!byDay) { byDay = new Map(); sharedHosts.set(idb, byDay); }
+  if (!byDay.has(day)) {
+    const opening = Promise.resolve()
+      .then(() => import('./machine-settings-host.mjs'))
+      .then((module) => module.createMachineSettingsHost({ day, indexedDB: idb, crypto: web }))
+      .catch((error) => { if (byDay.get(day) === opening) byDay.delete(day); throw error; });
+    byDay.set(day, opening);
+  }
+  return byDay.get(day);
+}
+
+/* THE SEAT READ, the one read the writer fence admits out of this seal (today-entry.mjs is its only importer). The
+   settings saved for each lift id, read through the shared handle by the host's own read, latest(), and nothing else:
+   the handle never leaves this module and nothing is written. Frozen detached rows, or { ok: false } when this device
+   has no store to read. */
+export async function readSavedSettings(view, day, liftIds) {
+  const opening = openSharedHost(view, day);
+  if (!opening) return freezeDeep({ ok: false, rows: [] });
+  let reader;
+  try { reader = await opening; } catch (_) { return freezeDeep({ ok: false, rows: [] }); }
+  const rows = [];
+  for (const lift of Array.isArray(liftIds) ? liftIds : []) {
+    if (typeof lift !== 'string' || !lift) continue;
+    let latest;
+    try { latest = await reader.latest(lift); } catch (_) { return freezeDeep({ ok: false, rows: [] }); }
+    rows.push({ lift, latest: latest ? clone(latest) : null });
+  }
+  return freezeDeep({ ok: true, rows });
 }
 
 export function createGymSettingsLane(doc, phone, model, settings, painter) {
@@ -147,13 +194,10 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
   function openSettingsLane() {
     if (settingsLane) return null;
     if (settingsOpening) return settingsOpening;
-    const view = doc.defaultView || null;
-    const idb = (view && view.indexedDB) || (typeof globalThis !== 'undefined' ? globalThis.indexedDB : undefined);
-    const web = (view && view.crypto) || (typeof globalThis !== 'undefined' ? globalThis.crypto : undefined);
-    if (!idb || !web || !web.subtle || typeof model.day !== 'string') return null;
-    settingsOpening = Promise.resolve()
-      .then(() => import('./machine-settings-host.mjs'))
-      .then((module) => module.createMachineSettingsHost({ day: model.day, indexedDB: idb, crypto: web }))
+    /* COACH V1 SEAT READ: the lane's own handle is the shared one (openSharedHost above), never a second open. */
+    const opening = openSharedHost(doc.defaultView || null, model.day);
+    if (!opening) return null;
+    settingsOpening = opening
       .then(async (host) => { settingsLane = host; if (mountLive) await repaint(); return true; })
       .catch(() => { settingsLane = null; return false; });
     return settingsOpening;

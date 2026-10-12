@@ -7763,6 +7763,14 @@
    "lists": []
   },
   {
+   "text": "Where's my seat set?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Where, and during which movement?",
    "files": {
     "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,

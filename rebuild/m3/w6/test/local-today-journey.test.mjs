@@ -796,8 +796,15 @@ export const PAGE_PINS = Object.freeze({
      offer.current, as today-bindings.mjs check() already returns them), so the review can say the offer plainly. No
      call, handle, store or write is added; boot() is byte-unchanged and gym-host.mjs, reading-host.mjs and
      checkin-host.mjs did not move. Re-read against today-bindings.mjs at this re-pin: check() is unchanged and writes
-     nothing. MEASURED: fbdcd96abd55b7111c6419afd89045d9b3fce56208f69827f391012e1ee8e423 -> the value below. */
-  'today-entry.mjs': '2387a9714a200a5b68dadde275fa46a9697272def54acf50c5de525681a95bab',
+     nothing. MEASURED: fbdcd96abd55b7111c6419afd89045d9b3fce56208f69827f391012e1ee8e423 -> 2387a971...
+     COACH V1 SEAT READ re-pin (PM ruling option A, the S19 brief's declaring spec). today-entry.mjs moves by TWO hunks
+     and nothing else: one named import, readSavedSettings from the sealed gym-settings-lane.mjs (the one read edge the
+     writer fence admits, FENCE-SEAT-EDGE), and one accessor on the workout entry, seatSettings(view, liftIds), which
+     calls it with the gym card's day. The read reaches the machine-settings store only through the lane's own single
+     handle and only by latest(); no store is opened by this file, no writer is reached, boot() is byte-unchanged, and
+     gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move. Re-read against today-bindings.mjs at this re-pin:
+     unchanged. MEASURED: 2387a9714a200a5b68dadde275fa46a9697272def54acf50c5de525681a95bab -> the value below. */
+  'today-entry.mjs': '57782256436cf65bc9f990b35d77f5f1d73e07e33c888e7afd835a6b823afad9',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

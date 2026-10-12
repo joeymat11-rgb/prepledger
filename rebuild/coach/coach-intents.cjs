@@ -278,8 +278,8 @@ const WAVE1_TEMPLATES = Object.freeze({
    own words for it live in coach-app.mjs. Every answer is one of the templates above, filled only from the tool
    results of the turn that asked. `today_plan` and `why_weight` read today's session as the engine composes it
    (today_session); `last_time` reads that session and the gym card's last sets of each of its lifts (last_times,
-   batch 2); `machine_seat` reads the
-   settings the athlete kept for that lift. With no session composed, each says so in its own plain sentence (the
+   batch 2); `machine_seat` reads that session and the settings already saved for each of its lifts (seat_settings,
+   the seat read). With no session composed, each says so in its own plain sentence (the
    polish batch's PLAIN_REFUSALS below). */
 /* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling option A). The words of the "This week" review, on the Today
    card and in the Coach answer. A lift the engine offers a new weight for says so, with the offer said in plain words
@@ -420,6 +420,10 @@ const PLAIN = Object.freeze({
   noEarlier: "No earlier session of ",
   noEarlierTail: " yet.",
   noWorkoutLast: "No workout is planned today, so there is no lift to look back on.",
+  /* "Where's my seat set?" (the seat read) */
+  noWorkoutSeat: "No workout is planned today, so there are no machine settings to look up.",
+  noSeat: "No machine settings saved for ",
+  noSeatTail: " yet.",
   lastTime: ": last time ",
   lbFor: " lb for ",
   /* The check-in. */
@@ -444,7 +448,7 @@ const PLAIN_REFUSALS = Object.freeze({
   why_weight: "Today's workout could not be prepared on this device.",
   last_time: "There is no workout open right now, so there is no lift to look back on.",
   my_checkin: "Your check-in could not be read on this device.",
-  machine_seat: "No machine settings are kept for this lift yet.",
+  machine_seat: "Your machine settings could not be read on this device.",
   week_review: "No workout record is open on this device, so there is no week to review.",
   weight_trend: "Your weight could not be read on this device.",
 });
@@ -563,7 +567,24 @@ const PAGE_TEMPLATES = Object.freeze({
     if (has(v.note)) lines.push(sentence(d(v.note, "text")));
     return lines;
   },
-  machine_seat: (got) => (got.machine_settings && got.machine_settings.ok ? [WAVE1_TEMPLATES.machine_settings(got.machine_settings.values)] : null),
+  /* "Where's my seat set?" (Coach v1 seat read): every lift of today's workout, one line each, in the workout's order:
+     the settings the athlete saved for it, as he wrote them, each ended by a semicolon so the number check reads a
+     figure in it exactly as the tool carried it ("Leg press: seat 4; back pad 2."), then his cue; or that none is saved. */
+  machine_seat: (got) => {
+    const s = got.today_session, m = got.seat_settings;
+    if (!s || !s.ok) return null;
+    if (!planned(s.values)) return [PLAIN.noWorkoutSeat];
+    if (!m || !m.ok) return null;
+    const byId = new Map((m.values.lifts || []).map((row) => [row.id && row.id.value, row]));
+    return s.values.lifts.map((ex) => {
+      const name = d(ex.name, "text");
+      const row = ex.id ? byId.get(ex.id.value) : null;
+      const pairs = row ? (row.settings || []).filter(has).map((pair) => d(pair, "text")) : [];
+      const cue = row && has(row.cues) ? sentence(d(row.cues, "text")) : "";
+      if (!pairs.length && !cue) return PLAIN.noSeat + name + PLAIN.noSeatTail;
+      return name + ": " + [pairs.length ? pairs.join("; ") + "." : "", cue].filter(Boolean).join(" ");
+    });
+  },
   /* The weekly review (Coach v1 piece 2): every line and every why, so the turn's check covers all of it. */
   week_review: (got) => (got.week_review && got.week_review.ok
     ? weekLines(got.week_review.values).flatMap((line) => [line.text, line.why || ""]).filter(Boolean) : null),
@@ -576,7 +597,7 @@ const PAGE_INTENTS = Object.freeze({
   last_time: Object.freeze({ tools: Object.freeze(["today_session", "last_times"]), template: "last_time" }),
   weight_trend: Object.freeze({ tools: Object.freeze(["weight_trend"]), template: "weight_trend" }),
   my_checkin: Object.freeze({ tools: Object.freeze(["today_checkin"]), template: "checkin" }),
-  machine_seat: Object.freeze({ tools: Object.freeze(["machine_settings"]), template: "machine_seat" }),
+  machine_seat: Object.freeze({ tools: Object.freeze(["today_session", "seat_settings"]), template: "machine_seat" }),
   week_review: Object.freeze({ tools: Object.freeze(["week_review"]), template: "week_review" }),
 });
 const PAGE_INTENT_IDS = Object.freeze(Object.keys(PAGE_INTENTS));

@@ -693,11 +693,18 @@
       (app.css:677, .links .link::before, the same shape, a little denser: 92 / 72 / 28 of --surface where the pack has 86 / 62 / 20), its words and its quiet marker in
       --text-soft. And none of them is drawn faded above Start: on Today the body's bottom fade runs only in the band
       under the stack's edge (the body's own --fade-bot-inset), where Start covers what passes beneath it, so a link the
-      scroll leaves above Start is drawn whole (builder-seat foot probe at 390x844 and 430x932, top and end of scroll). */
-.scene-frame > .view.ui > .body > :is(button.day-foot, [data-slot="measure-tile"], [data-slot="import-entry"], [data-slot="routine-entry"]) {
+      scroll leaves above Start is drawn whole (builder-seat foot probe at 390x844 and 430x932, top and end of scroll).
+      Plain selector lists, one selector per link (Fable 4713c98f D2: no :is() list). */
+.scene-frame > .view.ui > .body > button.day-foot,
+.scene-frame > .view.ui > .body > [data-slot="measure-tile"],
+.scene-frame > .view.ui > .body > [data-slot="import-entry"],
+.scene-frame > .view.ui > .body > [data-slot="routine-entry"] {
   position: relative; isolation: isolate; color: var(--text-soft); }
 .scene-frame > .view.ui > .body > button.day-foot .muted { color: var(--text-soft); }
-:root[data-fade="full"] .scene-frame > .view.ui > .body > :is(button.day-foot, [data-slot="measure-tile"], [data-slot="import-entry"], [data-slot="routine-entry"])::before {
+:root[data-fade="full"] .scene-frame > .view.ui > .body > button.day-foot::before,
+:root[data-fade="full"] .scene-frame > .view.ui > .body > [data-slot="measure-tile"]::before,
+:root[data-fade="full"] .scene-frame > .view.ui > .body > [data-slot="import-entry"]::before,
+:root[data-fade="full"] .scene-frame > .view.ui > .body > [data-slot="routine-entry"]::before {
   content: ""; position: absolute; left: -26px; right: -26px; top: -10px; bottom: -10px; z-index: -1; pointer-events: none;
   background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 92%, transparent) 0,
     color-mix(in srgb, var(--surface) 72%, transparent) 45%, color-mix(in srgb, var(--surface) 28%, transparent) 78%, transparent 100%); }

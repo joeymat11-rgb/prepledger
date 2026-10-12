@@ -26,6 +26,9 @@ function createReadTools(world) {
   const checkin = world.checkin || null;
   /* Coach v1 piece 2: the workout lane's per-lift read (today-entry.mjs weekLifts), when that lane is open. */
   const week = world.week || null;
+  /* Coach v1 seat read: the page's one read of the machine settings already saved (today-entry.mjs seatSettings). */
+  const seats = world.seats || null;
+  const SEAT_LANE_ABSENT = "COACH_MACHINE_SETTINGS_LANE_ABSENT";
   const E = today.engine;
   const st = () => today.stateFromOps();
   const day = today.today;
@@ -119,6 +122,36 @@ function createReadTools(world) {
           reps: num(turn_id, "gym-model.lastTimes[" + i + "].sets[" + k + "].reps (card.prev)", set.reps, "rep"),
         })),
       })),
+    }));
+  }
+
+  /* COACH V1 SEAT READ (PM ruling option A). The machine settings already saved for each lift of today's workout, read
+     through the page's one read of the sealed gym lane (world.seats.read: today-entry.mjs seatSettings over
+     gym-settings-lane.mjs readSavedSettings, the lane's own single store handle). Each setting is carried as the athlete
+     wrote it, its name and value together as one text ("seat 4"), so the number check reads a figure in it exactly as it
+     is said; the cue as its own text. A lift with nothing saved has no settings. It writes nothing. */
+  async function seat_settings(_args, turn_id) {
+    if (!seats || typeof seats.read !== "function") {
+      return unavailable("seat_settings", TIER.READ, turn_id, SEAT_LANE_ABSENT, null, "today-entry.mjs seatSettings");
+    }
+    const plan = typeof today.sessionPlan === "function" ? today.sessionPlan() : null;
+    const ids = plan && plan.available === true ? plan.exercises.map((ex) => ex.id).filter((id) => typeof id === "string" && id) : [];
+    const got = await seats.read(ids);
+    if (!got || got.ok !== true || !Array.isArray(got.rows)) {
+      return unavailable("seat_settings", TIER.READ, turn_id, SEAT_LANE_ABSENT, null, "gym-settings-lane.mjs readSavedSettings");
+    }
+    return assertNoLeak(ok("seat_settings", TIER.READ, turn_id, {
+      lifts: got.rows.map((row, i) => {
+        const machine = row.latest && row.latest.machine ? row.latest.machine : null;
+        const from = "machine-settings" + (row.latest && row.latest.op_id ? ".op " + row.latest.op_id : "") + " [" + i + "]";
+        return Object.freeze({
+          id: tagged(turn_id, from + " lift", row.lift, "id", ""),
+          settings: (machine && Array.isArray(machine.settings) ? machine.settings : []).map((pair, k) =>
+            text(turn_id, from + " settings[" + k + "]", [pair && pair.name, pair && pair.value].filter((s) => typeof s === "string" && s.trim()).join(" "))),
+          cues: machine && typeof machine.cues === "string" && machine.cues.trim() ? text(turn_id, from + " cues", machine.cues)
+            : blank(turn_id, from + " cues", "text", "no cue is saved for this lift"),
+        });
+      }),
     }));
   }
 
@@ -380,12 +413,13 @@ function createReadTools(world) {
 
   const TOOLS = Object.freeze({
     today_plan, current_set, next_set, last_comparable_performance, weight_trend,
-    today_checkin, why_this_instruction, week_review, today_session, last_times,
+    today_checkin, why_this_instruction, week_review, today_session, last_times, seat_settings,
   });
   const TIERS = Object.freeze({
     today_plan: TIER.READ, current_set: TIER.READ, next_set: TIER.READ,
     last_comparable_performance: TIER.READ, weight_trend: TIER.READ, today_checkin: TIER.READ,
     why_this_instruction: TIER.READ, week_review: TIER.READ, today_session: TIER.READ, last_times: TIER.READ,
+    seat_settings: TIER.READ,
   });
 
   /* A TURN, exactly as tools.cjs openTurn: one id, one results array, and the traceability check scoped to it. */

@@ -228,14 +228,15 @@ export const COACH_LIVE_COPY = Object.freeze({
   weightTrend: 'How is my weight going?',
   myCheckin: 'What did I say in my check in?',
   weekReview: 'How did my week go?',
+  seat: 'Where\'s my seat set?',
   typedLater: 'Typed and spoken questions come later. Tap a question above.',
 });
 /* COACH-LIVE-COPY-END */
 
 /* The tap-to-ask questions, in the order the screen lists them: the intent each one runs (coach-intents.cjs
-   PAGE_INTENTS, the same ids) and its words. Not machine_seat yet: the gym card keeps machine settings in its own
-   sealed lane (gym-settings-lane.mjs), which this page may not open a second time (the writer fence refuses a
-   released edge to machine-settings-host.mjs), so the question waits for a sealed read of that lane. */
+   PAGE_INTENTS, the same ids) and its words. machine_seat joined with the seat read (PM ruling option A): the gym card
+   keeps machine settings in its own sealed lane (gym-settings-lane.mjs), and the page now reads them through that
+   lane's one declared read (readSavedSettings, over the lane's own single store handle), never a second open. */
 export const COACH_QUESTIONS = Object.freeze([
   Object.freeze({ intent: "today_plan", label: COACH_COPY.todayPlan }),
   Object.freeze({ intent: "why_weight", label: COACH_LIVE_COPY.whyWeight }),
@@ -244,6 +245,8 @@ export const COACH_QUESTIONS = Object.freeze([
   Object.freeze({ intent: "my_checkin", label: COACH_LIVE_COPY.myCheckin }),
   /* Coach v1 piece 2: the weekly review, always reachable here (the Today card shows it on the first day of a week). */
   Object.freeze({ intent: "week_review", label: COACH_LIVE_COPY.weekReview }),
+  /* The seat read: the machine settings saved for each of today's lifts. */
+  Object.freeze({ intent: "machine_seat", label: COACH_LIVE_COPY.seat }),
 ]);
 
 const COACH_SCREEN = "coach";

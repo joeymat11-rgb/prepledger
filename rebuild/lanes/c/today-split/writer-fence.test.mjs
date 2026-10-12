@@ -2303,3 +2303,134 @@ test("GSS paint RED: exactly six synchronous drawing returns use hooks.paint", (
   assert.match(source, /const started = await model\.start\(\);/, "Start exception moved");
   assert.match(source, /return paint\(\);/, "Start recursive return moved");
 });
+
+/* ---- COACH V1 SEAT READ (S19 brief "Coach v1, the seat read"; PM ruling option A) -------------------------
+   The ONE read edge out of the sealed gym lane, and nothing wider. The lane keeps exactly its three exports and gains
+   ONE: readSavedSettings. The store is opened in exactly one place (openSharedHost: one createMachineSettingsHost call,
+   one dynamic host import), which the lane's own open and the read share, so the store is never opened twice. The read
+   touches the handle by latest() and nothing else, and never hands it out. Exactly one module outside the card's own
+   pair imports the lane, today-entry.mjs, and it imports readSavedSettings and nothing else. Every other row of this
+   fence is unchanged: the released files, their writers, their edges and the sealed bindings do not move. */
+const SEAT_LANE = TODAY + "/gym-settings-lane.mjs";
+const SEAT_EXPORTS = ["machineFromDraft", "acceptable", "readSavedSettings", "createGymSettingsLane"];
+/* Fable c88a3fe9 D2: the importers are read over the WHOLE repository, not the page's folder only, so an importer of
+   the seal anywhere (rebuild/coach, rebuild/lanes, rebuild/slice, tools, scripts ...) is seen. Every .mjs, .cjs and .js
+   file is read, its import, export-from, require and dynamic import specifiers resolved against its own folder; a
+   specifier that resolves to the lane is an import of it. Tests are not product and may mount the lane (the lane's own
+   suites do), so a test file is not an importer: a file under a test/ or tests/ folder or named *.test.*. Never read:
+   node_modules, .git, the build output (.tmp, which holds the built app.js, and any dist/), the frozen app (src/), any
+   ledger/ folder, rebuild/conform/private, any soak path, the five protected engine files, symbolic links and
+   junctions, and any file named app.js. */
+const SEAT_IMPORTERS = {
+  [TODAY + "/gym-app.mjs"]: ["createGymSettingsLane"],
+  [TODAY + "/machine-settings-view.mjs"]: ["machineFromDraft", "acceptable"],
+  [TODAY + "/today-entry.mjs"]: ["readSavedSettings"],
+};
+const SEAT_SKIP_DIRS = new Set(["node_modules", ".git", ".tmp", "dist", "ledger"]);
+const SEAT_SKIP_TOP = new Set(["src", ".claude"]);
+const SEAT_PROTECTED = /^rebuild\/engine\/(seed|migrate|merge|index|oracle-shim)\.cjs$|^rebuild\/conform\/private\//;
+let seatFileList = null;
+function seatRepoFiles() {
+  if (seatFileList) return seatFileList;
+  const out = [];
+  const walk = (rel) => {
+    for (const entry of fs.readdirSync(path.join(ROOT, rel || "."), { withFileTypes: true })) {
+      const at = rel ? rel + "/" + entry.name : entry.name;
+      if (entry.isSymbolicLink() || /soak/i.test(at)) continue;
+      if (entry.isDirectory()) {
+        if (SEAT_SKIP_DIRS.has(entry.name) || (!rel && SEAT_SKIP_TOP.has(entry.name)) || /^(test|tests)$/.test(entry.name)
+          || /^rebuild\/conform\/private$/.test(at)) continue;
+        walk(at);
+      } else if (entry.isFile() && /\.(mjs|cjs|js)$/.test(entry.name) && !/\.test\.(mjs|cjs|js)$/.test(entry.name)
+        && entry.name !== "app.js" && !SEAT_PROTECTED.test(at)) out.push(at);
+    }
+  };
+  walk("");
+  seatFileList = out.sort();
+  return seatFileList;
+}
+function seatImporters(read, files = seatRepoFiles()) {
+  const out = {};
+  const toLane = (rel, spec) => spec.startsWith(".") && path.posix.normalize(path.posix.join(path.posix.dirname(rel), spec)) === SEAT_LANE;
+  const add = (rel, names) => { out[rel] = [...(out[rel] || []), ...names]; };
+  for (const rel of files) {
+    const raw = read(rel);
+    if (!raw.includes("gym-settings-lane")) continue;
+    for (const m of raw.matchAll(/\bimport\s*\{([^}]*)\}\s*from\s*['"]([^'"]+)['"]/g)) {
+      if (toLane(rel, m[2])) add(rel, m[1].split(",").map((s) => s.trim()).filter(Boolean));
+    }
+    for (const m of raw.matchAll(/\bimport\s+(?!\{)[\w$*][^;'"]*?from\s*['"]([^'"]+)['"]|\bexport\s*(?:\*|\{[^}]*\})\s*from\s*['"]([^'"]+)['"]|\b(?:require|import)\s*\(\s*['"]([^'"]+)['"]\s*\)/g)) {
+      if (toLane(rel, m[1] || m[2] || m[3])) add(rel, ["*"]);
+    }
+  }
+  if (Object.hasOwn(out, SEAT_LANE)) delete out[SEAT_LANE];
+  return out;
+}
+const seatReadBody = (code) => {
+  const from = code.indexOf("export async function readSavedSettings(");
+  const to = from < 0 ? -1 : code.indexOf("\n}\n", from);
+  return from < 0 || to < 0 ? null : code.slice(from, to + 2);
+};
+function seatShape(raw) {
+  const code = codeOf(raw);
+  const body = seatReadBody(code) || "";
+  return {
+    exports: [...code.matchAll(/^export\s+(?:async\s+)?(?:function|const|let|class)\s+([\w$]+)/gm)].map((m) => m[1]),
+    defaultExport: (code.match(/^export\s+default\s+\{([^}]*)\}/m) || [, ""])[1].split(",").map((s) => s.trim()).filter(Boolean),
+    hostOpens: (code.match(/\bcreateMachineSettingsHost\s*\(/g) || []).length,
+    hostImports: [...raw.matchAll(/\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]),
+    sharedOpens: (code.match(/\bopenSharedHost\s*\(/g) || []).length,
+    readerUses: [...body.matchAll(/\breader\b\s*(\.\s*[\w$]+\s*\(|=(?!=)|;)/g)].map((m) => m[1].replace(/\s+/g, "")),
+    readerReturned: /\breturn\b[^;]*\breader\b/.test(body),
+    bodyReachesLane: /\bsettingsLane\b|\bsharedHosts\b|\.save\s*\(|\.close\s*\(/.test(body),
+  };
+}
+const SEAT_SHAPE = {
+  exports: SEAT_EXPORTS,
+  defaultExport: ["createGymSettingsLane", "machineFromDraft", "acceptable"],
+  hostOpens: 1,
+  hostImports: ["./machine-settings-host.mjs"],
+  sharedOpens: 3,
+  readerUses: [";", "=", ".latest("],
+  readerReturned: false,
+  bodyReachesLane: false,
+};
+test("FENCE-SEAT-READ: the sealed gym lane gains exactly one read, readSavedSettings, over its one shared store handle", () => {
+  assert.deepEqual(seatShape(readRepo(SEAT_LANE)), SEAT_SHAPE);
+});
+
+test("FENCE-SEAT-EDGE: exactly one module outside the card's own pair imports the sealed lane, and only the read", () => {
+  assert.deepEqual(seatImporters(readRepo), SEAT_IMPORTERS);
+});
+
+for (const [name, edit] of [
+  ["a write through the read's handle", (s) => s.replace("try { latest = await reader.latest(lift); }",
+    "try { latest = await reader.latest(lift); await reader.save({}); }")],
+  ["the handle handed out", (s) => s.replace("  return freezeDeep({ ok: true, rows });\n}", "  return reader;\n}")],
+  ["a second export out of the seal", (s) => s.replace("export async function readSavedSettings(",
+    "export function readSettingsHandle() { return null; }\nexport async function readSavedSettings(")],
+  ["a second open of the store", (s) => s.replace("  const opening = openSharedHost(view, day);\n  if (!opening) return freezeDeep",
+    "  const opening = import('./machine-settings-host.mjs').then((m) => m.createMachineSettingsHost({ day }));\n  if (!opening) return freezeDeep")],
+  ["the lane opening outside the shared handle", (s) => s.replace("    const opening = openSharedHost(doc.defaultView || null, model.day);",
+    "    const opening = null;")],
+  ["the read reaching the lane's own handle", (s) => s.replace("  const rows = [];\n  for (const lift of Array.isArray(liftIds)",
+    "  const rows = [];\n  void settingsLane;\n  for (const lift of Array.isArray(liftIds)")],
+]) test("RED FENCE-SEAT-READ: " + name + " FAILS", () => {
+  const mutant = planted(SEAT_LANE, edit);
+  assert.notDeepEqual(seatShape(mutant), SEAT_SHAPE, "THE FENCE DID NOT SEE " + name.toUpperCase());
+});
+
+for (const [name, file, edit] of [
+  ["a second importer of the read", TODAY + "/today-app.cjs", (s) => s.replace('"use strict";', '"use strict";\nimport { readSavedSettings } from "./gym-settings-lane.mjs";')],
+  ["the reader importing the writer lane too", TODAY + "/today-entry.mjs", (s) => s.replace('import { readSavedSettings } from "./gym-settings-lane.mjs";',
+    'import { readSavedSettings, createGymSettingsLane } from "./gym-settings-lane.mjs";')],
+  ["a namespace import of the seal", TODAY + "/gym-model.mjs", (s) => "import * as Lane from './gym-settings-lane.mjs';\n" + s],
+  /* Fable c88a3fe9 D2: outside the page's folder too */
+  ["an importer in rebuild/coach", "rebuild/coach/page-coach.cjs", (s) => s.replace('"use strict";',
+    '"use strict";\nconst SeatLane = require("../m3/w7-preview/today/gym-settings-lane.mjs");')],
+  ["a named import in rebuild/lanes", "rebuild/lanes/b/tooling/b-package.cjs", (s) => "import { readSavedSettings } from '../../../m3/w7-preview/today/gym-settings-lane.mjs';\n" + s],
+]) test("RED FENCE-SEAT-EDGE: " + name + " FAILS", () => {
+  const mutant = planted(file, edit);
+  const read = (rel) => (rel === file ? mutant : readRepo(rel));
+  assert.notDeepEqual(seatImporters(read), SEAT_IMPORTERS, "THE FENCE DID NOT SEE " + name.toUpperCase());
+});

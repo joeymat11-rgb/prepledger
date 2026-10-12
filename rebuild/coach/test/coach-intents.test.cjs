@@ -263,6 +263,39 @@ test("CI-10 the weekly card's Why? says the offer plainly, and the number check 
   assert.equal((await planted).shipped, false, "a day the turn did not read fails the check");
 });
 
+/* COACH V1 SEAT READ (PM ruling option A): "Where's my seat set?" says the machine settings already saved for every
+   lift of today's workout, one line each, in the workout's order, read through the page's one read of the sealed gym
+   lane (world.seats.read), with nothing saved said plainly; every figure through the number check. */
+test("CI-11 where's my seat set: every lift's saved settings, one line each, read only", async () => {
+  const asked = [];
+  const SAVED = { plank: { op_id: "op-1", machine: { exercise_id: "plank", settings: [{ name: "seat", value: "4" }, { name: "back pad", value: "2" }], cues: "Chest up" } },
+    curl: { op_id: "op-2", machine: { exercise_id: "curl", cues: "Keep hips down" } } };
+  const seats = { read: async (ids) => { asked.push(ids); return { ok: true, rows: ids.map((lift) => ({ lift, latest: SAVED[lift] || null })) }; } };
+  const got = await I.ask(toolsOver({ today: withPlan(PLAN), seats }), "machine_seat", { turnId: "ci11" });
+  assert.equal(got.answered, true, "the answer carries the source line");
+  assert.deepEqual(got.untraceable, [], "every figure in a saved setting is a tool result of the turn");
+  assert.deepEqual(asked, [PLAN.exercises.map((ex) => ex.id)], "it asks once, for today's lifts");
+  assert.deepEqual(got.answer.split("\n"), [
+    "Plank: seat 4; back pad 2. Chest up.",
+    "No machine settings saved for Leg press yet.",
+    "Leg curl: Keep hips down.",
+    "No machine settings saved for Calf raise yet.",
+    "No machine settings saved for Dip yet.",
+    "No machine settings saved for Hack squat yet.",
+  ]);
+  const resting = await I.ask(toolsOver({ today: withPlan({ available: false, code: null, name: null, exercises: [] }), seats }), "machine_seat", { turnId: "ci11-rest" });
+  assert.equal(resting.answer, I.PLAIN.noWorkoutSeat);
+  const closed = await I.ask(toolsOver({ today: withPlan(PLAN) }), "machine_seat", { turnId: "ci11-none" });
+  assert.equal(closed.answered, false);
+  assert.equal(closed.answer, I.PLAIN_REFUSALS.machine_seat, "no read: the plain refusal");
+  const unread = await I.ask(toolsOver({ today: withPlan(PLAN), seats: { read: async () => ({ ok: false, rows: [] }) } }), "machine_seat", { turnId: "ci11-unread" });
+  assert.equal(unread.answer, I.PLAIN_REFUSALS.machine_seat, "a store that could not be read: the plain refusal");
+  /* and the check has teeth: a setting the turn did not read is discarded, never shown */
+  const plant = await I.ask({ openTurn(turn_id) { const turn = toolsOver({ today: withPlan(PLAN), seats }).openTurn(turn_id);
+    return { ...turn, untraceable: (answer) => T.untraceable(answer.replace("seat 4;", "seat 14;"), turn.results, turn_id) }; } }, "machine_seat", { turnId: "ci11-plant" });
+  assert.equal(plant.shipped, false);
+});
+
 test("CI-4 a draft whose numbers the turn did not read is discarded: the general refusal is said instead", async () => {
   const real = toolsOver({ today: createTodayModel({ today: SYNTHETIC_DAY }) });
   const forgetful = { openTurn(turn_id) {

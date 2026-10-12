@@ -99,7 +99,12 @@ test("PC-5: the coach's world is read-only wrappers; no writer of the Today mode
     weekSessions: async () => ({ ok: true, done: 1, dates: [] }), lastTimes: () => [] });
   const checkin = spyWriters({ refresh: async () => {}, read: () => ({ day: real.today, recorded: null, note: "", recordedLines: [] }) });
   const held = readOnlyWorld({ today, gym, checkin });
-  assert.deepEqual(Object.keys(held), ["today", "gym", "checkin", "week"]);
+  /* the seat read (PM ruling option A) adds `seats`, its one read */
+  assert.deepEqual(Object.keys(held), ["today", "gym", "checkin", "week", "seats"]);
+  assert.equal(held.seats, null, "no seat read was handed in, so none is held");
+  const seated = readOnlyWorld({ today, seats: spyWriters({ read: async () => ({ ok: true, rows: [] }) }) });
+  assert.deepEqual(Object.keys(seated.seats), [...READS.seats], "the seat read carries read() and nothing else");
+  for (const w of WRITERS) assert.equal(reachableNames(seated).has(w), false, w + " is reachable through the seat read");
   assert.deepEqual(Object.keys(held.today).sort(), [...READS.today, "today"].sort());
   assert.deepEqual(Object.keys(held.gym), [...READS.gym]);
   assert.deepEqual(Object.keys(held.checkin), [...READS.checkin]);

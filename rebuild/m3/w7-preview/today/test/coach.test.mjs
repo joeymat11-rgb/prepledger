@@ -504,10 +504,11 @@ test("CV1-1 the Coach entry is a compact row in Today's feed above Start, and it
   const chips = [...phone.querySelectorAll("#prompts .prompt")];
   assert.deepEqual(chips.map((c) => c.getAttribute("data-intent")), COACH_QUESTIONS.map((q) => q.intent), "the questions, in order");
   assert.deepEqual(chips.map((c) => norm(c.textContent)), COACH_QUESTIONS.map((q) => q.label), "each with its words");
-  /* every page intent but machine_seat: the gym card's machine settings live in its own sealed lane, which this page
-     may not open a second time, so that question waits for a sealed read of the lane (coach-app.mjs COACH_QUESTIONS) */
-  assert.deepEqual(COACH_QUESTIONS.map((q) => q.intent), Intents.PAGE_INTENT_IDS.filter((id) => id !== "machine_seat"),
-    "every question is one of the coach's page intents, and no question asks for a lane the page cannot open");
+  /* every page intent, machine_seat included since the seat read (PM ruling option A): the gym card's machine settings
+     live in its own sealed lane, and the page reads them through that lane's one declared read, never a second open */
+  assert.deepEqual(COACH_QUESTIONS.map((q) => q.intent), [...Intents.PAGE_INTENT_IDS.filter((id) => id !== "machine_seat"), "machine_seat"],
+    "every question is one of the coach's page intents, the seat question last");
+  assert.equal(norm(chips[chips.length - 1].textContent), "Where's my seat set?");
   /* Polish batch (shot 04: six calendars): each is the pack's own prompt button with its chevron and no icon. */
   for (const chip of chips) {
     assert(chip.classList.contains("prompt") && chip.querySelector(".chev"), "each is the pack's own prompt button");
@@ -715,5 +716,38 @@ test("CV1-8 the first day of a week shows last week's review on Today, its reaso
   const bare = await weekToday(TodayModel.SYNTHETIC_DAY, {});
   await new Promise((r) => setTimeout(r, 50));
   assert.equal(bare.doc.querySelector('[data-slot="week-review"]'), null, "no workout record, no card");
+  bare.api.dispose();
+});
+
+/* CV1-9 (Coach v1 seat read, PM ruling option A). "Where's my seat set?" on the page: the Today app hands the coach the
+   workout lane's one seat read (today-entry.mjs seatSettings) over the page's own window, the store the gym lane itself
+   opens, and the answer is one line per lift of today's workout. With no workout lane there is nothing to read, and the
+   question says so plainly. */
+test("CV1-9 where's my seat set reads the saved settings through the workout lane's one read, one line per lift", async () => {
+  const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
+  const { default: TodayModel } = await import("../today-model.cjs");
+  const seen = [];
+  const lane = { gym: { read: async () => ({ phase: "ready" }) },
+    seatSettings: async (view, ids) => { seen.push({ view, ids }); return { ok: true, rows: ids.map((lift, i) => ({ lift,
+      latest: i === 0 ? { op_id: "op-1", machine: { exercise_id: lift, settings: [{ name: "seat", value: "4" }, { name: "back pad", value: "2" }] } } : null })) }; } };
+  const { doc, phone, api, model } = await weekToday(TodayModel.SYNTHETIC_DAY, lane);
+  doc.querySelector('[data-go="coach"]').click();
+  await new Promise((r) => setTimeout(r, 0));
+  const card = await tap(phone, "machine_seat");
+  assert.equal(card.classList.contains("is-refusal"), false, "answered");
+  assert.equal(card.querySelector(".from").textContent, COACH_COPY.fromStore);
+  const names = model.sessionPlan().exercises.map((ex) => ex.name);
+  assert.deepEqual(phone.querySelector("#coach-answer-text").textContent.split("\n"),
+    [names[0] + ": seat 4; back pad 2.", ...names.slice(1).map((name) => "No machine settings saved for " + name + " yet.")]);
+  assert.equal(seen.length, 1, "one read");
+  assert.equal(seen[0].view, doc.defaultView, "over the page's own window, the store the gym lane opens");
+  assert.deepEqual(seen[0].ids, model.sessionPlan().exercises.map((ex) => ex.id), "for today's lifts");
+  api.dispose();
+  const bare = await liveCoach();
+  bare.doc.querySelector('[data-go="coach"]').click();
+  await new Promise((r) => setTimeout(r, 0));
+  const refused = await tap(bare.phone, "machine_seat");
+  assert.equal(refused.classList.contains("is-refusal"), true, "no workout lane: nothing to read");
+  assert.equal(bare.phone.querySelector("#coach-answer-text").textContent, Intents.PLAIN_REFUSALS.machine_seat);
   bare.api.dispose();
 });

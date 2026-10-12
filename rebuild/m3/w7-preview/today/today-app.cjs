@@ -2183,6 +2183,10 @@ function mountToday(doc, model, options = {}) {
       /* Coach v1 piece 2: the workout lane's per-lift read for the weekly review (today-entry.mjs weekLifts). */
       week: gymOpen && gymOpen.nativeLoad && typeof gymOpen.nativeLoad.weekLifts === "function"
         ? { lifts: (from, to) => gymOpen.nativeLoad.weekLifts(from, to) } : null,
+      /* Coach v1 seat read: the settings already saved for today's lifts, read through the gym lane's own single store
+         handle (today-entry.mjs seatSettings, gym-settings-lane.mjs readSavedSettings), over this page's window. */
+      seats: gymOpen && typeof gymOpen.seatSettings === "function"
+        ? { read: (liftIds) => gymOpen.seatSettings(doc.defaultView, liftIds) } : null,
     });
     return {
       async ask(intent) {

@@ -1063,6 +1063,8 @@ const COACH_LIVE_APPROVED = Object.freeze([
   "How is my weight going?",
   "What did I say in my check in?",
   "How did my week go?",
+  /* Coach v1 seat read (PM ruling option A): the seventh question. */
+  "Where's my seat set?",
   "Typed and spoken questions come later. Tap a question above.",
 ]);
 function coachLiveVocabulary(root = ROOT) {
