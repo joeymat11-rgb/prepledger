@@ -731,8 +731,26 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     return { ok: true, removed };
   }
 
+  /* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling: the smallest read-only seam). The workouts this device
+     holds as DONE between two dates, inclusive: a session whose Start is dated in the window and which carries a
+     close record (the card's own test for a closed session, sessionsToday above), skipping a removed, empty Start
+     exactly as every other reader here does. It reads the client's history and writes nothing; a history the
+     client will not read is answered with its own code. */
+  async function weekSessions(from, to) {
+    const list = await history();
+    if (!list.ok) return { ok: false, code: list.code || null };
+    const dates = [];
+    for (const session of list.history.sessions || []) {
+      if (removedAndEmpty(session) || !session.projection || !session.projection.close_records.length) continue;
+      const record = session.projection.start_record;
+      const date = record && record.current && record.current.effective && record.current.effective.local_date;
+      if (typeof date === 'string' && date >= from && date <= to) dates.push(date);
+    }
+    return { ok: true, done: dates.length, dates: dates.sort() };
+  }
+
   return Object.freeze({ read: readTracked, start, logSet, undo, finish, forget, closeUnfinished, rebase, holdForAdoption,
-    discardOpenedEmpty,
+    discardOpenedEmpty, weekSessions,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
     previous: () => previousByLift,
     /* P0-B r2 (review finding 4) - a LIVE getter, not a value captured at

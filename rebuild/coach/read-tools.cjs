@@ -1,7 +1,8 @@
 "use strict";
 
-/* read-tools.cjs - the coach's seven TIER.READ tools (Coach v1, S19 amend), moved byte for byte out of tools.cjs
-   createCoachTools, which now takes them from here. createReadTools(world) is the same shape createCoachTools
+/* read-tools.cjs - the coach's seven TIER.READ tools (Coach v1, S19 amend), moved byte for byte out of tools.cjs, and
+   the page's weekly review read (week_review, Coach v1 piece 2, written here; not in tools.cjs). tools.cjs
+   createCoachTools takes the seven from here. createReadTools(world) is the same shape createCoachTools
    returns ({ TOOLS, TIERS, TIER, openTurn, day }) with the read tools only: no FACT tool, no proposal, no consent
    path. It is what the page composes (page-coach.cjs), so the Today page carries the coach's reads and none of
    its writers. It requires only tool-kernel.cjs. */
@@ -22,6 +23,8 @@ function createReadTools(world) {
   const today = world.today;
   const gym = world.gym || null;
   const checkin = world.checkin || null;
+  /* Coach v1 piece 2: the workout lane's per-lift read (today-entry.mjs weekLifts), when that lane is open. */
+  const week = world.week || null;
   const E = today.engine;
   const st = () => today.stateFromOps();
   const day = today.today;
@@ -227,14 +230,74 @@ function createReadTools(world) {
     }));
   }
 
+  /* ------------------------------------------------- the weekly review -- */
+
+  /* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling option A). NOT moved from tools.cjs: the page's own READ of
+     a training week. The week runs Monday to Sunday (the engine's own week, writers.cjs propose() keys its weekly rid
+     families on the Monday). On a Monday the review is of the week just ended ("last"); on any other day it is of this
+     week so far ("this"). Every figure is a tool result: the workouts done are the gym card's closed sessions dated in
+     the window (gym-model.mjs weekSessions), the workouts planned are the days the engine plans a workout on across the
+     whole week (today-model.cjs plannedDays, engine sessionMembership), each lift's standing is the native-load host's
+     own check (an offer's engine reason, or its refusal code, today-entry.mjs weekLifts), the open suggestion is the
+     engine's own open proposal on Today, and the trend is weight_trend above, read in this same turn. A count has no
+     unit word, so it is tagged "?" and may be said bare (tool-kernel.cjs BARE_SPEAKABLE). It writes nothing. */
+  const shiftDay = (iso, n) => new Date(Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1,
+    Number(iso.slice(8, 10)) + n)).toISOString().slice(0, 10);
+  function weekWindow(iso) {
+    const sinceMonday = (new Date(Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)))).getUTCDay() + 6) % 7;
+    if (sinceMonday === 0) return { which: "last", from: shiftDay(iso, -7), to: shiftDay(iso, -1), planEnd: shiftDay(iso, -1) };
+    const from = shiftDay(iso, -sinceMonday);
+    return { which: "this", from, to: iso, planEnd: shiftDay(from, 6) };
+  }
+  const WEEK_NO_RECORD = "No workout record is open on this device, so there is no week to review.";
+  async function week_review(_args, turn_id) {
+    if (typeof day !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(day) || !gym || typeof gym.weekSessions !== "function"
+      || typeof today.plannedDays !== "function") {
+      return unavailable("week_review", TIER.READ, turn_id, CODES.GYM_SESSION_ABSENT, WEEK_NO_RECORD, "gym-model.mjs weekSessions");
+    }
+    const w = weekWindow(day);
+    const sessions = await gym.weekSessions(w.from, w.to);
+    if (!sessions || sessions.ok !== true || typeof sessions.done !== "number") {
+      return unavailable("week_review", TIER.READ, turn_id, (sessions && sessions.code) || CODES.GYM_SESSION_ABSENT,
+        WEEK_NO_RECORD, "gym-model.mjs weekSessions");
+    }
+    const planned = today.plannedDays(w.from, w.planEnd);
+    const liftsRead = week && typeof week.lifts === "function" ? await week.lifts(w.from, w.to) : null;
+    const trend = await weight_trend({}, turn_id);
+    const view = today.read();
+    const open = view && view.proposal && typeof view.proposal.title === "string" ? view.proposal : null;
+    const values = {
+      which: tagged(turn_id, "coach.week.which (Monday reviews the week just ended)", w.which, "flag", ""),
+      from: tagged(turn_id, "coach.week.from", w.from, "date", w.from),
+      to: tagged(turn_id, "coach.week.to", w.to, "date", w.to),
+      done: tagged(turn_id, "gym-model.weekSessions.done (closed sessions in the window)", sessions.done, "?"),
+      planned: tagged(turn_id, "today-model.plannedDays (engine sessionMembership)", Array.isArray(planned) ? planned.length : 0, "?"),
+      liftsKnown: tagged(turn_id, "today-entry.weekLifts.ok", !!(liftsRead && liftsRead.ok === true), "flag", ""),
+      lifts: liftsRead && liftsRead.ok === true ? liftsRead.lifts.map((row, i) => Object.freeze({
+        name: text(turn_id, "today-entry.weekLifts[" + i + "].name", row.name),
+        status: tagged(turn_id, "today-entry.weekLifts[" + i + "].status", row.status, "code", ""),
+        code: tagged(turn_id, "today-entry.weekLifts[" + i + "].code (native-load.cjs refusal)", row.code || null, "code", ""),
+        reason: row.status === "offer" ? text(turn_id, "native-load.cjs offer reason (today-entry.weekLifts[" + i + "])", row.reason)
+          : blank(turn_id, "native-load.cjs offer reason", "text", "a refused or held lift carries no offer reason"),
+      })) : [],
+      suggestion: open ? Object.freeze({
+        title: text(turn_id, "today-model.proposal.title (engine proposal)", open.title),
+        lift: text(turn_id, "today-model.proposal.lift", open.lift),
+        why: text(turn_id, "today-model.proposal.why (engine proposal)", open.why),
+      }) : null,
+      trend: trend && trend.ok ? trend.values : null,
+    };
+    return assertNoLeak(ok("week_review", TIER.READ, turn_id, values));
+  }
+
   const TOOLS = Object.freeze({
     today_plan, current_set, next_set, last_comparable_performance, weight_trend,
-    today_checkin, why_this_instruction,
+    today_checkin, why_this_instruction, week_review,
   });
   const TIERS = Object.freeze({
     today_plan: TIER.READ, current_set: TIER.READ, next_set: TIER.READ,
     last_comparable_performance: TIER.READ, weight_trend: TIER.READ, today_checkin: TIER.READ,
-    why_this_instruction: TIER.READ,
+    why_this_instruction: TIER.READ, week_review: TIER.READ,
   });
 
   /* A TURN, exactly as tools.cjs openTurn: one id, one results array, and the traceability check scoped to it. */

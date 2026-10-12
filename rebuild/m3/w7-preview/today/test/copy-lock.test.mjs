@@ -68,8 +68,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // on the removal of an opened, empty workout (CL-S15-DELTA 43 -> 44; was 019b9474...), and for "Why?"'s two new owners
 // (CL-S18-REOWNED; 8f8d84db... with the piece alone). S19: re-measured for exactly two more pieces in today-entry.mjs, the
 // adoption offer's heading that states its weight (CL-S15-DELTA 44 -> 46; was 9bee3abe...). Coach v1 (S19 amend): re-measured
-// for exactly the Coach v1 pieces and counts (CL-COACH-V1-DELTA; the value before is S19_CORPUS_SHA256).
-const CORPUS_SHA256 = 'e61da75a21403fac515a3e9e0e9aaa4ac41c0f6d03c129419d3a00dc84c7ebb1';
+// for exactly the Coach v1 pieces and counts (CL-COACH-V1-DELTA; the value before is S19_CORPUS_SHA256). Coach v1 piece 2
+// (the weekly review): re-measured for exactly one more piece, the Coach question "How did my week go?" (was e61da75a...).
+const CORPUS_SHA256 = '6041133783c9357c9ee64e24642e91584d77d54cede51f8d4b35a2a493832bf0';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -549,6 +550,8 @@ const COACH_V1_NEW = Object.freeze([
   ['What did I do last time?', CV1_LIVE, []],
   ['How is my weight going?', CV1_LIVE, []],
   ['What did I say in my check in?', CV1_LIVE, []],
+  // Coach v1 piece 2 (the weekly review): the sixth Coach question.
+  ['How did my week go?', CV1_LIVE, []],
   ['Typed and spoken questions come later. Tap a question above.', CV1_LIVE, []],
   ['You asked: ', { [CV1_APP]: 1 }, []],
   ['From this device\u2019s encrypted local store.', { [CV1_APP]: 1 }, []],

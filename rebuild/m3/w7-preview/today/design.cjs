@@ -1046,7 +1046,7 @@ function assertCoachBinding(approved, templateHtml, root = ROOT) {
   return { copy: lines.length, classes: classes.length };
 }
 /* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"; brief rebuild/lanes/b/S19-LIVE-BRIEF.md, Coach v1). The
-   live screen adds words the pinned pack does not have: four tap-to-ask questions and the line said when a question
+   live screen adds words the pinned pack does not have: five tap-to-ask questions and the line said when a question
    is typed or spoken. They live in their own region of coach-app.mjs (COACH-LIVE-COPY) so the binding above stays
    exactly what it was, and this list is their approval: the PM approves short plain copy under the owner's standing
    rule (S14 OQ-4), recorded with the brief's BRIEF ACCEPTED BY SHA line. The region must carry EXACTLY these strings,
@@ -1057,6 +1057,7 @@ const COACH_LIVE_APPROVED = Object.freeze([
   "What did I do last time?",
   "How is my weight going?",
   "What did I say in my check in?",
+  "How did my week go?",
   "Typed and spoken questions come later. Tap a question above.",
 ]);
 function coachLiveVocabulary(root = ROOT) {

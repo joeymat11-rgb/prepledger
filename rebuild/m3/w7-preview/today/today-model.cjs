@@ -238,6 +238,24 @@ function marchingOrderSentence(order) {
   return cue + ", " + action + ": " + why;
 }
 
+/* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling option A). The training days the ENGINE plans between two
+   dates, inclusive: each day rebuild/engine/today.cjs sessionMembership answers with a pool of at least one lift (the
+   same day guard and pool genSession uses, so a rest day, a refeed day or a day whose pool is empty is not a planned
+   workout). It reads the replayed state only and writes nothing. At most 31 days. */
+function plannedDaysOf(E, state, from, to) {
+  const out = [];
+  const iso = /^\d{4}-\d{2}-\d{2}$/;
+  if (!iso.test(String(from)) || !iso.test(String(to)) || from > to) return out;
+  const y = Number(from.slice(0, 4)), m = Number(from.slice(5, 7)), d = Number(from.slice(8, 10));
+  for (let i = 0; i < 31; i += 1) {
+    const at = new Date(Date.UTC(y, m - 1, d + i)).toISOString().slice(0, 10);
+    if (at > to) break;
+    const pool = E.sessionMembership(state, at);
+    if (pool && pool.exercise_ids.length > 0) out.push(at);
+  }
+  return out;
+}
+
 function projectionOf(E, state) {
   const nowModel = E.nowModel(state);
   const move = planMove(E, state, nowModel);
@@ -560,6 +578,8 @@ function createTodayModel(options = {}) {
     stateFromOps,
     storedReads,
     adoptedRead: (date) => adoptedRead(stateFromOps(), date || day),
+    /* WEEKLY REVIEW: the days the engine plans a workout on, from the replayed state (plannedDaysOf above). */
+    plannedDays: (from, to) => plannedDaysOf(E, stateFromOps(), from, to),
     ALREADY_RECORDED, OUT_OF_RANGE, NO_STORE, FORM_MIN, FORM_MAX,
   };
 }

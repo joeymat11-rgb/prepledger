@@ -116,10 +116,51 @@ only at milestones.
   page-coach.cjs, read-tools.cjs, tool-kernel.cjs and sha256.cjs, and the coach tests (new coach-intents, page-coach
   and sha256; file lists in no-dashes, cost-cap and wave1-demo).
 
+## Coach v1, piece 2: the weekly review (PM ruling 2026-10-12, option A)
+- On the first day of a training week (the engine's Monday) Today shows the review of the week just ended, below the
+  workout and the proposal card, in the proposal card's own look; the Coach screen's sixth question, "How did my week
+  go?", answers it any day (this week so far; on a Monday, the week just ended). It shows the workouts done against
+  the workouts planned, each lift that finished a workout in the week, the open suggestion on Today and the trend.
+- Each lift: an offer of a new weight says "ready for a new weight." with the engine's own offer reason behind Why?
+  (native-load.cjs earnReason / adoptReason, unedited); a lift the engine does not raise says one plain sentence for
+  its refusal code, each true to the line of rebuild/engine/native-load.cjs that raises it: TARGET_QUEUED (:232)
+  "going up. The new weight you agreed to starts on a later workout."; DEBUT_LANDED (:235) "went up. This was your
+  first workout at the new weight."; PROVISIONAL (:326, :368) "not raised yet. Not enough workouts yet to judge a
+  change."; WINDOW_NOT_TOP (:327) "not raised yet. You have not reached the top of your rep range at this weight.";
+  HELD_OR_HOT (:359, :367) "held. Your first set was taken to failure, or this weight is on hold, so it stays where it
+  is."; NO_NEXT_LOAD (:366) "not raised. There is no heavier weight on file for this lift."; EFFORT_UNRESOLVED (:329)
+  "not raised. The first set has no effort rating to judge from."; BODYWEIGHT_NO_WEIGHT (:281) the approved S14 R4
+  line, word for word. Any other code says "no new weight from its latest workout.", which names no cause. A held
+  lift (today-entry.mjs noticesOf) says "held. A workout behind your agreed weight was corrected, so this lift is
+  paused." (disputed) or "held. Your working weight changed after you agreed to a new one, so this lift is paused."
+  (conflict): plain rewrites of the two PROPOSED notices, used on the review only; today-entry.mjs's own notice
+  strings are unchanged.
+- Numbers only from tool results: ONE new READ tool, week_review (read-tools.cjs; tools.cjs unchanged), read in one
+  turn with the trend it carries; coach-intents.cjs ask() checks every line and every reason, and the card is drawn
+  only for a shipped, answered turn, each line through the page's no-dash boundary. A count is tagged "?" and said
+  bare ("Workouts done: 3 of 4.", tool-kernel.cjs BARE_SPEAKABLE). No workout record, no review (the tool refuses in
+  its own words and Today is unchanged); no lift read, "Your lifts could not be checked on this device."
+- The smallest read seams, read wrappers only: today-model.cjs plannedDays(from, to) (the days engine
+  sessionMembership plans a workout on); gym-model.mjs weekSessions(from, to) (the card's closed sessions in the
+  window); today-entry.mjs weekLifts(from, to) on the next-weight controller (the same host's project() and check(),
+  kept as data, no handle kept, nothing painted or answered). page-coach.cjs hands the tools those three reads and
+  nothing else. No sealed host file moves: today-bindings.mjs is unchanged. today-entry.mjs is PAGE_PINS-pinned, so
+  local-today-journey.test.mjs re-pins it, measured: dac88dd5 -> fbdcd96a.
+- Page laws: no new module and no new edge; the esbuild graph (protected files held external) is the same 159 inputs
+  as 9fb60ed, the route-only set unchanged, and P3-EN3's pattern reads only its known calls; the writer fence is
+  unchanged and green (FENCE-MODEL-HELD stays 34). page-bundle P3-B2/B5 and REQUIRED_INPUTS do not move.
+- New strings (PM-approved short plain copy, :913 (5)): "How did my week go?" (coach-app.mjs COACH_LIVE_COPY, bound by
+  design.cjs COACH_LIVE_APPROVED; copy lock one more piece, corpus e61da75a -> 60411337); in coach-intents.cjs: "This
+  week", "Last week", "Workouts done: ", " of ", "ready for a new weight.", "No lift finished a workout in this week.",
+  "Your lifts could not be checked on this device.", "Suggestion waiting on Today: ", "No workout record is open on
+  this device, so there is no week to review." (read-tools.cjs), the eight code sentences, the two hold sentences
+  and the fallback above. "Why?" is the S18 word.
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above, no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 and s12-look 64 -> 71; the fence and workflow
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 and s12-look 64 -> 71 -> 72 (piece 2's
+CV1-8); the fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS
 lines and their comments (no `--jobs` option). The duplicate suites (steps that re-run files a package child
@@ -171,6 +212,20 @@ coach's import closure holds no tools.cjs, engine revision, plan-writer call, en
 on 9e41ef3's page-coach.cjs and passes on this one; PC-5 (Fable D1: no writer reachable from the coach's world, none
 called by any page question) passes on both. The coach suite is 390/391 at the seat (the seat-only R4). Seat-only:
 the page-bundle and writer-enumeration cells themselves (they build the page).
+
+Coach v1 piece 2, red first: on 9fb60ed's sources (page-coach.cjs, read-tools.cjs, coach-intents.cjs, today-app.cjs,
+today-model.cjs, gym-model.mjs, today-entry.mjs, coach-app.mjs, design.cjs) seven rows fail and pass on these:
+page-coach.test.cjs PC-7 (the review ships traced; Monday reviews the week just ended, midweek this week so far;
+each lift's standing, the offer reason behind Why?, the unmapped code's fallback, the hold), PC-8 (every code
+sentence names a refusal native-load.cjs really raises, no dash, no figure of its own; the bodyweight line is the
+approved one), PC-9 (no workout record: refused, no card), PC-2 and PC-5 (the coach gets ask() and week() only, and
+the three new reads with no writer reachable), coach-intents.test.cjs CI-2 (week_review is a READ), coach.test.mjs
+CV1-8 (the card on the first day of a week, Why? toggling the engine's reason, and no card midweek or with no workout
+record). The copy lock refuses "How did my week go?" by name until re-measured. At the seat: the coach suite 393/394
+(the seat-only R4); the today batch 628/649 (the same 21 seat-only build failures) and the fences batch 2195/2197,
+with the PAGE_PINS-reading cells (food.test.mjs N1.18, machine-settings-ui.test.mjs S10) green once S19.json declares
+the journey suite's new post; the 76 layout invariants and the deployed-shell probe (24 of 24) hold. Seat-only:
+view.test.mjs SC-5 (now six questions).
 
 ## Acceptance
 At the exact head: the fence's real row reports FENCE-RESEAL-CHILD S19 (skip); `node

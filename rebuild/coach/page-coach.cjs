@@ -26,11 +26,15 @@ const { ask } = require("./coach-intents.cjs");
    last_comparable_performance, today_checkin): the Today model's read() and stateFromOps() and its day string, the
    gym card's read(), and the check-in's refresh() (a re-read of its own store) and read(). No writer of any of the
    three (weighIn, reopen, setFoodDays, start, logSet, finish, discardOpenedEmpty, undo, save, adoptEngineState, the
-   check-in's live draft ...) is reachable from what the coach holds, whatever a later tool tries. */
+   check-in's live draft ...) is reachable from what the coach holds, whatever a later tool tries.
+   Coach v1 piece 2 (the weekly review, read-tools.cjs week_review) adds three READS and nothing else: the Today
+   model's plannedDays() (the engine's planned workout days), the gym card's weekSessions() (its closed sessions in a
+   window) and the workout lane's weekLifts() (each lift's check, kept as data, today-entry.mjs), as `week.lifts`. */
 const READS = Object.freeze({
-  today: Object.freeze(["read", "stateFromOps"]),
-  gym: Object.freeze(["read"]),
+  today: Object.freeze(["read", "stateFromOps", "plannedDays"]),
+  gym: Object.freeze(["read", "weekSessions"]),
   checkin: Object.freeze(["refresh", "read"]),
+  week: Object.freeze(["lifts"]),
 });
 function readOnly(source, methods, extra = {}) {
   if (!source || typeof source !== "object" && typeof source !== "function") return null;
@@ -47,6 +51,7 @@ function readOnlyWorld(world) {
     today: readOnly(shape.today, READS.today, day),
     gym: readOnly(shape.gym, READS.gym),
     checkin: readOnly(shape.checkin, READS.checkin),
+    week: readOnly(shape.week, READS.week),
   });
 }
 
@@ -64,7 +69,21 @@ function createPageCoach(world) {
       turns += 1;
       return ask(tools, intent, { turnId: "coach-" + turns, liftId });
     },
+    /* The weekly review as the Today card draws it: the lines of a shipped, answered turn, or nothing. The same turn,
+       the same check: a review whose numbers are not all tool results of its turn is never drawn. */
+    async week() {
+      turns += 1;
+      const got = await ask(tools, "week_review", { turnId: "coach-" + turns, liftId });
+      return got.lines ? Object.freeze({ ok: true, lines: got.lines }) : Object.freeze({ ok: false, lines: null });
+    },
   });
 }
 
-module.exports = { createPageCoach, readOnlyWorld, READS };
+/* The first day of a training week (the engine's Monday): the day the Today card shows the review of the week just
+   ended. A malformed day is never one. */
+function weekStarts(iso) {
+  if (typeof iso !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  return new Date(Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)))).getUTCDay() === 1;
+}
+
+module.exports = { createPageCoach, readOnlyWorld, READS, weekStarts };

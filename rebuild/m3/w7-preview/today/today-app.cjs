@@ -1164,6 +1164,7 @@ function mountToday(doc, model, options = {}) {
     map.get("example-pill").hidden = !(sample || setupOwed);
     /* C-UI-3: the proposal card first, so the status line can say what the card shows (T-40). */
     const face = bindProposal(map, view);
+    paintWeekReview(map, view.today, token);   /* Coach v1 piece 2: the weekly review card */
     map.get("status-line").textContent = plainOrDrop(statusLine(view, today, sample, face ? face.state : undefined), "status-line");
     problemControl(map);
     put(map, "morning", morningLine(view));
@@ -2179,6 +2180,9 @@ function mountToday(doc, model, options = {}) {
       today: model,
       gym: gymOpen && gymOpen.gym ? gymOpen.gym : null,
       checkin: checkinOpen && checkinOpen.checkin ? checkinOpen.checkin : null,
+      /* Coach v1 piece 2: the workout lane's per-lift read for the weekly review (today-entry.mjs weekLifts). */
+      week: gymOpen && gymOpen.nativeLoad && typeof gymOpen.nativeLoad.weekLifts === "function"
+        ? { lifts: (from, to) => gymOpen.nativeLoad.weekLifts(from, to) } : null,
     });
     return {
       async ask(intent) {
@@ -2186,7 +2190,60 @@ function mountToday(doc, model, options = {}) {
         return { answer: plainOrDrop(result.answer, "coach-answer") || "", shipped: result.shipped,
           refused: result.answered !== true };
       },
+      /* The weekly review's lines, each through the page's no-dash boundary; a line it cannot rewrite drops the card. */
+      async week() {
+        const got = await coach.week();
+        if (!got || got.ok !== true || !Array.isArray(got.lines)) return null;
+        const lines = got.lines.map((line) => ({ text: plainOrDrop(line.text, "week-review") || "",
+          why: line.why ? plainOrDrop(line.why, "week-review-why") || "" : "", heading: line.heading === true }));
+        return lines.some((line) => !line.text) ? null : lines;
+      },
     };
+  }
+  /* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling option A). On the first day of a training week (the engine's
+     Monday, page-coach.cjs weekStarts) Today shows the review of the week just ended, below the workout and the
+     proposal card, in the proposal card's own look (tcard, kind, change, reason; no new class): the heading, the
+     workouts done against the workouts planned, each lift's standing with the engine's own reason behind Why? (the
+     S18 control, the same button the proposal card uses), the open suggestion and the trend. It is drawn only when
+     the coach's turn shipped (every number a tool result) and the workout lane is open; otherwise Today is unchanged.
+     It reads and writes nothing of its own. The same review is always one tap away on the Coach screen. */
+  function paintWeekReview(map, day, token) {
+    if (!PageCoach.weekStarts(day) || !facade.workout()) return;
+    const proposal = map.get("proposal");
+    const anchor = proposal && proposal.isConnected ? proposal : map.get("workout-count");
+    if (!anchor) return;
+    coachHandle().week().then((lines) => {
+      if (token !== mountToken || !lines || !anchor.isConnected || !anchor.parentNode) return;
+      const card = doc.createElement("div");
+      card.className = "tcard";
+      card.setAttribute("data-slot", "week-review");
+      lines.forEach((line, i) => {
+        const row = doc.createElement("div");
+        row.className = line.heading ? "kind" : "change";
+        row.textContent = line.text;
+        card.append(row);
+        if (!line.why) return;
+        const reason = doc.createElement("div");
+        reason.className = "reason";
+        reason.id = "week-review-reason-" + i;
+        reason.textContent = line.why;
+        reason.hidden = true;
+        const why = doc.createElement("button");
+        why.type = "button";
+        why.className = "link";
+        why.setAttribute("data-slot", "week-review-why");
+        why.setAttribute("aria-expanded", "false");
+        why.setAttribute("aria-controls", reason.id);
+        why.textContent = plainOrDrop(PROPOSAL_WHY, "week-review-why");
+        hooks.listen(why, "click", () => {
+          const show = reason.hidden;
+          reason.hidden = !show;
+          why.setAttribute("aria-expanded", show ? "true" : "false");
+        });
+        card.append(why, reason);
+      });
+      anchor.parentNode.insertBefore(card, anchor.nextSibling);
+    }, () => { /* the review is optional; Today stands without it */ });
   }
   function closeCoach() {
     if (!coachView) return false;

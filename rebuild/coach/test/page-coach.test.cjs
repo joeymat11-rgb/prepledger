@@ -35,12 +35,14 @@ test("PC-1: ask() is coach-intents ask() over the same tools and world, turn by 
 
 test("PC-2: the page gets ask() and nothing else, and only page intents are asked", async () => {
   const page = createPageCoach({ today: fakeToday() });
-  assert.deepEqual(Object.keys(page), ["ask"], "no dispatcher is handed out");
+  /* Coach v1 piece 2 adds week(), the weekly review's lines through the same ask() and the same check. */
+  assert.deepEqual(Object.keys(page), ["ask", "week"], "no dispatcher is handed out");
   assert.equal(Object.isFrozen(page), true);
   await assert.rejects(() => page.ask("log_set"), /COACH_UNKNOWN_PAGE_INTENT/, "a write is not a page intent");
   await assert.rejects(() => page.ask("record_machine_settings"), /COACH_UNKNOWN_PAGE_INTENT/);
   const world = { today: fakeToday() };
-  const { TIERS } = Wave1.createWave1Tools({ world, coach: Tools.createCoachTools(world) });
+  /* The page's own composition (read-tools.cjs), which carries the weekly review read tools.cjs does not. */
+  const { TIERS } = Wave1.createWave1Tools({ world, coach: require("../read-tools.cjs").createReadTools(world) });
   for (const intent of Intents.PAGE_INTENT_IDS) {
     const spec = Intents.PAGE_INTENTS[intent];
     assert.equal(TIERS[spec.tool], Tools.TIER.READ, intent + " runs a READ tool");
@@ -84,13 +86,15 @@ test("PC-5: the coach's world is read-only wrappers; no writer of the Today mode
   const real = fakeToday();
   const today = spyWriters(Object.assign(Object.create(real), { read: () => real.read(), stateFromOps: () => real.stateFromOps(), today: real.today }));
   const gym = spyWriters({ read: async () => ({ phase: "ready", lift: { id: "x", label: "Lift", index: 1, count: 1 }, set: { position: 1, count: 1 },
-    prescription: { line: "", effort: "", reason: [], setup: "" }, previous: null }) });
+    prescription: { line: "", effort: "", reason: [], setup: "" }, previous: null }),
+    weekSessions: async () => ({ ok: true, done: 1, dates: [] }) });
   const checkin = spyWriters({ refresh: async () => {}, read: () => ({ day: real.today, recorded: null, note: "", recordedLines: [] }) });
   const held = readOnlyWorld({ today, gym, checkin });
-  assert.deepEqual(Object.keys(held), ["today", "gym", "checkin"]);
+  assert.deepEqual(Object.keys(held), ["today", "gym", "checkin", "week"]);
   assert.deepEqual(Object.keys(held.today).sort(), [...READS.today, "today"].sort());
   assert.deepEqual(Object.keys(held.gym), [...READS.gym]);
   assert.deepEqual(Object.keys(held.checkin), [...READS.checkin]);
+  assert.equal(held.week, null, "no lift read was handed in, so none is held");
   for (const part of [held, held.today, held.gym, held.checkin]) assert.equal(Object.isFrozen(part), true);
   const names = reachableNames(held);
   for (const w of WRITERS) assert.equal(names.has(w), false, w + " is reachable from the coach's world");
@@ -149,4 +153,81 @@ test("PC-6: the page's coach reaches no plan writer, no tools.cjs, no engine rev
   /* and the walk has teeth: tools.cjs itself, walked the same way, is refused and carries the consent path's respond */
   assert.equal([...fs.readFileSync(path.join(REPO, "rebuild/coach/tools.cjs"), "utf8").matchAll(PLAN_WRITER_CALL)].length > 0, true,
     "tools.cjs no longer carries the consent path's respond, so this cell stopped proving anything");
+});
+
+/* PC-7..PC-9 (Coach v1 piece 2, PM ruling option A: the weekly review). Over the real Today model and a synthetic
+   gym card and lift read, the review ships with every number a tool result of its turn; each lift says the engine's
+   offer reason behind Why?, or ONE plain sentence for its refusal or hold code, or the fallback for a code with no
+   sentence; with no workout record the tool refuses in its own words and the card has nothing to draw. */
+const WEEK_ROWS = Object.freeze([
+  { lift: "a", name: "Chest press", status: "offer", kind: "earn", reason: "Chest press: on 2026-10-01 you completed every set at 140 lb on every set. Offer: make 145 lb your working weight." },
+  { lift: "b", name: "Row", status: "refused", code: "NATIVE_LOAD_WINDOW_NOT_TOP" },
+  { lift: "c", name: "Curl", status: "refused", code: "NATIVE_LOAD_SOMETHING_UNMAPPED" },
+  { lift: "d", name: "Squat", status: "held", code: "disputed" },
+]);
+const weekWorld = (day, extra = {}) => {
+  const windows = [];
+  const today = TodayModel.createTodayModel({ today: day });
+  return { windows, today, gym: { read: async () => ({ phase: "idle" }), weekSessions: async (from, to) => { windows.push([from, to]); return { ok: true, done: 3, dates: [] }; } },
+    week: { lifts: async () => ({ ok: true, lifts: WEEK_ROWS.map((row) => ({ ...row })) }) }, ...extra };
+};
+test("PC-7: the weekly review ships traced, Monday reviews the week just ended, and each lift says its own standing", async () => {
+  const { weekStarts } = require("../page-coach.cjs");
+  assert.equal(weekStarts("2026-10-12"), true, "2026-10-12 is a Monday");
+  assert.equal(weekStarts("2026-10-14"), false);
+  assert.equal(weekStarts("not a day"), false);
+  const monday = weekWorld("2026-10-12");
+  const coach = createPageCoach(monday);
+  const asked = await coach.ask("week_review");
+  assert.equal(asked.shipped, true);
+  assert.equal(asked.answered, true);
+  assert.deepEqual(asked.untraceable, [], "every number in the review, whys included, is a tool result of its turn");
+  assert.deepEqual(asked.charter, []);
+  assert.deepEqual(monday.windows, [["2026-10-05", "2026-10-11"]], "on a Monday the window is the week just ended");
+  const lines = asked.lines;
+  assert.equal(lines[0].text, Intents.WEEK_WORDS.lastWeek);
+  assert.equal(lines[1].text, "Workouts done: 3 of " + monday.today.plannedDays("2026-10-05", "2026-10-11").length + ".");
+  const said = (name) => lines.find((l) => l.text.startsWith(name + ": "));
+  assert.equal(said("Chest press").text, "Chest press: " + Intents.WEEK_WORDS.up);
+  assert.equal(said("Chest press").why, WEEK_ROWS[0].reason, "the engine's own offer reason, unedited, behind Why?");
+  assert.equal(said("Row").text, "Row: " + Intents.WEEK_CODE_WORDS.NATIVE_LOAD_WINDOW_NOT_TOP);
+  assert.equal(said("Row").why, null);
+  assert.equal(said("Curl").text, "Curl: " + Intents.WEEK_FALLBACK, "an unmapped code names nothing of its own");
+  assert.equal(said("Squat").text, "Squat: " + Intents.WEEK_HOLD_WORDS.disputed);
+  assert.ok(lines.some((l) => l.text.startsWith(Intents.WEEK_WORDS.suggestion)), "the open suggestion on Today is named");
+  assert.ok(lines.some((l) => /^Your trend weight is \d/.test(l.text)), "the trend line is the weight_trend sentence");
+  assert.equal(asked.answer.includes(WEEK_ROWS[0].reason), false, "the Coach answer leaves the reasons to Why?");
+  const midweek = weekWorld("2026-10-14");
+  const mid = await createPageCoach(midweek).week();
+  assert.deepEqual(midweek.windows, [["2026-10-12", "2026-10-14"]], "midweek the window is this week so far");
+  assert.equal(mid.ok, true);
+  assert.equal(mid.lines[0].text, Intents.WEEK_WORDS.thisWeek);
+});
+
+test("PC-8: every refusal sentence is plain, dash free and true to a named native-load.cjs code; the hold words are the two notices", () => {
+  const nl = fs.readFileSync(path.join(REPO, "rebuild/engine/native-load.cjs"), "utf8");
+  for (const code of Object.keys(Intents.WEEK_CODE_WORDS)) {
+    assert.ok(nl.includes("refuse('" + code.replace(/^NATIVE_LOAD_/, "") + "'"), code + " is a refusal native-load.cjs really raises");
+  }
+  assert.deepEqual(Object.keys(Intents.WEEK_HOLD_WORDS).sort(), ["conflict", "disputed"], "today-entry.mjs noticesOf's two notice codes");
+  const all = [...Object.values(Intents.WEEK_WORDS), ...Object.values(Intents.WEEK_CODE_WORDS), ...Object.values(Intents.WEEK_HOLD_WORDS), Intents.WEEK_FALLBACK];
+  for (const words of all) {
+    assert.equal(/[\u2013\u2014]/.test(words), false, words + " carries a dash");
+    assert.equal(/\d/.test(words), false, words + " carries a figure of its own");
+  }
+  const entry = fs.readFileSync(path.join(REPO, "rebuild/m3/w7-preview/today/today-entry.mjs"), "utf8");
+  assert.ok(entry.includes('line: "' + Intents.WEEK_CODE_WORDS.NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT + '"'),
+    "the bodyweight line is the approved S14 R4 line, word for word");
+});
+
+test("PC-9: with no workout record the review is refused in the tool's own words, and the card has nothing to draw", async () => {
+  const bare = createPageCoach({ today: fakeToday() });
+  const asked = await bare.ask("week_review");
+  assert.equal(asked.shipped, true);
+  assert.equal(asked.answered, false);
+  assert.equal(/\d/.test(asked.answer), false);
+  assert.deepEqual(await bare.week(), { ok: false, lines: null });
+  const noLifts = createPageCoach(weekWorld("2026-10-14", { week: null }));
+  const lines = (await noLifts.week()).lines;
+  assert.ok(lines.some((l) => l.text === Intents.WEEK_WORDS.liftsUnknown), "with no lift read it says the lifts could not be checked");
 });

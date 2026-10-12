@@ -12,7 +12,10 @@ const T = require("../tools.cjs");
 const W = require("../wave1-tools.cjs");
 const { createTodayModel, SYNTHETIC_DAY } = require("../../m3/w7-preview/today/today-model.cjs");
 
-const toolsOver = (world) => W.createWave1Tools({ world, coach: T.createCoachTools(world) });
+/* The PAGE's composition (page-coach.cjs): the read tools, never tools.cjs's writers (Coach v1, 9fb60ed); the weekly
+   review (piece 2) is one of those reads. */
+const { createReadTools } = require("../read-tools.cjs");
+const toolsOver = (world) => W.createWave1Tools({ world, coach: createReadTools(world) });
 
 test("CI-1 the moved templates and routing are the very objects the harnesses export", () => {
   assert.equal(C.ALL_TEMPLATES, I.ALL_TEMPLATES);
@@ -25,7 +28,7 @@ test("CI-1 the moved templates and routing are the very objects the harnesses ex
 
 test("CI-2 every page question is a read: its tool is tier 0, so no tap can record, change or accept anything", () => {
   const tools = toolsOver({ today: createTodayModel({ today: SYNTHETIC_DAY }) });
-  assert.deepEqual([...I.PAGE_INTENT_IDS], ["today_plan", "why_weight", "last_time", "weight_trend", "my_checkin", "machine_seat"]);
+  assert.deepEqual([...I.PAGE_INTENT_IDS], ["today_plan", "why_weight", "last_time", "weight_trend", "my_checkin", "machine_seat", "week_review"]);
   for (const id of I.PAGE_INTENT_IDS) {
     const spec = I.PAGE_INTENTS[id];
     assert.equal(tools.TIERS[spec.tool], T.TIER.READ, id + " runs " + spec.tool + ", which is not a read");

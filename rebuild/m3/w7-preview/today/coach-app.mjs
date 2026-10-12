@@ -217,7 +217,7 @@ const ANSWER_COMPONENT = 'answer card (copy variant)';
 /* COACH-COPY-END */
 
 /* COACH-LIVE-COPY-START */
-/* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"). The words the live screen adds to the pack: four
+/* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"). The words the live screen adds to the pack: five
    tap-to-ask questions and the one line said when a question is typed or spoken. They are not in the pinned pack,
    so the binding above cannot admit them; design.cjs assertCoachLiveBinding holds this object to its PM-approved
    list instead, exactly and both ways, and to carry no dash. Every ANSWER is a coach template (rebuild/coach/
@@ -227,6 +227,7 @@ export const COACH_LIVE_COPY = Object.freeze({
   lastTime: 'What did I do last time?',
   weightTrend: 'How is my weight going?',
   myCheckin: 'What did I say in my check in?',
+  weekReview: 'How did my week go?',
   typedLater: 'Typed and spoken questions come later. Tap a question above.',
 });
 /* COACH-LIVE-COPY-END */
@@ -241,6 +242,8 @@ export const COACH_QUESTIONS = Object.freeze([
   Object.freeze({ intent: "last_time", label: COACH_LIVE_COPY.lastTime }),
   Object.freeze({ intent: "weight_trend", label: COACH_LIVE_COPY.weightTrend }),
   Object.freeze({ intent: "my_checkin", label: COACH_LIVE_COPY.myCheckin }),
+  /* Coach v1 piece 2: the weekly review, always reachable here (the Today card shows it on the first day of a week). */
+  Object.freeze({ intent: "week_review", label: COACH_LIVE_COPY.weekReview }),
 ]);
 
 const COACH_SCREEN = "coach";

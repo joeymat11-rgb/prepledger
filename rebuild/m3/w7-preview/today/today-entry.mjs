@@ -342,8 +342,37 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
     }
     region.replaceChildren(...children);
   }
+  /* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling option A). A READ of each lift's standing: for every lift
+     whose newest completion is dated in the window, the host's own check, kept as data (an offer's kind and its
+     engine reason, or the refusal code), and every lift the fold holds (spec :157, the notices above). Nothing is
+     held, painted or answered: the offers' handles are not kept, so nothing here can be accepted. */
+  async function weekLifts(from, to) {
+    try {
+      const h = await ensure();
+      const projected = h ? await h.project() : null;
+      if (!projected || projected.ok !== true) return { ok: false, code: (projected && projected.code) || "NATIVE_LOAD_PROJECTION_FAILED" };
+      const holds = new Map(noticesOf(projected.issues).map(n => [n.lift, n.code]));
+      const rows = [];
+      for (const target of projected.lifts) {
+        const lift = target.lift_lineage_id;
+        const row = { lift, name: nameOf(lift), date: target.date };
+        if (holds.has(lift)) { rows.push({ ...row, status: "held", code: holds.get(lift) }); continue; }
+        if (!(typeof target.date === "string" && target.date >= from && target.date <= to)) continue;
+        if (!target.normal) { rows.push({ ...row, status: "refused", code: "NATIVE_LOAD_COMPLETION_REQUIRED" }); continue; }
+        const result = await h.check({ lift_lineage_id: lift, completion_op_id: target.completion_op_id });
+        const offer = result.status === "offer" ? result.offers.find(o => o.kind !== "compensate") || null : null;
+        if (offer) rows.push({ ...row, status: "offer", kind: offer.kind, reason: offer.reason });
+        else rows.push({ ...row, status: "refused", code: result.refusal ? result.refusal.code : null });
+      }
+      return { ok: true, lifts: rows };
+    } catch (error) {
+      return { ok: false, code: (error && error.message) || "NATIVE_LOAD_PROJECTION_FAILED" };
+    }
+  }
   const api = Object.freeze({
     check: () => run(() => checkNow(undefined)),
+    /* WEEKLY REVIEW: the read above, serialized with every other use of the host. */
+    weekLifts: (from, to) => run(() => weekLifts(from, to)),
     // S15 round 6 (item C): the review screen's own look for an offer still unanswered (new weights only, quiet).
     review: () => run(() => checkNow(undefined, { quiet: true })),
     idle: () => view.phase === "idle",

@@ -279,6 +279,71 @@ const WAVE1_TEMPLATES = Object.freeze({
    results of the turn that asked. `why_weight` and `last_time` read the gym card's own prescription and its
    last comparable line for the lift on the card; `machine_seat` reads the settings the athlete kept for that lift.
    With no session composed, each says so in the tool's own words. */
+/* WEEKLY REVIEW (S19 amend, Coach v1 piece 2, PM ruling option A). The words of the "This week" review, on the Today
+   card and in the Coach answer. A lift the engine offers a new weight for says so, with the engine's own offer
+   reason behind Why? (native-load.cjs earnReason / adoptReason). A lift it does not raise says ONE plain sentence per
+   refusal code, each true to the line of rebuild/engine/native-load.cjs that refuses it (cited); a hold says one per
+   held notice (today-entry.mjs noticesOf: BASIS_REPAIR_REQUIRED is "disputed", EFFECT_CONFLICT on load_basis is
+   "conflict"); any other code says WEEK_FALLBACK, which names no cause. PM-approved short plain copy (:913 (5)). A
+   lift's display name is prefixed as "Name: ", as for the notices; the name is the athlete's data, not copy. */
+const WEEK_WORDS = Object.freeze({
+  thisWeek: "This week",
+  lastWeek: "Last week",
+  workouts: "Workouts done: ",
+  of: " of ",
+  up: "ready for a new weight.",
+  noLifts: "No lift finished a workout in this week.",
+  liftsUnknown: "Your lifts could not be checked on this device.",
+  suggestion: "Suggestion waiting on Today: ",
+});
+const WEEK_CODE_WORDS = Object.freeze({
+  // native-load.cjs:232 - a new weight the athlete agreed to is queued for a later workout.
+  NATIVE_LOAD_TARGET_QUEUED: "going up. The new weight you agreed to starts on a later workout.",
+  // native-load.cjs:235 - this completion is the one that landed the agreed weight.
+  NATIVE_LOAD_DEBUT_LANDED: "went up. This was your first workout at the new weight.",
+  // native-load.cjs:326 (the first session under a changed setup) and :368 (one sighting at the top of the range).
+  NATIVE_LOAD_PROVISIONAL: "not raised yet. Not enough workouts yet to judge a change.",
+  // native-load.cjs:327 - the reps did not reach the top of the rep window at this load.
+  NATIVE_LOAD_WINDOW_NOT_TOP: "not raised yet. You have not reached the top of your rep range at this weight.",
+  // native-load.cjs:359 and :367 - hot is the opener rated at 0 in reserve, or the governor's hold on the lift.
+  NATIVE_LOAD_HELD_OR_HOT: "held. Your first set was taken to failure, or this weight is on hold, so it stays where it is.",
+  // native-load.cjs:366 - no next load is on file for the lift.
+  NATIVE_LOAD_NO_NEXT_LOAD: "not raised. There is no heavier weight on file for this lift.",
+  // native-load.cjs:329 - the first set carries no effort rating the engine can read.
+  NATIVE_LOAD_EFFORT_UNRESOLVED: "not raised. The first set has no effort rating to judge from.",
+  // native-load.cjs:281 - the approved S14 R4 line (today-entry.mjs NATIVE_LOAD_BODYWEIGHT_COPY), word for word.
+  NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT: "bodyweight sets have no weight to agree to. Your sets are saved.",
+});
+const WEEK_HOLD_WORDS = Object.freeze({
+  disputed: "held. A workout behind your agreed weight was corrected, so this lift is paused.",
+  conflict: "held. Your working weight changed after you agreed to a new one, so this lift is paused.",
+});
+const WEEK_FALLBACK = "no new weight from its latest workout.";
+/* The review as lines: { text, why } where `why` is the engine's own reason, shown behind Why?. Every number in a
+   line or a why is a tool result of the turn (ask() checks the whole draft, whys included). */
+function weekLines(v) {
+  const lines = [{ text: v.which && v.which.value === "last" ? WEEK_WORDS.lastWeek : WEEK_WORDS.thisWeek, why: null, heading: true }];
+  lines.push({ text: WEEK_WORDS.workouts + d(v.done, "?") + WEEK_WORDS.of + d(v.planned, "?") + ".", why: null });
+  const lifts = Array.isArray(v.lifts) ? v.lifts : [];
+  if (!(v.liftsKnown && v.liftsKnown.value === true)) lines.push({ text: WEEK_WORDS.liftsUnknown, why: null });
+  else if (!lifts.length) lines.push({ text: WEEK_WORDS.noLifts, why: null });
+  for (const lift of lifts) {
+    const status = lift.status && lift.status.value, code = lift.code && lift.code.value;
+    const said = status === "offer" ? WEEK_WORDS.up
+      : status === "held" ? (Object.hasOwn(WEEK_HOLD_WORDS, code) ? WEEK_HOLD_WORDS[code] : WEEK_FALLBACK)
+      : (Object.hasOwn(WEEK_CODE_WORDS, code) ? WEEK_CODE_WORDS[code] : WEEK_FALLBACK);
+    lines.push({ text: d(lift.name, "text") + ": " + said, why: status === "offer" && has(lift.reason) ? d(lift.reason, "text") : null });
+  }
+  if (v.suggestion && has(v.suggestion.title)) {
+    lines.push({ text: WEEK_WORDS.suggestion + d(v.suggestion.title, "text") + (has(v.suggestion.lift) ? " (" + d(v.suggestion.lift, "text") + ")" : "") + ".",
+      why: has(v.suggestion.why) ? d(v.suggestion.why, "text") : null });
+  }
+  if (v.trend) lines.push({ text: TEMPLATES_2.weight_trend(v.trend), why: null });
+  return lines;
+}
+/* The Coach answer: the lines, without the whys (a subset of what ask() checked). */
+const weekAnswer = (lines) => lines.map((line) => (line.heading ? line.text + "." : line.text)).join(" ");
+
 const PAGE_TEMPLATES = Object.freeze({
   /* The reason under today's weight for the lift on the card: the capture's own prescription line and its reason
      cells, carried unedited. With no reason cell the sentence says the engine gave none (C-20's own words). */
@@ -289,6 +354,8 @@ const PAGE_TEMPLATES = Object.freeze({
       ? (v.reason || []).filter(has).map((line) => d(line, "text")).join(" ")
       : "The engine gave no reasoning for that number.",
   ]),
+  /* The weekly review (Coach v1 piece 2): every line and every why, so the turn's check covers all of it. */
+  week_review: (v) => weekLines(v).flatMap((line) => [line.text, line.why || ""]).filter(Boolean).join(" "),
 });
 
 const PAGE_INTENTS = Object.freeze({
@@ -298,6 +365,7 @@ const PAGE_INTENTS = Object.freeze({
   weight_trend: { tool: "weight_trend", template: "weight_trend" },
   my_checkin: { tool: "today_checkin", template: "checkin" },
   machine_seat: { tool: "machine_settings", template: "machine_settings" },
+  week_review: { tool: "week_review", template: "week_review" },
 });
 const PAGE_INTENT_IDS = Object.freeze(Object.keys(PAGE_INTENTS));
 
@@ -326,13 +394,18 @@ async function ask(tools, intent, { turnId, liftId = async () => null } = {}) {
   const untraceable = turn.untraceable(draft);
   const charter = T.charterViolations(draft);
   const shipped = untraceable.length === 0 && charter.length === 0 && typeof draft === "string" && draft !== "";
+  /* The weekly review also hands back its lines (the Today card draws them, whys behind Why?), and its answer is the
+     lines without the whys; only a shipped, answered turn has lines. */
+  const week = intent === "week_review" && shipped && answered ? weekLines(turn.results[0].values) : null;
   /* `answered` is false when the tool itself refused (no session, no lane, nothing kept): the sentence is then the
      tool's own refusal, and the screen shows it as one. */
   return Object.freeze({ intent, turn_id: turn.turn_id, results: turn.results.slice(), draft, untraceable, charter,
-    shipped, answered: shipped && answered, answer: shipped ? draft : ALL_TEMPLATES.unavailable({ code: "COACH_ANSWER_DISCARDED", reason: null }) });
+    shipped, answered: shipped && answered, lines: week,
+    answer: !shipped ? ALL_TEMPLATES.unavailable({ code: "COACH_ANSWER_DISCARDED", reason: null }) : week ? weekAnswer(week) : draft });
 }
 
 module.exports = {
   d, has, join, list, TEMPLATES, TEMPLATES_2, ALL_TEMPLATES, READ_INTENTS, FACT_INTENTS, TIER3_INTENTS, answerOne,
   WAVE1_TEMPLATES, PAGE_TEMPLATES, PAGE_INTENTS, PAGE_INTENT_IDS, ask,
+  WEEK_WORDS, WEEK_CODE_WORDS, WEEK_HOLD_WORDS, WEEK_FALLBACK, weekLines,
 };

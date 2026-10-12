@@ -3448,6 +3448,14 @@
    ]
   },
   {
+   "text": "How did my week go?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "How do you want to record it?",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 2,

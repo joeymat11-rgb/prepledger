@@ -781,8 +781,18 @@ export const PAGE_PINS = Object.freeze({
      weight when every set carries the same number) and offerHeading (the earn and undo headings unchanged, an adoption
      stating its weight, else the approved ": set your working weight"); (2) paint()'s heading line calls offerHeading.
      boot() is byte-unchanged, no store is opened by the new hunks, and gym-host.mjs, reading-host.mjs and checkin-host.mjs
-     did not move. MEASURED: a15606e62f636d643624e75969cb06aa1b149a0749e01f4a7da126eedf4ceca3 -> the value below. */
-  'today-entry.mjs': 'dac88dd5afadc03e3c5ce32bafd874ec75286d421a59191e8644ff45b76af52d',
+     did not move. MEASURED: a15606e62f636d643624e75969cb06aa1b149a0749e01f4a7da126eedf4ceca3 -> dac88dd5afadc03e3c5ce32bafd874ec75286d421a59191e8644ff45b76af52d.
+     COACH V1 WEEKLY REVIEW re-pin (S19 amend, Coach v1 piece 2, PM ruling option A). today-entry.mjs moves by ONE hunk
+     and nothing else, in the next-weight controller: weekLifts(from, to), a READ that projects the SAME native-load host
+     the controller already opens through ensure() (openedNativeHost, hosts.createNativeLoadHost over the one store) and
+     runs its own check per lift whose newest completion is in the window, keeping each answer as data (an offer's kind
+     and engine reason, or the refusal code) and the held notices; it keeps no handle, paints nothing and answers
+     nothing, and the api gains the one serialized accessor. boot() is byte-unchanged, no store of its own is opened by
+     the hunk (the host it may open first is the one ensure() opens for every check, over the same store), and gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move. Re-read against today-bindings.mjs at this
+     re-pin: its createNativeLoadHost project() and check() are unchanged and write nothing; only respond() writes, and
+     weekLifts never calls it. MEASURED: dac88dd5afadc03e3c5ce32bafd874ec75286d421a59191e8644ff45b76af52d -> the value
+     below. */
+  'today-entry.mjs': 'fbdcd96abd55b7111c6419afd89045d9b3fce56208f69827f391012e1ee8e423',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

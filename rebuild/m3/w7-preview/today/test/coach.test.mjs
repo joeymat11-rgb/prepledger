@@ -618,3 +618,53 @@ test("CV1-7 the live words are exactly the approved list, and the binding refuse
   assert.throws(() => design.assertCoachLiveBinding(dir), /COACH-LIVE-BINDING FAIL/, "an approved word dropped refuses");
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+/* CV1-8 (Coach v1 piece 2, PM ruling option A). On the first day of a training week Today shows the review of the week
+   just ended, in the proposal card's look, the engine's own reason behind Why?; on any other day, or with no workout
+   record to read, Today is unchanged. The workout lane here is the gym.test.mjs fake (summary only) with the two reads
+   the review uses. SYNTHETIC_DAY (2030-02-04) is a Monday. */
+async function weekToday(day, lane) {
+  const { doc, phone } = page();
+  const { default: TodayApp } = await import("../today-app.cjs");
+  const { default: TodayModel } = await import("../today-model.cjs");
+  const model = TodayModel.createTodayModel({ today: day });
+  const api = TodayApp.mountToday(doc, model, { workout: { summary: () => ({ phase: "ready", sets: 0, code: null, copy: null, unfinished: null }), ...lane } });
+  return { doc, phone, api, model };
+}
+const WEEK_LANE = Object.freeze({
+  gym: { read: async () => ({ phase: "ready" }), weekSessions: async () => ({ ok: true, done: 2, dates: [] }) },
+  nativeLoad: { weekLifts: async () => ({ ok: true, lifts: [
+    { lift: "demo-press", name: "Chest press", status: "offer", kind: "earn", reason: "Chest press: every set at 100 lb reached the top of the range." },
+    { lift: "demo-row", name: "Row", status: "refused", code: "NATIVE_LOAD_PROVISIONAL" }] }) },
+});
+test("CV1-8 the first day of a week shows last week's review on Today, its reasons behind Why?, and no other day does", async () => {
+  const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
+  const { default: TodayModel } = await import("../today-model.cjs");
+  const { doc, api } = await weekToday(TodayModel.SYNTHETIC_DAY, WEEK_LANE);
+  const card = await tickUntil(() => doc.querySelector('[data-slot="week-review"]'), "the weekly review card");
+  const rows = [...card.children].filter((el) => el.classList.contains("kind") || el.classList.contains("change")).map((el) => norm(el.textContent));
+  assert.equal(rows[0], Intents.WEEK_WORDS.lastWeek);
+  assert.match(rows[1], /^Workouts done: 2 of \d+\.$/);
+  assert.ok(rows.includes("Chest press: " + Intents.WEEK_WORDS.up));
+  assert.ok(rows.includes("Row: " + Intents.WEEK_CODE_WORDS.NATIVE_LOAD_PROVISIONAL));
+  const why = card.querySelector('[data-slot="week-review-why"]');
+  const reason = doc.getElementById(why.getAttribute("aria-controls"));
+  assert.equal(why.textContent, "Why?");
+  assert.equal(reason.hidden, true, "the reason waits behind Why?");
+  why.click();
+  assert.equal(reason.hidden, false);
+  assert.equal(reason.textContent, "Chest press: every set at 100 lb reached the top of the range.");
+  assert.equal(why.getAttribute("aria-expanded"), "true");
+  assert.equal(card.classList.contains("tcard"), true, "the proposal card's own look");
+  api.dispose();
+  /* not the first day of a week: nothing */
+  const later = await weekToday("2030-02-06", WEEK_LANE);
+  await new Promise((r) => setTimeout(r, 50));
+  assert.equal(later.doc.querySelector('[data-slot="week-review"]'), null, "midweek Today carries no review card");
+  later.api.dispose();
+  /* a lane with no workout record to read: nothing */
+  const bare = await weekToday(TodayModel.SYNTHETIC_DAY, {});
+  await new Promise((r) => setTimeout(r, 50));
+  assert.equal(bare.doc.querySelector('[data-slot="week-review"]'), null, "no workout record, no card");
+  bare.api.dispose();
+});
