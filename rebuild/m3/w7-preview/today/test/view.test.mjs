@@ -370,7 +370,12 @@ test("every screen this slice does not build says so and shows no invented value
   assert.equal(coach.querySelector('.pill[title="Example numbers, not your data"]').hidden, true, "no example pill over real answers");
   assert.doesNotMatch(phoneText(doc), /\d/, "no figure is shown on the coach screen before he asks");
   const prompts = [...coach.querySelectorAll("#prompts .prompt")];
-  assert.equal(prompts.length, 6, "the coach's six questions (Coach v1 piece 2 adds How did my week go?)");
+  /* The seat read (PM ruling option A, red at 38ee0e5: this cell still counted six) adds the seventh question,
+     "Where's my seat set?". The cell names all seven, in order, which is the count and more. */
+  assert.equal(prompts.length, 7, "the coach's seven questions (piece 2 added How did my week go?, the seat read Where's my seat set?)");
+  assert.deepEqual(prompts.map((p) => p.getAttribute("data-intent")),
+    ["today_plan", "why_weight", "last_time", "weight_trend", "my_checkin", "week_review", "machine_seat"], "the seven, in order");
+  assert.equal(prompts[6].textContent.replace(/\s+/g, " ").trim(), "Where's my seat set?");
   assert.equal(prompts[0].getAttribute("data-intent"), "today_plan");
   prompts[0].click();
   for (let at = 0; at < 200 && coach.querySelector("#coach-answer").hidden; at += 1) await new Promise((r) => setTimeout(r, 5));
