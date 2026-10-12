@@ -92,6 +92,12 @@ export const COPY = Object.freeze({
   confirm: 'Import this history',
   working: 'Working.',
   done: 'Imported. Today and your gym card now use it.',
+  /* S15 F10 (PM ruling option B, approved under DECISIONS:913 (5)). Shown under
+     the done sentence only when admission superseded a routine change saved on
+     this phone before the import: an import replaces the routine, and the
+     change stays on record. */
+  routineSuperseded:
+    'Your imported history brings its own routine. Changes you made to your routine before this import are kept on record but no longer used.',
   summaryHead: 'Your import',
   retractionsHead: 'Files you took back',
   noStore: 'This browser did not give the page an encrypted local store to import into.',
@@ -288,6 +294,8 @@ export function createImportScreen(deps = {}) {
   let busy = false;
   let imports = [];
   let retractions = [];
+  let repository = null;    // the installation's repository the controller was built over
+  let routineSuperseded = false;
   /* ONE TAP AT A TIME, and a handle on it. Every control below goes through
      run(), so a second tap queues behind the first instead of racing it, and a
      caller (or a cell) can await exactly the work a tap started. */
@@ -430,6 +438,7 @@ export function createImportScreen(deps = {}) {
       if (carried.imported !== true) { fail(carried.code); busy = false; await readLists(); return repaint(); }
       custody = { name: carried.name };
       const bindings = await installation.client.hostBindings({});
+      repository = bindings.repository;
       controller = createLocalSourceController({ repository: bindings.repository,
         namespace: installation.namespace, athleteId: installation.athleteId,
         deviceId: installation.deviceId,
@@ -492,6 +501,7 @@ export function createImportScreen(deps = {}) {
         const capability = localSourceCommitCapability(prepared);
         await capability.publish();
         await capability.reconcile();
+        routineSuperseded = await supersededRoutine();
         /* ROUND 4, REVIEW R3 NOTE (carried from r2): THE BYTES GO WHEN THE WORK
            IS DONE. `opened` held the whole decrypted bundle for the life of the
            page session - through the review, through the confirm and after it -
@@ -607,8 +617,21 @@ export function createImportScreen(deps = {}) {
     root.append(button('import-confirm', COPY.confirm, () => confirm()));
   }
 
+  /* S15 F10. Did the import just committed supersede a routine change saved on
+     this phone? Admission's own answer, read back from the committed admitted
+     view (its F10 rows); anything unreadable is "no", which only withholds the
+     sentence. */
+  async function supersededRoutine() {
+    try {
+      const loaded = await repository.load();
+      const rows = loaded?.generation?.collections?.derived?.localSource?.view?.families;
+      return Array.isArray(rows) && rows.some(row => row && row.family === 'F10');
+    } catch (_) { return false; }
+  }
+
   function doneStep(root) {
     root.append(el('p', 'import-done', COPY.done));
+    if (routineSuperseded) root.append(el('p', 'import-routine-superseded', COPY.routineSuperseded));
   }
 
   function summary(root) {

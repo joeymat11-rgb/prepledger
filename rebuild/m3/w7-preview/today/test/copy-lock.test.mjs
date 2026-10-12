@@ -65,7 +65,7 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // S14 (M2-S14-HOLD, E12): re-measured for exactly one new piece, the R4 panel line (CL-S14-DELTA; the S13 value is S13_CORPUS_SHA256).
 // S15 (Change my routine, PM S15 round 2): re-measured for exactly the S15 pieces and three scanned files (CL-S15-DELTA;
 // the S14 value is S14_CORPUS_SHA256).
-const CORPUS_SHA256 = '11b0e9d6e940321be68eda69a531fa74410450e7daca7875baa40875543f3915';
+const CORPUS_SHA256 = '523145719fa2048916759cef046874529a6736fd9b0b5be089b737c05678693c';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -451,7 +451,8 @@ test('CL-S14-APPROVAL: the S14 copy delta names the ledger line that approves it
 /* ---------------- S15 (Change my routine; PM S15 round 2) ----------------
    The S15 copy delta over the S14 corpus (CORPUS_SHA256 before this re-measure, S14_CORPUS_SHA256 below): exactly the
    thirty-three new pieces of the routine editor, each with its one owner (routine-model.mjs COPY; the Today link's two
-   words also in today-app.cjs; the editor's internal no-host error in routine-app.mjs), in no design.cjs list, and
+   words also in today-app.cjs; the editor's internal no-host error in routine-app.mjs), plus the one Import-screen
+   sentence F10 adds (import-screen.mjs COPY.routineSuperseded, PM ruling option B), in no design.cjs list, and
    the three new scanned files. No sealed piece removed or changed, no owner, count, list or mounted state moved.
    CL-S15-DELTA proves it both ways: every piece is in the corpus exactly as listed, and the corpus with the delta taken
    out serializes to the S14 corpus bytes, so CL-S14-DELTA, CL-S12-DELTA and CL-S11-DELTA keep judging what they judged.
@@ -493,6 +494,9 @@ const S15_NEW = Object.freeze([
   ['The day has changed. Look it over and save again.', { [S15_MODEL]: 1 }],
   ['Change my routine', { [S15_MODEL]: 1, [T + '/today-app.cjs']: 1 }],
   ['Change my routine: no host element', { [T + '/routine-app.mjs']: 1 }],
+  // S15 F10 (PM ruling option B, approved under DECISIONS:913 (5)): an import replaces the routine.
+  ['Your imported history brings its own routine. Changes you made to your routine before this import are kept on record but no longer used.',
+    { 'rebuild/m3/w7-preview/import/import-screen.mjs': 1 }],
 ]);
 const S15_SCANNED = Object.freeze([T + '/routine-app.mjs', T + '/routine-host.mjs', T + '/routine-model.mjs']);
 const S15_COPY_APPROVAL = 'DECISIONS:913';
@@ -507,7 +511,7 @@ test('CL-S15-DELTA: the S15 corpus is the S14 corpus plus exactly the approved S
   const { corpus } = loaded();
   const byText = new Map(corpus.entries.map((e) => [e.text, e]));
   const failed = [];
-  assert.equal(S15_NEW.length, 33, 'CL-S15-DELTA-COUNT');
+  assert.equal(S15_NEW.length, 34, 'CL-S15-DELTA-COUNT');
   for (const [text, files] of S15_NEW) {
     const want = { text, files: sortedFiles(files), lists: [] };
     const got = byText.get(text) || null;

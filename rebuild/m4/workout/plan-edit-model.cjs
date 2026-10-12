@@ -291,7 +291,23 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
           rows.some(o => o.kind === 'tombstone' && o.target_op_id === op.op_id)) fail('PLAN_EDIT_TOMBSTONE_UNPROVEN');
     }
     const dead = new Set(tombstones.map(op => op.target_op_id));
-    const statuses = new Map(edits.map(op => [op.op_id, dead.has(op.op_id) ? 'tombstoned' : 'active']));
+    /* S15 F10, PM ruling option B (the F4 precedent): AN IMPORT REPLACES THE ROUTINE. A routine change saved
+       before the import is kept on record and no longer applied; a change saved after it applies as normal.
+       WHICH changes the import superseded is not decided here: it is admission's own verdict, the F10 rows of
+       the admitted view (source-admission.mjs replay()), read off the SAME generation whose admission marker
+       admittedBasisOf proved above. A row that names anything but a routine change on this record refuses. */
+    const superseded = new Set();
+    if (!firstRun) {
+      const families = collections.derived?.localSource?.view?.families;
+      for (const row of Array.isArray(families) ? families : []) {
+        if (!row || row.family !== 'F10') continue;
+        if (row.state !== 'superseded' || !edits.some(op => op.op_id === row.op_id) || superseded.has(row.op_id))
+          fail('PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE');
+        superseded.add(row.op_id);
+      }
+    }
+    const statuses = new Map(edits.map(op => [op.op_id,
+      dead.has(op.op_id) ? 'tombstoned' : superseded.has(op.op_id) ? 'superseded' : 'active']));
     const intents = new Set(), added = new Set(baseIds);
     for (const op of edits) {
       const value = op.members[0].value;

@@ -382,3 +382,84 @@ test('RT-07 a turned day reloads the routine, keeps the draft and says so in its
   assert.equal(root.querySelector('[data-slot="routine-message"]').textContent, 'Saved. It starts on Friday, September 18.');
   view.close();
 });
+
+/* S15 F10, PM ruling option B (the F4 precedent): AN IMPORT REPLACES THE ROUTINE. A change saved on the first-run
+   routine BEFORE the import is kept on record and no longer used; a change saved AFTER the import is used as normal.
+   Which changes the import superseded is admission's own verdict, read from the admitted view's F10 rows. The
+   generation is built by hand in the shape local-source-basis.mjs admits, as RT-06 builds it (a real admission seals
+   a bundle through the port, which this seat may not run; rebuild/lanes/d/p3-replay-all/plan-edit-import.test.mjs is
+   the real-admission cell). */
+test('RT-08 an import supersedes the routine changes made before it, keeps them on record, and a change after it applies',
+  async () => {
+    const Ops = require('../../../../client/ops.cjs');
+    const Commands = require('../../../../m4/workout/plan-edit-commands.cjs');
+    const { createPlanEditProjector } = require('../../../../m4/workout/plan-edit-model.cjs');
+    const { createHash } = await import('node:crypto');
+    const { admittedLocalSourceBasis } = await import('../local-source-basis.mjs');
+    const { routineBasis } = await import('../routine-host.mjs');
+    const { createCleanInitState } = await import('../setup-model.mjs');
+    const SetupTags = require('../../../../m4/workout/setup-tags.cjs');
+    const { ENGINE_MG, REGION_MG } = await import('../exercise-catalogue.mjs');
+    const rules = SetupTags.createSetupTagProjector({ taxonomy: { muscles: [...ENGINE_MG], regions: { ...REGION_MG } } });
+    const commands = Commands.createPlanEditCommands({ validateTags: rules.validateExerciseTags });
+    const hashBasis = text => createHash('sha256').update(text, 'utf8').digest('hex');
+    const doc = shipped('2026-09-01'), namespace = 'synthetic/s15-superseded';
+    const effective = { local_date: DAY1, local_time: '12:00', utc_offset: '-04:00' };
+    const origin = Ops.build({ kind: 'fact', class: 'event', payload: { profile: Setup.PROFILE, setup: doc.setup, tags: doc.tags },
+      op_id: 'op-f10-1', athlete_id: 'ath-s15', device_id: 'dev-s15', device_seq: 1, predecessor: null,
+      effective: { ...effective, local_date: '2026-09-01' }, lease_id: 'lease-s15', schema_version: 2 }, 'synthetic-test-identity');
+    const generation = { metadata: {}, collections: { ops: { [origin.op_id]: origin }, rejected: {}, outbox: {},
+      sync: { snapshot: { plan: {} } } } };
+    const projectorOn = (basis, source) => createPlanEditProjector({ basisState: basis.state, setupOperation: origin,
+      validateTags: rules.validateExerciseTags, projectNewExerciseTags: rules.projectNewExerciseTags, basisSource: source, hashBasis,
+      admittedBasisOf: g => admittedLocalSourceBasis(g, { athleteLabel: doc.setup.athlete_label, namespace }) });
+    const write = (projector, edit, seq, predecessor) => {
+      const r = projector.read(generation, DAY1);
+      const prepared = commands.prepare({ action: Commands.ACTION, input: { intent_id: 'f10-' + seq, seen_plan_basis: r.plan_basis,
+        starts_on: DAY2, edit, causal_parents: r.causal_parents } });
+      const op = Ops.build({ ...prepared, op_id: 'op-f10-' + seq, athlete_id: 'ath-s15', device_id: 'dev-s15', device_seq: seq,
+        predecessor, effective, lease_id: 'lease-s15', schema_version: 2 }, 'synthetic-test-identity');
+      generation.collections.ops[op.op_id] = op;
+      return op;
+    };
+    // BEFORE THE IMPORT: the first-run routine, and one change to it (the press goes to five sets).
+    const firstRun = routineBasis(generation, { namespace });
+    assert.equal(firstRun.source, 'first-run');
+    const press = firstRun.state.exercises.find(e => e.n === 'Synthetic press');
+    const before = write(projectorOn(firstRun, 'first-run'), M.updateEdit(press, { ...press, sets: 5 }).edit, 2, origin.op_id);
+    assert.equal(projectorOn(firstRun, 'first-run').read(generation, DAY2).state.exercises.find(e => e.id === press.id).sets, 5);
+    // THE IMPORT: the old app's own routine, admitted, and admission's F10 verdict on the change made before it.
+    const state = copy(createCleanInitState({ setup: doc.setup }));
+    state.exercises = state.exercises.map((e, i) => ({ ...e, id: ['p', 'pd', 'r', 'lp'][i], sets: 4, w: 50 + i }));
+    state.exOrder = { U: ['r', 'p', 'pd'], L: ['lp'] };
+    state.split = [{ from: '2026-08-01', map: copy(doc.setup.split.map), why: 'old app week' }];
+    const B = { installation_id: namespace, source_digest: 'y'.repeat(64) };
+    const families = [{ family: 'F10', state: 'superseded', op_id: before.op_id }];
+    generation.metadata = { localSourceApplication: { core_complete: true, selection_id: 'sel-f10', basis: B },
+      localSources: { active: 'sel-f10' } };
+    generation.collections.derived = { localSource: { basis: B,
+      view: { ready: true, pending: false, issues: [], basis: B, state, families } } };
+    const imported = routineBasis(generation, { namespace });
+    assert.equal(imported.source, 'local-source');
+    const projector = projectorOn(imported, 'local-source');
+    // SUPERSEDED, NOT DELETED: the routine is the imported one, and the change is still on the record.
+    const read = projector.read(generation, DAY2);
+    assert.deepEqual(read.state, state, 'the imported routine is used; the change made before the import is not');
+    assert.deepEqual(read.applied_ids, []);
+    assert.deepEqual(read.intents.map(i => [i.op_id, i.status]), [[before.op_id, 'superseded']]);
+    assert.deepEqual(read.causal_parents, [origin.op_id], 'a superseded change is not a parent of the next one');
+    assert.deepEqual(generation.collections.ops[before.op_id], before, 'the change is kept on record, byte for byte');
+    // AFTER THE IMPORT: a change to an imported lift applies from its start date, as normal.
+    const pulldown = state.exercises.find(e => e.id === 'pd');
+    const after = write(projector, M.updateEdit(pulldown, { ...pulldown, sets: 5 }).edit, 3, before.op_id);
+    assert.deepEqual(projector.read(generation, DAY1).state, state, 'today keeps the imported routine');
+    const next = projector.read(generation, DAY2);
+    assert.equal(next.state.exercises.find(e => e.id === 'pd').sets, 5, 'the change made after the import applies');
+    assert.deepEqual(next.applied_ids, [after.op_id]);
+    assert.deepEqual(next.intents.map(i => [i.op_id, i.status]), [[before.op_id, 'superseded'], [after.op_id, 'active']]);
+    for (const kept of state.exercises.filter(e => e.id !== 'pd'))
+      assert.deepEqual(next.state.exercises.find(e => e.id === kept.id), kept, kept.id + ' kept every field');
+    // ... and the verdict has teeth: an F10 row that names anything but a routine change on this record refuses.
+    families.push({ family: 'F10', state: 'superseded', op_id: origin.op_id });
+    assert.throws(() => projector.read(generation, DAY2), { code: 'PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE' });
+  });

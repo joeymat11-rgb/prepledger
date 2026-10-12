@@ -8120,6 +8120,13 @@
    "lists": []
   },
   {
+   "text": "Your imported history brings its own routine. Changes you made to your routine before this import are kept on record but no longer used.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 2,

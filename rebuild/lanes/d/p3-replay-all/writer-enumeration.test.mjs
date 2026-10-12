@@ -237,8 +237,12 @@ test('P3-EN2 - every entry either names a family that ADMISSION REALLY RUNS, or 
        state's own historical decisions rather than for a writer, so it is not a
        register entry; it is asserted here so that it cannot quietly leave.
        S11 FC09 (PM ruling DECISIONS:878): F9, the native-load family, answers for
-       the one plan writer a shipped screen reaches, the native-load Yes. */
-    assert.deepEqual(Registry.FAMILIES, ['F1', 'F2', 'F3', 'F4', 'F5', 'F7', 'F8', 'F9']);
+       the one plan writer a shipped screen reaches, the native-load Yes.
+       S15 F10 (PM ruling, option B, the F4 precedent): F10, the routine-change
+       family, answers for the second, the plan-edit save "Change my routine"
+       reaches (routine-host.mjs -> plan-edit-host.mjs). FAMILIES is sorted as
+       strings, so 'F10' sorts after 'F1'. */
+    assert.deepEqual(Registry.FAMILIES, ['F1', 'F10', 'F2', 'F3', 'F4', 'F5', 'F7', 'F8', 'F9']);
     assert.ok(admission.includes("family:'F6'"), 'F6 stopped answering');
     /* F9 is not a label either: admission imports the family and dispatches it
        BEFORE its unknown-plan catch (NATIVE-LOAD-SPEC R9.13 :176), so a plan
@@ -248,6 +252,13 @@ test('P3-EN2 - every entry either names a family that ADMISSION REALLY RUNS, or 
     const unknownPlan = admission.indexOf("op.class==='plan'?'LOCAL_SOURCE_EFFECT_UNMAPPED'");
     assert.ok(dispatch > 0 && unknownPlan > 0 && dispatch < unknownPlan,
       'F9 is not dispatched before the unknown-plan catch');
+    /* F10 likewise: admission builds it from the PRODUCER's own validate() and
+       dispatches it BEFORE the unknown-plan catch, so a routine change reaches
+       the catch only when it is not the plan-edit producer's. */
+    assert.ok(admission.includes("from '../../../m4/workout/plan-edit-commands.cjs'"),
+      'admission does not take F10\'s validator from the plan-edit producer');
+    const routine = admission.indexOf('planEditFamily.owns(');
+    assert.ok(routine > 0 && routine < unknownPlan, 'F10 is not dispatched before the unknown-plan catch');
   });
 
 /* P3-EN3, THE PLAN WRITERS, rewritten for S11 FC09 (PM ruling DECISIONS:878).

@@ -125,6 +125,22 @@ const ENTRIES = Object.freeze([
       + 'malformed native accept, a missing issuance or a decline refuses '
       + 'LOCAL_SOURCE_NATIVE_LOAD_RECORD_INVALID (detail NATIVE_LOAD_RECORD_INVALID), and any '
       + 'other plan operation keeps LOCAL_SOURCE_EFFECT_UNMAPPED'}),
+  /* THE SECOND PLAN WRITER THE PAGE REACHES: "CHANGE MY ROUTINE" (S15). The
+     routine editor saves ONE plan-mutation per change through the plan-edit
+     producer (routine-host.mjs -> plan-edit-host.mjs -> the client's workout
+     seam with plan-edit-commands.cjs), profile earned/plan-edit/v1, dated from
+     the next local day. Cell P3-EN1 found it; F10 answers for it, by PM ruling
+     option B, the F4 precedent: AN IMPORT REPLACES THE ROUTINE. */
+  Object.freeze({module: 'rebuild/m4/workout/plan-edit-commands.cjs', class: 'plan',
+    kinds: Object.freeze(['plan-mutation']), profiles: Object.freeze(['earned/plan-edit/v1']),
+    disposition: 'family', family: 'F10',
+    rule: 'programme evidence: a routine change saved before the import is SUPERSEDED by the '
+      + 'imported routine, which is what admission proves and the athlete trains on from then; '
+      + 'it is kept on record, never deleted and never applied over the import, and every '
+      + 'change saved after the import is applied by the plan-edit projector as normal. A '
+      + 'record the plan-edit producer\'s own validate() refuses, or one dated after the day '
+      + 'admission stands on, refuses LOCAL_SOURCE_PLAN_EDIT_UNRESOLVED, and any other plan '
+      + 'operation keeps LOCAL_SOURCE_EFFECT_UNMAPPED'}),
 ]);
 
 /* The register, and the two ways the cells read it. */

@@ -41,6 +41,8 @@ import { createGymModel } from '../../../m3/w7-preview/today/gym-model.mjs';
 import { createCleanInitState } from '../../../m3/w7-preview/today/setup-model.mjs';
 import CheckIn from '../../../m3/w7-preview/today/checkin-commands.cjs';
 import { admittedLocalSourceBasis } from '../../../m3/w7-preview/today/local-source-basis.mjs';
+import { createRoutineEntry } from '../../../m3/w7-preview/today/routine-host.mjs';
+import Routine from '../../../m3/w7-preview/today/routine-model.mjs';
 
 const SEALED = sealInventedBundle();
 const DAY = '2026-11-20';
@@ -191,6 +193,27 @@ const WRITERS = {
     const responses = async () => Object.values((await era.generation()).generation.collections.ops || {})
       .filter(op => op.kind === 'proposal-response').map(op => op.op_id).sort();
     return { close: () => host.close(), read: responses };
+  } },
+  /* S15 F10 (PM ruling, option B, the F4 precedent). A CHANGE TO THE ROUTINE,
+     through the shipped routine host (routine-host.mjs createRoutineEntry ->
+     plan-edit-host.mjs save), which writes ONE plan/plan-mutation. RED before
+     F10 in WO1: admission refused it LOCAL_SOURCE_EFFECT_UNMAPPED at its
+     unknown-plan catch. Before the import it is admitted and SUPERSEDED (kept on
+     record, no longer used); after it, it is written and used as normal. The
+     cells in plan-edit-import.test.mjs measure what the routine then is. What
+     this screen reads back is the routine changes on this device, by op id. */
+  'routine change (Change my routine: one more set)': { family: 'F10', async use(era) {
+    const routine = createRoutineEntry({ installation: era, day: DAY });
+    const session = await routine.session();
+    assert.equal(session.ok, true, 'the routine would not open: ' + session.code);
+    const view = await session.view();
+    assert.equal(view.ok, true, 'the routine would not read: ' + view.code);
+    const row = Routine.rowsOf(view.state).U[0];
+    ok('the routine change', await session.save(Routine.updateEdit(row, { ...row, sets: row.sets + 1 }).edit,
+      view.starts_on));
+    const changes = async () => Object.values((await era.generation()).generation.collections.ops || {})
+      .filter(op => op.kind === 'plan-mutation').map(op => op.op_id).sort();
+    return { close: () => session.close(), read: changes };
   } },
 };
 

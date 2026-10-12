@@ -37,6 +37,10 @@ import SleepReplay from '../../../m4/import/sleep-replay.cjs';
 import NativeLoadEffects from '../../../m4/workout/native-load-effects.cjs';
 import NativeTrend from '../../../m4/workout/native-trend-context.cjs';
 import NativeLoadReplay from '../../../m4/import/native-load-replay.cjs';
+// F10's validator is the plan-edit PRODUCER's own, over the tag rules the page saves with (see planEditFamily).
+import PlanEdit from '../../../m4/workout/plan-edit-commands.cjs';
+import SetupTags from '../../../m4/workout/setup-tags.cjs';
+import {ENGINE_MG,REGION_MG} from '../../w7-preview/today/exercise-catalogue.mjs';
 // S11 FC09 round 5 (DECISIONS:880 (2)): the one admission stamp, from this preparation's own confirmed order map.
 import LegacyOrder from '../../../m4/workout/legacy-order-mapping.cjs';
 import Setup from '../../w7-preview/today/setup-commands.mjs';
@@ -102,6 +106,21 @@ const sleepFamily=SleepReplay.createSleepReplayFamily({commands:Sleep.createSlee
 // proposal-response only when it is the native-load producer's (spec :175), so
 // every other plan operation still reaches the unknown-plan catch below.
 const nativeLoadFamily=NativeLoadReplay.createNativeLoadReplayFamily({effects:NativeLoadEffects});
+// F10, THE ROUTINE CHANGE ('F10'; S15 "Change my routine", PM ruling option B, the F4 precedent): AN IMPORT
+// REPLACES THE ROUTINE. It owns a plan-mutation only when it is the plan-edit producer's (its member's profile), and
+// judges it with that producer's OWN validate(), built over the same tag rules the page saves with (setup-tags.cjs
+// over the catalogue's taxonomy, as routine-host.mjs builds them). A well-formed change is SUPERSEDED: it stays in
+// the log, untouched, and is never applied over the imported routine - the plan-edit projector reads these rows off
+// the admitted view and applies only the changes saved after the import. Every other plan operation still reaches
+// the unknown-plan catch below.
+const planEditFamily=(()=>{
+ const tags=SetupTags.createSetupTagProjector({taxonomy:{muscles:[...ENGINE_MG],regions:{...REGION_MG}}});
+ const commands=PlanEdit.createPlanEditCommands({validateTags:tags.validateExerciseTags});
+ return Object.freeze({
+  owns:op=>op?.class==='plan'&&op.kind==='plan-mutation'&&op.members?.[0]?.value?.profile===PlanEdit.PROFILE,
+  answer(op,readOperation,asOf){const d=op.effective?.local_date;
+   return validDay(d)&&d<=asOf&&commands.validate(op,readOperation)===true?{family:'F10',state:'superseded',op_id:op.op_id}:null;}});
+})();
 const fail=(code,detail)=>{const e=new Error(code);e.code=code;if(detail)Object.assign(e,detail);throw e;};
 /* THE CODES THIS MODULE RAISES (P3-PORT-FIX, spec 3.4). The recorded-workout
    `try` at :270 also encloses storedWorkoutHistory, projector.project and the
@@ -531,6 +550,9 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    // F9 BEFORE THE UNKNOWN-PLAN CATCH (spec :176). It is folded after F3 below,
    // because FC03 needs the projected workout facts the yes consumed.
    if(nativeLoadFamily.owns(op,nativeProposals)){nativeRows.push(op);continue;}
+   // F10 BEFORE THE UNKNOWN-PLAN CATCH too: a routine change the import supersedes, or its own named refusal.
+   if(planEditFamily.owns(op)){const row=planEditFamily.answer(op,id=>ops[id],currentDay());
+    if(row)families.push(row);else issue('LOCAL_SOURCE_PLAN_EDIT_UNRESOLVED',op.op_id);continue;}
    const p=op.payload,day=op.effective?.local_date;
    if(!validDay(day)||day>currentDay()){issue('LOCAL_SOURCE_CONTEXT_UNRESOLVED',op.op_id);continue;}
    if(op.class==='food-day'&&op.schema_version===2&&Food.validate(op,id=>ops[id])){food.push({op_id:op.op_id,date:day,day:copy(p.day)});continue;}
