@@ -2474,3 +2474,39 @@ test('S15P-7 after the last set, Finish shows the working-weight offer as a card
   assert.equal(backs, 1, 'Back to Today goes back');
   entry.gymHost.close(); era.close();
 });
+
+/* S15 round 6, item C (PM re-capture of f65a7bd, shots 14/15). A workout closed earlier and opened again
+   ("Review today's workout") shows its unanswered weight offers on the recorded screen with no tap on
+   Check next weight: the controller's own check, run quietly when the recorded page is opened, with the
+   existing Yes / Not now. Nothing new in the engine; showing them writes nothing. */
+test('S15P-10 reopening a closed workout shows its unanswered offers without a tap; showing them writes nothing; '
+  + 'the same issuance as the after-Close check', async () => {
+  const fault = faultDatabase();
+  const era = await openTodayInstallation({ indexedDB: fault.indexedDB, crypto: webcrypto, day: D1 });
+  const { entry } = await twoTops(era);
+  const b = await train(entry);
+  assert.equal(b.finished.ok, true);
+  entryGate(entry);
+  await entry.nativeLoad.settled();
+  const digest = entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press').proposalId;
+  entry.gymHost.close(); era.close();   // left unanswered; the page is opened again later
+  const again = await openTodayInstallation({ indexedDB: fault.indexedDB, crypto: webcrypto, day: D2 });
+  const reopened = await dayEntry(again, D2);
+  assert.equal(reopened.entry.nativeLoad.view().phase, 'idle', 'a fresh page has checked nothing yet');
+  const doc = shell(), phone = doc.getElementById('phone');
+  await reopened.entry.open({ doc, phone, back: () => {} });
+  let offers = [];
+  for (let i = 0; i < 400 && !offers.length; i++) {
+    await new Promise(r => setTimeout(r, 10));
+    await reopened.entry.nativeLoad.settled();
+    offers = qa(doc, '[data-native-load="offer"]');
+  }
+  assert.ok(offers.length >= 1, 'the unanswered offer is on the recorded screen with no tap');
+  const press = offers.find(o => o.getAttribute('data-lift') === 'demo-press');
+  assert.ok(press, 'the closed lift is offered');
+  assert.equal(press.getAttribute('data-proposal'), digest, 'the same issuance as the after-Close check');
+  assert.ok(q(press, '[data-native-load="yes"]') && q(press, '[data-native-load="decline"]'), 'with the existing Yes / Not now');
+  assert.ok(phone.contains(press), 'on the workout screen itself');
+  assert.equal((await responsesOf(again)).length, 0, 'showing it wrote nothing');
+  reopened.entry.gymHost.close(); again.close();
+});

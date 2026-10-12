@@ -203,8 +203,10 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
   const run = task => { const next = busy.then(task, task); busy = next.then(() => {}, () => {}); return next; };
   function set(next) { view = next; paint(); }
   const nameOf = lift => liftNames().get(lift) || lift;
-  async function checkNow(closeOpId) {
-    set({ ...view, phase: "checking", copy: NATIVE_LOAD_COPY.checking });
+  /* S15 round 6 (item C): `quiet` is the review screen's own check - the same check, listing new weights only
+     (no undo choices), and saying nothing when there is nothing to offer, because nobody asked. */
+  async function checkNow(closeOpId, { quiet = false } = {}) {
+    set({ ...view, phase: "checking", copy: quiet ? null : NATIVE_LOAD_COPY.checking });
     try {
       const h = await ensure();
       const projected = await h.project();
@@ -221,7 +223,7 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
          used and every held one, its compensating choice as its own offer. FC01 decides
          eligibility (no captured Start, landing or later training), so an ineligible undo
          is simply not offered. Route B's after-Close check lists only new weights. */
-      if (closeOpId === undefined) {
+      if (closeOpId === undefined && !quiet) {
         const spends = new Map();
         /* S11 FC09 round 9 (PM ruling DECISIONS:884 (1)): a spend names its record's lift; the host gives the lift the page shows it
            on (today-bindings.mjs spendLifts, the one resolver), so an Undo is listed against the completions it keys by that lift. */
@@ -244,11 +246,13 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
           if (result.status === "offer") for (const offer of result.offers) { held.set(offer.proposalId, offer); offers.push(offer); }
         }
       }
-      set({ phase: offers.length ? "offers" : "refused", offers, refusals, notices: noticesOf(projected.issues),
+      if (quiet && !offers.length) set({ phase: "idle", offers: [], refusals, notices: noticesOf(projected.issues), copy: null });
+      else set({ phase: offers.length ? "offers" : "refused", offers, refusals, notices: noticesOf(projected.issues),
         copy: offers.length ? null : NATIVE_LOAD_COPY.none });
     } catch (_) {
       held.clear();
-      set({ phase: "failed", offers: [], refusals: [], notices: view.notices, copy: NATIVE_LOAD_COPY.failed });
+      if (quiet) set({ ...view, phase: "idle", copy: null });
+      else set({ phase: "failed", offers: [], refusals: [], notices: view.notices, copy: NATIVE_LOAD_COPY.failed });
     }
     return api.view();
   }
@@ -310,6 +314,9 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
   }
   const api = Object.freeze({
     check: () => run(() => checkNow(undefined)),
+    // S15 round 6 (item C): the review screen's own look for an offer still unanswered (new weights only, quiet).
+    review: () => run(() => checkNow(undefined, { quiet: true })),
+    idle: () => view.phase === "idle",
     // After a saved Close the programme may have moved (a landing): reconcile Today in
     // the same serialized task, contained, so the saved workout is never affected.
     afterClose: ({ closeOpId } = {}) => run(async () => {
@@ -496,6 +503,14 @@ export async function createWorkoutEntry(model, options = {}) {
         }
         return back();
       };
+      /* S15 ROUND 6, item C (PM re-capture, shot 15): "Review today's workout" opens on the recorded workout;
+         an offer still unanswered is shown there too, through the same check and the same Yes / Not now, and
+         only when nothing has been checked on this page yet (a quiet look: no sentence when there is none).
+         The region is already mounted above, so the look can start beside the card's own mount. */
+      Promise.resolve().then(() => gym.read()).then((shown) => {
+        if (shown && shown.phase === "finished" && nativeLoad && nativeLoad.idle()) return nativeLoad.review();
+        return null;
+      }).catch(() => { /* the review's look is optional; the recorded workout stands either way */ });
       return mountGym(doc, child, { model: gym, onBack: backAfterClose, onChanged: refresh,
         onCheckIn: checkIn, draft: gymDraft });
     },

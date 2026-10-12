@@ -560,3 +560,50 @@
 .scene-frame.screen-workout .numerals .value input:focus { border-bottom-color: var(--text); }
 .scene-frame.screen-workout #machine { position: relative; z-index: 1; margin-bottom: var(--s3, 12px); }
 /* ===== S15 ROUND 5 POLISH: END ===== */
+/* ===== S15 ROUND 6 POLISH (PM re-capture of f65a7bd, measured at 390x844): BEGIN =====
+   A. TODAY. The page's own appended controls (Measure, Import my history, Change my routine) are one quiet
+      group at the foot of the day, after the cards and the links, on every day; on a training day the flex
+      order puts them last too. The build line stays in the document (the problem report and the build cells
+      read it) and leaves the athlete's screen. On a training day the plan's headline, its label and its long
+      sentence give way to the one short status line, so the workout card, the weigh-in and the food card sit
+      straight under the date and Start (the fixed primary) is on the first screen. */
+.scene-frame > .view.ui > .body > :is([data-slot="measure-tile"], [data-slot="import-entry"], [data-slot="routine-entry"]) {
+  display: flex; align-items: center; width: auto; min-height: var(--hit); margin: 0; padding: 0; border: 0;
+  border-radius: 0; background: none; font-family: var(--sans); font-size: 13.5px; font-weight: 460;
+  color: var(--text-soft); text-align: left; text-shadow: var(--text-shadow); }
+.scene-frame > .view.ui > .body[data-day="train"] > :is([data-slot="measure-tile"], [data-slot="import-entry"], [data-slot="routine-entry"]) { order: 4; }
+.scene-frame > .view.ui > .body > [data-slot="build-id"] { position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; margin: 0; }
+.scene-frame > .view.ui > .body[data-day="train"] > section > :is(.label, .greeting, [data-slot="instruction-why"]) { display: none; }
+/* B. THE SET SCREEN. Everything above the effort row fits above it at 390x844: the engine's reason reads two
+      lines until Why? opens the rest, the prescription line under the empty boxes is set in the pack's quiet
+      sans (.w-reason's 14 px), and the body ends where the effort row begins, so no row is drawn beneath it. */
+.scene-frame.screen-workout .w-reasons .w-reason { display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.scene-frame.screen-workout .w-reasons:has(> [data-slot="reason-more"]:not([hidden])) .w-reason { -webkit-line-clamp: unset;
+  line-clamp: none; overflow: visible; }
+.scene-frame.screen-workout .setcard .w-presc { font-family: var(--sans); font-size: 14px; line-height: 1.35; margin-top: 8px; }
+.scene-frame.screen-workout #setcard { margin-top: 8px; }
+.scene-frame.screen-workout #machine { min-height: 52px; padding-top: 6px; padding-bottom: 6px; }
+.scene-frame.screen-workout .body > .rowcard[data-action="checkin"] { min-height: 52px; margin-top: 0; padding-top: 6px; padding-bottom: 6px; }
+.screen-workout .ui > [data-native-load="gym"] > .body, .screen-workout .ui > .body { padding-bottom: 0; --fade-bot-inset: 0px; }
+.screen-workout .ui > [data-native-load="gym"] > .stack, .screen-workout .ui > .stack { margin-top: 0; }
+/* C. THE RECORDED WORKOUT. The heading is the session's name in a size that keeps it on one line, and the
+      weight offers sit straight under "N sets recorded", above Back to Today: the recorded page lays its parts
+      out in the host's own column (display: contents) so the offer region can take its place between them. */
+.scene-frame > .view.ui > [data-native-load="gym"] > article.page { display: contents; }
+.scene-frame > .view.ui > [data-native-load="gym"] > article.page > .bottom { order: 3; z-index: 3; }
+.scene-frame > .view.ui > [data-native-load="gym"] > article.page > .back {
+  margin-top: max(22px, calc(env(safe-area-inset-top, 0px) + 12px)); }
+.scene-frame.screen-workout article.page .detail-head h1 { font-size: 30px; line-height: 1.15; }
+/* D. A heading the page focuses for the screen reader (setup's tabindex="-1" heading, or its screen when it
+      has none) is not a control and is never reached by Tab: it draws no ring, for touch or keys. Every
+      control (button, field, link) keeps its keyboard ring. */
+.view :not(button, input, select, textarea, a, [role="button"])[tabindex="-1"]:focus { outline: none; }
+/* E. THE ROUTINE SEARCH. The picks are a plain list under the search box, one row each (an empty list
+      keeps its hidden attribute). */
+.view [data-slot="routine-screen"] [data-slot="routine-search-results"]:not([hidden]) { display: flex; flex-direction: column; gap: 0; }
+.view [data-slot="routine-screen"] [data-slot="routine-search-results"] > button { width: 100%; text-align: left;
+  border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; background: none; padding: 0 4px; }
+.view [data-slot="routine-screen"] [data-slot="routine-search-results"] > button[aria-pressed="true"] { color: var(--gold); }
+/* ===== S15 ROUND 6 POLISH: END ===== */

@@ -556,3 +556,56 @@ test('RT-12 a training day is marked and laid out workout-first; a rest day keep
   assert.match(rules, /#machine \{[^}]*z-index: 1;[^}]*margin-bottom/, 'the machine row stands clear of the effort row');
   assert.doesNotMatch(rules, /#[0-9a-f]{3,8}\b|rgba?\(/i, 'no colour is invented');
 });
+
+/* S15 ROUND 6 POLISH (PM re-capture of f65a7bd, shots 02/03, 06/07, 09/11, 14/15, 20). Measured at 390x844 at
+   the builder seat: on a training day the workout card is the first thing under the date and Start is on the
+   first screen; the three appended controls are one quiet group at the foot; the build line is off the
+   screen but still in the page; the set screen's machine and check-in rows end above the effort row; the
+   recorded workout's heading is one line and its offers sit under the count, above Back to Today; a
+   focused heading draws no ring; the routine picks are a list under the search box. Layout is the look
+   gate's to measure; these cells pin the hooks and the rules. */
+test('RT-13 round 6: Today is workout-first with its controls at the foot; the set, recorded, setup and routine '
+  + 'screens are laid out as measured', { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('round6');
+  era.close();
+  const page = await bootOn(indexedDB, 'round6', '2026-09-22');   // Tuesday: a Lower day
+  try {
+    const day = page.doc.querySelector('.body.page');
+    assert.equal(day.getAttribute('data-day'), 'train', 'a training day is marked');
+    for (const slot of ['measure-tile', 'import-entry', 'routine-entry']) {
+      const node = day.querySelector(':scope > [data-slot="' + slot + '"]');
+      assert.ok(node, slot + ' is one of the day\'s own controls');
+    }
+    const build = page.doc.querySelector('[data-slot="build-id"]');
+    assert.ok(build && build.textContent.trim(), 'the build line is still in the page for the problem report');
+  } finally { page.close(); }
+  const css = fs.readFileSync(new URL('../preview.css', import.meta.url), 'utf8');
+  const begin = css.indexOf('/* ===== S15 ROUND 6 POLISH'), end = css.indexOf('/* ===== S15 ROUND 6 POLISH: END');
+  assert.ok(begin >= 0 && end > begin, 'the round 6 block is in preview.css');
+  const rules = css.slice(begin, end).replace(/\/\*[\s\S]*?\*\//g, '');
+  // A. Workout first, controls last, no build line, no long headline on a training day.
+  assert.match(rules, /\.body\[data-day="train"\] > :is\(\[data-slot="measure-tile"\], \[data-slot="import-entry"\], \[data-slot="routine-entry"\]\) \{ order: 4; \}/,
+    'the three controls after the cards (-1), the headline (2) and the foot (3)');
+  assert.match(rules, /\[data-slot="build-id"\] \{ position: absolute;[^}]*clip-path: inset\(50%\)/, 'the build line leaves the screen');
+  assert.match(rules, /\.body\[data-day="train"\] > section > :is\(\.label, \.greeting, \[data-slot="instruction-why"\]\) \{ display: none; \}/,
+    'the headline and its long sentence give way on a training day');
+  // B. The set screen ends above the effort row.
+  assert.match(rules, /\.w-reasons \.w-reason \{[^}]*-webkit-line-clamp: 2;/, 'the reason reads two lines until Why? opens it');
+  assert.match(rules, /#setcard \{ margin-top: 8px; \}/, 'the card sits close under the reason');
+  assert.match(rules, /#machine \{ min-height: 52px;/, 'the machine row is compact');
+  assert.match(rules, /\.rowcard\[data-action="checkin"\] \{ min-height: 52px; margin-top: 0;/, 'the check-in row is compact');
+  assert.match(rules, /\.screen-workout \.ui > \[data-native-load="gym"\] > \.stack, \.screen-workout \.ui > \.stack \{ margin-top: 0; \}/,
+    'the effort row no longer reaches up over the body');
+  // C. The recorded workout.
+  assert.match(rules, /article\.page \{ display: contents; \}/, 'the recorded page lays out in the host column');
+  assert.match(rules, /article\.page > \.bottom \{ order: 3; z-index: 3; \}/, 'Back to Today after the offers, and above them');
+  assert.match(rules, /\.detail-head h1 \{ font-size: 30px;/, 'a heading that keeps to one line');
+  // D. A focused heading draws no ring; controls keep theirs.
+  assert.match(rules, /:not\(button, input, select, textarea, a, \[role="button"\]\)\[tabindex="-1"\]:focus \{ outline: none; \}/,
+    'a programmatically focused heading draws no ring');
+  assert.doesNotMatch(rules, /focus-visible/, 'no control loses its keyboard ring');
+  // E. The routine picks.
+  assert.match(rules, /\[data-slot="routine-search-results"\]:not\(\[hidden\]\) \{ display: flex; flex-direction: column;/,
+    'the picks are a list under the box');
+  assert.doesNotMatch(rules, /#[0-9a-f]{3,8}\b|rgba?\(/i, 'no colour is invented');
+});

@@ -745,9 +745,20 @@ export const PAGE_PINS = Object.freeze({
      object is named entryApi so open() can call itself. boot() is byte-unchanged: it still opens the local era BY
      DEFAULT, the `hosts` branch is untouched, no store is opened by the new hunks, an INJECTED installation is still
      never closed by this page, and a declared-day caller still gets no watcher. gym-host.mjs, reading-host.mjs and
-     checkin-host.mjs did not move. MEASURED: 0e4b338873e3d42d0eb057c0cd643c2e28e1f4ee9d56f040d3df3a723baa07bc -> the
-     value below. */
-  'today-entry.mjs': '559463e09b64df729db0ba7e643c3ed1930174e8301d258a760767dd75defd40',
+     checkin-host.mjs did not move. MEASURED: 0e4b338873e3d42d0eb057c0cd643c2e28e1f4ee9d56f040d3df3a723baa07bc ->
+     559463e09b64df729db0ba7e643c3ed1930174e8301d258a760767dd75defd40.
+     S15 ROUND 6 POLISH re-pin (PM re-capture of f65a7bd, item C). today-entry.mjs moves by TWO hunks and nothing else:
+     (1) inside createNativeLoadController, checkNow takes a `quiet` option (no "checking" sentence, no Undo listing,
+     and idle rather than a "nothing to offer" or failure sentence), and the controller gains review() (that quiet
+     check, through the same run()) and idle(); (2) in createWorkoutEntry's open(), beside the card's mount (the
+     `return mountGym(doc, child, {` line S12 C-2 reads is unchanged), a finished workout opened on a page that
+     has checked nothing yet runs review(), so an unanswered offer is shown with the existing Yes / Not now. The
+     check writes nothing (A02). boot() is byte-unchanged: it still opens the local era BY DEFAULT, the `hosts`
+     branch is untouched, no store is opened by the new hunks, an INJECTED installation is still never closed by
+     this page, and a declared-day caller still gets no watcher. gym-host.mjs, reading-host.mjs and
+     checkin-host.mjs did not move. MEASURED: 559463e09b64df729db0ba7e643c3ed1930174e8301d258a760767dd75defd40 ->
+     the value below. */
+  'today-entry.mjs': '82db0b146a0e00175676d1e9891bad1b767c9cdbd4f5fb45937e3c5e0c63766c',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',
