@@ -211,8 +211,17 @@ jobs:
       # THEME and BRIEF-BY-SHA lines stand on the chain branch and every declared child carries an observed needle, this
       # step reports the runner's own refusal by name rather than PASS; that is the expected pre-ruling state. The step
       # NAME moves with it.
-      - name: Cumulative S15 ROUTINE reseal, S14 HOLD reseal, S13 POLISH reseal, S12 LOOK reseal, S11 NATIVE-LOAD reseal, S10 Today split, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S15
+      # S16 SUCCEEDS M2-S15-ROUTINE HERE (S15 retired by supersession, the DECISIONS:920 / :923 shape), by the same rule, and the
+      # flip again lives INSIDE the package (ef21153's shape; DECISIONS:498). S16 is the POLISH reseal child: it carries every byte
+      # S15 declared and the S15 round 5 and 6 polish (brief rebuild/lanes/b/S16-POLISH-BRIEF.md) on the SEALED S14 (receipt
+      # DECISIONS:932). S15 merged onto the chain, so a later diff no longer adds packages/S15.json at status A and the
+      # sealed-inventory fence below fences such a branch as an ordinary one; S16 adds its own spec and holds the one parent claim.
+      # LIKE S15 it is an UNSEALED child run with --ci only: no rebuild/engine byte, no D-id, no gate supersession, no seal,
+      # receipt or VERDICT, and the coach ENGINE_REVISION stays M2-S14-HOLD's. Until its THEME and BRIEF-BY-SHA lines stand on the
+      # chain branch and every declared child carries an observed needle, this step reports the runner's own refusal by name
+      # rather than PASS; that is the expected pre-ruling state. The step NAME moves with it.
+      - name: Cumulative S16 POLISH reseal, S15 ROUTINE reseal, S14 HOLD reseal, S13 POLISH reseal, S12 LOOK reseal, S11 NATIVE-LOAD reseal, S10 Today split, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S16
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -470,6 +479,12 @@ jobs:
       - name: B - S15-REGEN's path boundary and write contract, on synthetic ports
         if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/b/S15-REGEN.test.cjs
+      # S16 GIVES rebuild/lanes/b/S16-REGEN.test.cjs ITS CI HOME, the way S15 gave S15-REGEN.test.cjs one: the refusal rows of
+      # the helper that re-measures packages/S16.json at the S14 seal, compiled on fake git and filesystem ports, reading
+      # nothing of the repository. The steps above STAY, unchanged. Same condition shape. No declared child mirrors it.
+      - name: B - S16-REGEN's path boundary and write contract, on synthetic ports
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/lanes/b/S16-REGEN.test.cjs
       # M2-S7-PORT-ADMISSION ADDS ITS OWN THREE LANE CELLS HERE, under the same
       # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason: they arrived
       # with P3-PORT-FIX and P3-PORT-FIX-2 (DECISIONS:509, :510) and no workflow names
