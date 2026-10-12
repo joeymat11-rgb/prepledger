@@ -43,7 +43,11 @@ const refusalHasOwnEnding = (code) => COMPLETE_REFUSALS.has(code);
  * The codes and their exact file:line are in TOOL-CONTRACT.md.
  */
 
-const crypto = require("node:crypto");
+/* COACH V1 (the Coach screen on the phone). This module now ships inside the page bundle, whose W6 browser
+   boundary admits node:crypto for rebuild/client's own two importers and refuses it for everyone else. The one
+   digest this file takes (a proposal's id) is therefore taken by sha256.cjs, rebuild/client/index.cjs's own
+   dependency-free SHA-256 copied byte for byte: the same value as before, which the client reproduces. */
+const { sha256Hex } = require("./sha256.cjs");
 const { ENGINE_REVISION } = require("./engine-revision.cjs");
 
 const TIER = Object.freeze({ READ: 0, FACT: 1, PROPOSAL: 2, REFUSED: 3 });
@@ -836,8 +840,7 @@ function createCoachTools(world) {
      identified by a digest OF THE ENGINE'S OWN OBJECT — so an accepted proposal
      can be compared byte-for-byte with what the engine issued. */
   const REPLAN_FACTS = Object.freeze(["volume", "phase", "ladder"]);
-  const proposalId = (obj) => "prop-" + crypto.createHash("sha256")
-    .update("earned/coach/proposal/v1" + JSON.stringify(obj)).digest("hex").slice(0, 16);
+  const proposalId = (obj) => "prop-" + sha256Hex("earned/coach/proposal/v1" + JSON.stringify(obj)).slice(0, 16);
   const freeze = (v) => { const c = JSON.parse(JSON.stringify(v)); (function f(n) { if (n && typeof n === "object") { Object.values(n).forEach(f); Object.freeze(n); } })(c); return c; };
 
   function engineProposal(s, fact, exId) {

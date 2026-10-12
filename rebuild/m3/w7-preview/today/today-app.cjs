@@ -27,6 +27,11 @@ const { plainOrDrop } = require("./plain-copy.cjs");
    ... for the view"). An ES module with no top-level await, required synchronously so the
    route paints in the same turn the stub did. ==== C-UI-6 COACH (end) ==== */
 const CoachApp = require("./coach-app.mjs");
+/* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"). The coach's tested tools (rebuild/coach), composed by
+   page-coach.cjs over THIS page's own Today model, gym card and check-in, so the Coach screen answers from this
+   device's records. No model, no network: the tools read, the templates speak, and coach-intents.cjs ask() discards
+   any answer carrying a number that the turn's own tool results do not hold. ONE edge (the writer fence pins it). */
+const PageCoach = require("../../../coach/page-coach.cjs");
 /* REPORT A PROBLEM (DECISIONS:140 (3)). The diagnostic block's shape lives in ONE
    module and this file only gathers what the page can honestly observe and hands it
    over. Nothing here reads a store, and the control writes nothing at all. */
@@ -2160,19 +2165,48 @@ function mountToday(doc, model, options = {}) {
      #phone host every other route uses. Leaving it closes it, which takes back every
      attribute it put on the scene frame (orb state, mode, mic, level) so no other screen
      inherits them. Nothing on it records, sends or listens: there is no live coach in
-     this build, and the screen says so in the pack's own words when asked. */
+     this build, and the screen says so in the pack's own words when asked. (COACH V1: a
+     tapped question is now answered from this device's records, below; still nothing on
+     the screen records, sends or listens, and typed or spoken questions come later.) */
   let coachView = null;
+  /* COACH V1. The coach the screen asks, built when the screen opens and over whatever this mount holds then: the
+     Today model always, and the gym card and the check-in when their lanes opened. Each ask is one turn; the answer
+     the screen shows has passed coach-intents.cjs ask()'s check and the page's no-dash boundary, and one that fails
+     either is not shown (the screen says it cannot answer). */
+  function coachHandle() {
+    const gymOpen = facade.workout(), checkinOpen = facade.checkin();
+    const coach = PageCoach.createPageCoach({
+      today: model,
+      gym: gymOpen && gymOpen.gym ? gymOpen.gym : null,
+      checkin: checkinOpen && checkinOpen.checkin ? checkinOpen.checkin : null,
+    });
+    return {
+      async ask(intent) {
+        const result = await coach.ask(intent);
+        return { answer: plainOrDrop(result.answer, "coach-answer") || "", shipped: result.shipped,
+          refused: result.answered !== true };
+      },
+    };
+  }
   function closeCoach() {
     if (!coachView) return false;
     const view = coachView;
     coachView = null;
     return view.close();
   }
+  /* The review hook (window.earnedStates.apply) puts one of the PACK's states on the screen for the gates, so the
+     screen it routes to is the pack's board, never the live coach. */
+  let coachReview = false;
   function renderCoach(focus) {
-    coachView = CoachApp.openCoach({ doc, phone, focus, back: () => render("today", true) });
+    coachView = CoachApp.openCoach({ doc, phone, focus, back: () => render("today", true),
+      coach: coachReview ? null : coachHandle() });
     return coachView.root;
   }
-  CoachApp.installCoachStates(doc.defaultView || null, () => { render("coach"); return coachView; });
+  CoachApp.installCoachStates(doc.defaultView || null, () => {
+    coachReview = true;
+    try { render("coach"); } finally { coachReview = false; }
+    return coachView;
+  });
   /* ==== C-UI-6 COACH (end) ==== */
 
   function render(next, focus = false) {

@@ -291,10 +291,14 @@ test("H18b - the 32 are still the WHOLE today/ half of build.mjs's REQUIRED_INPU
     "the today/ half of build.mjs's REQUIRED_INPUTS is no longer the " + TODAY_REQUIRED_INPUTS.length
     + " paths this seal pins: it now holds " + today.length
     + ". An ADDED entry is invisible to H18 and this is the cell that sees it");
-  assert.equal(all.length, 54,
-    "build.mjs's REQUIRED_INPUTS no longer holds 54 path literals but " + all.length
+  /* COACH V1 (S19 amend): 59, MEASURED from build.mjs's own source text by this file's rule: 54 before, and the
+     difference is exactly the five rebuild/coach inputs the live Coach screen needs (page-coach.cjs, tools.cjs,
+     wave1-tools.cjs, coach-intents.cjs, sha256.cjs); nothing removed or renamed, and the today/ half above is still
+     the 32. No row is dropped and no count is loosened. */
+  assert.equal(all.length, 59,
+    "build.mjs's REQUIRED_INPUTS no longer holds 59 path literals but " + all.length
     + ": A.4's seven laws are stated over that list and this seal pins 32 of it");
-  assert.equal(new Set(all).size, 54, "build.mjs's REQUIRED_INPUTS repeats a path literal");
+  assert.equal(new Set(all).size, 59, "build.mjs's REQUIRED_INPUTS repeats a path literal");
 });
 
 /* H18c, R2 N7. H18b's per-line rule counts any bare quoted string that sits alone on its
@@ -309,7 +313,7 @@ test("H18b - the 32 are still the WHOLE today/ half of build.mjs's REQUIRED_INPU
 test("H18c - a prose string alone on its own line inside REQUIRED_INPUTS is not a path", () => {
   const src = buildSource();
   const real = requiredInputsOf(src);
-  assert.equal(real.length, 54, "the baseline is not 54 (S15: the routine's three added to S10's 51): " + real.length);
+  assert.equal(real.length, 59, "the baseline is not 59 (Coach v1: five rebuild/coach inputs added to S15's 54): " + real.length);
   const planted = src.replace("\nconst REQUIRED_INPUTS = Object.freeze([\n",
     "\nconst REQUIRED_INPUTS = Object.freeze([\n  \"and this line is prose, not a path\",\n");
   assert.notEqual(planted, src, "the plant did not land: the block header has moved");

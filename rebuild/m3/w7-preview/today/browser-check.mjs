@@ -416,9 +416,10 @@ try {
      the durable fact and is blank until an intake is recorded. jsdom has no indexedDB,
      so the pinned view suite still sees "Not wired yet" there - that is the difference
      between a browser and a test runner, not a difference in the page. */
-  /* S12b R6 (DECISIONS:915 (3)): the Coach entry has left Today, marker and all. */
+  /* S12b R6 (DECISIONS:915 (3)) took the Coach entry off Today; COACH V1 (owner ruling 2026-10-12) brings back one
+     quiet link to it, with no marker. */
   assert.equal(await page.$('[data-slot="coach-state"]'), null, "no Coach marker on Today");
-  assert.equal(await page.$('[data-go="coach"]'), null, "no Coach entry on Today");
+  assert.equal((await page.$('[data-go="coach"]')).length, 1, "one Coach entry on Today");
   for (const name of ["recovery-state", "nutrition-state"]) {
     assert.equal((await page.textContent('[data-slot="' + name + '"]')).trim(), "",
       "a blank " + name + " must be blank on Today's face, never 'none' and never 'not wired'");

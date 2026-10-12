@@ -107,7 +107,7 @@ test("C6-2 the gate's coach font identities are real, rendered, bound elements",
   assert.equal(title.length, 1); assert.equal(line.length, 1);
   assert.equal(title[0].tagName, "H1"); assert.equal(line[0].tagName, "P");
   assert.equal(title[0].textContent, "Coach.");
-  assert.equal(line[0].textContent, "Talk through today’s plan.");
+  assert.equal(line[0].textContent, "Talk through today\u2019s plan.");
   assert(!title[0].hidden && !line[0].hidden && !title[0].closest("[hidden]"), "both are on the live screen");
   assert.equal(title[0].parentElement, view.body, "in the scrolling body, as the pack draws them");
   /* and the pinned stylesheet gives each its face: serif for the name, sans for the line */
@@ -451,4 +451,170 @@ test("C6-12 the live route says the board's words: C-03 at rest, C-61 on every a
   phone.querySelector("#coach-tap").click();
   clean("tap mode");
   view.close();
+});
+
+/* ==== COACH V1 (owner ruling 2026-10-12, "No-AI coach first"; brief S19-LIVE-BRIEF.md, Coach v1) ====
+   The Coach screen answers from this device's records. The cells below run the real page (today-app.cjs over the
+   shipped template and a Today model) with no store opened, so the Today model's own reads are the tools' world and
+   the gym card and the check-in are absent, as on a device whose lanes did not open. */
+const tickUntil = async (check, label) => {
+  for (let at = 0; at < 200; at += 1) { const got = check(); if (got) return got; await new Promise((r) => setTimeout(r, 5)); }
+  throw new Error("timed out waiting for " + label);
+};
+async function liveCoach() {
+  const { win, doc, phone } = page();
+  const { default: TodayApp } = await import("../today-app.cjs");
+  const { default: TodayModel } = await import("../today-model.cjs");
+  const model = TodayModel.createTodayModel({ today: TodayModel.SYNTHETIC_DAY });
+  const api = TodayApp.mountToday(doc, model, {});
+  await new Promise((r) => setTimeout(r, 0));
+  return { win, doc, phone, api, model };
+}
+async function tap(phone, intent) {
+  const before = phone.querySelector("#coach-answer .said") ? phone.querySelector("#coach-answer .said").textContent : null;
+  phone.querySelector('#prompts .prompt[data-intent="' + intent + '"]').click();
+  const want = COACH_COPY.youAsked;
+  await tickUntil(() => {
+    const said = phone.querySelector("#coach-answer .said");
+    return said && said.textContent.startsWith(want) && (said.textContent !== before || intent === "today_plan") && !phone.querySelector("#coach-answer").hidden;
+  }, intent);
+  await new Promise((r) => setTimeout(r, 5));
+  return phone.querySelector("#coach-answer");
+}
+
+test("CV1-1 the Coach entry is back on Today, in the board's words, and it opens the live coach's questions", async () => {
+  const { COACH_QUESTIONS } = await import("../coach-app.mjs");
+  const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
+  const { doc, phone, api } = await liveCoach();
+  const entry = doc.querySelector('[data-go="coach"]');
+  assert(entry, "Today carries a route to the Coach screen");
+  assert.equal(entry.textContent.trim(), "Talk through today\u2019s plan", "in the board's own Talk row words");
+  entry.click();
+  await new Promise((r) => setTimeout(r, 0));
+  const chips = [...phone.querySelectorAll("#prompts .prompt")];
+  assert.deepEqual(chips.map((c) => c.getAttribute("data-intent")), COACH_QUESTIONS.map((q) => q.intent), "the questions, in order");
+  assert.deepEqual(chips.map((c) => norm(c.textContent)), COACH_QUESTIONS.map((q) => q.label), "each with its words");
+  /* every page intent but machine_seat: the gym card's machine settings live in its own sealed lane, which this page
+     may not open a second time, so that question waits for a sealed read of the lane (coach-app.mjs COACH_QUESTIONS) */
+  assert.deepEqual(COACH_QUESTIONS.map((q) => q.intent), Intents.PAGE_INTENT_IDS.filter((id) => id !== "machine_seat"),
+    "every question is one of the coach's page intents, and no question asks for a lane the page cannot open");
+  for (const chip of chips) assert(chip.querySelector(".icon-square") && chip.querySelector(".chev"), "each is the pack's own prompt button");
+  assert.equal(phone.querySelector('.header .pill[title]').hidden, true, "the example pill is off: these answers are the device's own");
+  api.dispose();
+});
+
+test("CV1-2 a tapped question is answered from this device's records, and every number in it is a tool result of that turn", async () => {
+  const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
+  const Tools = (await import("../../../../coach/tools.cjs")).default;
+  const Wave1 = (await import("../../../../coach/wave1-tools.cjs")).default;
+  const { doc, phone, api, model } = await liveCoach();
+  doc.querySelector('[data-go="coach"]').click();
+  await new Promise((r) => setTimeout(r, 0));
+  for (const intent of ["today_plan", "weight_trend"]) {
+    const card = await tap(phone, intent);
+    assert.equal(card.classList.contains("is-refusal"), false, intent + " is answered");
+    const shown = phone.querySelector("#coach-answer-text").textContent;
+    assert(/\d/.test(shown), intent + " carries the device's own figures: " + shown);
+    assert.equal(card.querySelector(".from").textContent, COACH_COPY.fromStore, "and says where they came from");
+    /* the same question asked of the same tools over the same model, outside the page: the same sentence, and a
+       clean traceability verdict for the turn that produced it */
+    const world = { today: model };
+    const tools = Wave1.createWave1Tools({ world, coach: Tools.createCoachTools(world) });
+    const again = await Intents.ask(tools, intent, { turnId: "cv1-2-" + intent });
+    assert.equal(again.shipped, true, intent + " ships");
+    assert.deepEqual(again.untraceable, [], intent + ": every number is a tool result of the turn");
+    assert.equal(shown, again.answer, intent + ": the page shows exactly the coach's sentence");
+  }
+  api.dispose();
+});
+
+test("CV1-3 a question no lane on this device can answer says why in the tool's own words, as a refusal", async () => {
+  const { doc, phone, api } = await liveCoach();
+  doc.querySelector('[data-go="coach"]').click();
+  await new Promise((r) => setTimeout(r, 0));
+  for (const intent of ["why_weight", "last_time", "my_checkin"]) {
+    const card = await tap(phone, intent);
+    assert.equal(card.classList.contains("is-refusal"), true, intent + " is a refusal with no lane open");
+    assert.equal(card.querySelector(".from").hidden, true, "a refusal carries no provenance line");
+    assert.equal(/\d/.test(phone.querySelector("#coach-answer-text").textContent), false, intent + " invents no figure");
+  }
+  api.dispose();
+});
+
+test("CV1-4 an answer carrying a number no tool returned is discarded, never shown", async () => {
+  const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
+  const Tools = (await import("../../../../coach/tools.cjs")).default;
+  const Wave1 = (await import("../../../../coach/wave1-tools.cjs")).default;
+  const { default: TodayModel } = await import("../today-model.cjs");
+  const model = TodayModel.createTodayModel({ today: TodayModel.SYNTHETIC_DAY });
+  const world = { today: model };
+  const real = Wave1.createWave1Tools({ world, coach: Tools.createCoachTools(world) });
+  /* the plant: a turn that answers with the real values but forgets what it read, so nothing it says is licensed */
+  const forgetful = { openTurn(turn_id) {
+    const turn = real.openTurn(turn_id);
+    return { turn_id, results: [], call: turn.call, untraceable: (answer) => Tools.untraceable(answer, [], turn_id) };
+  } };
+  const got = await Intents.ask(forgetful, "weight_trend", { turnId: "cv1-4" });
+  assert.equal(got.shipped, false, "the draft is not shipped");
+  assert(got.untraceable.length > 0, "its numbers are untraceable in that turn");
+  assert(/\d/.test(got.draft), "the draft did carry figures");
+  assert.equal(/\d/.test(got.answer), false, "the answer said instead carries none");
+  assert.equal(got.answered, false);
+  /* and on the screen it is a refusal */
+  const { doc, phone } = page();
+  const view = openCoach({ doc, phone, state: null, coach: { ask: async () => ({ answer: got.answer, refused: !got.answered }) } });
+  const card = await tap(phone, "weight_trend");
+  assert.equal(card.classList.contains("is-refusal"), true);
+  assert.equal(phone.querySelector("#coach-answer-text").textContent, got.answer);
+  view.close();
+});
+
+test("CV1-5 typing or speaking says, once, that those come later; nothing listens and nothing is sent", async () => {
+  const { win, doc, phone, api } = await liveCoach();
+  let mic = 0, net = 0;
+  win.navigator.mediaDevices = { getUserMedia: () => { mic += 1; return Promise.reject(new Error("no")); } };
+  win.fetch = () => { net += 1; return Promise.reject(new Error("no")); };
+  const { COACH_LIVE_COPY } = await import("../coach-app.mjs");
+  doc.querySelector('[data-go="coach"]').click();
+  await new Promise((r) => setTimeout(r, 0));
+  for (const ask of [() => phone.querySelector("#mic").click(),
+    () => { phone.querySelector("#coach-text-mode").click(); phone.querySelector("#coach-text button").click(); }]) {
+    ask();
+    const said = phone.querySelector("#coach-answer-text");
+    assert.equal(said.firstChild.textContent, COACH_LIVE_COPY.typedLater);
+    assert.equal(said.querySelector(".tail").textContent, COACH_COPY.nothingChanged);
+    assert.equal(phone.querySelector("#prompts").hidden, false, "the questions stay to hand");
+  }
+  assert.equal(mic, 0, "the microphone was never asked for");
+  assert.equal(net, 0, "nothing was fetched");
+  for (const file of ["page-coach.cjs", "coach-intents.cjs", "tools.cjs", "wave1-tools.cjs", "sha256.cjs"]) {
+    const src = fs.readFileSync(path.join(design.ROOT, "rebuild/coach", file), "utf8");
+    for (const word of ["fetch(", "XMLHttpRequest", "WebSocket", "sendBeacon", "getUserMedia", "api.openai.com"]) {
+      assert(!src.includes(word), file + " reaches for " + word);
+    }
+  }
+  api.dispose();
+});
+
+test("CV1-6 a review state still puts the pack's own board on the screen, never the live coach", async () => {
+  const { win, phone, api } = await liveCoach();
+  assert(win.earnedStates && typeof win.earnedStates.apply === "function", "the review hook is installed");
+  assert.equal(win.earnedStates.apply("C-05"), true);
+  const prompts = [...phone.querySelectorAll("#prompts .prompt")];
+  assert.equal(prompts.some((p) => p.hasAttribute("data-intent")), false, "no live question on a review state");
+  assert.equal(phone.querySelector('.header .pill[title]').hidden, false, "the example pill stays on the pack's board");
+  api.dispose();
+});
+
+test("CV1-7 the live words are exactly the approved list, and the binding refuses one added without approval", () => {
+  assert.deepEqual(design.assertCoachLiveBinding(), { copy: design.COACH_LIVE_APPROVED.length });
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "coach-live-"));
+  const target = path.join(dir, "rebuild/m3/w7-preview/today");
+  fs.mkdirSync(target, { recursive: true });
+  const source = fs.readFileSync(path.join(design.SOURCE, "coach-app.mjs"), "utf8");
+  fs.writeFileSync(path.join(target, "coach-app.mjs"), source.replace("  typedLater: '", "  extra: 'Ask me anything.',\n  typedLater: '"));
+  assert.throws(() => design.assertCoachLiveBinding(dir), /COACH-LIVE-BINDING FAIL/, "an unapproved word refuses");
+  fs.writeFileSync(path.join(target, "coach-app.mjs"), source.replace("  whyWeight: 'Why this weight?',\n", ""));
+  assert.throws(() => design.assertCoachLiveBinding(dir), /COACH-LIVE-BINDING FAIL/, "an approved word dropped refuses");
+  fs.rmSync(dir, { recursive: true, force: true });
 });

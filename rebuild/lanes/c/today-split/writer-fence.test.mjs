@@ -605,8 +605,16 @@ const RELEASED_FILES = [
     /* S12 RE-MEASURE (C-UI-6, the coach screen): require:./coach-app.mjs. Measured with this cell's own
        lexer: coach-app.mjs has ZERO module edges, names `model` zero times, spells no storage or network
        API, and its three PUT-word hits are not writes (o.undo is an options flag; level.start is an
-       injected level meter today-app.cjs never hands in). Nothing on that screen records (today-app.cjs:2018). */
-    edges: ['require:./today-model.cjs', 'require:./plain-copy.cjs', 'require:./coach-app.mjs', 'require:./problem-report.cjs',
+       injected level meter today-app.cjs never hands in). Nothing on that screen records (today-app.cjs:2018).
+       COACH V1 RE-MEASURE (S19 amend, owner ruling "No-AI coach first"): require:../../../coach/page-coach.cjs, one
+       edge for the coach's tested tools (rebuild/coach tools.cjs, wave1-tools.cjs and coach-intents.cjs, composed
+       there). What the view reaches through it is ONE call, ask(intent), and ask() runs only the page's read intents
+       (coach-intents.cjs PAGE_INTENTS, each a TIER.READ tool): page-coach.cjs hands out no dispatcher, so no FACT-tier
+       write is reachable from the view, and the view hands in no machineSettings lane (machine-settings-host.mjs
+       stays gym-settings-lane.mjs's edge alone, row 5). No network or microphone word in those files (coach.test.mjs
+       CV1-5). The world it is handed is the view's own `model` and two facade reads (FENCE-MODEL-HELD 33 -> 34). */
+    edges: ['require:./today-model.cjs', 'require:./plain-copy.cjs', 'require:./coach-app.mjs',
+      'require:../../../coach/page-coach.cjs', 'require:./problem-report.cjs',
       'require:./food-model.cjs', 'require:./sleep-model.cjs', 'require:./today-lanes.cjs',
       'import:../measure/measure-screen.mjs', 'import:../import/import-screen.mjs'],
     syntax: { bracket: [], templateCall: [], shadow: [], arguments: [], destructure: [
@@ -1740,8 +1748,12 @@ test("RED E.5 row 12: an unfrozen facade in today-lanes.cjs FAILS", () => {
    look's inline weigh form (C-UI-3, board #weigh-form T-42..T-51) reads ONE model CONSTANT, model.OUT_OF_RANGE, to
    flag the field only when the refusal names the weight typed (weighNamesTheField). It is not a writer reach: the
    form and the Start sheet share submitWeighIn, so the released view still reaches model.weighIn at ONE site
-   (TODAY_APP_DECLARED_SEAMS above, three seams, three sites, unchanged). renderToday's model.read() only moved. */
-const TODAY_APP_MODEL_SITES = 33;
+   (TODAY_APP_DECLARED_SEAMS above, three seams, three sites, unchanged). renderToday's model.read() only moved.
+   COACH V1 RE-MEASURE (S19 amend): 34, measured, and the one added name is said here. The live coach's world is
+   `today: model` in coachHandle (page-coach.cjs createPageCoach), reached only through ask(), which runs the coach's
+   READ tools alone (today_plan and weight_trend call model.read()); ask() reaches no writer, so model.weighIn is still reached
+   at ONE site and the declared seams are unchanged. */
+const TODAY_APP_MODEL_SITES = 34;
 const TODAY_APP_OPTIONS_SITES = 2;
 
 test("FENCE-MODEL-HELD: the released today-app.cjs names `model` exactly as many times as this round measured", () => {

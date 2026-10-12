@@ -25,72 +25,17 @@ const W = require("./wave1-tools.cjs");
 const d = C.d;
 const has = C.has;
 const join = C.join;
-const list = (parts) => parts.filter((p) => p !== "").join(", ");
+/* COACH V1: `list` and the TEMPLATES object MOVED, unchanged, to coach-intents.cjs (WAVE1_TEMPLATES), which the
+   page bundles; this file keeps the demo driver, which reads its script off disk. */
+const I = require("./coach-intents.cjs");
+const list = I.list;
 
 const SCRIPT_PATH = path.join(__dirname, "scripts", "wave1-script.json");
 function loadScript(file) {
   return JSON.parse(fs.readFileSync(file || SCRIPT_PATH, "utf8"));
 }
 
-/* ------------------------------------------------------------ templates -- */
-
-const TEMPLATES = Object.freeze({
-  /* Step 1. Today's own state, through the existing read. */
-  open: (v) => join([
-    has(v.workoutTitle) ? "Today is " + d(v.workoutTitle, "text") + ". " : "There is no training session on the board today. ",
-    has(v.statusWord) ? d(v.statusWord, "text") + ". " : "",
-    "Ask me anything about it.",
-  ]),
-
-  /* Step 2. The day read back, with the why SLOT beside it. */
-  today_with_why: (v, why) => join([
-    has(v.workoutTitle) ? d(v.workoutTitle, "text") + ". " : "",
-    has(v.kcalLo) && has(v.kcalHi)
-      ? "Eat between " + d(v.kcalLo, "kcal") + " and " + d(v.kcalHi, "kcal") + " calories" : "",
-    has(v.proteinG) ? ", with at least " + d(v.proteinG, "g") + " grams of protein. " : ". ",
-    has(v.ifText) && has(v.thenText) ? d(v.ifText, "text") + ": " + d(v.thenText, "text") + ". " : "",
-    "Why: ", d(why.why, "text"), ".",
-  ]),
-
-  /* Step 5. The same slot, alone. One sentence. */
-  why_only: (why) => join(["Why: ", d(why.why, "text"), "."]),
-
-  /* Step 3, the recall. */
-  machine_settings: (v) => join([
-    v.settings.length
-      ? v.settings.map((s) => d(s.name, "text") + " " + d(s.value, "text")).join(", ") + ". "
-      : "",
-    has(v.cues) ? d(v.cues, "text") + ". " : "",
-    "That is what you told me, and I kept it.",
-  ]),
-
-  /* Step 3, the capture. His words back, unchanged. */
-  recorded_settings: (v) => join([
-    "Kept: ",
-    v.settings.map((s) => d(s.name, "text") + " " + d(s.value, "text")).join(", "),
-    ". I will read it back next time you ask.",
-  ]),
-
-  /* Step 4, the confirmation aloud, with the next set named. */
-  /* The figures sit beside the units the tags declare: a set count next to the
-     word "set", a load next to "lb", a rep count next to "reps". The effort is
-     the ACCEPTED layer's own sentence (gym-model.mjs effortWords), quoted, so
-     the coach never restates a reserve in words of its own. */
-  logged: (v) => join([
-    "Logged set ", d(v.setNumber, "set"), ". ",
-    d(v.load, "lb"), " lb for ", d(v.reps, "rep"), " reps, ",
-    d(v.effort, "text"), ". ",
-    has(v.nextLift) ? "Next is " + d(v.nextLift, "text") + ", set " + d(v.nextPosition, "set") + "." : "That was the last set.",
-  ]),
-
-  /* Every refusal states what happened once, in the refusing layer's own words. */
-  unavailable: (u) => {
-    const said = typeof u.reason === "string" && u.reason ? u.reason : "I cannot answer that from what the app holds.";
-    if (T.refusalHasOwnEnding(u.code)) return said;
-    return join([said, /nothing (is|was) recorded|unchanged|I have not recorded|I have kept nothing/i.test(said)
-      ? "" : " Nothing was recorded."]);
-  },
-});
+const TEMPLATES = I.WAVE1_TEMPLATES;
 
 /* --------------------------------------------------------- the five steps -- */
 

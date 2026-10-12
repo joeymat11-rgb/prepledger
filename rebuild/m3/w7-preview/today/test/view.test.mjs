@@ -354,25 +354,37 @@ test("every screen this slice does not build says so and shows no invented value
      and the refusal invents nothing either. Today's face still marks the entry "Not wired yet"
      (the next test). */
   doc.querySelector('[data-go="today"]').click();
-  /* S12b R6 (DECISIONS:915 (3)): the Coach entry has left Today, so nothing on Today opens the Coach
-     screen; the screen itself is unchanged and is opened here through the page's own router. */
-  assert.equal(doc.querySelector('[data-go="coach"]'), null, "no Coach entry on Today");
-  kit.api.render("coach", true);
+  /* COACH V1 (owner ruling 2026-10-12): the Coach entry is back on Today (it left at DECISIONS:915 (3) until a
+     live coach existed), so the screen is opened here from Today's own link, as the athlete opens it. */
+  const coachEntry = doc.querySelector('[data-go="coach"]');
+  assert(coachEntry, "the Coach entry is on Today");
+  coachEntry.click();
   const coach = doc.getElementById("phone");
   assert.equal(coach.querySelector("#coach-answer").hidden, true, "no answer is shown before he asks");
-  assert.equal(coach.querySelector('.pill[title="Example numbers, not your data"]').textContent, "example");
-  assert.doesNotMatch(phoneText(doc), /\d/, "no figure is shown on the coach screen");
+  /* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"; red first on the S19 page). The board's three example
+     prompts and its "example" pill were the honest face of a screen with no coach behind it. The screen now answers
+     from this device's records, so it shows the coach's own tap-to-ask questions instead and drops the example
+     pill; it still shows no answer and no figure before he asks, and asking by typing says those come later. A
+     tapped question is answered with this athlete's own figures, each one a tool result of that turn (coach.test.mjs
+     CV1-2); here the first question is asked and its answer is checked against the Today model it was read from. */
+  assert.equal(coach.querySelector('.pill[title="Example numbers, not your data"]').hidden, true, "no example pill over real answers");
+  assert.doesNotMatch(phoneText(doc), /\d/, "no figure is shown on the coach screen before he asks");
   const prompts = [...coach.querySelectorAll("#prompts .prompt")];
-  assert.equal(prompts.length, 3, "the board's three example prompts");
-  const answerSide = coach.cloneNode(true);
-  for (const prompt of answerSide.querySelectorAll(".prompt")) prompt.remove();
-  assert.doesNotMatch(answerSide.textContent, /135|chest press/i, "no scripted coach answer is shown");
-  prompts[1].click();
+  assert.equal(prompts.length, 5, "the coach's five questions");
+  assert.equal(prompts[0].getAttribute("data-intent"), "today_plan");
+  prompts[0].click();
+  for (let at = 0; at < 200 && coach.querySelector("#coach-answer").hidden; at += 1) await new Promise((r) => setTimeout(r, 5));
   assert.equal(coach.querySelector("#coach-answer").hidden, false, "asking is answered");
-  assert.match(coach.querySelector("#coach-answer").textContent, /There is no live coach in this build\./,
-    "the coach screen says it is not live");
+  const told = coach.querySelector("#coach-answer-text").textContent;
+  const todayView = kit.model.read();
+  for (const figure of told.match(/\d+(?:\.\d+)?/g) || []) {
+    assert([todayView.calorieTarget && todayView.calorieTarget.lo, todayView.calorieTarget && todayView.calorieTarget.hi, todayView.proteinTarget && todayView.proteinTarget.g]
+      .map(String).includes(figure), "every figure in the answer is the Today model's own: " + figure);
+  }
+  coach.querySelector("#coach-text-mode").click();
+  coach.querySelector("#coach-text button").click();
+  assert.match(coach.querySelector("#coach-answer").textContent, /Typed and spoken questions come later\./, "typing is not a question yet");
   assert.match(coach.querySelector("#coach-answer").textContent, /Nothing changed\./);
-  assert.doesNotMatch(phoneText(doc), /\d/, "and the refusal invents no figure");
   doc.querySelector('[data-go="today"]').click();
   kit.close();
 });
@@ -580,7 +592,8 @@ test("every unwired entry point says so on Today's own face, in secondary text",
      left Today until a live coach exists, so the unwired entry Today still carries is the nutrition plan's;
      the Coach marker, the Talk row and every route to the Coach screen are absent from Today (asserted). */
   assert.equal(slot(doc, "coach-state"), null, "no Coach marker on Today");
-  assert.equal(doc.querySelector('[data-go="coach"]'), null, "no route to the Coach screen on Today");
+  /* COACH V1 (owner ruling 2026-10-12): one route to the Coach screen is back, a quiet link with no marker. */
+  assert.equal(doc.querySelectorAll('[data-go="coach"]').length, 1, "one route to the Coach screen on Today");
   for (const name of ["nutrition-state"]) {
     const el = slot(doc, name);
     assert(el, name + " is on Today");
@@ -596,7 +609,8 @@ test("every unwired entry point says so on Today's own face, in secondary text",
      template's #talk-today), and Today's face no longer says "Ask your coach". The label moves to
      the board's; the marker, its .sub placement (asserted above), app.NOT_WIRED and the
      120-character window are unchanged. */
-  assert(!face.includes("Talk through today\u2019s plan"), "the Talk row has left Today");
+  /* COACH V1: the link says the Talk row's words; the row and its marker stay off Today (above). */
+  assert(face.includes("Talk through today\u2019s plan"), "the Coach entry says the board's words");
   for (const label of ["Your full nutrition plan"]) {
     const at = face.indexOf(label);
     assert(at >= 0, label);

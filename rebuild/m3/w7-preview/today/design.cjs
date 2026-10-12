@@ -125,6 +125,9 @@ const APPROVED_COPY = Object.freeze([
      its two lines ("Talk through today's plan" and "Your plan, progress and the reasons behind
      it."), so neither is declared here; the Coach screen's own "Talk through today's plan." is
      bound by assertCoachBinding. */
+  /* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"): the Coach entry is back on Today, in the board's own Talk
+     row words (#talk-today), as a link under the day; the row's second line stays off Today. */
+  "Talk through today’s plan",
   "Weight (lb)",
   /* C-UI-2 round 3, DECISIONS:820 (2): the approved board's words win on Today where the
      app named the same thing differently. Each is on the board (app/app.html) and in the
@@ -1042,6 +1045,35 @@ function assertCoachBinding(approved, templateHtml, root = ROOT) {
   }
   return { copy: lines.length, classes: classes.length };
 }
+/* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"; brief rebuild/lanes/b/S19-LIVE-BRIEF.md, Coach v1). The
+   live screen adds words the pinned pack does not have: four tap-to-ask questions and the line said when a question
+   is typed or spoken. They live in their own region of coach-app.mjs (COACH-LIVE-COPY) so the binding above stays
+   exactly what it was, and this list is their approval: the PM approves short plain copy under the owner's standing
+   rule (S14 OQ-4), recorded with the brief's BRIEF ACCEPTED BY SHA line. The region must carry EXACTLY these strings,
+   both ways (a word added there without being listed here, or listed here and dropped there, refuses), and none may
+   carry a dash. */
+const COACH_LIVE_APPROVED = Object.freeze([
+  "Why this weight?",
+  "What did I do last time?",
+  "How is my weight going?",
+  "What did I say in my check in?",
+  "Typed and spoken questions come later. Tap a question above.",
+]);
+function coachLiveVocabulary(root = ROOT) {
+  const source = fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", COACH_SOURCE), "utf8");
+  const start = source.indexOf("/* COACH-LIVE-COPY-START */");
+  const end = source.indexOf("/* COACH-LIVE-COPY-END */");
+  assert(start > 0 && end > start, `COACH-LIVE-BINDING FAIL: the live copy region of ${COACH_SOURCE} could not be located`);
+  const region = source.slice(start, end).replace(/\/\*[\s\S]*?\*\//g, " ");
+  return [...region.matchAll(/'((?:[^'\\\n]|\\.)*)'/g)].map((m) => m[1].replace(/\\(.)/g, "$1"));
+}
+function assertCoachLiveBinding(root = ROOT, approvedList = COACH_LIVE_APPROVED) {
+  const lines = coachLiveVocabulary(root);
+  assert.deepEqual(lines.slice().sort(), approvedList.slice().sort(),
+    "COACH-LIVE-BINDING FAIL: the live coach words are not exactly the approved list");
+  for (const line of lines) assert.equal(plainCopy(line), line, `COACH-LIVE-BINDING FAIL: "${line}" carries a dash`);
+  return { copy: lines.length };
+}
 /* ==== C-UI-6 COACH (end) ==== */
 
 function assertRuntimeCopyBinding(appSource, references = readCopyReferences(),
@@ -1102,7 +1134,9 @@ function assertDesignBinding(approved, templateHtml, appSource) {
   const setup = assertSetupBinding(approved, templateHtml);
   /* C-UI-6 - the coach screen's own vocabulary and runtime classes. */
   const coach = assertCoachBinding(approved, templateHtml);
-  return { classes: used.size, recovery, setup, coach, copy: PREVIEW_COPY.length + APPROVED_COPY.length
+  /* Coach v1 - the live screen's own approved words, held to their list both ways. */
+  const coachLive = assertCoachLiveBinding();
+  return { classes: used.size, recovery, setup, coach, coachLive, copy: PREVIEW_COPY.length + APPROVED_COPY.length
     + (appSource === undefined ? 0 : RUNTIME_COPY.length + CHECKIN_RUNTIME_COPY.length
       + ADOPTED_RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
 }
@@ -1211,6 +1245,7 @@ module.exports = {
   setupVocabulary, assertSetupBinding, setupSource,
   /* C-UI-6 COACH */
   COACH_SOURCE, COACH_EXTRA_REFERENCES, COACH_TEMPLATE_IDENTITIES, coachVocabulary, assertCoachBinding,
+  COACH_LIVE_APPROVED, coachLiveVocabulary, assertCoachLiveBinding,
   SETUP_MODEL_SOURCE, SETUP_SOURCES,
   headlineVocabulary, ENGINE_DIR, ENGINE_TITLE_SOURCES, ENGINE_NON_TITLE_SOURCES,
   templateHtml, appSource, chromeCss, shellHtml,

@@ -99,6 +99,10 @@
          preview-owned and declared in design.cjs; the template carries no literal. -->
   <button class="link on-scene day-foot" type="button" data-go="sleep" data-own data-slot="sleep-entry"><span data-slot="sleep-entry-label"></span> <span class="muted" data-own data-slot="sleep-state"></span></button>
   <button class="link on-scene day-foot" type="button" data-go="why"><span data-slot="trend"></span></button>
+    <!-- COACH V1 (owner ruling 2026-10-12, "No-AI coach first"): the Coach entry is back on Today, in the board's
+         own Talk row words, as a quiet link under the day so the workout and Start stay first. The Coach screen now
+         answers from this device's records (coach-app.mjs, rebuild/coach). -->
+  <button class="link on-scene day-foot" type="button" data-go="coach" data-slot="coach-entry">Talk through today’s plan</button>
     <!-- A4 · the first-run tile. Shown ONLY while this installation carries no
          first-run operation; once the setup op is in the generation the tile is
          hidden and the route refuses, so setup can never run twice (S13). Its
@@ -125,9 +129,9 @@
     <span class="text"><div class="title">Recovery check in</div><div class="sub"><span data-slot="recovery-prompt">Optional. How are you feeling?</span><span class="muted" data-own data-slot="recovery-state"></span></div></span>
     <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
   </button>
-  <!-- S12b R6 (DECISIONS:915 (3)): the Coach entry (the board's Talk row, #talk-today) has
-       left Today until a live coach exists. The Coach screen (t-coach, coach-app.mjs) is
-       unchanged and is no longer reachable from Today. -->
+  <!-- S12b R6 (DECISIONS:915 (3)): the Coach entry (the board's Talk row, #talk-today) left
+       Today until a live coach existed. Coach v1 brings it back as a link under the day (above),
+       not as a row here, so this stack stays Start and the check-in. -->
 </div>
 </template>
 <!-- C-UI-2 END -->

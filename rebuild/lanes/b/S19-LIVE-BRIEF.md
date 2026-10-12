@@ -2,9 +2,10 @@
 
 Package: M2-S19-LIVE, an UNSEALED `--ci` child of the SEALED M2-S14-HOLD (artifact
 rebuild/m4/spec/acceptance-s14-hold.json, receipt DECISIONS:932), the S12/S13/S15/S16/S17/S18 shape, on the
-branch rebuild/c-live. It carries every byte M2-S18-OPENED declared, the CI and deploy change below and two
-small product nits from UI check 6. It moves no rebuild/engine byte, declares no D-id and no gate supersession; no seal,
-receipt or VERDICT; the coach ENGINE_REVISION stays M2-S14-HOLD's.
+branch rebuild/c-live. It carries every byte M2-S18-OPENED declared, the CI and deploy change below, two
+small product nits from UI check 6 and Coach v1 (the owner's "No-AI coach first", amended in place). It moves
+no rebuild/engine byte, declares no D-id and no gate supersession; no seal, receipt or VERDICT; the coach
+ENGINE_REVISION stays M2-S14-HOLD's.
 
 ## Why a new id, and why it is the last one for a while (PM ruling, 2026-10-12)
 M2-S18-OPENED is released onto rebuild/t2-client-core (DECISIONS:957), so a later diff no longer adds packages/S18.json at
@@ -63,9 +64,50 @@ only at milestones.
   takes a whole row as the quiet control S18 meant (no pill, the hit height kept), above the reason it opens, and Yes
   and Not now share the row below.
 
+## Coach v1 (owner ruling 2026-10-12, DECISIONS:963: "No-AI coach first")
+- The Coach screen answers on the device. Its tap-to-ask questions run the coach's existing tested tools
+  (rebuild/coach) over the page's own Today model, gym card and check-in: "What am I hitting today?" (today_plan),
+  "Why this weight?" (current_set), "What did I do last time?" (last_comparable_performance), "How is my weight
+  going?" (weight_trend), "What did I say in my check in?" (today_checkin). One tap is one turn. The answer is the
+  coach's template filled from that turn's tool results, and coach-intents.cjs ask() discards any sentence that
+  carries a number the turn's results do not hold or a phrase the charter forbids; the screen then says "I cannot
+  answer that from what the app holds." A question no open lane can answer is a refusal in the tool's own words.
+  The board's example pill is hidden on the live screen; a review state (window.earnedStates) still paints the
+  pack's own board.
+- The free-text box and the mic stay and say "Typed and spoken questions come later. Tap a question above." with
+  "Nothing changed."; nothing listens and nothing is fetched (no network, no microphone; the coach tests' bans stand).
+- The Coach entry is back on Today (reversing DECISIONS:915 (3)): one quiet link after the trend link, below the
+  workout, in the board's own Talk row words "Talk through today's plan" (typographic apostrophe, design.cjs
+  APPROVED_COPY). The Talk row's second line and its marker stay off Today.
+- The tool layer is the adapter seam. rebuild/coach/coach-intents.cjs holds the templates (moved byte for byte out
+  of coach-text.cjs and wave1-text.cjs, which re-export them) and the page intents; rebuild/coach/page-coach.cjs is
+  the page's one edge, ask(intent) over createWave1Tools, and hands out no dispatcher, so no FACT-tier write is
+  reachable from the page. A later model adapter calls the same createWave1Tools dispatcher and is held to the same
+  untraceable() check. tools.cjs takes its one digest (a proposal id, the same value as before) through
+  rebuild/coach/sha256.cjs, a byte-for-byte copy of rebuild/client/index.cjs's own, so no Node import enters the page.
+- Not in v1: the machine seat question. The gym card keeps machine settings in its own sealed lane and the writer
+  fence refuses a released edge to machine-settings-host.mjs, so machine_seat (tested in the tool layer) waits for a
+  sealed read of that lane. The weekly review card (scope item 2) is the next piece.
+- New strings (PM-approved short plain copy; design.cjs COACH_LIVE_APPROVED, held exactly and both ways by
+  assertCoachLiveBinding): "Why this weight?", "What did I do last time?", "How is my weight going?", "What did I say
+  in my check in?", "Typed and spoken questions come later. Tap a question above." Reused from the approved pack
+  (COACH_COPY): "What am I hitting today?", "You asked: ", "From this device's encrypted local store.", "I cannot
+  answer that from what the app holds."; from the board: "Talk through today's plan". The new binding's three
+  refusal lines (COACH-LIVE-BINDING FAIL) are developer text.
+- Re-measured, each said where it stands: the copy lock (CL-COACH-V1-DELTA lists the pieces above with their owners
+  and lists and four existing pieces whose counts or owners move; beforeCoachV1 rebuilds the S19 corpus byte for
+  byte, so the older deltas judge what they judged; corpus fadf6140... -> e61da75a...); the writer fence
+  (today-app.cjs gains the edge require:../../../coach/page-coach.cjs; FENCE-MODEL-HELD 33 -> 34, the coach's
+  world); package.test.cjs H18b/H18c, build.mjs REQUIRED_INPUTS 54 -> 59 path literals (the five rebuild/coach
+  inputs; the today/ half stays 32).
+- Outside S19-REGEN's SCOPE, as public-client.mjs was in S18 (only rebuild/coach/NATIVE-LOAD-SPEC.md is in it):
+  rebuild/coach tools.cjs, coach-text.cjs, wave1-text.cjs, the new coach-intents.cjs, page-coach.cjs and sha256.cjs,
+  and the coach tests (new coach-intents, page-coach and sha256; file lists in no-dashes, cost-cap and wave1-demo).
+
 ## Not changed
-No product source but today-entry.mjs and preview.css (the two nits), no rebuild/engine file and none of the
-protected five; no child or argv; one needle moves, s15-routine 25 -> 27 (RT-26, RT-27); the fence and workflow
+No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above, no
+rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 and s12-look 64 -> 71; the fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS
 lines and their comments (no `--jobs` option). The duplicate suites (steps that re-run files a package child
@@ -87,6 +129,23 @@ its card: 8 of 20 on the S18 stylesheet, 20 of 20 on this one, with the 76 layou
 probe (24 of 24) unchanged. PAGE_PINS (local-today-journey.test.mjs) re-pins today-entry.mjs a15606e6 -> dac88dd5,
 the measured value. At the builder seat: the today batch 618/639 (the seat's 616/637 plus RT-26 and
 RT-27, the same 21 seat-only failures) and the fences batch 2195/2197, the seat's own baseline.
+
+Coach v1, red first: coach.test.mjs CV1-1 to CV1-5 and CV1-7 fail on the S19 page (coach-app.mjs, today-app.cjs,
+screens.template.html, design.cjs) and pass on this one; CV1-6 (a review state still paints the pack's board) is a
+control that passes on both. CV1-2 asks each answered question on the page and again through the tools outside it
+and requires the same sentence and an empty untraceable() list; CV1-4 plants a turn that forgets what it read and
+the page shows the general refusal, never the figures. The copy lock fails on the S19 corpus (CL-PIN, CL-HOLDS,
+CL-PLANTS, CL-CLOSURE, CL-COACH-V1-DELTA) and passes re-measured (21 of 21). The writer fence failed on the first
+wiring (FENCE-RELEASED-MODULE-EDGE, FENCE-MODEL-HELD, FENCE-SEALED-BINDING-ASSIGNED on a binding named workout) and
+passes on this one, 404 of 404. New: coach-intents.test.cjs CI-1 to CI-5, page-coach.test.cjs PC-1 to PC-4,
+sha256.test.cjs SHA-1 to SHA-3. look-cui2's Talk row cell now holds the entry: one link, the board's words, no
+second line and no marker. The 76 layout invariants and the deployed-shell probe (24 of 24) hold. At the builder
+seat: the today batch 627/648 (618/639 plus CV1-1 to CV1-7 and two copy-lock rows, the same 21 seat-only build
+failures), the fences batch 2195/2197 and the coach suite 388/389 (the seat-only engine-revision-gap R4).
+Seat-only (they load a protected engine file or build the page): view.test.mjs SC-5 (now opens the Coach from
+Today's link: five questions, no figure before asking, each figure in the answer the Today model's own, typing
+says it comes later), package.test.cjs (H18b/H18c at 59), scene.test.mjs C-UI-1, browser-check.mjs and
+engine-revision-gap R4.
 
 ## Acceptance
 At the exact head: the fence's real row reports FENCE-RESEAL-CHILD S19 (skip); `node

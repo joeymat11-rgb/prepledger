@@ -116,13 +116,22 @@ test("C-UI-2 R3: the board's words on Today (DECISIONS:820 (2))", () => {
     const decl = design.indexOf(JSON.stringify(w));
     assert(decl >= 0 && design.lastIndexOf("DECISIONS:820", decl) >= 0, "declared in design.cjs under :820: " + w);
   }
-  for (const gone of ["Talk through today\u2019s plan", "Your plan, progress and the reasons behind it."]) {
-    assert(!today.includes(gone), "the Talk row is not on the shipped Today: " + gone);
-    assert(!design.includes(JSON.stringify(gone)), "and design.cjs no longer declares it: " + gone);
-  }
-  assert(board.includes('id="talk-today"'), "the board still draws the Talk row; only the shipped Today leaves it out");
-  assert.doesNotMatch(today, /id="talk-today"|data-go="coach"|data-slot="coach-state"/, "nothing on Today opens the Coach screen");
-  assert(templateBlock("t-coach").includes("Talk through today\u2019s plan."), "the Coach screen itself is still shipped");
+  /* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"; red first on the S19 template): the Coach entry is back
+     on Today because the coach now answers from the device's records. It is ONE quiet link under the day, in the
+     board's Talk row words, so the workout and Start stay first: the row itself (#talk-today, its orb and mic, its
+     second line and its coach-state marker) stays off Today, and design.cjs declares the one line it shows. */
+  const entry = /<button class="link on-scene day-foot" type="button" data-go="coach" data-slot="coach-entry">([^<]*)<\/button>/.exec(today);
+  assert(entry, "Today carries one quiet link to the Coach screen");
+  assert.equal(entry[1], "Talk through today\u2019s plan", "in the board's own Talk row words");
+  assert(board.includes("Talk through today\u2019s plan"), "which are on the approved board");
+  const declared = design.indexOf(JSON.stringify("Talk through today\u2019s plan"));
+  assert(declared >= 0 && design.lastIndexOf("COACH V1", declared) >= 0, "declared in design.cjs under Coach v1");
+  assert.equal((today.match(/data-go="coach"/g) || []).length, 1, "exactly one route to the Coach screen");
+  assert(!today.includes("Your plan, progress and the reasons behind it."), "the Talk row's second line stays off Today");
+  assert(!design.includes(JSON.stringify("Your plan, progress and the reasons behind it.")), "and is not declared");
+  assert(board.includes('id="talk-today"'), "the board still draws the Talk row");
+  assert.doesNotMatch(today, /id="talk-today"|data-slot="coach-state"/, "the row itself and its marker stay off Today");
+  assert(templateBlock("t-coach").includes("Talk through today\u2019s plan."), "the Coach screen itself is shipped");
   assert.match(today, /<span class="pill"[^>]*title="Example numbers, not your data"[^>]*>example<\/span>/);
   assert.match(weigh, /placeholder="Your weight"/);
   for (const old of ["How are you feeling today?", "Ask your coach"]) assert(!today.includes(old), "the app's words gave way on Today: " + old);

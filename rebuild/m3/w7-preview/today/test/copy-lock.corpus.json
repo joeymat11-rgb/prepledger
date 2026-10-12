@@ -451,7 +451,7 @@
   {
    "text": " could not be located",
    "files": {
-    "rebuild/m3/w7-preview/today/design.cjs": 1
+    "rebuild/m3/w7-preview/today/design.cjs": 2
    },
    "lists": []
   },
@@ -918,7 +918,7 @@
   {
    "text": "\" carries a dash",
    "files": {
-    "rebuild/m3/w7-preview/today/design.cjs": 1
+    "rebuild/m3/w7-preview/today/design.cjs": 2
    },
    "lists": []
   },
@@ -1947,6 +1947,27 @@
   },
   {
    "text": "COACH-BINDING FAIL: the copy region of ",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-LIVE-BINDING FAIL: \"",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-LIVE-BINDING FAIL: the live coach words are not exactly the approved list",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "COACH-LIVE-BINDING FAIL: the live copy region of ",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1
    },
@@ -3095,6 +3116,13 @@
    "lists": []
   },
   {
+   "text": "From this device’s encrypted local store.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "From this device’s encrypted local store. Example numbers.",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
@@ -3447,6 +3475,14 @@
    ]
   },
   {
+   "text": "How is my weight going?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "How was the quality?",
    "files": {
     "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
@@ -3461,7 +3497,7 @@
   {
    "text": "I cannot answer that from what the app holds.",
    "files": {
-    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 2
    },
    "lists": []
   },
@@ -6124,6 +6160,16 @@
    "lists": []
   },
   {
+   "text": "Talk through today’s plan",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": [
+    "APPROVED_COPY"
+   ]
+  },
+  {
    "text": "Talk through today’s plan.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -7207,6 +7253,14 @@
    "lists": []
   },
   {
+   "text": "Typed and spoken questions come later. Tap a question above.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Undo",
    "files": {
     "rebuild/m3/w7-preview/today/screens.template.html": 1
@@ -7532,6 +7586,7 @@
   {
    "text": "What am I hitting today?",
    "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
     "rebuild/m3/w7-preview/today/screens.template.html": 1
    },
    "lists": []
@@ -7540,6 +7595,22 @@
    "text": "What counts as a clean rep?",
    "files": {
     "rebuild/m3/w7-preview/today/screens.template.html": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What did I do last time?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "What did I say in my check in?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
    },
    "lists": []
   },
@@ -7746,6 +7817,14 @@
    ]
   },
   {
+   "text": "Why this weight?",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Why today’s workout cannot open",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -7926,6 +8005,13 @@
    "lists": [
     "RUNTIME_COPY"
    ]
+  },
+  {
+   "text": "You asked: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
   },
   {
    "text": "You asked: are you a live coach?",

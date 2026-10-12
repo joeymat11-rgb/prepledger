@@ -46,6 +46,11 @@ export const COACH_COPY = Object.freeze({
   withdrawn: 'Withdrawn',
   why: 'Why?',
   changeAnswer: 'Change my answer',
+  /* Coach v1: words of the pack the live screen reuses (each is in the pinned references as written). */
+  todayPlan: 'What am I hitting today?',
+  youAsked: 'You asked: ',
+  fromStore: 'From this device’s encrypted local store.',
+  cannotAnswer: 'I cannot answer that from what the app holds.',
 });
 
 /* the same proposal the Today card carries, so the two screens read as one component */
@@ -211,6 +216,33 @@ const ANSWER_VARIANTS = [
 const ANSWER_COMPONENT = 'answer card (copy variant)';
 /* COACH-COPY-END */
 
+/* COACH-LIVE-COPY-START */
+/* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"). The words the live screen adds to the pack: four
+   tap-to-ask questions and the one line said when a question is typed or spoken. They are not in the pinned pack,
+   so the binding above cannot admit them; design.cjs assertCoachLiveBinding holds this object to its PM-approved
+   list instead, exactly and both ways, and to carry no dash. Every ANSWER is a coach template (rebuild/coach/
+   coach-intents.cjs), filled only from the tool results of the turn that asked. */
+export const COACH_LIVE_COPY = Object.freeze({
+  whyWeight: 'Why this weight?',
+  lastTime: 'What did I do last time?',
+  weightTrend: 'How is my weight going?',
+  myCheckin: 'What did I say in my check in?',
+  typedLater: 'Typed and spoken questions come later. Tap a question above.',
+});
+/* COACH-LIVE-COPY-END */
+
+/* The tap-to-ask questions, in the order the screen lists them: the intent each one runs (coach-intents.cjs
+   PAGE_INTENTS, the same ids) and its words. Not machine_seat yet: the gym card keeps machine settings in its own
+   sealed lane (gym-settings-lane.mjs), which this page may not open a second time (the writer fence refuses a
+   released edge to machine-settings-host.mjs), so the question waits for a sealed read of that lane. */
+export const COACH_QUESTIONS = Object.freeze([
+  Object.freeze({ intent: "today_plan", label: COACH_COPY.todayPlan }),
+  Object.freeze({ intent: "why_weight", label: COACH_LIVE_COPY.whyWeight }),
+  Object.freeze({ intent: "last_time", label: COACH_LIVE_COPY.lastTime }),
+  Object.freeze({ intent: "weight_trend", label: COACH_LIVE_COPY.weightTrend }),
+  Object.freeze({ intent: "my_checkin", label: COACH_LIVE_COPY.myCheckin }),
+]);
+
 const COACH_SCREEN = "coach";
 
 /* The whole state list, in the order the pack's INDEX.json files it. */
@@ -284,7 +316,7 @@ function reviewStateOnce(view) {
    is an optional level source { start(onLevel), stop() }; `timers` lets a test drive
    the orb's settle. Returns the view, whose `close()` takes back every attribute it
    put on the screen frame. */
-export function openCoach({ doc, phone, back = () => {}, focus = false, state, level = null, timers = null } = {}) {
+export function openCoach({ doc, phone, back = () => {}, focus = false, state, level = null, timers = null, coach = null } = {}) {
   if (!doc || !phone) throw new Error("Coach: a document and a host are required");
   const template = doc.getElementById("t-coach");
   if (!template) throw new Error("Coach: missing approved template t-coach");
@@ -588,12 +620,73 @@ export function openCoach({ doc, phone, back = () => {}, focus = false, state, l
       if (!closed && screenFrame().getAttribute("data-state") === "answering") setCoachState("idle");
     }, 4000);
   }
-  prompts.addEventListener("click", (event) => { if (event.target.closest(".prompt")) noLiveCoach(); });
-  mic.addEventListener("click", () => { if (screenFrame().getAttribute("data-mic") !== "off") noLiveCoach(); });
+  /* COACH V1, THE LIVE SCREEN ON THIS DEVICE. When the page hands in a coach ({ ask(intent) }, today-app.cjs over
+     the tools in rebuild/coach), the prompts become the tap-to-ask questions, each a copy of the pack's own prompt
+     button with its words; a tap asks that one question and the answer card shows the coach's sentence, which
+     coach-intents.cjs ask() has already held to the turn's own tool results (an answer with a number no tool
+     returned never reaches this screen). Typing or speaking says, once, that those come later: no model, no
+     network and no microphone exist in this build. With no coach handed in, every ask is C-61 as before. */
+  /* A review state (the pack's ?state=C-nn hook) puts the PACK's screen on this view, so the gates judge the drawn
+     board: such a view is never the live coach. */
+  const wanted = state === undefined ? reviewStateOnce(view) : state;
+  const live = !!(coach && typeof coach.ask === "function") && !wanted;
+  let asked = 0;
+  function settleLater() {
+    if (settle !== null) { clock.clearTimeout(settle); settle = null; }
+    settle = clock.setTimeout(() => {
+      settle = null;
+      if (!closed && screenFrame().getAttribute("data-state") === "answering") setCoachState("idle");
+    }, 4000);
+  }
+  function askLive(question) {
+    const mine = ++asked;
+    const said = COACH_COPY.youAsked + question.label.charAt(0).toLowerCase() + question.label.slice(1);
+    setCoachState("answering");
+    const show = (result) => {
+      if (closed || mine !== asked) return;
+      if (!(result && typeof result.answer === "string" && result.answer)) {
+        refusal({ said, text: COACH_COPY.cannotAnswer, tail: COACH_COPY.nothingChanged });
+      } else if (result.refused) refusal({ said, text: result.answer });   /* the tool said why, in its own words */
+      else answer({ said, text: result.answer, from: COACH_COPY.fromStore });
+      prompts.hidden = false;   /* the questions stay to hand: the next one is one tap away */
+      settleLater();
+    };
+    let pending;
+    try { pending = Promise.resolve(coach.ask(question.intent)); } catch (_) { pending = Promise.resolve(null); }
+    return pending.then(show, () => show(null));
+  }
+  function typedLater() {
+    refusal({ text: COACH_LIVE_COPY.typedLater, tail: COACH_COPY.nothingChanged });
+    prompts.hidden = false;
+    settleLater();
+  }
+  if (live) {
+    const model = prompts.querySelector(".prompt");
+    const made = COACH_QUESTIONS.map((question) => {
+      const node = model.cloneNode(true);
+      const words = [...node.children].find((child) => !child.classList.contains("icon-square") && !child.classList.contains("chev"));
+      words.textContent = question.label;
+      node.setAttribute("data-intent", question.intent);
+      return node;
+    });
+    prompts.replaceChildren(...made);
+    /* The header pill says "example" over the sample screens; these answers are this device's own. */
+    const example = phone.querySelector('.header .pill[title]');
+    if (example) example.hidden = true;
+  }
+  const byIntent = new Map(COACH_QUESTIONS.map((question) => [question.intent, question]));
+  prompts.addEventListener("click", (event) => {
+    const chosen = event.target.closest(".prompt");
+    if (!chosen) return;
+    if (live && byIntent.has(chosen.getAttribute("data-intent"))) askLive(byIntent.get(chosen.getAttribute("data-intent")));
+    else noLiveCoach();
+  });
+  const unasked = () => (live ? typedLater() : noLiveCoach());
+  mic.addEventListener("click", () => { if (screenFrame().getAttribute("data-mic") !== "off") unasked(); });
   textLink.addEventListener("click", () => textMode(true, { focusInput: true }));
   tapLink.addEventListener("click", () => tapMode(screenFrame().getAttribute("data-mode") !== "tap"));
-  send.addEventListener("click", () => noLiveCoach());
-  input.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); noLiveCoach(); } });
+  send.addEventListener("click", () => unasked());
+  input.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); unasked(); } });
   input.addEventListener("focus", () => input.classList.add("is-focused"));
   input.addEventListener("blur", () => input.classList.remove("is-focused"));
   const backButton = phone.querySelector(".header .back");
@@ -628,8 +721,7 @@ export function openCoach({ doc, phone, back = () => {}, focus = false, state, l
   };
 
   if (focus) { title.tabIndex = -1; try { title.focus(); } catch (_) { /* focus is a convenience */ } }
-  const wanted = state === undefined ? reviewStateOnce(view) : state;
-  if (wanted) api.applyState(wanted);
+  if (wanted) api.applyState(wanted);   /* decided above, before the live screen was or was not built */
   return api;
 }
 

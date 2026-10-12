@@ -5,12 +5,12 @@
   "status": "BRIEF-ACCEPTED",
   "brief": {
     "file": "rebuild/lanes/b/S19-LIVE-BRIEF.md",
-    "sha256": "33495fdd917a3bd1065013f9394cbc3a671aaa089f2a964f5ce253b19e82d796",
+    "sha256": "55ce7d6107678214299ea79ad7c88e32758ee6ded79af5ed5e76ec80cfbc54b6",
     "acceptedLedgerLine": {
-      "ledgerLine": 959,
+      "ledgerLine": 964,
       "role": "cowork",
-      "line": "- 2026-10-12 · cowork · BRIEF ACCEPTED BY SHA for M2-S19-LIVE: rebuild/lanes/b/S19-LIVE-BRIEF.md, sha256 33495fdd917a3bd1065013f9394cbc3a671aaa089f2a964f5ce253b19e82d796 (8475 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
-      "lineSha256": "5b86900fd35120a53eff4a2c634083457addb340bb6cb07f72c22f1b66f5a28c"
+      "line": "- 2026-10-12 · cowork · BRIEF ACCEPTED BY SHA for M2-S19-LIVE: rebuild/lanes/b/S19-LIVE-BRIEF.md, sha256 55ce7d6107678214299ea79ad7c88e32758ee6ded79af5ed5e76ec80cfbc54b6 (14427 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "3cc77c93d26c0fee5fee4b99eef216ed4e901c1cfda78313454ff16e6237c0d3"
     }
   },
   "sourceBase": "e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06",
@@ -472,8 +472,8 @@
     },
     "rebuild/lanes/c/today-split/writer-fence.test.mjs": {
       "pre": "a34e8d6c0920ffc926aa00861df7c6dd78991dc6c60e5d18eabe16350fa7fa00",
-      "post": "a34e8d6c0920ffc926aa00861df7c6dd78991dc6c60e5d18eabe16350fa7fa00",
-      "role": "carried"
+      "post": "d7f9cafb566cd1382846ebe7b7041439066a8a982628089dacb65be5ceda90bd",
+      "role": "edited"
     },
     "rebuild/lanes/c/ui-port/approved-pin.test.mjs": {
       "pre": "cb87d3dfa26e93424d29656f397dd1892347e6b6fd0a8a3b99bc19c98a5dd1ca",
@@ -982,8 +982,8 @@
     },
     "rebuild/m3/w7-preview/today/browser-check.mjs": {
       "pre": "7401ae09da1206b264a16c5e54fe1e3a979b14674e631fd98cbaf9f802ba4d95",
-      "post": "7401ae09da1206b264a16c5e54fe1e3a979b14674e631fd98cbaf9f802ba4d95",
-      "role": "carried"
+      "post": "1925e9acbd6be009010f14fa194e603f290729137fa22ad802ed57a3322c4dac",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/checkin-app.mjs": {
       "pre": "db8295cb5f12a4e6d65033b6a74cf696b63ec32368c1d6d6161cf1e0519161b0",
@@ -992,13 +992,13 @@
     },
     "rebuild/m3/w7-preview/today/coach-app.mjs": {
       "pre": "8c71b2ccf08a55895f80a537612285818fddc9a184f6229f51d8c60fbadb9915",
-      "post": "8c71b2ccf08a55895f80a537612285818fddc9a184f6229f51d8c60fbadb9915",
-      "role": "carried"
+      "post": "ddf812e81ea90e694c54596093134666cb8963fa60055b4e13def31705e6d410",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/design.cjs": {
       "pre": "6c222c11de87b2d8d57f595a838dcc39352073a890b3dbb9d3ce855c43ed3d16",
-      "post": "6c222c11de87b2d8d57f595a838dcc39352073a890b3dbb9d3ce855c43ed3d16",
-      "role": "carried"
+      "post": "09cbbd139f74a74312f6cf04b7b9a368202ac00d9b0b62e2bb472cf50cc8e9fc",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/food-host.mjs": {
       "pre": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
@@ -1077,8 +1077,8 @@
     },
     "rebuild/m3/w7-preview/today/screens.template.html": {
       "pre": "fecd1792d5b53a855ca1e9b9c0324728588fdf23643db85a075ad14522a3fc44",
-      "post": "fecd1792d5b53a855ca1e9b9c0324728588fdf23643db85a075ad14522a3fc44",
-      "role": "carried"
+      "post": "4716b1784894b9b2cc4df5d6b1882cf5339f11067fa26cc99eae5feaf7838153",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/setup-app.mjs": {
       "pre": null,
@@ -1102,8 +1102,8 @@
     },
     "rebuild/m3/w7-preview/today/test/coach.test.mjs": {
       "pre": "94258418d5daeb9eef487cd183c1967de962149563d473eaa1604e1c90e9fd56",
-      "post": "94258418d5daeb9eef487cd183c1967de962149563d473eaa1604e1c90e9fd56",
-      "role": "carried"
+      "post": "fbd3d46801d20aa8e3bf2c9beb9a441eb7eff8ebaae9dfeb25558c02984fb706",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/copy-lock-measure.mjs": {
       "pre": "68776f29aa41b0697ff7baa72617e312b97a70f75f6cd2d155b6f827c4035ef2",
@@ -1122,7 +1122,7 @@
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.corpus.json": {
       "pre": "3a226341aac5832d490ffa652e6cf969c5f55b1820024695c94e5713880e9a98",
-      "post": "fadf61407fcd1558ead0c49913a2c6a9b4eeedb805f3831423bf2d9ca5114a4c",
+      "post": "e61da75a21403fac515a3e9e0e9aaa4ac41c0f6d03c129419d3a00dc84c7ebb1",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.s12-delta.json": {
@@ -1132,7 +1132,7 @@
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs": {
       "pre": "c2a8e07cd89e9dab9e8193fdd6d3593acf7a5c00d79029d39c2e980825ecbf53",
-      "post": "99e9a7e84ecbe382979fbeda48c5ce8a4e54960d32dc09acf77a934000519099",
+      "post": "7aa24d57b3cf1ae1622557a084120400388685fcc2352ab6fd7914c0245b730c",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/copy.test.mjs": {
@@ -1182,8 +1182,8 @@
     },
     "rebuild/m3/w7-preview/today/test/look-cui2.test.mjs": {
       "pre": "620a2866fd83b9b2c1c75fa64392d6d009b8c7cfd7269614fb04ae06614d6746",
-      "post": "620a2866fd83b9b2c1c75fa64392d6d009b8c7cfd7269614fb04ae06614d6746",
-      "role": "carried"
+      "post": "2ea59abedcc5c72bd5ec9980761ca97fa70783cb6b4c3f46c276c8ee332a99e2",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/look-cui3.test.mjs": {
       "pre": "b238817b6a67a9d1e31895b10018f4bb0c4ebb2f53bb8adb2f4be3b9de1bd0c5",
@@ -1207,7 +1207,7 @@
     },
     "rebuild/m3/w7-preview/today/test/package.test.cjs": {
       "pre": "09c5267b230082e2315bf5fb0bf3070230a7ad731bd139b559ee0ac3a3b07788",
-      "post": "173c96c63db211a2121c84032446bf446bc8003846e02250da2e2dcbae1de878",
+      "post": "40d8f4a6b8e72385f31832a9b57cfbe408cb0b9df27fcbaa41da7b81d0aa6db7",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/problem.test.mjs": {
@@ -1232,8 +1232,8 @@
     },
     "rebuild/m3/w7-preview/today/test/view.test.mjs": {
       "pre": "003d765f908de64a8e26dda9894426b5baac869ca8c92d0aa481d54b3a5fe30e",
-      "post": "003d765f908de64a8e26dda9894426b5baac869ca8c92d0aa481d54b3a5fe30e",
-      "role": "carried"
+      "post": "e0e21c2817dbc466a6c434b8b0d4923732c4bb0367baba929871086d294e4621",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/workout-look.test.mjs": {
       "pre": "6bfa6a665b91e38231d63f041cdc098bab2c7e500c92396be4ad886fa861f8c6",
@@ -2352,7 +2352,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs"
       ],
-      "needle": "# pass 19"
+      "needle": "# pass 21"
     },
     {
       "name": "native-load-fc12",
@@ -2392,7 +2392,7 @@
         "rebuild/m3/w7-preview/today/test/workout-look.test.mjs",
         "rebuild/m3/w7-preview/today/test/coach.test.mjs"
       ],
-      "needle": "# pass 64"
+      "needle": "# pass 71"
     },
     {
       "name": "s15-routine",
@@ -2414,13 +2414,14 @@
     }
   ],
   "notes": [
-    "M2-S19-LIVE is the ROLLING UNSEALED --ci child of the SEALED M2-S14-HOLD on rebuild/c-live (the S12/S13/S15/S16/S17/S18 shape): it carries every byte M2-S18-OPENED declared, the CI job split (the cumulative package step in its own both-OS job beside the suites, the pnpm store cached, the fence row P-S9-5 closed over the three both-OS jobs) and the rebuild/c-live deploy trigger of slice-host.yml, brief rebuild/lanes/b/S19-LIVE-BRIEF.md, and the two UI check 6 nits below. It moves no rebuild/engine byte, declares no D-id (NO_REGISTER_IDS) and no gate supersession; no seal, receipt or VERDICT; the coach ENGINE_REVISION stays M2-S14-HOLD's.",
+    "M2-S19-LIVE is the ROLLING UNSEALED --ci child of the SEALED M2-S14-HOLD on rebuild/c-live (the S12/S13/S15/S16/S17/S18 shape): it carries every byte M2-S18-OPENED declared, the CI job split (the cumulative package step in its own both-OS job beside the suites, the pnpm store cached, the fence row P-S9-5 closed over the three both-OS jobs) and the rebuild/c-live deploy trigger of slice-host.yml, brief rebuild/lanes/b/S19-LIVE-BRIEF.md, the two UI check 6 nits and Coach v1 below. It moves no rebuild/engine byte, declares no D-id (NO_REGISTER_IDS) and no gate supersession; no seal, receipt or VERDICT; the coach ENGINE_REVISION stays M2-S14-HOLD's.",
     "ROLLING (PM ruling, 2026-10-12): later rounds amend this spec IN PLACE on lanes branched from rebuild/c-live (S19-REGEN re-measures it; a new BRIEF ACCEPTED BY SHA line only when the brief changes); no further per-release supersession; rebuild/c-live merges into the chain at milestones.",
     "S18 RETIRED BY SUPERSESSION (the DECISIONS:920 / :923 / :943 / :947 / :955 shape): S18 was released onto the chain (DECISIONS:957), so a later diff no longer adds packages/S18.json at status A. This spec holds the one parent claim on acceptance-s14-hold.json; packages/S18.json stays as the record with its claim withdrawn (decided false, chosen null) and is declared here as a changed file like any other; 'S18' left b-package.cjs IDS and NO_REGISTER_IDS for 'S19' (F6 pins moved red first); CHILD_SPECS in boundary, food, machine-settings-ui, problem and setup gained 'S19', youngest last. S19-REGEN's SCOPE adds .github/workflows/slice-host.yml and rebuild/slice/pwa/test/workflow.test.cjs as exact files, so both are declared here.",
-    "LEDGER LINES: THEME M2-S19-LIVE is authorizations.theme (DECISIONS:958) and S18 RETIRED BY SUPERSESSION is DECISIONS:960; BRIEF ACCEPTED BY SHA is brief.acceptedLedgerLine at DECISIONS:959 (proposed; the runner refuses by name until they stand on the chain branch).",
-    "CHILDREN: S18's forty-two, carried with their argv; one needle re-pinned to its measured value, s15-routine 25 -> 27 (RT-26, an adoption offer's heading states its weight; RT-27, an offer's Why? on its own row); S19 adds no child (the fence and workflow cells gain assertions inside existing tests). Needles of children that load protected engine files must be OBSERVED at the PM seat.",
+    "LEDGER LINES: THEME M2-S19-LIVE is authorizations.theme (DECISIONS:958) and S18 RETIRED BY SUPERSESSION is DECISIONS:960; BRIEF ACCEPTED BY SHA is brief.acceptedLedgerLine at DECISIONS:964 (Coach v1 amended the brief; it was DECISIONS:959; proposed until it stands on the chain branch, and the runner refuses by name until then).",
+    "CHILDREN: S18's forty-two, carried with their argv; needles re-pinned to measured values: s15-routine 25 -> 27 (RT-26, an adoption offer's heading states its weight; RT-27, an offer's Why? on its own row), and with Coach v1 s10-copy-lock 19 -> 21 (CL-COACH-V1-DELTA, CL-COACH-V1-APPROVAL) and s12-look 64 -> 71 (coach.test.mjs CV1-1 to CV1-7); S19 adds no child (the fence and workflow cells gain assertions inside existing tests). Needles of children that load protected engine files must be OBSERVED at the PM seat.",
     "UI CHECK 6 (PM, 2026-10-12): an adoption offer's heading states the weight it sets (\"Plank: make 25 lb your working weight\", PM-approved; today-entry.mjs, two new copy pieces, CL-S15-DELTA 44 -> 46, corpus re-measured; PAGE_PINS today-entry.mjs a15606e6 -> dac88dd5), and on an offer card Why? takes its own row so Yes and Not now sit together (preview.css S19 block).",
-    "PRODUCT MAP (regenerated by rebuild/lanes/b/S19-REGEN.cjs at parent e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s14-hold.json a0e143369d2e); post is sha256 of the bytes ON DISK in the UNCOMMITTED working tree over HEAD 6f315bc854522ae0d90b3d68220471ac0fb65a53 (--worktree, header (B)): after the commit a dry run without --worktree must print \"0 entr(ies) would change\". Released paths of the parent and its ancestors are not declared: rebuild/m3/w7-preview/today/build.mjs (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/gym-app.mjs (rebuild/m4/spec/acceptance-s10-today-split.json), rebuild/m3/w7-preview/today/preview.css (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/today-app.cjs (rebuild/m4/spec/acceptance-s10-today-split.json). New paths are every path changed since the parent, inside the S19 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ (but for the declared spec paper rebuild/coach/NATIVE-LOAD-SPEC.md) and this spec itself. Roles: {\"carried\":321,\"edited\":31,\"new\":25}.",
+    "COACH V1 (owner ruling 2026-10-12, DECISIONS:963, \"No-AI coach first\"): the Coach screen answers tap-to-ask questions on the device through the coach's tested tools (rebuild/coach page-coach.cjs, coach-intents.cjs, tools.cjs, wave1-tools.cjs, sha256.cjs; outside S19-REGEN's SCOPE, named in the brief), every number a tool result of its turn or the answer is discarded; the tools hold read-only wrappers of the Today model, gym card and check-in, with no writer reachable (Fable D1, page-coach.test.cjs PC-5); typed and spoken questions come later; the Coach entry is back on Today in the board's words. Re-measured: copy lock CL-COACH-V1-DELTA (corpus fadf6140... -> e61da75a...), writer fence today-app.cjs edge + page-coach.cjs and FENCE-MODEL-HELD 33 -> 34, package.test.cjs REQUIRED_INPUTS 54 -> 59. The weekly review card is the next piece.",
+    "PRODUCT MAP (regenerated by rebuild/lanes/b/S19-REGEN.cjs at parent e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s14-hold.json a0e143369d2e); post is sha256 of the bytes ON DISK in the UNCOMMITTED working tree over HEAD de259caaa96619e19137e08865e003c5ba9dc9c6 (--worktree, header (B)): after the commit a dry run without --worktree must print \"0 entr(ies) would change\". Released paths of the parent and its ancestors are not declared: rebuild/m3/w7-preview/today/build.mjs (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/gym-app.mjs (rebuild/m4/spec/acceptance-s10-today-split.json), rebuild/m3/w7-preview/today/preview.css (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/today-app.cjs (rebuild/m4/spec/acceptance-s10-today-split.json). New paths are every path changed since the parent, inside the S19 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ (but for the declared spec paper rebuild/coach/NATIVE-LOAD-SPEC.md) and this spec itself. Roles: {\"carried\":313,\"edited\":39,\"new\":25}.",
     "PARENT-UNPINNED PATHS (regenerated at e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06): 5 path(s) existed at the parent pinned by neither its product map nor its execution pins and are declared here, so they are declared role new with pre null (DECISIONS:792): .github/workflows/slice-host.yml, rebuild/lanes/d/plan-edit/model-mutants.cjs, rebuild/m3/w6/test/prepared-workout.test.mjs, rebuild/m3/w7-preview/today/setup-app.mjs, rebuild/slice/pwa/test/workflow.test.cjs.",
     "EXECUTION PIN SUPERSEDED (regenerated at e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: none."
   ]

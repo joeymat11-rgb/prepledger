@@ -67,8 +67,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // the S14 value is S14_CORPUS_SHA256). S18: re-measured for exactly one more piece in gym-model.mjs, the recorded reason
 // on the removal of an opened, empty workout (CL-S15-DELTA 43 -> 44; was 019b9474...), and for "Why?"'s two new owners
 // (CL-S18-REOWNED; 8f8d84db... with the piece alone). S19: re-measured for exactly two more pieces in today-entry.mjs, the
-// adoption offer's heading that states its weight (CL-S15-DELTA 44 -> 46; was 9bee3abe...).
-const CORPUS_SHA256 = 'fadf61407fcd1558ead0c49913a2c6a9b4eeedb805f3831423bf2d9ca5114a4c';
+// adoption offer's heading that states its weight (CL-S15-DELTA 44 -> 46; was 9bee3abe...). Coach v1 (S19 amend): re-measured
+// for exactly the Coach v1 pieces and counts (CL-COACH-V1-DELTA; the value before is S19_CORPUS_SHA256).
+const CORPUS_SHA256 = 'e61da75a21403fac515a3e9e0e9aaa4ac41c0f6d03c129419d3a00dc84c7ebb1';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -535,14 +536,74 @@ function beforeS18(corpus) {
     return row ? { ...e, files: sortedFiles(row[1]) } : e;
   }) };
 }
-// The S14 view: this corpus (as it stood before S18) minus the S15 pieces and the S15 scanned files.
+/* Coach v1 (S19 amend, the owner's ruling "No-AI coach first"): the live coach's question chips and answer words in
+   coach-app.mjs, bound to design.cjs's COACH_LIVE_APPROVED (with that binding's three refusal lines), the Coach entry
+   back on Today in the board's own words (APPROVED_COPY), and four existing pieces whose counts or owners move. No piece
+   is removed, no mounted state and no scanned file moves. beforeCoachV1 gives every older view the corpus as S19 sealed
+   it (S19_CORPUS_SHA256), so CL-S18-REOWNED and CL-S15/S14/S12/S11-DELTA keep judging what they judged. */
+const S19_CORPUS_SHA256 = 'fadf61407fcd1558ead0c49913a2c6a9b4eeedb805f3831423bf2d9ca5114a4c';
+const CV1_APP = T + '/coach-app.mjs', CV1_DESIGN = T + '/design.cjs', CV1_SCREENS = T + '/screens.template.html';
+const CV1_LIVE = { [CV1_APP]: 1, [CV1_DESIGN]: 1 };
+const COACH_V1_NEW = Object.freeze([
+  ['Why this weight?', CV1_LIVE, []],
+  ['What did I do last time?', CV1_LIVE, []],
+  ['How is my weight going?', CV1_LIVE, []],
+  ['What did I say in my check in?', CV1_LIVE, []],
+  ['Typed and spoken questions come later. Tap a question above.', CV1_LIVE, []],
+  ['You asked: ', { [CV1_APP]: 1 }, []],
+  ['From this device\u2019s encrypted local store.', { [CV1_APP]: 1 }, []],
+  ['Talk through today\u2019s plan', { [CV1_DESIGN]: 1, [CV1_SCREENS]: 1 }, ['APPROVED_COPY']],
+  ['COACH-LIVE-BINDING FAIL: "', { [CV1_DESIGN]: 1 }, []],
+  ['COACH-LIVE-BINDING FAIL: the live coach words are not exactly the approved list', { [CV1_DESIGN]: 1 }, []],
+  ['COACH-LIVE-BINDING FAIL: the live copy region of ', { [CV1_DESIGN]: 1 }, []],
+]);
+const COACH_V1_CHANGED = Object.freeze([
+  ['What am I hitting today?', { [CV1_SCREENS]: 1 }, { [CV1_APP]: 1, [CV1_SCREENS]: 1 }],
+  ['I cannot answer that from what the app holds.', { [CV1_APP]: 1 }, { [CV1_APP]: 2 }],
+  [' could not be located', { [CV1_DESIGN]: 1 }, { [CV1_DESIGN]: 2 }],
+  ['" carries a dash', { [CV1_DESIGN]: 1 }, { [CV1_DESIGN]: 2 }],
+]);
+const COACH_V1_COPY_APPROVAL = 'DECISIONS:964';
+function beforeCoachV1(corpus) {
+  const added = new Set(COACH_V1_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
+    const row = COACH_V1_CHANGED.find(([text]) => text === e.text);
+    return row ? { ...e, files: sortedFiles(row[1]) } : e;
+  }) };
+}
+test('CL-COACH-V1-DELTA: the corpus is the S19 corpus plus exactly the listed Coach v1 pieces and counts, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of COACH_V1_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-COACH-V1-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text, , now] of COACH_V1_CHANGED) {
+    const want = { text, files: sortedFiles(now), lists: [] };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-COACH-V1-DELTA CHANGED ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  const s19 = lock.sha256(Buffer.from(serialize(beforeCoachV1(corpus)), 'utf8'));
+  if (s19 !== S19_CORPUS_SHA256) failed.push('CL-COACH-V1-DELTA S19-VIEW ' + s19);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the S19 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-COACH-V1-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeCoachV1(moved)), 'utf8')) === S19_CORPUS_SHA256) failed.push('CL-COACH-V1-DELTA S19-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-COACH-V1-DELTA');
+});
+test('CL-COACH-V1-APPROVAL: the Coach v1 copy delta names the ledger line that approves it', () => {
+  assert.match(COACH_V1_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-COACH-V1-APPROVAL-PENDING: the Coach v1 copy is not approved');
+});
+// The S14 view: this corpus (as S19 sealed it, and as it stood before S18) minus the S15 pieces and the S15 scanned files.
 function s14View(corpus) {
-  const added = new Set(S15_NEW.map(([text]) => text)), before = beforeS18(corpus);
+  const added = new Set(S15_NEW.map(([text]) => text)), before = beforeS18(beforeCoachV1(corpus));
   return { ...before, entries: before.entries.filter((e) => !added.has(e.text)),
     scanned: before.scanned.filter((f) => !S15_SCANNED.includes(f)) };
 }
 test('CL-S18-REOWNED: "Why?" gains exactly its two S18 owners, and the view before S18 is exactly the S17 piece', () => {
-  const { corpus } = loaded();
+  const corpus = beforeCoachV1(loaded().corpus);
   for (const [text, was, now] of S18_REOWNED) {
     const got = corpus.entries.find((e) => e.text === text);
     assert.deepEqual(got, { text, files: sortedFiles(now), lists: [] }, 'CL-S18-REOWNED NOW ' + text);
@@ -551,7 +612,8 @@ test('CL-S18-REOWNED: "Why?" gains exactly its two S18 owners, and the view befo
 });
 
 test('CL-S15-DELTA: the S15 corpus is the S14 corpus plus exactly the approved S15 routine pieces, both directions', () => {
-  const { corpus } = loaded();
+  // Coach v1: judged on the S19 corpus, which beforeCoachV1 rebuilds byte for byte from this corpus (CL-COACH-V1-DELTA)
+  const corpus = beforeCoachV1(loaded().corpus);
   const byText = new Map(corpus.entries.map((e) => [e.text, e]));
   const failed = [];
   assert.equal(S15_NEW.length, 46, 'CL-S15-DELTA-COUNT');

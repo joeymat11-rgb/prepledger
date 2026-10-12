@@ -528,7 +528,7 @@ test("W12 the opt-in and cost-cap gates are untouched, and no new path starts a 
   assert.equal(T.startLiveSession({ cap: good(), now: NOW, optIn, user: "joe" }).code, "COACH_NO_LIVE_ADAPTER");
   assert.equal(T.startLiveSession({ cap: good(), now: NOW, optIn, user: "joe" }).started, false);
   /* and nothing in the new modules starts one */
-  for (const file of ["wave1-tools.cjs", "wave1-text.cjs", "machine-settings-commands.cjs"]) {
+  for (const file of ["wave1-tools.cjs", "wave1-text.cjs", "machine-settings-commands.cjs", "coach-intents.cjs"]) {
     const src = fs.readFileSync(at(file), "utf8");
     assert.ok(!src.includes("startLiveSession"), file + " reaches the live-session gate");
     assert.ok(!/started:\s*true/.test(src), file + " reports a started session");
@@ -537,7 +537,7 @@ test("W12 the opt-in and cost-cap gates are untouched, and no new path starts a 
 
 test("W16 no dash reaches the athlete in any wave-one string or transcript (D12)", async () => {
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
-  for (const file of ["wave1-tools.cjs", "wave1-text.cjs", "machine-settings-commands.cjs"]) {
+  for (const file of ["wave1-tools.cjs", "wave1-text.cjs", "machine-settings-commands.cjs", "coach-intents.cjs"]) {
     assert.ok(!DASH.test(strip(fs.readFileSync(at(file), "utf8"))), file + " carries a dash outside a comment");
   }
   assert.ok(!DASH.test(fs.readFileSync(at("scripts/wave1-script.json"), "utf8")));
@@ -553,7 +553,7 @@ test("W16 no dash reaches the athlete in any wave-one string or transcript (D12)
 });
 
 test("W17 no network and no model in any wave-one module", () => {
-  for (const file of ["wave1-tools.cjs", "wave1-text.cjs", "machine-settings-commands.cjs"]) {
+  for (const file of ["wave1-tools.cjs", "wave1-text.cjs", "machine-settings-commands.cjs", "coach-intents.cjs"]) {
     const src = fs.readFileSync(at(file), "utf8");
     for (const forbidden of ["node:http", "node:https", "node:net", "node:tls", "node:dgram",
       "fetch(", "WebSocket", "XMLHttpRequest", "api.openai.com", "OPENAI_API_KEY", "process.env",
