@@ -220,7 +220,9 @@ test("CI-9 why this weight: lifts that share a reason share one line", async () 
   const working = (id, name, weight) => ({ id, name, sets: 2, reps: [12, 12], weight, firstTime: false, newWeight: false, held: false, repTop: 12 });
   const plan = { available: true, code: null, name: "LOWER", exercises: [first("plank", "Plank", 10), working("row", "Row", 40),
     first("press", "Leg press", 10), first("nordic", "Nordic curl", 10), working("fly", "Fly", 40), first("calf", "Calf raise", 15)] };
-  const got = await I.ask(toolsOver({ today: withPlan(plan) }), "why_weight", { turnId: "ci9" });
+  /* polish 3: the gym card says none of these lifts has an earlier session, so a first weight is a first time */
+  const fresh = { read: async () => ({ phase: "ready" }), lastTimes: () => plan.exercises.map((ex) => ({ lift: ex.id, sets: [] })) };
+  const got = await I.ask(toolsOver({ today: withPlan(plan), gym: fresh }), "why_weight", { turnId: "ci9" });
   assert.equal(got.answered, true);
   assert.deepEqual(got.untraceable, []);
   assert.deepEqual(got.answer.split("\n"), [
@@ -294,6 +296,33 @@ test("CI-11 where's my seat set: every lift's saved settings, one line each, rea
   const plant = await I.ask({ openTurn(turn_id) { const turn = toolsOver({ today: withPlan(PLAN), seats }).openTurn(turn_id);
     return { ...turn, untraceable: (answer) => T.untraceable(answer.replace("seat 4;", "seat 14;"), turn.results, turn_id) }; } }, "machine_seat", { turnId: "ci11-plant" });
   assert.equal(plant.shipped, false);
+});
+
+/* POLISH 3 (PM, ui-pass9 shot 03). "Why this weight?" no longer contradicts "What did I do last time?": a lift with no
+   working weight says "first time" only when the gym card holds no earlier session of it (the same read last time
+   answers from); with an earlier session, or when the card could not be read, it says "no working weight set yet". */
+test("CI-12 why this weight says first time only for a lift with no earlier session", async () => {
+  const first = (id, name) => ({ id, name, sets: 2, reps: [0, 0], weight: null, firstTime: true, newWeight: false, held: false, repTop: 10 });
+  const plan = { available: true, code: null, name: "LOWER", exercises: [first("plank", "Plank"), first("press", "Leg press"), first("nordic", "Nordic curl")] };
+  const gym = { read: async () => ({ phase: "ready" }), lastTimes: () => [{ lift: "plank", sets: [] },
+    { lift: "press", sets: [{ load: 90, reps: 10 }, { load: 90, reps: 9 }] }, { lift: "nordic", sets: [] }] };
+  const tools = toolsOver({ today: withPlan(plan), gym });
+  const why = await I.ask(tools, "why_weight", { turnId: "ci12" });
+  assert.equal(why.answered, true);
+  assert.deepEqual(why.untraceable, []);
+  assert.deepEqual(why.answer.split("\n"), [
+    "Plank, Nordic curl: first time. Pick a weight you can control for about 10 reps; what you log becomes your starting point.",
+    "Leg press: no working weight set yet. Pick a weight you can control for about 10 reps; what you log becomes your starting point.",
+  ]);
+  const last = await I.ask(tools, "last_time", { turnId: "ci12-last" });
+  assert.deepEqual(last.answer.split("\n"), ["No earlier session of Plank yet.", "Leg press: last time 90 lb for 10, 9 reps.",
+    "No earlier session of Nordic curl yet."], "and last time agrees, lift by lift");
+  /* the card could not be read: nothing is known about earlier sessions, so nothing is called a first time */
+  const unknown = await I.ask(toolsOver({ today: withPlan(plan) }), "why_weight", { turnId: "ci12-unknown" });
+  assert.deepEqual(unknown.answer.split("\n"), [
+    "Plank, Leg press, Nordic curl: no working weight set yet. Pick a weight you can control for about 10 reps; what you log becomes your starting point.",
+  ]);
+  for (const words of [I.PLAIN.noWorking, I.PLAIN.noWorkingNoTop]) assert.equal(/\d|[\u2013\u2014]/.test(words), false, words);
 });
 
 test("CI-4 a draft whose numbers the turn did not read is discarded: the general refusal is said instead", async () => {

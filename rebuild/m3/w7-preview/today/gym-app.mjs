@@ -304,8 +304,11 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, onCo
       + plainOrDrop(pair.value, 'settings-value') + '.').join(' ');
     const when = state === 'failed' ? SETTINGS_UNREAD : state !== 'known' ? SETTINGS_READING
       : (!stored || (storedPairs.length === 0 && !stored.cues)) ? SETTINGS_NONE : '';
-    put(map, 'machine-setting', shown ? shown : SETTINGS_OPEN);
-    put(map, 'machine-when', shown ? SETTINGS_OPEN : when);
+    /* POLISH 3 (PM, ui-pass9 shot 05): the open label is always the row's title and what is saved ("Seat 4.") sits
+       on the line below it, where the reading, empty and unreadable sentences already sit; the board's W-06 drew the
+       stored setting as the title, which read as the row's name. The words are unchanged. */
+    put(map, 'machine-setting', SETTINGS_OPEN);
+    put(map, 'machine-when', shown ? shown : when);
     put(map, 'machine-note', state === 'failed' ? SETTINGS_UNREAD_ACTION : '');
     const openControl = root.querySelector('[data-action="settings-open"]');
     /* UNTIL THE READ ANSWERS, THERE IS NOTHING TO CORRECT (finding 2). Offering the

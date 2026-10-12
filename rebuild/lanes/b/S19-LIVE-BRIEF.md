@@ -327,13 +327,51 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   (40 of 40) and the live Coach screen probe over the real booted page (42 of 42: seven questions, the seventh
   reachable by scrolling, its answer read through the real lane's read, opened lazily).
 
+## Coach v1, polish 3 (PM 2026-10-12, ui-pass9 shots 01 to 08; on 9e2227a, rebuild/c-polish3)
+- The live Coach screen fits its seven questions at 390x844: only the live screen (its questions carry data-intent; a
+  review state still paints the pack's board at the pack's sizes) draws the orb block and the heading smaller and
+  closer (orb 110 -> 72 px, rings 160/200 -> 104/132, title 50 -> 40 px, tighter margins). Every question keeps the
+  pack's 60 px row and gap; no tap target or type size moves. Measured in Chromium over the real booted page: the
+  seventh question's foot at 757 px against the 802 px where the bottom fade starts (857 on 9e2227a, below the fold).
+- "Why this weight?" says "first time" only for a lift with NO earlier session, read from the gym card's own last sets,
+  the same read "What did I do last time?" answers from (why_weight now reads today_session and last_times). A lift
+  with an earlier session but no working weight, or whose history could not be read, says "<lift>: no working weight
+  set yet. Pick a weight you can control for about 10 reps; what you log becomes your starting point." Lifts that
+  share a reason still share a line.
+- The machine-settings form takes the dark theme: its boxes the routine editor's own field look (the card surface,
+  the text colour, the pack's line, 8 px corners), still 16 px type and 44 px high, focus marked in the text colour;
+  "Add another setting" reads in --text-soft, not the 09-08 link green. The gym card's machine row keeps "Machine
+  settings" as its title and puts what is saved ("Seat 4.") on the line below it, where the reading, empty and
+  unreadable sentences already sit (the board's W-06 drew the stored setting as the title). No word changes. None of
+  this is in a sealed file: preview.css, gym-app.mjs (released) and the tests only; gym-settings-lane.mjs and
+  machine-settings-view.mjs are unchanged.
+- The weekly card's Why? text reads in --text-soft, not the pack's --muted grey.
+- Today's six quiet links share one rhythm: each the same 44 px row with 8 px above it (the first keeps 16 px from the
+  sentence above), so every gap between them is 8 px (they were 60 px apart, then 44). Measured: pitches 52, 52, 52,
+  52, 52 at 390x844 and 430x932 (60, 60, 44, 44, 44 on 9e2227a); the foot probe's contrast and fade checks still 40 of
+  40, and the deployed-shell probe 24 of 24.
+- New strings (PM-approved short plain copy, :913 (5)): coach-intents.cjs PLAIN.noWorking ": no working weight set
+  yet. Pick a weight you can control for about " and PLAIN.noWorkingNoTop. No page string moves: the copy lock
+  re-measures to the same corpus, 5bdf2c2e.
+- Pins and needles, measured: s12-look 74 -> 75 (look-cui2's polish 3 cell). No PAGE_PINS file moves (today-entry.mjs
+  is unchanged), and the writer fence is unchanged.
+- Red first: on 9e2227a's sources (coach-intents.cjs, gym-app.mjs, preview.css) 13 rows fail and pass on these:
+  coach-intents.test.cjs CI-12 (first time only with no earlier session; last time agrees lift by lift; unknown
+  history is never called a first time), look-cui2's polish 3 cell, workout-look.test.mjs C-UI-4 F3 (the row's title
+  and sub line) and ten machine-settings-ui.test.mjs cells whose shown-settings reading now takes the sub line (S2,
+  S3, S4 twice, S5, S6d, S7, S8, S9, and S2's "four" cell).
+- At the builder seat: the today batch 637/658 (the same 21 seat-only build failures), the fences batch 2208/2210
+  (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the coach suite 398/398
+  without the seat-only engine-revision-gap file, the 76 layout invariants, the deployed-shell probe (24 of 24), the
+  foot probe (40 of 40), the coach-screen probe (46 of 46) and the quiet-link rhythm probe (6 of 6).
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
 s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 (the polish's CL-COACH-POLISH-DELTA
-and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74
-(piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9), and with the
+and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75
+(piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852; the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,

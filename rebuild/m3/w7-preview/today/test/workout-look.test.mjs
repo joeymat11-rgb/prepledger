@@ -170,10 +170,11 @@ test("C-UI-4 F3 the machine row is the pack's: a title, one sub line, no legacy 
     "no block-level element and no legacy list slot inside the button");
   /* W-36: the unread sentence's action half is the pack's note block under the row. */
   assert.match(gym, /<\/button>\s*<div class="note-block" data-slot="machine-note" hidden><\/div>/);
-  /* W-06: the stored setting is the title and the open label the sub line; the label
-     is the title only in W-33 / W-34 / W-36. */
-  assert(gymApp.includes("put(map, 'machine-setting', shown ? shown : SETTINGS_OPEN);"));
-  assert(gymApp.includes("put(map, 'machine-when', shown ? SETTINGS_OPEN : when);"));
+  /* W-06 as POLISH 3 rules it (PM, ui-pass9 shot 05; red first on 9e2227a): the open label is always the title and
+     the stored setting sits on the sub line, where W-33 / W-34 / W-36's reading, empty and unreadable sentences are. */
+  assert(gymApp.includes("put(map, 'machine-setting', SETTINGS_OPEN);"));
+  assert(gymApp.includes("put(map, 'machine-when', shown ? shown : when);"));
+  assert.equal(gymApp.includes("put(map, 'machine-setting', shown"), false, "the stored setting is no longer the title");
 });
 
 test("C-UI-4 F4 W-08/W-09: the gold × of the pack's line, and no blank underline box outside W-19", () => {

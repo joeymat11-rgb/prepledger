@@ -161,10 +161,14 @@ const pairs = (page) => [...page.doc.querySelectorAll('#phone [data-slot="settin
    [['Back pad', 'two notches']] from [['Back', 'pad two notches']]; the stored record still can,
    and S4/S5 read it back off the store. */
 const settingsLine = (list) => list.map(([name, value]) => name + ' ' + value + '.').join(' ');
+/* POLISH 3 (PM, ui-pass9 shot 05): the open label is always the title, and the stored settings are the sub line
+   (where the reading, empty and unreadable sentences are), so what is shown is the sub line whenever it is none of
+   those sentences. Every expectation below compares the same composed line as before. */
 const shownSettings = (page) => {
   const title = page.pick('machine-setting'), when = page.pick('machine-when');
   assert(title && when, 'the machine row carries its title and its sub line');
-  return when.textContent === SETTINGS_OPEN ? title.textContent : '';
+  assert.equal(title.textContent, SETTINGS_OPEN, 'the title is always the open label');
+  return [SETTINGS_NONE, SETTINGS_READING, SETTINGS_UNREAD, ''].includes(when.textContent) ? '' : when.textContent;
 };
 
 /* One captured machine, through the CARD, from the active set's own lift. */

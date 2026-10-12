@@ -225,3 +225,28 @@ test("C-UI batch 2: Today's quiet links take the pack's protective cloud and are
   assert.match(css, /\.scene-frame\.screen-today > \.view\.ui > \.body \{ padding-bottom: 34px; --fade-bot-inset: 14px; \}/,
     "inside the band S18 keeps under the stack");
 });
+
+/* POLISH 3 (PM, ui-pass9; red first on 9e2227a's preview.css). Measured at the builder seat in Chromium: the live
+   Coach screen's seven questions all on the first screen at 390x844, clear of the bottom fade, each still the pack's
+   60 px row; Today's six quiet links 52 px apart, all six gaps 8 px. Held here in the stylesheet. */
+test("C-UI polish 3: the live coach compacts only itself, the settings form is dark, the review's Why? and the quiet links read evenly", () => {
+  const css = fs.readFileSync(PREVIEW_CSS, "utf8");
+  const block = css.slice(css.indexOf("/* ===== POLISH 3 (PM"), css.indexOf("/* ===== POLISH 3: END ===== */"));
+  assert(block.length > 0, "the polish 3 block");
+  const LIVE = ".scene-frame.screen-coach > .view.ui > .body:has(#prompts > .prompt[data-intent])";
+  for (const rule of [" .orb-wrap { margin-top: 14px; height: 72px; }", " .orb { width: 72px; height: 72px; }", " .coach-title { font-size: 40px; margin-top: 14px; }"]) {
+    assert(block.includes(LIVE + rule), "only the live screen is compacted: " + rule);
+  }
+  assert.equal(/(^|\n)\.(orb|orb-wrap|coach-title|prompts?)\b/.test(block), false, "no unscoped rule moves the pack's board");
+  const code = block.replace(/\/\*[\s\S]*?\*\//g, "");
+  assert.doesNotMatch(code, /\.prompt\s*\{/, "no question row is resized");
+  assert.deepEqual([...code.matchAll(/min-height:\s*([^;]+);/g)].map((m) => m[1].trim()), ["var(--hit)"],
+    "the only height the block sets is the 44 px tap row of the quiet links");
+  assert(block.includes(".view [data-slot=\"settings-editor\"] input[type=\"text\"] {\n  padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line);\n  background: color-mix(in srgb, var(--card) 86%, transparent); color: var(--text); }"),
+    "the settings boxes take the routine editor's dark field look");
+  assert(css.includes("  min-height: 44px;\n  font-size: 16px;\n}"), "and keep their 44 px height and 16 px type");
+  assert(block.includes(".view [data-action=\"settings-add\"] { color: var(--text-soft);"), "Add another setting at secondary contrast");
+  assert(block.includes(".scene-frame > .view.ui [data-slot=\"week-review\"] .reason { color: var(--text-soft); }"), "the review's Why? text too");
+  assert(block.includes("  min-height: var(--hit); margin-top: 8px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }"), "one rhythm for the quiet links");
+  assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, ""), /:is\(/, "plain selectors, no :is() list");
+});

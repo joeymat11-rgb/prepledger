@@ -407,6 +407,9 @@ const PLAIN = Object.freeze({
   firstTime: ": first time. Pick a weight you can control for about ",
   firstTimeTail: " reps; what you log becomes your starting point.",
   firstTimeNoTop: ": first time. Pick a weight you can control for every set; what you log becomes your starting point.",
+  /* polish 3: a lift with an earlier session (or none known) but no working weight is not a first time */
+  noWorking: ": no working weight set yet. Pick a weight you can control for about ",
+  noWorkingNoTop: ": no working weight set yet. Pick a weight you can control for every set; what you log becomes your starting point.",
   working: " lb is your working weight. A new weight can be offered once you reach the top of your rep range",
   newWeight: " lb is your new weight, and this is its first workout.",
   held: ", held for now. Your first set went to failure twice, so the weight stays until a first set ends with a rep or more in reserve.",
@@ -479,9 +482,15 @@ function targetLine(ex) {
 }
 /* One exercise's "why this weight", in plain words: what follows its name (": first time. ...", ": 200 lb is your
    working weight. ..."). */
-function whyAfterName(ex) {
-  if (flag(ex.firstTime)) {
+function whyAfterName(ex, earlier) {
+  /* POLISH 3 (PM, ui-pass9 shot 03): "first time" only for a lift with NO earlier session (the gym card's own last sets,
+     the same read "What did I do last time?" says); a lift that has one, or whose history could not be read, has no
+     working weight set yet, which is true either way. */
+  if (flag(ex.firstTime) && earlier === false) {
     return has(ex.repTop) ? PLAIN.firstTime + d(ex.repTop, "rep") + PLAIN.firstTimeTail : PLAIN.firstTimeNoTop;
+  }
+  if (flag(ex.firstTime)) {
+    return has(ex.repTop) ? PLAIN.noWorking + d(ex.repTop, "rep") + PLAIN.firstTimeTail : PLAIN.noWorkingNoTop;
   }
   if (flag(ex.held)) return has(ex.load) ? ": " + d(ex.load, "lb") + " lb" + PLAIN.held : PLAIN.heldNoLoad;
   if (has(ex.load) && flag(ex.newWeight)) return ": " + d(ex.load, "lb") + PLAIN.newWeight;
@@ -494,10 +503,10 @@ function whyAfterName(ex) {
 }
 /* COACH V1 BATCH 2 (PM, item 2): lifts whose reasons read the same say it once, on one line, their names listed in
    the workout's order ("Plank, Leg press, Nordic curl: first time. ..."); a line keeps the place of its first lift. */
-function whyLines(lifts) {
+function whyLines(lifts, earlierOf = () => null) {
   const groups = new Map();
   for (const ex of lifts) {
-    const after = whyAfterName(ex);
+    const after = whyAfterName(ex, earlierOf(ex));
     if (!groups.has(after)) groups.set(after, []);
     groups.get(after).push(d(ex.name, "text"));
   }
@@ -523,7 +532,12 @@ const PAGE_TEMPLATES = Object.freeze({
   why_weight: (got) => {
     const s = got.today_session;
     if (!s || !s.ok) return null;
-    return planned(s.values) ? whyLines(s.values.lifts) : [PLAIN.noWorkoutWhy];
+    if (!planned(s.values)) return [PLAIN.noWorkoutWhy];
+    /* polish 3: each lift's earlier session, from the gym card's own last sets when the card could be read (true or
+       false), else unknown (null) */
+    const l = got.last_times;
+    const sets = l && l.ok ? new Map((l.values.lifts || []).map((row) => [row.id && row.id.value, (row.sets || []).length > 0])) : null;
+    return whyLines(s.values.lifts, (ex) => (sets && ex.id ? (sets.has(ex.id.value) ? sets.get(ex.id.value) : null) : null));
   },
   /* "What did I do last time?" (batch 2): every lift of today's workout, one line each, in the workout's order: its
      "Last time" sets as the gym card reads them, or that there is no earlier session of it yet. */
@@ -593,7 +607,7 @@ const PAGE_TEMPLATES = Object.freeze({
 /* One page question: the tools it reads, in order, and its template. A later tool is not called once one refuses. */
 const PAGE_INTENTS = Object.freeze({
   today_plan: Object.freeze({ tools: Object.freeze(["today_session", "today_plan"]), template: "plan" }),
-  why_weight: Object.freeze({ tools: Object.freeze(["today_session"]), template: "why_weight" }),
+  why_weight: Object.freeze({ tools: Object.freeze(["today_session", "last_times"]), template: "why_weight" }),
   last_time: Object.freeze({ tools: Object.freeze(["today_session", "last_times"]), template: "last_time" }),
   weight_trend: Object.freeze({ tools: Object.freeze(["weight_trend"]), template: "weight_trend" }),
   my_checkin: Object.freeze({ tools: Object.freeze(["today_checkin"]), template: "checkin" }),
