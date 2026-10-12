@@ -27,6 +27,9 @@ import { faultDatabase } from '../../../w6/test/support.mjs';
 import { openTodayInstallation, WORKOUT_ORDER_CLASS } from '../../../w6/local/today-bindings.mjs';
 import { createGymHost, causalTips, startOrderRefusalOf } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES, effortWords, prescriptionLine, effortInstruction } from '../gym-model.mjs';
+import * as GymModel from '../gym-model.mjs';
+// S15 polish item 3: the two plain refusals (undefined until they exist, so the cell is red first).
+const { LOAD_NOT_A_NUMBER, REPS_NOT_A_NUMBER } = GymModel;
 import { mountGym, NO_REST_PRESCRIBED, COULD_NOT_PREPARE } from '../gym-app.mjs';
 import { createWorkoutEntry } from '../today-entry.mjs';
 import { createReadingHost } from '../reading-host.mjs';
@@ -1514,4 +1517,129 @@ test('A2 (B-LOM): an athlete carrying a LEGACY session log and NO recorded impor
       handle.host.close();
     }
   });
+});
+
+/* S15 ROUND 5 POLISH (PM UI pass, items 2, 3 and 9). A debut athlete: every lift has no
+   working weight yet (w null, no history), which is what a fresh setup gives, so the
+   engine prescribes no load and the card says "Find a working load". */
+function debutState() {
+  const state = JSON.parse(JSON.stringify(createTodayModel({}).stateFromOps()));
+  state.sessionLog = {};
+  for (const e of state.exercises) e.w = null;
+  return state;
+}
+
+test('S15P-2 prefill: the set after a logged set opens at the load just logged for that lift; reps are not prefilled; '
+  + 'the next lift opens without it', async () => {
+  const kit = await device({ engineState: debutState() });
+  const { model } = kit;
+  try {
+    const ready = await model.read();
+    assert.equal(ready.phase, 'ready', ready.code || '');
+    assert.equal(ready.entry.load, null, 'a debut set opens with no load');
+    assert((await model.start()).ok);
+    let view = await model.read();
+    const lift = view.set.lift;
+    assert.equal(view.entry.load, null, 'set 1 has nothing logged before it');
+    const logged = await model.logSet({ startId: view.startId, slot: view.set.slot, lift,
+      load: '25', reps: '10', effort: CHOSEN });
+    assert(logged.ok, logged.code);
+    model.forget();
+    view = await model.read();
+    assert.equal(view.phase, 'active');
+    assert.equal(view.set.lift, lift, 'still the same lift');
+    assert.equal(view.entry.load, 25, 'set 2 opens at the load just logged, still editable');
+    assert.equal(view.entry.reps, null, 'reps are never prefilled from a logged set');
+    const again = await model.logSet({ startId: view.startId, slot: view.set.slot, lift,
+      load: '30', reps: '9', effort: CHOSEN });
+    assert(again.ok, again.code);
+    model.forget();
+    view = await model.read();
+    while (view.phase === 'active' && view.set.lift === lift) {
+      assert.equal(view.entry.load, 30, 'the most recent logged load of this lift');
+      const more = await model.logSet({ startId: view.startId, slot: view.set.slot, lift,
+        load: '30', reps: '8', effort: CHOSEN });
+      assert(more.ok, more.code);
+      model.forget();
+      view = await model.read();
+    }
+    assert.equal(view.phase, 'active', 'the session has a second lift');
+    assert.notEqual(view.set.lift, lift);
+    assert.equal(view.entry.load, null, 'another lift does not take this lift\'s load');
+  } finally { kit.gymHost.close(); }
+});
+
+test('S15P-3 a weight or reps that is not a number is refused in plain words, before the layer, and writes nothing', async () => {
+  const kit = await device({ engineState: debutState() });
+  const { model, gymHost } = kit;
+  try {
+    assert((await model.start()).ok);
+    const view = await model.read();
+    const before = await opsOf(gymHost.repository);
+    for (const load of ['BW', 'bodyweight', 'abc']) {
+      const result = await model.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
+        load, reps: '10', effort: CHOSEN });
+      assert.equal(result.ok, false, load);
+      assert.equal(result.code, null, load + ': the screen\'s own refusal carries no layer code');
+      assert.equal(result.copy, LOAD_NOT_A_NUMBER, load);
+    }
+    for (const reps of ['ten', 'x']) {
+      const result = await model.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
+        load: '25', reps, effort: CHOSEN });
+      assert.equal(result.ok, false, reps);
+      assert.equal(result.code, null, reps);
+      assert.equal(result.copy, REPS_NOT_A_NUMBER, reps);
+    }
+    /* A NUMBER the layer refuses still reaches the layer and comes back in its own code (A2 step 7). */
+    const zero = await model.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
+      load: '0', reps: '10', effort: CHOSEN });
+    assert.equal(zero.ok, false);
+    assert.match(String(zero.code), /WORKOUT_/);
+    assert.deepEqual(await opsOf(gymHost.repository), before, 'a refused entry wrote nothing');
+    assert.doesNotMatch(LOAD_NOT_A_NUMBER + REPS_NOT_A_NUMBER, /layer|WORKOUT_|\u2013|\u2014/);
+    const fine = await model.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
+      load: '27.5', reps: '9', effort: CHOSEN });
+    assert(fine.ok, 'a decimal load is still the layer\'s to judge: ' + fine.code);
+  } finally { gymHost.close(); }
+});
+
+test('S15P-9 one clean rep is singular, everywhere the card says it', () => {
+  assert.equal(effortWords({ tag: 'exact', value: 1, unit: 'rep' }), '1 clean rep left');
+  assert.equal(effortWords({ tag: 'exact', value: 0, unit: 'rep' }), '0 clean reps left');
+  assert.equal(effortWords({ tag: 'exact', value: 2, unit: 'rep' }), '2 clean reps left');
+  const slot = target => ({ effort: { state: 'specified', display: String(target), source_json: JSON.stringify({ target }) } });
+  assert.equal(effortInstruction(slot(1)), 'Aim to finish with 1 clean rep left.');
+  assert.equal(effortInstruction(slot(2)), 'Aim to finish with 2 clean reps left.');
+});
+
+test('S15P-3b on the card, "BW" and a 0 lb load are said in plain words under the numerals, with the draft kept and '
+  + 'no layer reason or code on the screen', async () => {
+  const dom = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
+    { url: 'http://127.0.0.1:4178/' });
+  const doc = dom.window.document;
+  const phone = doc.getElementById('phone');
+  const kit = await device({ engineState: debutState() });
+  try {
+    await kit.model.start();
+    await mountGym(doc, phone, { model: kit.model, onBack: () => {}, onChanged: () => {} });
+    const waitFor = async (check) => {
+      for (let i = 0; i < 3000 && !check(); i++) await new Promise(resolve => setTimeout(resolve, 2));
+      return check();
+    };
+    for (const typed of ['BW', '0']) {
+      const weight = doc.getElementById('gym-weight'), reps = doc.getElementById('gym-reps');
+      weight.value = typed; weight.dispatchEvent(new dom.window.Event('input'));
+      reps.value = '45'; reps.dispatchEvent(new dom.window.Event('input'));
+      [...doc.querySelectorAll('.choice')].find(c => c.textContent === '2').click();
+      doc.querySelector('[data-slot="log"]').click();
+      assert.ok(await waitFor(() => doc.getElementById('gym-error').textContent === LOAD_NOT_A_NUMBER),
+        typed + ': ' + doc.getElementById('gym-error').textContent);
+      const said = doc.getElementById('gym-error').textContent;
+      assert.doesNotMatch(said, /layer|WORKOUT_|Start not confirmed/, typed);
+      assert.equal(doc.getElementById('gym-weight').value, typed, typed + ': the draft is kept');
+      assert.equal(doc.getElementById('gym-reps').value, '45');
+      assert.ok(doc.getElementById('w-value').classList.contains('is-invalid'), typed + ': the weight box is marked');
+    }
+    assert.equal((await opsOf(kit.gymHost.repository)).filter(o => o.kind === 'session-set').length, 0, 'nothing was recorded');
+  } finally { kit.gymHost.close(); }
 });

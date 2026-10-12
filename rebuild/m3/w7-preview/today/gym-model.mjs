@@ -37,6 +37,12 @@ for (const choice of EFFORT_CHOICES) {
 
 export const CHOOSE_EFFORT = 'Choose clean reps left, or Unsure.';
 export const ENTER_PERFORMED = 'Enter the weight and reps you actually completed.';
+/* S15 ROUND 5 POLISH, item 3 (PM UI pass, shot 14). A weight or reps the accepted layer can only refuse ("BW",
+   "0", a word) used to reach it and come back as its own reason and code. The screen says it in plain words
+   instead, before anything is sent, and keeps what he typed. Anything that IS a number still goes to the layer,
+   which stays the judge of every other rule. */
+export const LOAD_NOT_A_NUMBER = 'That weight cannot be saved. Enter it as a number above zero, like 25.';
+export const REPS_NOT_A_NUMBER = 'Enter the reps as a whole number, like 10.';
 export const UNDO_REASON = 'Undone on this device from the saved-set screen before the next set.';
 /* P0-B r2/r3 (review findings 3, N5) - Start's own refusal while an enrolled
    installation's adoption is pending or never swapped the host. Exported at
@@ -58,7 +64,8 @@ const specified = value => (value && value.state === 'specified' && typeof value
    number and never silently dropped. */
 export function effortWords(reserve) {
   if (!reserve || typeof reserve.tag !== 'string') return 'Effort unknown';
-  if (reserve.tag === 'exact') return reserve.value + ' clean reps left';
+  // S15 polish item 9: one clean rep is singular.
+  if (reserve.tag === 'exact') return reserve.value + (reserve.value === 1 ? ' clean rep left' : ' clean reps left');
   if (reserve.tag === 'at_least') return reserve.value + '+ clean reps left';
   return 'Effort unknown';
 }
@@ -81,7 +88,7 @@ export function prescriptionLine(slot) {
 export function effortInstruction(slot) {
   const effort = specified(slot && slot.effort);
   if (!effort || !Number.isSafeInteger(effort.target)) return null;
-  return 'Aim to finish with ' + effort.target + ' clean reps left.';
+  return 'Aim to finish with ' + effort.target + (effort.target === 1 ? ' clean rep left.' : ' clean reps left.');
 }
 
 const sameSlot = (a, b) => a && b && a.logical_set_slot === b.logical_set_slot && a.lift_lineage_id === b.lift_lineage_id;
@@ -299,6 +306,25 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     return at ? at.load : null;
   }
 
+  /* S15 ROUND 5 POLISH, item 2 (PM UI pass, shot 17): THE NEXT SET OPENS AT THE LOAD JUST LOGGED. When the
+     engine prescribes no load for this set (a debut: "Find a working load") the box opens at the load of the
+     most recent set of the SAME lift already performed in THIS session, so set 2 is not typed again. It is a
+     pre-fill and not a write: it stays editable and Log still records only what is in the box. A prescribed
+     load still wins (the plan is the plan), and S14's hold rules are untouched: a configuration load (a hold
+     or a bodyweight marker) never takes this path. Reps are never pre-filled from a logged set. */
+  function loggedThisSession(load, activeLift, active) {
+    if (load && load.kind === 'configuration') return null;
+    if (!activeLift) return null;
+    let found = null;
+    for (const slot of activeLift.slots) {
+      if (slot === active) break;
+      const values = slot.completion && slot.completion.kind === 'performed' && slot.completion.values;
+      const value = values && values.load && values.load.unit === 'lb' ? values.load.value : null;
+      if (Number.isFinite(value) && value > 0) found = value;
+    }
+    return found;
+  }
+
   /* The host's pre-write order guard, in the shape every other refusal here
      takes. It never invents a reason: the host derives both the code and the
      sentence from the durable log. */
@@ -378,7 +404,8 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
         effortCell: cell(active.effort) ? cell(active.effort).display : null,
         reason: reason && reason.state === 'specified' ? reason.display.split('\n').filter(Boolean) : [],
         setup: setup && setup.state === 'specified' ? setup.display : null },
-      entry: { load: load && Number.isFinite(load.value) ? load.value : lastRealLoad(load, active.lift_lineage_id, position),
+      entry: { load: load && Number.isFinite(load.value) ? load.value
+        : (lastRealLoad(load, active.lift_lineage_id, position) ?? loggedThisSession(load, activeLift, active)),
         reps: reps && Number.isSafeInteger(reps.value) ? reps.value : null,
         step: stepFor(active.lift_lineage_id) },
       previous: previousLine(active.lift_lineage_id, position),
@@ -409,7 +436,10 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
 
   async function read() {
     const told = message; message = null;
-    const base = { day, title: sessionTitle || null, message: told, saved: null };
+    /* S15 polish item 1: the title is read when the card reads (a function of the Today view), not frozen at
+       boot, so a card rebased onto the athlete's own week names his session and not the preview's. */
+    const base = { day, title: (typeof sessionTitle === 'function' ? sessionTitle() : sessionTitle) || null,
+      message: told, saved: null };
     const listed = await history();
     if (!listed.ok) return { ...base, phase: 'blocked', code: listed.code, copy: listed.copy };
     const { open, closed } = sessionsToday(listed.history);
@@ -556,6 +586,19 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     if (load === '' || load === null || load === undefined || reps === '' || reps === null || reps === undefined) {
       message = { code: null, copy: ENTER_PERFORMED };
       return { ok: false, code: null, copy: ENTER_PERFORMED };
+    }
+    /* S15 polish item 3: an entry that is not a number at all ("BW", a word) is said plainly here and
+       nothing is sent. A NUMBER the layer refuses (0, a negative, a fraction of a rep) still goes to the
+       layer, which answers in its own code (gym.test.mjs A2 step 7); the card says that one plainly. */
+    const loadText = String(load).trim(), repsText = String(reps).trim();
+    const numeric = text => /^-?\d+(\.\d+)?$/.test(text);
+    if (!numeric(loadText)) {
+      message = { code: null, copy: LOAD_NOT_A_NUMBER };
+      return { ok: false, code: null, copy: LOAD_NOT_A_NUMBER };
+    }
+    if (!numeric(repsText)) {
+      message = { code: null, copy: REPS_NOT_A_NUMBER };
+      return { ok: false, code: null, copy: REPS_NOT_A_NUMBER };
     }
     if (!effort) { message = { code: null, copy: CHOOSE_EFFORT }; return { ok: false, code: null, copy: CHOOSE_EFFORT }; }
     const { handle, result } = await commitContinued(startId, (prepared) => ({ resumeId: prepared.resumeId, action: 'set', input: {

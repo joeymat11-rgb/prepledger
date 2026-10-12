@@ -209,19 +209,24 @@ export function mountRoutine(doc, root, { routine, onBack } = {}) {
     const search = field('routine-search', SETUP_COPY.searchLabel, query, (v) => { query = v; });
     search.querySelector('input').addEventListener('change', () => paint());
     body.append(search);
-    if (query.trim()) {
-      const found = searchByName(query, { limit: 6 });
-      if (!found.length) body.append(el('p', 'routine-search-none', SETUP_COPY.searchNone));
-      const list = el('div', 'routine-search-results');
-      list.className = 'options';
-      for (const entry of found) {
-        list.append(chip('routine-pick', entry.n, form.entry === entry, () => {
-          form.entry = entry; form.n = entry.n; form.mg = entry.mg;
-          if (!replacing && Array.isArray(entry.kinds) && entry.kinds.length && !entry.kinds.includes(form.day)) form.day = entry.kinds[0];
-        }));
-      }
-      body.append(list);
-    }
+    /* S15 ROUND 5 POLISH, item 8 (PM UI pass, shots 38/39): the picks follow the words AS HE TYPES. Only
+       the results under the box are redrawn on each keystroke; the box is never replaced, so the caret
+       stays in his hands. A pick still repaints the screen, as before. */
+    const none = el('p', 'routine-search-none', SETUP_COPY.searchNone);
+    const list = el('div', 'routine-search-results');
+    list.className = 'options';
+    const drawPicks = () => {
+      const found = query.trim() ? searchByName(query, { limit: 6 }) : [];
+      if (query.trim() && !found.length) { if (!none.isConnected) list.before(none); } else none.remove();
+      list.hidden = !found.length;
+      list.replaceChildren(...found.map((entry) => chip('routine-pick', entry.n, form.entry === entry, () => {
+        form.entry = entry; form.n = entry.n; form.mg = entry.mg;
+        if (!replacing && Array.isArray(entry.kinds) && entry.kinds.length && !entry.kinds.includes(form.day)) form.day = entry.kinds[0];
+      })));
+    };
+    search.querySelector('input').addEventListener('input', drawPicks);
+    body.append(list);
+    drawPicks();
     body.append(field('routine-new-name', SETUP_COPY.exerciseNameLabel, form.n, (v) => { form.n = v; }));
     choices(body, 'routine-mg', SETUP_COPY.worksLabel, MG_LABELS, form.mg, (v) => {
       if (form.entry && form.entry.mg !== v) form.entry = null;

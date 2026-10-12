@@ -777,3 +777,22 @@ test("S4 - the emitted page draws under the status bar and reserves it as a quan
   assert.doesNotMatch(rules, /^\s*\.stage\s*[,{]/m, "an unscoped .stage rule would move A1's preview");
   assert.doesNotMatch(rules, /^\s*body\s*[,{]/m, "an unscoped body rule would move A1's preview");
 });
+
+/* S15 ROUND 5 POLISH, item 4 (PM UI pass, shot 11): the offline-launch footer ("Offline launch:",
+   "offline-ready", "All 11 files ...", the Add to Home Screen line) is a build check, not the athlete's
+   screen. It stays IN THE DOCUMENT, because the problem report reads its state and
+   rebuild/slice/pwa/browser-offline-check.mjs reads its install line and its state, and it keeps its own
+   ID display rule (checked above); on the deployed page it is moved off the screen, never display:none,
+   so it is still read by assistive technology and by those checks. A1's desktop harness keeps it. */
+test("S15 polish - the deployed page keeps the preflight in the document and off the athlete's screen", () => {
+  const rules = shell.preflightCss().replace(/\/\*[\s\S]*?\*\//g, "");
+  const gate = rules.match(/body\[data-earned-app\]\s+#pwa-preflight\s*\{([^}]*)\}/);
+  assert(gate, "nothing moves the preflight off the deployed page's screen");
+  assert.match(gate[1], /position:\s*absolute/);
+  assert.match(gate[1], /clip-path:\s*inset\(50%\)/);
+  assert.match(gate[1], /overflow:\s*hidden/);
+  assert.doesNotMatch(gate[1], /display:\s*none/, "it must stay readable, not removed");
+  const html = shell.installableHtml(A1_SHELL, NAMES);
+  assert(html.includes('id="pwa-preflight"'), "the preflight left the document");
+  assert(html.includes('data-pwa="state"') && html.includes('data-pwa="install"'), "its state and install line left the document");
+});

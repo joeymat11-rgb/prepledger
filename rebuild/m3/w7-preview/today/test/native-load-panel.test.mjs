@@ -2416,3 +2416,61 @@ test('R31-RC17-ROUTE-B-NO-UNDO-OF-A-LIFT-NOT-COMPLETED [Y] (spec :356 route B "c
   assert.equal((await responsesOf(era)).length, 1);
   era.close();
 });
+
+/* S15 ROUND 5 POLISH, item 7 (PM UI pass, shots 24/25/27). The working-weight offer existed only behind
+   "Check next weight" at the bottom of the review screen: Finish went straight back to Today while route B's
+   after-Close check (the existing FB01 flow, unchanged) found the offers on a screen nobody was looking at.
+   Now, when that check finds an offer, Finish lands on the workout's recorded screen with the offer cards on
+   it, using the same Yes / Not now; with no offer it goes back to Today exactly as before. No engine logic is
+   new: the offers are the after-Close check's own, and only the screen Finish lands on moves. */
+test('S15P-7 after the last set, Finish shows the working-weight offer as a card on the workout screen; Yes saves once; '
+  + 'Back to Today still goes back', async () => {
+  const fault = faultDatabase();
+  const era = await openTodayInstallation({ indexedDB: fault.indexedDB, crypto: webcrypto, day: D1 });
+  const { entry } = await twoTops(era);
+  entryGate(entry);
+  const gym = entry.gym, reserve = gym.effortChoices().find(c => c.label === '1').reserve;
+  assert.equal((await gym.start()).ok, true);
+  for (let guard = 0; guard < 20; guard++) {
+    const view = await gym.read();
+    if (view.phase === 'saved') { if (view.complete) break; gym.forget(); continue; }
+    if (view.phase !== 'active') break;
+    const logged = await gym.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
+      load: String(view.entry.load), reps: '12', effort: reserve });
+    assert.equal(logged.ok, true, 'set ' + logged.code);
+  }
+  const doc = shell(), phone = doc.getElementById('phone');
+  let backs = 0;
+  await entry.open({ doc, phone, back: () => { backs += 1; } });
+  const finish = await (async () => {
+    for (let i = 0; i < 200; i++) {
+      const b = qa(doc, 'button').find(x => x.textContent.includes('Finish this workout'));
+      if (b) return b;
+      await new Promise(r => setTimeout(r, 10));
+    }
+    return null;
+  })();
+  assert.ok(finish, 'the last set\'s screen offers Finish');
+  finish.click();
+  let offers = [];
+  for (let i = 0; i < 400 && !offers.length && backs === 0; i++) {
+    await new Promise(r => setTimeout(r, 10));
+    await entry.nativeLoad.settled();
+    offers = qa(doc, '[data-native-load="offer"]');
+  }
+  assert.equal(backs, 0, 'Finish did not hide the offer behind Today');
+  assert.ok(offers.length >= 1, 'the offer is a card on the screen Finish lands on');
+  assert.ok(phone.contains(offers[0]), 'on the workout screen itself');
+  const press = offers.find(o => o.getAttribute('data-lift') === 'demo-press') || offers[0];
+  assert.ok(q(press, '[data-native-load="yes"]') && q(press, '[data-native-load="decline"]'), 'with the existing Yes / Not now');
+  assert.equal((await responsesOf(era)).length, 0, 'showing it wrote nothing');
+  q(press, '[data-native-load="yes"]').click();
+  await entry.nativeLoad.settled();
+  assert.equal((await responsesOf(era)).length, 1, 'exactly one durable yes');
+  const back = qa(phone, '[data-go="today"]')[0];
+  assert.ok(back, 'the recorded screen still has its way back');
+  back.click();
+  for (let i = 0; i < 100 && backs === 0; i++) await new Promise(r => setTimeout(r, 10));
+  assert.equal(backs, 1, 'Back to Today goes back');
+  entry.gymHost.close(); era.close();
+});

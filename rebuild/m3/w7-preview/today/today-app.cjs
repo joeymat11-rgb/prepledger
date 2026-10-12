@@ -1077,6 +1077,10 @@ function mountToday(doc, model, options = {}) {
     if (!Number.isFinite(view.proteinTarget.g)) map.get("protein-line").hidden = true;
 
     put(map, "workout-title", view.workout.title);
+    /* S15 ROUND 5 POLISH, item 5 (PM UI pass, shots 11/12): the day says whether it is a training day, so
+       preview.css can put today's workout first on a training day and keep the order on a rest day. A
+       data attribute only: no word, slot or card moves in the document. */
+    root.setAttribute("data-day", view.workout && view.workout.today === true ? "train" : "rest");
     /* The workout line carries the durable state of today's session — in progress,
        recorded, or refused — beside the engine's own exercise count. A2.
        REVIEW B1: the state comes from a DRY PREPARATION through the accepted host

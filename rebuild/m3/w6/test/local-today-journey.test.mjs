@@ -736,8 +736,18 @@ export const PAGE_PINS = Object.freeze({
      installation's own client, generation() and liveDay() and stamps with today-bindings.mjs clientClockFor; an
      INJECTED installation is still never closed by this page (today-entry.mjs:706 `owned = options.hosts ? null : hosts`);
      and a declared-day caller still gets no watcher at all. gym-host.mjs, reading-host.mjs and checkin-host.mjs did not
-     move. MEASURED: 5adab952dc9eb42a81aa53aa5070e3f0cb90fa1b24fb56359de5d104eb5725fc -> the value below. */
-  'today-entry.mjs': '0e4b338873e3d42d0eb057c0cd643c2e28e1f4ee9d56f040d3df3a723baa07bc',
+     move. MEASURED: 5adab952dc9eb42a81aa53aa5070e3f0cb90fa1b24fb56359de5d104eb5725fc -> 0e4b3388...07bc.
+     S15 ROUND 5 POLISH re-pin (PM UI pass). today-entry.mjs moves by THREE hunks inside createWorkoutEntry and nothing
+     else: (1) the gym card's title is read from the model when the card reads (sessionTitleNow), not frozen at boot
+     (item 1); (2) the Close the gym model reports is remembered beside the existing afterClose call (item 7); (3) in
+     open(), the way out after a Close made on this page waits for the existing after-Close check and, if it found an
+     offer, mounts the card again (the recorded workout with the offers), else calls `back` as before; the returned
+     object is named entryApi so open() can call itself. boot() is byte-unchanged: it still opens the local era BY
+     DEFAULT, the `hosts` branch is untouched, no store is opened by the new hunks, an INJECTED installation is still
+     never closed by this page, and a declared-day caller still gets no watcher. gym-host.mjs, reading-host.mjs and
+     checkin-host.mjs did not move. MEASURED: 0e4b338873e3d42d0eb057c0cd643c2e28e1f4ee9d56f040d3df3a723baa07bc -> the
+     value below. */
+  'today-entry.mjs': '559463e09b64df729db0ba7e643c3ed1930174e8301d258a760767dd75defd40',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

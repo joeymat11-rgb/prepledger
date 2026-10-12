@@ -463,3 +463,96 @@ test('RT-08 an import supersedes the routine changes made before it, keeps them 
     families.push({ family: 'F10', state: 'superseded', op_id: origin.op_id });
     assert.throws(() => projector.read(generation, DAY2), { code: 'PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE' });
   });
+
+/* S15 ROUND 5 POLISH, item 8 (PM UI pass): the routine's exercise search answers as he types. An input
+   event alone, with no Enter and no change event, lists the catalogue picks, and the box he is typing
+   in is the same box afterwards, so the caret never leaves his hands. */
+test('RT-09 the routine search lists picks while typing, without Enter, and keeps the same search box', async () => {
+  const { mountRoutine } = await import('../routine-app.mjs');
+  const { createCleanInitState } = await import('../setup-model.mjs');
+  const state = createCleanInitState({ setup: shipped(DAY1).setup });
+  const session = { ok: true,
+    async view() { return { ok: true, today: DAY1, starts_on: DAY2, state, pending_dates: [], taken: [] }; },
+    async save() { return { ok: true, starts_on: DAY2 }; }, close() {} };
+  const win = shellWindow(), root = win.document.createElement('div');
+  win.document.body.append(root);
+  const view = mountRoutine(win.document, root, { routine: { session: async () => session } });
+  await view.settled();
+  tap(root.querySelector('[data-slot="routine-L"] [data-slot="routine-add"]'));
+  const box = win.document.getElementById('routine-search');
+  assert.ok(box, 'the search box is on the screen');
+  box.value = 'leg press';
+  box.dispatchEvent(new win.Event('input', { bubbles: true }));
+  const picks = [...root.querySelectorAll('[data-slot="routine-pick"]')].map(b => b.textContent);
+  assert.ok(picks.some(t => /leg press/i.test(t)), 'the picks appear while typing: ' + JSON.stringify(picks));
+  assert.equal(win.document.getElementById('routine-search'), box, 'the box he is typing in was not replaced');
+  box.value = 'zzzznotalift';
+  box.dispatchEvent(new win.Event('input', { bubbles: true }));
+  assert.equal(root.querySelectorAll('[data-slot="routine-pick"]').length, 0, 'the list follows the words');
+  const { COPY: SETUP_COPY } = await import('../setup-model.mjs');
+  assert.ok(root.textContent.includes(SETUP_COPY.searchNone), 'and says so when nothing matches');
+  view.close();
+});
+
+/* S15 ROUND 5 POLISH, item 1 (PM UI pass, shots 13/16/24/26): the workout's header named the PREVIEW
+   athlete's session ("UPPER BODY . TODAY") on the athlete's own Lower day. The gym card took its title from
+   the Today view read at boot, before Today adopted his own week; it now reads it when the card reads. */
+test('RT-10 on his own Lower day the workout header names his Lower session, the same title Today shows', { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('title');
+  era.close();
+  // 2026-09-26 is a Saturday: a Lower day in this athlete's week, and not the preview athlete's.
+  const page = await bootOn(indexedDB, 'title', '2026-09-26');
+  try {
+    const today = page.booted.model.read();
+    assert.ok(today.workout && today.workout.today === true, 'Today has a session today');
+    assert.match(today.workout.title, /LOWER/, 'Today names his Lower session: ' + today.workout.title);
+    const card = await page.booted.workout.gym.read();
+    assert.equal(card.title, today.workout.title, 'the workout header is the session Today names');
+  } finally { page.close(); }
+});
+
+/* S15 ROUND 5 POLISH, item 9 (PM UI pass, shot 32 and its console error): a fresh athlete has no lean-mass
+   estimate, so the engine's protein target is not a number and its explanation read "NaN g today ... NaN kg".
+   Why this plan now shows nothing for protein rather than NaN; every other section is unchanged. */
+test('RT-11 Why this plan never shows NaN: with no protein target there is no protein section', { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('nan');
+  era.close();
+  const page = await bootOn(indexedDB, 'nan', DAY1);
+  try {
+    const view = page.booted.model.read();
+    assert.equal(Number.isFinite(view.proteinTarget.g), false, 'precondition: this athlete has no protein target yet');
+    for (const section of view.why) assert.doesNotMatch(String(section.body || ''), /NaN/, section.heading);
+    assert.equal(view.why.some(s => s.heading === 'Your protein'), false, 'no protein section without a target');
+    assert.ok(view.why.some(s => s.heading === 'Your calories'), 'the other sections stay');
+  } finally { page.close(); }
+});
+
+/* S15 ROUND 5 POLISH, items 5 and 6 (PM UI pass, shots 11/12/13/17). Today marks a training day, and the
+   stylesheet puts today's workout first on it, makes the weigh-in one row and keeps a rest day's order; the
+   set entry's two boxes are drawn before anything is typed, and the machine row stands clear of the effort
+   row. The layout itself is the look gate's to measure; these cells pin the hooks and the rules. */
+test('RT-12 a training day is marked and laid out workout-first; a rest day keeps its order; the set boxes are drawn',
+  { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('order');
+  era.close();
+  let page = await bootOn(indexedDB, 'order', '2026-09-22');   // Tuesday: a Lower day
+  try {
+    const day = page.doc.querySelector('#phone .body.page, .body.page');
+    assert.ok(day, 'the Today day is on the screen');
+    assert.equal(day.getAttribute('data-day'), 'train', 'a training day is marked');
+  } finally { page.close(); }
+  page = await bootOn(indexedDB, 'order', DAY1);               // Wednesday: a rest day
+  try {
+    assert.equal(page.doc.querySelector('.body.page').getAttribute('data-day'), 'rest', 'a rest day is marked');
+  } finally { page.close(); }
+  const css = fs.readFileSync(new URL('../preview.css', import.meta.url), 'utf8');
+  const begin = css.indexOf('/* ===== S15 ROUND 5 POLISH'), end = css.indexOf('/* ===== S15 ROUND 5 POLISH: END');
+  assert.ok(begin >= 0 && end > begin, 'the polish block is in preview.css');
+  const rules = css.slice(begin, end).replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(rules, /\.body\[data-day="train"\] > \.timeline > #card-train \{ order: -1; \}/, 'the workout card first');
+  assert.match(rules, /\.body\[data-day="train"\] > section,[\s\S]*?\{ order: 2; \}/, 'the headline after the cards');
+  assert.doesNotMatch(rules, /data-day="rest"/, 'a rest day keeps the order it had');
+  assert.match(rules, /\.numerals \.value input \{[^}]*border-bottom: 1px solid var\(--line-gold\)/, 'the set boxes are drawn');
+  assert.match(rules, /#machine \{[^}]*z-index: 1;[^}]*margin-bottom/, 'the machine row stands clear of the effort row');
+  assert.doesNotMatch(rules, /#[0-9a-f]{3,8}\b|rgba?\(/i, 'no colour is invented');
+});

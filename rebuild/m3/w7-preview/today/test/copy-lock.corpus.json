@@ -394,6 +394,20 @@
    "lists": []
   },
   {
+   "text": " clean rep left",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " clean rep left.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": " clean reps left",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -2816,6 +2830,13 @@
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 2,
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Enter the reps as a whole number, like 10.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
    },
    "lists": []
   },
@@ -6216,6 +6237,13 @@
    "text": "That was the last set.",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "That weight cannot be saved. Enter it as a number above zero, like 25.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-model.mjs": 1
    },
    "lists": []
   },

@@ -380,7 +380,11 @@ function createTodayModel(options = {}) {
     const latest = view.latestRead;
     const out = [
       { heading: "Your calories", body: view.calorieTarget.why || view.nowModel.eat.sub || null },
-      { heading: "Your protein", body: view.proteinTarget.why || null },
+      /* S15 ROUND 5 POLISH, item 9 (PM UI pass, shot 32): with no lean-mass estimate the engine's protein
+         target is not a number and its explanation reads "NaN g today". No target, no protein section:
+         nothing is shown rather than NaN. The guard is on the value itself (Fable D2). */
+      ...(Number.isFinite(view.proteinTarget.g)
+        ? [{ heading: "Your protein", body: view.proteinTarget.why || null }] : []),
       { heading: "What supports “" + view.statusFace.word.toLowerCase() + "”",
         body: [view.statusFace.cause, view.nowModel.move.body].filter(Boolean).join(" ") || null },
       { heading: "The readings behind it",

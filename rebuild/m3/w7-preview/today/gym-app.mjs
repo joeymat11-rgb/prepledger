@@ -23,7 +23,7 @@ import MachineSettingsView from './machine-settings-view.mjs';
 import { createGymSettingsLane } from './gym-settings-lane.mjs';
 /* C-UI-4. The two form refusals the model owns, so the card can anchor each to the thing
    it names (W-19 under the numerals, W-20 on the effort row) without rewording either. */
-import { CHOOSE_EFFORT, ENTER_PERFORMED } from './gym-model.mjs';
+import { CHOOSE_EFFORT, ENTER_PERFORMED, LOAD_NOT_A_NUMBER, REPS_NOT_A_NUMBER } from './gym-model.mjs';
 
 const { plainOrDrop } = PlainCopy;
 /* REVIEW R1 FINDING 2 - the two headings the stub screen falls back to when the card
@@ -524,18 +524,34 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, onCo
       loadBox.classList.remove('w-blank', 'is-invalid');
       repsBox.classList.remove('w-blank', 'is-invalid');
     };
-    const refuse = (result, setRefused = false) => {
+    /* S15 ROUND 5 POLISH, item 3 (PM UI pass, shot 14): when the layer refuses the typed entry itself
+       (WORKOUT_INPUT_INVALID: a load of 0 or below, reps that are not a whole number), the card says
+       which box and how to fix it, in plain words, under the numerals, and keeps what was typed. Every
+       other refusal keeps W-21's dress with the layer's own reason and code. */
+    const plainEntry = (result) => {
+      // The layer names it in its code, or (behind its device lead) in its reason; either way it is the entry.
+      if (!result || !result.code || !/WORKOUT_INPUT_INVALID/.test(result.code + ' ' + (result.copy || ''))) return result;
+      const typedLoad = Number(load.value.trim()), typedReps = reps.value.trim();
+      if (!(typedLoad > 0)) return { code: null, copy: LOAD_NOT_A_NUMBER };
+      if (!/^\d+$/.test(typedReps)) return { code: null, copy: REPS_NOT_A_NUMBER };
+      return result;
+    };
+    const refuse = (given, setRefused = false) => {
       clearRefusal();
+      const result = plainEntry(given);
       const text = result ? refusalText(result) : '';
       if (!text) return;
       const own = result && !result.code;
-      if (own && result.copy === ENTER_PERFORMED) {
+      /* S15 polish item 3: an entry that is not a number is said under the numerals, in W-19's place, and
+         the box it names carries W-19's mark; what he typed stays in the box. */
+      const named = own && result.copy === LOAD_NOT_A_NUMBER ? load : own && result.copy === REPS_NOT_A_NUMBER ? reps : null;
+      if (own && (result.copy === ENTER_PERFORMED || named)) {
         refused = 'entry';
         errorBox.className = 'refusal note-block w-refusal w-card-refusal';
         numerals.insertAdjacentElement('afterend', errorBox);
         /* W-19: the empty box carries the mark, the pack's `value w-blank is-invalid`. */
         for (const [box, input] of [[loadBox, load], [repsBox, reps]]) {
-          if (input.value.trim() === '') box.classList.add('w-blank', 'is-invalid');
+          if (input.value.trim() === '' || input === named) box.classList.add('w-blank', 'is-invalid');
         }
       } else {
         errorBox.className = 'refusal note-block w-refusal' + (own && result.copy === CHOOSE_EFFORT ? ' rir-refusal' : '');

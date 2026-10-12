@@ -56,3 +56,32 @@ Your routine needs at least one exercise.; Change my routine: no host element (i
   draft), N5 (an imported 'F' day) are left as noted.
 - The local-source path is proved on a hand-built admitted generation; the real import is the PM's
   T30 run.
+
+## S15 round 5 polish (PM UI pass over the 2026-10-12 iPhone captures)
+Same package, same parent, same rules. Each item has a red-first cell.
+1. Workout header: the gym card read its title from the Today view at boot, before Today adopted the
+   athlete's own week, so a Lower day was headed with the preview athlete's session. The title is read
+   when the card reads (today-entry.mjs, gym-model.mjs). Cell RT-10.
+2. Prefill: when the engine prescribes no load (a debut), the next set of the same lift opens at the
+   load just logged in this session; still editable, Log still records only the box; reps are not
+   prefilled; a prescribed load and S14's hold/bodyweight rules are unchanged (gym-model.mjs). S15P-2.
+3. Entry refusals: an entry that is not a number ("BW") is refused on the card in plain words before
+   anything is sent; a number the layer refuses (0, a negative) still goes to the layer and the card
+   says which box in plain words, keeping the draft. Other layer refusals keep W-21 (gym-model.mjs,
+   gym-app.mjs). S15P-3, S15P-3b; gym.test A2 step 7 unchanged.
+4. The offline-launch footer stays in the document (problem report, browser-offline-check) and leaves
+   the deployed page's screen (slice/pwa/preflight.css). pwa.test "S15 polish".
+5. Today on a training day: workout card first, weigh-in as one row, headline after the cards; a rest
+   day keeps its order; the quiet links take the pack's text glow (today-app.cjs data-day,
+   preview.css). RT-12.
+6. Set entry boxes drawn before typing; the machine row clears the effort row (preview.css). RT-12.
+7. After Finish, when the existing after-Close check finds a working-weight offer, the card shows the
+   recorded workout with the offer cards (existing Yes / Not now) instead of returning to Today; no
+   engine logic is new (today-entry.mjs). S15P-7.
+8. Exercise search (setup and routine) answers as he types; the typed-name Add is live while typing
+   (setup-app.mjs, routine-app.mjs). S15P-8a, S15P-8b, RT-09.
+9. "1 clean rep left" (gym-model.mjs, S15P-9); Why this plan shows no protein section when there is
+   no protein target instead of NaN (today-model.cjs, RT-11).
+New strings: That weight cannot be saved. Enter it as a number above zero, like 25.; Enter the reps
+as a whole number, like 10.; " clean rep left" / " clean rep left." (fragments).
+Re-pins: PAGE_PINS today-entry.mjs 0e4b3388... -> 559463e0...; copy-lock corpus 523145... -> b28f9f05...

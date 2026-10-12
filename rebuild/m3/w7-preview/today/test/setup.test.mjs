@@ -2580,3 +2580,42 @@ test('C9 - an envelope through w6\'s OWN createSetupHost().save() still writes t
     w6.close();
   } finally { era.close(); }
 });
+
+/* S15 ROUND 5 POLISH, item 8 (PM UI pass, shot 04): the search answered only on Enter or when the box lost
+   focus. It answers as he types now: an INPUT event alone, with no change event, lists the lifts, and the
+   box he is typing in is the same element afterwards (the caret stays in his hands). The typed-name Add is
+   live as he types too. */
+function typeOnly(kit, id, value) {
+  const box = kit.doc.getElementById(id);
+  assert(box, 'no field ' + id + ' on the screen');
+  box.value = value;
+  box.dispatchEvent(new kit.dom.window.Event('input'));
+  return box;
+}
+
+test('S15P-8a screen 3 search lists lifts while he types, with no Enter, and keeps the same box', async () => {
+  const { byId } = await import('../exercise-catalogue.mjs');
+  const model = weekOfFour();
+  const kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorChoose).click();
+  const box = typeOnly(kit, 'setup-search', 'lat pulldown');
+  assert(kit.text().includes(byId('lat_pulldown').n), 'the lift is offered while typing');
+  assert.equal(kit.doc.getElementById('setup-search'), box, 'the box was not replaced under his fingers');
+  typeOnly(kit, 'setup-search', 'zzzznotalift');
+  assert(kit.text().includes(Model.COPY.searchNone), 'and the answer follows the words');
+  typeOnly(kit, 'setup-search', 'lat pulldown');
+  linkNamed(kit, Model.COPY.addFromCatalogue).click();
+  assert(model.answers().exercises.some((e) => e.n === byId('lat_pulldown').n), 'a pick made while typing adds');
+});
+
+test('S15P-8b the typed-name Add is enabled while he types, with no Enter', () => {
+  const model = weekOfFour();
+  const kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorChoose).click();
+  kit.chip(Model.GROUP_WORDS.chest).click();
+  assert.equal(kit.doc.getElementById('setup-custom-add').disabled, true, 'nothing typed, nothing to add');
+  typeOnly(kit, 'setup-custom', 'The angled press thing');
+  assert.equal(kit.doc.getElementById('setup-custom-add').disabled, false, 'Add is live while typing');
+  kit.doc.getElementById('setup-custom-add').click();
+  assert(model.answers().exercises.some((e) => e.n === 'The angled press thing'), 'and it adds what he typed');
+});

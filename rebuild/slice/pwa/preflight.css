@@ -26,8 +26,18 @@
    of the glass, and the owner read the second one as the bottom of his own screen. The
    elements themselves stay in the document, because today-app.cjs and today-entry.mjs
    write the boot and store lines into #today-storage and #today-status by id. A5's own
-   preflight aside is the athlete's and stays visible. */
+   preflight aside is not hidden by this rule: it stays in the document, but by PM ruling
+   (the owner's UI pass of 2026-10-12, DECISIONS:940) it is moved off-screen for the athlete
+   by the S15 rule below, superseding for the athlete UI the "stays visible" intent of
+   DECISIONS:535. */
 body[data-earned-app] .stage > .review:not(#pwa-preflight) { display: none; }
+
+/* S15 ROUND 5 POLISH, item 4 (PM UI pass, shot 11). On the deployed page the preflight is a build check,
+   not the athlete's screen, so it leaves the screen: it stays IN the document (the problem report reads
+   its state, and browser-offline-check.mjs reads its state and its install line), it keeps its own ID
+   display rule above, and it is not display:none, so assistive technology can still read it. */
+body[data-earned-app] #pwa-preflight { position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; }
 
 /* S4. With viewport-fit=cover (shell.cjs) the page draws under the status bar, so the
    document reserves it as a quantity the device reports rather than a constant: a hard

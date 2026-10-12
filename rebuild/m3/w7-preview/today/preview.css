@@ -530,3 +530,33 @@
 .view [data-slot="routine-row"] > p { margin: 0; flex: 1 1 100%; }
 .view [data-slot="routine-sets"] { color: var(--muted); }
 /* ===== S15 CHANGE MY ROUTINE: END ===== */
+/* ===== S15 ROUND 5 POLISH (PM UI pass, 2026-10-12 captures): BEGIN =====
+   No word, slot or card moves in the document; every value is the pack's own token or one already used
+   above in this file.
+   5. TODAY ON A TRAINING DAY (shots 11/12). today-app.cjs marks the day (data-day="train" or "rest").
+      On a training day today's workout card comes first, straight under the date; the morning weigh-in
+      follows as one compact row (its status line is kept for assistive technology while the box, the
+      unit and Save are on screen); the plan's headline and its long sentence follow the cards, in the
+      floor size the headline fit already uses. A rest day keeps its order. The quiet links under the
+      cards take the pack's protective glow, so they stay legible over the scene. */
+.scene-frame > .view.ui > .body[data-day="train"] { display: flex; flex-direction: column; }
+.scene-frame > .view.ui > .body[data-day="train"] > * { flex: 0 0 auto; }
+.scene-frame > .view.ui > .body[data-day="train"] > .timeline { order: 1; display: flex; flex-direction: column; }
+.scene-frame > .view.ui > .body[data-day="train"] > .timeline > #card-train { order: -1; }
+.scene-frame > .view.ui > .body[data-day="train"] > section,
+.scene-frame > .view.ui > .body[data-day="train"] > [data-slot="setup-note"] { order: 2; }
+.scene-frame > .view.ui > .body[data-day="train"] > .day-foot { order: 3; }
+.scene-frame > .view.ui > .body[data-day="train"] .greeting { font-size: 33px; }
+.scene-frame > .view.ui > .body[data-day="train"] #card-weigh:has(> #weigh-form) > .title {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.scene-frame > .view.ui > .body > .day-foot { text-shadow: var(--text-shadow); }
+/* 6. THE SET ENTRY (shots 13/17). The two boxes in the numerals are drawn as boxes before anything is
+      typed: a gold rule under each (the pack's --line-gold), at least the width of one numeral, so the
+      empty card reads as two fields to tap. W-19's mark is still the box's own (.value.w-blank). The
+      machine row stands above the effort row's fade scrim and keeps the pack's 12 px rhythm below it,
+      so its quiet line is never cut. */
+.scene-frame.screen-workout .numerals .value input { min-width: max(var(--hit), 1.2em);
+  border-bottom: 1px solid var(--line-gold); }
+.scene-frame.screen-workout .numerals .value input:focus { border-bottom-color: var(--text); }
+.scene-frame.screen-workout #machine { position: relative; z-index: 1; margin-bottom: var(--s3, 12px); }
+/* ===== S15 ROUND 5 POLISH: END ===== */

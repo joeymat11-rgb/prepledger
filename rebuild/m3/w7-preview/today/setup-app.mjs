@@ -203,20 +203,32 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
 
   /* Door two, layer zero: by name. Matches n and every alias, case-insensitive
      (DECISIONS:127 (2)); it never asks him what the lift targets. */
+  /* S15 ROUND 5 POLISH, item 8 (PM UI pass, shot 04): the answer follows the words AS HE TYPES. Only the
+     results under the box are redrawn on each keystroke; the box itself is never replaced, so the caret
+     stays in his hands, which is the one thing the repaint-on-change rule above protects. */
   function searchPanel(body) {
     const panel = el('div', 'followup');
-    panel.append(repaintOnChange(textField('setup-search', COPY.searchLabel, query, (v) => { query = v; })));
-    const found = searchByName(query, { limit: 8 });
-    if (query.trim() !== '' && found.length === 0) panel.append(el('p', 'small muted', COPY.searchNone));
-    for (const entry of found) {
-      const line = el('div', 'row');
-      line.append(el('span', null, entry.n));
-      const add = el('button', 'text-link', COPY.addFromCatalogue);
-      add.type = 'button';
-      add.addEventListener('click', () => { addEntry(entry); query = ''; paint(); });
-      line.append(add);
-      panel.append(line);
-    }
+    let shown = [];
+    const results = { replaceChildren: (...rows) => { for (const row of shown) row.remove(); shown = rows; panel.append(...rows); } };
+    const drawResults = () => {
+      const found = searchByName(query, { limit: 8 });
+      const rows = [];
+      if (query.trim() !== '' && found.length === 0) rows.push(el('p', 'small muted', COPY.searchNone));
+      for (const entry of found) {
+        const line = el('div', 'row');
+        line.append(el('span', null, entry.n));
+        const add = el('button', 'text-link', COPY.addFromCatalogue);
+        add.type = 'button';
+        add.addEventListener('click', () => { addEntry(entry); query = ''; paint(); });
+        line.append(add);
+        rows.push(line);
+      }
+      results.replaceChildren(...rows);
+    };
+    const field = repaintOnChange(textField('setup-search', COPY.searchLabel, query, (v) => { query = v; }));
+    field.querySelector('input').addEventListener('input', drawResults);
+    panel.append(field);
+    drawResults();
     body.append(panel);
   }
 
@@ -255,12 +267,17 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
     /* The custom picker (DECISIONS:127 (3)): his own name, tagged by the door he
        is standing in. */
     panel.append(el('p', 'quality-label', COPY.customHead));
-    panel.append(repaintOnChange(textField('setup-custom', COPY.exerciseNameLabel, custom, (v) => { custom = v; })));
+    const customField = repaintOnChange(textField('setup-custom', COPY.exerciseNameLabel, custom, (v) => { custom = v; }));
+    panel.append(customField);
     const made = customEntry({ group, region, name: custom });
     const addCustom = el('button', 'text-link', COPY.addFromCatalogue);
     addCustom.type = 'button';
     addCustom.id = 'setup-custom-add';
     addCustom.disabled = !!made.error;
+    /* S15 polish item 8: Add answers the name AS HE TYPES (the box is not repainted under him). */
+    customField.querySelector('input').addEventListener('input', () => {
+      addCustom.disabled = !!customEntry({ group, region, name: custom }).error;
+    });
     addCustom.addEventListener('click', () => {
       const entry = customEntry({ group, region, name: custom });
       if (entry.error) return;

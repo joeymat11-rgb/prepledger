@@ -412,9 +412,20 @@ export async function createWorkoutEntry(model, options = {}) {
   let nativeHost = null;
   const openedNativeHost = async () => nativeHost || (nativeHost = hosts && typeof hosts.createNativeLoadHost === "function"
     ? await hosts.createNativeLoadHost({ day, engineState: hostBase }) : null);
+  /* S15 ROUND 5 POLISH, item 1 (PM UI pass, shots 13/16/24/26): `view` above is read at BOOT, before
+     today-app.cjs adopts an enrolled athlete's own week, so on his Lower day the card was headed with the
+     preview athlete's Upper title. The title is now read from the model each time the card reads, under the
+     same rule (only while it describes the card's own day). */
+  const sessionTitleNow = () => {
+    const now = model.read();
+    return now && now.workout && now.workout.today === true ? now.workout.title : null;
+  };
+  /* S15 ROUND 5 POLISH, item 7: the Close this page saw last, so the way back after Finish can show the
+     after-Close check's offers (route B, unchanged) instead of leaving them on a screen nobody sees. */
+  let closedHere = null;
   const gym = createGymModel({ gymHost, hostForDay,
-    sessionTitle: view.workout && view.workout.today === true ? view.workout.title : null,
-    ...(nativeLoad ? { onClosed: closed => nativeLoad.afterClose(closed) } : {}) });
+    sessionTitle: sessionTitleNow,
+    ...(nativeLoad ? { onClosed: closed => { closedHere = closed; return nativeLoad.afterClose(closed); } } : {}) });
   let summary = null;
   let onRefresh = null;
   const gymDraft = newGymDraft();
@@ -449,7 +460,7 @@ export async function createWorkoutEntry(model, options = {}) {
     if (nativeCode) summary = { ...summary, nativeCode };
     return summary;
   }
-  return {
+  const entryApi = {
     summary: () => summary,
     refresh: nativeLoad ? reconcileAndRefresh : refresh,
     recover,
@@ -470,13 +481,29 @@ export async function createWorkoutEntry(model, options = {}) {
       child.setAttribute("data-native-load", "gym");
       phone.replaceChildren(region, child);
       nativeLoad.mount(doc, region);
-      return mountGym(doc, child, { model: gym, onBack: back, onChanged: refresh,
+      /* S15 ROUND 5 POLISH, item 7 (PM UI pass, shots 24/25/27). Finish leaves the card through `back`. When
+         that is the way out of a Close made on this page, the after-Close check (route B, FB01, unchanged) is
+         awaited, and if it found an offer the card is mounted again: the session is finished, so it paints
+         the recorded workout, with the offer cards and their Yes / Not now in the region above it. With no
+         offer, and on every other way out, `back` runs exactly as before. Nothing new is written or decided. */
+      const closedBefore = closedHere;
+      const backAfterClose = async () => {
+        if (closedHere !== closedBefore && closedHere) {
+          try { await nativeLoad.settled(); } catch (_) { /* the check reports its own failure */ }
+          const shown = nativeLoad.view();
+          if (shown && Array.isArray(shown.offers) && shown.offers.length)
+            return entryApi.open({ doc, phone, back, checkIn });
+        }
+        return back();
+      };
+      return mountGym(doc, child, { model: gym, onBack: backAfterClose, onChanged: refresh,
         onCheckIn: checkIn, draft: gymDraft });
     },
     gymDraft: () => gymDraft,
     gym, gymHost,
     ...(nativeLoad ? { nativeLoad } : {}),
   };
+  return entryApi;
 }
 
 export async function boot(options = {}) {
