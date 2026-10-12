@@ -41,7 +41,9 @@ test("the workflow is valid YAML with one job and no warnings", () => {
 test("it is triggered by exactly what the plan says and by nothing else", () => {
   const on = workflow.on || workflow[true];   // YAML 1.1 reads a bare `on:` as boolean true
   assert.deepEqual(Object.keys(on).sort(), ["push", "workflow_dispatch"]);
-  assert.deepEqual(on.push.branches, ["rebuild/t2-client-core"]);
+  /* M2-S19-LIVE (PM ruling, 2026-10-12): rebuild/c-live is the branch deployed from day to day, to the same site, beside the
+     chain branch. Exactly these two, in this order; still no pull_request and never main (below). */
+  assert.deepEqual(on.push.branches, ["rebuild/t2-client-core", "rebuild/c-live"]);
   assert.deepEqual(on.push.paths.sort(),
     [".github/workflows/slice-host.yml", "rebuild/m3/w7-preview/today/**", "rebuild/slice/pwa/**"].sort());
   assert(!("pull_request" in on), "a fork's pull request must not reach a deploy secret");
@@ -87,7 +89,7 @@ test("without the secrets it BUILDS, says so in words, and deploys nothing", () 
   assert.equal((body.match(/SLICE HOST NO-OP/g) || []).length, 5, "the no-op explains itself");
   // review F1: the no-op must tell the owner the REAL route, and must not send him
   // looking for a Run-workflow button that GitHub does not list for this file.
-  assert.match(body, /NEXT PUSH to rebuild\/t2-client-core/);
+  assert.match(body, /NEXT PUSH to rebuild\/t2-client-core or rebuild\/c-live/);
   assert.match(body, /Do not look for a Run-workflow button/);
   // The no-op path ends the step successfully; it does not fail the run and does not
   // continue into the deploy.

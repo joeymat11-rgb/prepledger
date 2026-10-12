@@ -1717,7 +1717,12 @@ test('N2-08 - a saved night is what the check-in own reader finds, with no A3 ed
    empty workout (S17 retired by supersession): the files it moves are declared in packages/S18.json, so the declaring-spec
    chain has to know about it. S18 releases nothing. Youngest first, so 'S18' goes last and is consulted first; the red side
    is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18'];
+/* S19 ADDS 'S19', and the cell is unchanged in every other way. S19 (M2-S19-LIVE, brief rebuild/lanes/b/S19-LIVE-BRIEF.md) is
+   the ROLLING UNSEALED --ci reseal child of the SEALED S14 that carries every byte S18 declared plus the CI job split and the
+   c-live deploy trigger (S18 retired by supersession): the files it moves are declared in packages/S19.json, so the
+   declaring-spec chain has to know about it. S19 releases nothing. Youngest first, so 'S19' goes last and is consulted
+   first; the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19'];
 
 test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', () => {
   /* The reuse path already existed and was dead because nothing wrote a night. N2 is

@@ -270,7 +270,7 @@ test('F3 — the four refusals r7 fired bare now carry names in the vocabulary',
 });
 
 test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION where DECISIONS:414 (2) puts it, M2-S4-REAL-DAY as S3\'s own child directly behind it, and M2-S5-TODAY-CHILD as S4\'s', () => {
-  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S18', 'B1', 'B2', 'B4', 'B3']);
+  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S19', 'B1', 'B2', 'B4', 'B3']);
   // ":124 — ORDER B-NTC → H3 → B1 → B2 → B4 → B3". DECISIONS:414 (2) adopts the scout's
   // order as PM routing: P1 M2-S3-COMPANION is H3's child and B1 re-pins at its own rebase
   // behind it (CRITICAL-PATH-2026-09-15 section 4 P1). M2-S4-REAL-DAY is S3's own child
@@ -331,13 +331,18 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // M2-S18-OPENED, the UNSEALED --ci child of the sealed S14 that carries every byte S17 declared plus the S18 change for an
   // opened, empty workout, holds the one parent claim; packages/S17.json stays as the record with its claim withdrawn.
   // The ruled sequence is SEVENTEEN still, S18 where S17 stood, and it is still the WHOLE list.
-  assert.deepEqual(api.IDS.slice(0, 17), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S18', 'B1', 'B2', 'B4', 'B3']);
+  // S18 LEAVES in its turn (S18 RETIRED BY SUPERSESSION, the same shape): S18 was released onto the chain, so M2-S19-LIVE,
+  // the ROLLING UNSEALED --ci child of the sealed S14 on rebuild/c-live that carries every byte S18 declared plus the CI job
+  // split and the c-live deploy trigger, holds the one parent claim; packages/S18.json stays as the record with its claim
+  // withdrawn. The ruled sequence is SEVENTEEN still, S19 where S18 stood, and it is still the WHOLE list.
+  assert.deepEqual(api.IDS.slice(0, 17), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S19', 'B1', 'B2', 'B4', 'B3']);
   assert.equal(api.IDS.length, 17);
   assert.equal(api.IDS.includes('S12'), false, 'S12 is superseded by S13 and is not runnable, DECISIONS:920');
   assert.equal(api.IDS.includes('S13'), false, 'S13 is superseded by S14 and is not runnable, DECISIONS:922 (f)');
   assert.equal(api.IDS.includes('S15'), false, 'S15 is superseded by S16 and is not runnable (S15 RETIRED BY SUPERSESSION)');
   assert.equal(api.IDS.includes('S16'), false, 'S16 is superseded by S17 and is not runnable (S16 RETIRED BY SUPERSESSION)');
   assert.equal(api.IDS.includes('S17'), false, 'S17 is superseded by S18 and is not runnable (S17 RETIRED BY SUPERSESSION)');
+  assert.equal(api.IDS.includes('S18'), false, 'S18 is superseded by S19 and is not runnable (S18 RETIRED BY SUPERSESSION)');
   assert.equal(api.IDS.includes('B-LOM'), false,
     'the B-LOM id is removed with its skeleton spec, DECISIONS:487 stop 2');
   // AND THE DELETION IS ACCOUNTED FOR RATHER THAN EXEMPTED BY ACCIDENT. Removing an id and
@@ -392,7 +397,8 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // rebuild/engine byte, no register D-id), and S15 leaves with its id (S15 RETIRED BY SUPERSESSION).
   // S17 is in for the same reason a fourteenth time, and S16 leaves with its id (S16 RETIRED BY SUPERSESSION).
   // S18 is in for the same reason a fifteenth time, and S17 leaves with its id (S17 RETIRED BY SUPERSESSION).
-  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S10', 'S11', 'S14', 'S18', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']);
+  // S19 is in for the same reason a sixteenth time, and S18 leaves with its id (S18 RETIRED BY SUPERSESSION).
+  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S10', 'S11', 'S14', 'S19', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']);
   assert.equal(api.NO_REGISTER_IDS.size, 13);
   for (const id of api.NO_REGISTER_IDS) assert(/^[HFS][0-9]+$/.test(id) || id === 'B-NTC');
   for (const id of api.NO_REGISTER_IDS) assert(api.IDS.includes(id));

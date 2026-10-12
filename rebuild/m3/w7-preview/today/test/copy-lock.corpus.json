@@ -902,6 +902,13 @@
    "lists": []
   },
   {
+   "text": " your working weight",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": " · Why this plan?",
    "files": {
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
@@ -1046,6 +1053,13 @@
    "text": "45 degree leg press",
    "files": {
     "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ": make ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
    },
    "lists": []
   },

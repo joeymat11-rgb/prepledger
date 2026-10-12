@@ -1946,9 +1946,33 @@ const goodMatrixBody = () => ["    strategy:", "      matrix:",
 const matrixWorkflowFixture = (primary) => ["jobs:",
   ...matrixJobFixture("public-gates", primary), ...matrixJobFixture("font-transport", goodMatrixBody())];
 
+/* C-LIVE (the owner, 2026-10-12: cut the waiting). The cumulative package step moved out of
+   public-gates into its own both-OS job, package-gates, so the two run side by side. The row
+   now names that job too, and it CLOSES the set: the job keys of the file must equal the
+   required list exactly, so no step can sit in a job this row does not hold to both systems,
+   and a job added later fails here until it is named on purpose. */
+const REQUIRED_JOBS = ["font-transport", "package-gates", "public-gates"];
+function jobKeysOf(yml) {
+  const jobsAt = yml.indexOf("jobs:");
+  assert.notEqual(jobsAt, -1, "the workflow has no top-level `jobs:` line");
+  const found = [];
+  for (let i = jobsAt + 1; i < yml.length; i += 1) {
+    if (/^\S/.test(yml[i]) && !/^#/.test(yml[i])) break;
+    const m = /^  ([A-Za-z0-9_-]+|"[^"\r\n]+"|'[^'\r\n]+'):(?:\s.*)?$/.exec(yml[i]);
+    if (m) found.push(m[1].replace(/^["']|["']$/g, ""));
+  }
+  return found.sort();
+}
+
 test("P-S9-5 (32) - every required job retains both OS runs and the workflow forgives no step", () => {
   const yml = YML_LINES();
-  for (const job of ["public-gates", "font-transport"]) assertTwoOsJob(yml, job);
+  assert.deepEqual(jobKeysOf(yml), REQUIRED_JOBS,
+    "the workflow's jobs must be exactly the required both-OS jobs: " + jobKeysOf(yml).join(", "));
+  for (const job of REQUIRED_JOBS) assertTwoOsJob(yml, job);
+  /* Teeth for the closure: an unnamed extra job, and a quoted one, are both seen. */
+  assert.deepEqual(jobKeysOf([...matrixWorkflowFixture(goodMatrixBody()), "  extra:",
+    "    runs-on: ubuntu-latest", "    steps: []"]), ["extra", "font-transport", "public-gates"]);
+  assert.deepEqual(jobKeysOf(["jobs:", "  'quoted-job':", "    runs-on: ubuntu-latest"]), ["quoted-job"]);
   const forgiven = yml.map((l, i) => [i + 1, l]).filter(([, l]) => l.includes("|| true"));
   assert.deepEqual(forgiven, [],
     "a step is forgiven by an or-true, so its failure cannot fail the job: "

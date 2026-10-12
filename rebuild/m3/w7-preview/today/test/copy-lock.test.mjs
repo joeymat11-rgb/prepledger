@@ -66,8 +66,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // S15 (Change my routine, PM S15 round 2): re-measured for exactly the S15 pieces and three scanned files (CL-S15-DELTA;
 // the S14 value is S14_CORPUS_SHA256). S18: re-measured for exactly one more piece in gym-model.mjs, the recorded reason
 // on the removal of an opened, empty workout (CL-S15-DELTA 43 -> 44; was 019b9474...), and for "Why?"'s two new owners
-// (CL-S18-REOWNED; 8f8d84db... with the piece alone).
-const CORPUS_SHA256 = '9bee3abe91214d372a55463c15e41896d77f3a9230ce205a01195157e86063ab';
+// (CL-S18-REOWNED; 8f8d84db... with the piece alone). S19: re-measured for exactly two more pieces in today-entry.mjs, the
+// adoption offer's heading that states its weight (CL-S15-DELTA 44 -> 46; was 9bee3abe...).
+const CORPUS_SHA256 = 'fadf61407fcd1558ead0c49913a2c6a9b4eeedb805f3831423bf2d9ca5114a4c';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -515,6 +516,10 @@ const S15_NEW = Object.freeze([
   ['A change already starts tomorrow, so this starts tomorrow too.', { [S15_MODEL]: 1 }],
   // S18 (PM ruling): the reason recorded on the removal of an opened, empty workout when a change starts today.
   ['Opened on this device with nothing recorded, and removed when the routine changed for today.', { [T + '/gym-model.mjs']: 1 }],
+  // S19 (UI check 6, PM-approved copy): an adoption offer's heading states the weight it sets, "Plank: make 25 lb your
+  // working weight" (the lift name and the weight are data between the two pieces).
+  [': make ', { [T + '/today-entry.mjs']: 1 }],
+  [' your working weight', { [T + '/today-entry.mjs']: 1 }],
 ]);
 const S15_SCANNED = Object.freeze([T + '/routine-app.mjs', T + '/routine-host.mjs', T + '/routine-model.mjs']);
 const S15_COPY_APPROVAL = 'DECISIONS:913';
@@ -549,7 +554,7 @@ test('CL-S15-DELTA: the S15 corpus is the S14 corpus plus exactly the approved S
   const { corpus } = loaded();
   const byText = new Map(corpus.entries.map((e) => [e.text, e]));
   const failed = [];
-  assert.equal(S15_NEW.length, 44, 'CL-S15-DELTA-COUNT');
+  assert.equal(S15_NEW.length, 46, 'CL-S15-DELTA-COUNT');
   for (const [text, files] of S15_NEW) {
     const want = { text, files: sortedFiles(files), lists: [] };
     const got = byText.get(text) || null;

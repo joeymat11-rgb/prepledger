@@ -660,3 +660,10 @@
 .view [data-slot="proposal-why"], .view [data-native-load="why"] { align-self: flex-start; min-height: var(--hit); padding: 0;
   color: var(--text-soft); }
 /* ===== S18: END ===== */
+/* ===== S19 (UI check 6, 2026-10-12: Not now wrapped alone under Why? and Yes): BEGIN =====
+   On a next-weight offer Why? was drawn as a third decision button in the card's two-column grid (the C-UI-3 button rule
+   outranks the S18 quiet rule), so Not now fell to a row of its own. Why? now takes a whole row as the quiet control S18
+   meant, above the reason it opens, and Yes and Not now share the row below, at every width. */
+[data-native-load="offer"] > button[data-native-load="why"] { grid-column: 1 / -1; justify-self: start; height: auto;
+  min-height: var(--hit); margin-top: 2px; padding: 0; background: none; border: 0; border-radius: 0; color: var(--text-soft); }
+/* ===== S19: END ===== */

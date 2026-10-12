@@ -172,6 +172,21 @@ export const NATIVE_LOAD_COPY = Object.freeze({
 });
 /* S18 (PM-approved word): the control that shows and hides an offer's reason. */
 export const NATIVE_LOAD_WHY = "Why?";
+/* S19 (PM-approved, UI check 6): an adoption offer's heading states the weight it sets, "Plank: make 25 lb your working
+   weight", from the offer's own loads when every set carries the same one. Offers whose sets differ, or hold no weight,
+   keep the approved ": set your working weight"; the earned-weight and undo headings are unchanged. */
+export const NATIVE_LOAD_ADOPT_HEADING = Object.freeze({ before: ": make ", after: " your working weight" });
+const oneLoadOf = offer => {
+  const loads = Array.isArray(offer.loads) ? offer.loads : [];
+  const first = loads.length ? loads[0] : null;
+  return typeof first === "number" && loads.every(load => load === first) ? first + " " + offer.unit : null;
+};
+const offerHeading = offer => {
+  if (offer.kind === "earn") return ": next weight";
+  if (offer.kind === "compensate") return NATIVE_LOAD_PROPOSED_COPY.undoHeading;
+  const weight = oneLoadOf(offer);
+  return weight === null ? ": set your working weight" : NATIVE_LOAD_ADOPT_HEADING.before + weight + NATIVE_LOAD_ADOPT_HEADING.after;
+};
 /* PROPOSED - NEW COPY, NOT APPROVED. Every string below needs Joe's approval before
    release (round 4, D9 undo control and D-B2-1 disputed label; spec R7/R8 :153, :156,
    :157). Nothing else in this file's copy changed. A lift's display name is prefixed to
@@ -301,7 +316,7 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
       children.push(make("p", { "data-native-load": "notice", "data-lift": notice.lift }, nameOf(notice.lift) + ": " + NATIVE_LOAD_PROPOSED_COPY[notice.code]));
     for (const offer of view.offers) {
       const card = make("div", { "data-native-load": "offer", "data-lift": offer.lift, "data-kind": offer.kind, "data-proposal": offer.proposalId });
-      card.append(make("h3", {}, nameOf(offer.lift) + (offer.kind === "earn" ? ": next weight" : offer.kind === "compensate" ? NATIVE_LOAD_PROPOSED_COPY.undoHeading : ": set your working weight")));
+      card.append(make("h3", {}, nameOf(offer.lift) + offerHeading(offer)));
       const list = make("ul", { "aria-label": "Offered weight for each set" });
       offer.loads.forEach((load, i) => { const item = make("li", {}, "Set " + (i + 1) + ": "); item.append(make("span", { "data-native-load": "set-load" }, load === null ? NATIVE_LOAD_PROPOSED_COPY.noWeight : load + " " + offer.unit)); list.append(item); });
       /* S18 (the owner's iPhone: a coach suggestion shows the proposal and a "Why?" to tap for its paragraph). The

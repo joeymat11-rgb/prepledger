@@ -774,8 +774,15 @@ export const PAGE_PINS = Object.freeze({
      "Why?" button (aria-expanded, aria-controls) that shows and hides it is placed before it; Yes and Not now are
      unchanged and answer the offer whether or not Why? was opened. boot() is byte-unchanged, no store is opened by
      the new hunks, and gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move. MEASURED:
-     f09c23e34f67ffecebcf4265769667e2e0998a37031c1bad43fb88af8229c088 -> the value below. */
-  'today-entry.mjs': 'a15606e62f636d643624e75969cb06aa1b149a0749e01f4a7da126eedf4ceca3',
+     f09c23e34f67ffecebcf4265769667e2e0998a37031c1bad43fb88af8229c088 -> a15606e62f636d643624e75969cb06aa1b149a0749e01f4a7da126eedf4ceca3.
+     S19 OFFER HEADING re-pin (UI check 6, PM-approved copy: an adoption offer's heading states the weight it sets).
+     today-entry.mjs moves by TWO hunks and nothing else, both in the next-weight panel: (1) a new exported pair of words,
+     NATIVE_LOAD_ADOPT_HEADING (": make " and " your working weight"), and two private helpers, oneLoadOf (the offer's one
+     weight when every set carries the same number) and offerHeading (the earn and undo headings unchanged, an adoption
+     stating its weight, else the approved ": set your working weight"); (2) paint()'s heading line calls offerHeading.
+     boot() is byte-unchanged, no store is opened by the new hunks, and gym-host.mjs, reading-host.mjs and checkin-host.mjs
+     did not move. MEASURED: a15606e62f636d643624e75969cb06aa1b149a0749e01f4a7da126eedf4ceca3 -> the value below. */
+  'today-entry.mjs': 'dac88dd5afadc03e3c5ce32bafd874ec75286d421a59191e8644ff45b76af52d',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

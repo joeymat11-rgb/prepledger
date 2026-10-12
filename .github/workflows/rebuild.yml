@@ -15,16 +15,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  public-gates:
-    name: rebuild-public (${{ matrix.os }})
+  # C-LIVE (the owner, 2026-10-12: cut the waiting). The cumulative package step was about half of
+  # this workflow's wall time on each runner (run 38266944642: 1238 s of 2452 s on windows, 839 s of
+  # 1657 s on ubuntu) and every other step waited behind it in ONE job. It now runs in its OWN job,
+  # beside public-gates rather than inside it, so the two run at the same time on separate runners.
+  # NOTHING IS DROPPED: the step's name, argv, env and both-OS matrix are unchanged, its whole comment
+  # history moves with it, and this job repeats public-gates' own setup byte for byte (checkout with
+  # full history, Node 22 with the npm cache, npm ci, pnpm 9, the frozen W6 and W5 installs), because
+  # the runner reads Git history and its children load both pnpm trees. The one behaviour that moves:
+  # a public-gates step without an `if:` is no longer skipped when this step fails, because this step
+  # is no longer ahead of it. Those steps run MORE, never less, and every `if: ${{ !cancelled() }}`
+  # stays where it was. Where a comment below says "same job", it now means THIS job. The P-S9-5 row
+  # of rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs requires every job in this file, this
+  # one included, to run on exactly ubuntu-latest and windows-latest.
+  package-gates:
+    name: rebuild-package (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    # Raised 15 -> 30 at the 2026-09-11 re-seal (native-carriers package now runs to completion), then
-    # 30 -> 60 at the S11 CI-2 STOP (2026-10-03): windows ran 29.3-29.5 min and was cancelled twice at 30;
-    # the 39 S11 children alone take ~20 min on windows (T5b run 37108132701).
+    # The 60 minutes public-gates carried (S11 CI-2 STOP, 2026-10-03) are this step's, and move with it.
     timeout-minutes: 60
     env:
       MEASURED_TEST_NOW: '2026-09-03'
@@ -55,6 +66,17 @@ jobs:
       # and the version slice-host.yml already installs.
       - name: Install pnpm 9 (the version both W6 and W5 lockfiles were written with)
         run: npm install -g pnpm@9
+      # C-LIVE: the pnpm content store is cached per OS and per pair of lockfiles. Both installs below
+      # stay --frozen-lockfile, so a cached store can only supply bytes the lockfiles already pin; a
+      # cache miss is an ordinary full download, never a different resolution.
+      - name: Locate the pnpm content store
+        id: pnpm-store
+        shell: bash
+        run: echo "dir=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.dir }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('rebuild/m3/w6/pnpm-lock.yaml', 'rebuild/m3/w5/pnpm-lock.yaml') }}
       # Not --ignore-scripts: esbuild's own postinstall has to run, exactly as
       # slice-host.yml's equivalent step documents, or the bundler-backed suites below
       # cannot build.
@@ -63,21 +85,9 @@ jobs:
       # --ignore-workspace because rebuild/m3/w5/pnpm-workspace.yaml carries only
       # `allowBuilds:` and no `packages:` key, which pnpm 9 refuses outright with
       # "packages field missing or empty"; --ignore-scripts because nothing in this
-      # workflow runs wrangler or workerd — only @noble/hashes has to resolve.
+      # workflow runs wrangler or workerd - only @noble/hashes has to resolve.
       - name: Install the pinned W5 source and reconciliation dependencies
         run: pnpm --dir rebuild/m3/w5 install --frozen-lockfile --ignore-scripts --ignore-workspace
-      - name: Check frozen files and actual old-app package
-        run: node rebuild/m3/w0/scope-package.mjs
-      - name: Public law, mutant, adapter and archived-artifact checks
-        run: node rebuild/m3/w0/public-conformance.cjs
-      - name: Unchanged public oracle and frozen-engine witnesses
-        run: node rebuild/m3/w0/public-oracle.mjs
-      - name: Prove the new checks fail closed
-        run: node --test rebuild/m3/w0/test/public-conformance.test.cjs rebuild/m3/w0/test/scope-package.test.mjs
-      - name: Accepted synchronous client restart witness
-        run: node rebuild/t2/rig187.cjs
-      # B-NTC succeeds the memory-only preview with the executed durable Today,
-      # gym and check-in suites below. Historical preview tests remain in Git.
       # M2-H3-CLEAN-INIT SUCCEEDS M2-B-NTC HERE, exactly as B-NTC succeeded the accepted
       # originals at ce38aa3 (it replaced "Cumulative extracted-engine native-carrier and
       # legacy-census evidence" / `node rebuild/m4/spec/native-carriers-package.cjs --ci`
@@ -231,8 +241,90 @@ jobs:
       # the coach ENGINE_REVISION stays M2-S14-HOLD's. Until its THEME and BRIEF-BY-SHA lines stand on the chain branch and every
       # declared child carries an observed needle, this step reports the runner's own refusal by name rather than PASS. The step
       # NAME moves with it.
-      - name: Cumulative S18 OPENED reseal, S17 POLISH reseal, S16 POLISH reseal, S15 ROUTINE reseal, S14 HOLD reseal, S13 POLISH reseal, S12 LOOK reseal, S11 NATIVE-LOAD reseal, S10 Today split, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S18
+      # S19 SUCCEEDS M2-S18-OPENED HERE (S18 retired by supersession, the same shape), by the same rule: the UNSEALED --ci child of
+      # the SEALED S14 that carries every byte S18 declared plus the CI job split above and the rebuild/c-live deploy trigger (brief
+      # rebuild/lanes/b/S19-LIVE-BRIEF.md). S19 is the ROLLING child on rebuild/c-live: later rounds amend packages/S19.json in place
+      # (S19-REGEN, and a new BRIEF-BY-SHA line only when the brief changes), so this step stays --package S19. No rebuild/engine
+      # byte, no D-id, no gate supersession, no seal, receipt or VERDICT; the coach ENGINE_REVISION stays M2-S14-HOLD's. Until its
+      # THEME and BRIEF-BY-SHA lines stand on the chain branch and every declared child carries an observed needle, this step
+      # reports the runner's own refusal by name rather than PASS. The step NAME moves with it.
+      - name: Cumulative S19 LIVE reseal, S18 OPENED reseal, S17 POLISH reseal, S16 POLISH reseal, S15 ROUTINE reseal, S14 HOLD reseal, S13 POLISH reseal, S12 LOOK reseal, S11 NATIVE-LOAD reseal, S10 Today split, S9 UI pins, S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S19
+
+  public-gates:
+    name: rebuild-public (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    # Raised 15 -> 30 at the 2026-09-11 re-seal (native-carriers package now runs to completion), then
+    # 30 -> 60 at the S11 CI-2 STOP (2026-10-03): windows ran 29.3-29.5 min and was cancelled twice at 30;
+    # the 39 S11 children alone take ~20 min on windows (T5b run 37108132701).
+    timeout-minutes: 60
+    env:
+      MEASURED_TEST_NOW: '2026-09-03'
+      TZ: America/New_York
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund --include=dev
+      # CI RE-SEAL, 2026-09-11. Until this step existed, every run on this branch died
+      # here: the native-carriers `focused` child loads
+      # rebuild/m4/spec/native-next-target-candidate/fixture.cjs, which reaches
+      # rebuild/m3/w5/source/codec.cjs -> rebuild/m3/w5/reconciliation/codec.cjs ->
+      # require('@noble/hashes/sha2.js'). Node resolves that from
+      # rebuild/m3/w5/node_modules, and the root `npm ci` above never writes there, so
+      # all three native-next-target tests died with MODULE_NOT_FOUND (`# pass 0`,
+      # `# fail 3`) and the package reported FAIL. The same missing dependency is what
+      # broke slice-host.yml's own build step. W6's dependencies (esbuild,
+      # fake-indexeddb) are the same story for the A1/A2/A5 suites added below.
+      # Both are installed from their own committed pnpm lockfiles, frozen, so CI can
+      # never resolve a version this repository has not pinned and no lockfile changes.
+      # Both lockfiles are lockfileVersion '9.0'; pnpm 9 is the version that wrote them
+      # and the version slice-host.yml already installs.
+      - name: Install pnpm 9 (the version both W6 and W5 lockfiles were written with)
+        run: npm install -g pnpm@9
+      # C-LIVE: the pnpm content store is cached per OS and per pair of lockfiles. Both installs below
+      # stay --frozen-lockfile, so a cached store can only supply bytes the lockfiles already pin; a
+      # cache miss is an ordinary full download, never a different resolution.
+      - name: Locate the pnpm content store
+        id: pnpm-store
+        shell: bash
+        run: echo "dir=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.dir }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('rebuild/m3/w6/pnpm-lock.yaml', 'rebuild/m3/w5/pnpm-lock.yaml') }}
+      # Not --ignore-scripts: esbuild's own postinstall has to run, exactly as
+      # slice-host.yml's equivalent step documents, or the bundler-backed suites below
+      # cannot build.
+      - name: Install the pinned W6 browser-build dependencies
+        run: pnpm --dir rebuild/m3/w6 install --frozen-lockfile
+      # --ignore-workspace because rebuild/m3/w5/pnpm-workspace.yaml carries only
+      # `allowBuilds:` and no `packages:` key, which pnpm 9 refuses outright with
+      # "packages field missing or empty"; --ignore-scripts because nothing in this
+      # workflow runs wrangler or workerd — only @noble/hashes has to resolve.
+      - name: Install the pinned W5 source and reconciliation dependencies
+        run: pnpm --dir rebuild/m3/w5 install --frozen-lockfile --ignore-scripts --ignore-workspace
+      - name: Check frozen files and actual old-app package
+        run: node rebuild/m3/w0/scope-package.mjs
+      - name: Public law, mutant, adapter and archived-artifact checks
+        run: node rebuild/m3/w0/public-conformance.cjs
+      - name: Unchanged public oracle and frozen-engine witnesses
+        run: node rebuild/m3/w0/public-oracle.mjs
+      - name: Prove the new checks fail closed
+        run: node --test rebuild/m3/w0/test/public-conformance.test.cjs rebuild/m3/w0/test/scope-package.test.mjs
+      - name: Accepted synchronous client restart witness
+        run: node rebuild/t2/rig187.cjs
+      # B-NTC succeeds the memory-only preview with the executed durable Today,
+      # gym and check-in suites below. Historical preview tests remain in Git.
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -508,6 +600,12 @@ jobs:
       - name: B - S18-REGEN's path boundary and write contract, on synthetic ports
         if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/b/S18-REGEN.test.cjs
+      # S19 GIVES rebuild/lanes/b/S19-REGEN.test.cjs ITS CI HOME, the way S18 gave S18-REGEN.test.cjs one: the refusal rows of the
+      # helper that re-measures packages/S19.json at the S14 seal, on fake git and filesystem ports, reading nothing of the
+      # repository. The steps above STAY, unchanged. Same condition shape. No declared child mirrors it.
+      - name: B - S19-REGEN's path boundary and write contract, on synthetic ports
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/lanes/b/S19-REGEN.test.cjs
       # M2-S7-PORT-ADMISSION ADDS ITS OWN THREE LANE CELLS HERE, under the same
       # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason: they arrived
       # with P3-PORT-FIX and P3-PORT-FIX-2 (DECISIONS:509, :510) and no workflow names

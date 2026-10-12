@@ -220,7 +220,12 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // chain (DECISIONS:952), so M2-S18-OPENED, the UNSEALED --ci child of the SEALED M2-S14-HOLD that carries every byte
 // M2-S17-POLISH declared plus the S18 change for an opened, empty workout (brief rebuild/lanes/b/S18-OPENED-BRIEF.md), holds
 // the one parent claim; packages/S17.json stays as the record with its parent claim withdrawn. S18 sits where S17 sat.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S18', 'B1', 'B2', 'B4', 'B3'];
+// S18 LEAVES IDS in its turn (S18 RETIRED BY SUPERSESSION, the same shape) and 'S19' takes its place: S18 was released onto the
+// chain, so M2-S19-LIVE, the ROLLING UNSEALED --ci child of the SEALED M2-S14-HOLD on rebuild/c-live that carries every byte
+// M2-S18-OPENED declared plus the CI job split and the c-live deploy trigger (brief rebuild/lanes/b/S19-LIVE-BRIEF.md), holds
+// the one parent claim; packages/S18.json stays as the record with its parent claim withdrawn. S19 sits where S18 sat, and
+// later rounds amend S19 in place rather than superseding it (PM ruling, 2026-10-12).
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S19', 'B1', 'B2', 'B4', 'B3'];
 // RETIRED IDS, and why this list has to exist at all. Removing an id from IDS and deleting
 // its spec file are ONE act - DECISIONS:487 stop 2 orders both for B-LOM - but TOOLING_FILES
 // below is derived from IDS, so the moment the id goes the deleted path stops being named
@@ -400,7 +405,9 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // carries S16 and the S17 polish over the sealed S14, with no rebuild/engine byte and no register D-id.
 // 'S18' is in for the same reason a fifteenth time, and 'S17' LEAVES with its id (S17 RETIRED BY SUPERSESSION): M2-S18-OPENED
 // carries S17 and the S18 change over the sealed S14, with no rebuild/engine byte and no register D-id.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S18']);
+// 'S19' is in for the same reason a sixteenth time, and 'S18' LEAVES with its id (S18 RETIRED BY SUPERSESSION): M2-S19-LIVE
+// carries S18 and the CI and deploy change over the sealed S14, with no rebuild/engine byte and no register D-id.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S19']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).

@@ -1010,3 +1010,59 @@ test('RT-25 S18 D1 the second tab: a set logged in another tab closes today; the
     assert.ok(['active', 'saved'].includes(card.phase), 'Today keeps its workout: ' + card.phase);
   } finally { if (tabB) tabB.close(); tabA.close(); }
 });
+
+/* S19 (UI check 6; PM-approved copy): an adoption offer's heading states the weight it sets, from the offer's own loads,
+   "Plank: make 25 lb your working weight"; an offer whose sets differ or hold no weight keeps ": set your working weight",
+   and the earned-weight heading is unchanged. Over the same real page and workout as RT-22. */
+test('RT-26 S19 an adoption offer\'s heading states its new weight, from the offer\'s own loads', { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('heading');
+  era.close();
+  const page = await bootOn(indexedDB, 'heading', MONDAY);
+  try {
+    const gym = page.booted.workout.gym, doc = page.doc;
+    assert.equal((await gym.start()).ok, true);
+    const reserve = gym.effortChoices().find(c => c.label === '1').reserve;
+    for (let g = 0; g < 40; g++) {
+      const v = await gym.read();
+      if (v.phase === 'saved') { if (v.complete) break; gym.forget(); continue; }
+      if (v.phase !== 'active') break;
+      const r = await gym.logSet({ startId: v.startId, slot: v.set.slot, lift: v.set.lift, load: String(v.entry.load || 20), reps: '10', effort: reserve });
+      assert.equal(r.ok, true, r.code || r.copy);
+    }
+    page.booted.api.render('today', false);
+    tap(doc.getElementById('start'));
+    tap(await until(() => [...doc.querySelectorAll('button')].find(b => b.textContent.includes('Finish this workout')), 'Finish'));
+    const offers = await until(() => { const o = [...doc.querySelectorAll('[data-native-load="offer"]')]; return o.length >= 2 ? o : null; }, 'two offers');
+    let stated = 0;
+    for (const offer of offers) {
+      const kind = offer.getAttribute('data-kind'), heading = offer.querySelector('h3').textContent;
+      const loads = [...offer.querySelectorAll('[data-native-load="set-load"]')].map(s => s.textContent);
+      const name = heading.slice(0, heading.indexOf(': '));
+      assert.ok(name.length > 0, 'the lift is named first: ' + heading);
+      if (kind === 'earn') { assert.equal(heading, name + ': next weight'); continue; }
+      if (kind === 'compensate') continue;
+      if (loads.length && loads.every(l => l === loads[0]) && /^\d/.test(loads[0])) {
+        assert.equal(heading, name + ': make ' + loads[0] + ' your working weight', 'the heading states the weight it sets');
+        stated += 1;
+      } else assert.equal(heading, name + ': set your working weight', 'sets that differ keep the plain heading');
+    }
+    assert.ok(stated > 0, 'at least one adoption offer stated its weight: ' + offers.map(o => o.querySelector('h3').textContent).join(' / '));
+  } finally { page.close(); }
+});
+
+/* S19 (UI check 6): on a next-weight offer Why? is the quiet control on its own row and Yes and Not now share the row
+   below (the geometry is measured in Chromium at 390 and 430 wide by the builder seat's layout probe; this cell pins the
+   rule that does it). */
+test('RT-27 S19 an offer\'s Why? takes its own row as a quiet control, so Yes and Not now sit together', () => {
+  const css = fs.readFileSync(new URL('../preview.css', import.meta.url), 'utf8');
+  const begin = css.indexOf('/* ===== S19 ('), end = css.indexOf('/* ===== S19: END');
+  assert.ok(begin >= 0 && end > begin, 'the S19 block is in preview.css');
+  const rules = css.slice(begin, end).replace(/\/\*[\s\S]*?\*\//g, '');
+  const rule = /\[data-native-load="offer"\] > button\[data-native-load="why"\] \{([^}]*)\}/.exec(rules);
+  assert.ok(rule, 'the rule that reaches the offer card\'s Why? button');
+  assert.match(rule[1], /grid-column: 1 \/ -1;/, 'Why? spans the whole row');
+  assert.match(rule[1], /min-height: var\(--hit\);/, 'Why? keeps the hit height');
+  assert.match(rule[1], /background: none;/, 'Why? is not drawn as a decision button');
+  assert.ok(css.indexOf('[data-native-load="offer"] > button[data-native-load] {') < begin, 'it follows the decision button rule it refines');
+  assert.doesNotMatch(rules, /font-size|#[0-9a-f]{3,8}\b|rgba?\(/i, 'no type size and no colour of its own');
+});

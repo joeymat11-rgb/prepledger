@@ -19,7 +19,9 @@
 # refuses — twice, by two independent routes — if the site id it is given turns out to be
 # the production site or the soak site.
 #
-# HOW IT IS RUN. By PUSH, to rebuild/t2-client-core, touching one of the paths below.
+# HOW IT IS RUN. By PUSH, to rebuild/t2-client-core or rebuild/c-live, touching one of the paths below.
+# rebuild/c-live is the branch deployed from day to day (M2-S19-LIVE, PM ruling 2026-10-12); both deploy to the
+# same site, so the newest push to either is what the phone gets.
 # `workflow_dispatch` is declared so the button exists IF this file ever reaches the
 # default branch, but GitHub only lists a workflow_dispatch workflow once its file is on
 # the DEFAULT branch (main) — and this file is deliberately never on main. So there is no
@@ -29,7 +31,7 @@ name: slice-host
 on:
   workflow_dispatch:
   push:
-    branches: [rebuild/t2-client-core]
+    branches: [rebuild/t2-client-core, rebuild/c-live]
     paths:
       - 'rebuild/m3/w7-preview/today/**'
       - 'rebuild/slice/pwa/**'
@@ -125,7 +127,7 @@ jobs:
             echo "SLICE HOST NO-OP — missing secret(s):$( [ -z "$NT" ] && printf ' NETLIFY_AUTH_TOKEN' )$( [ -z "$SITE" ] && printf ' SLICE_NETLIFY_SITE_ID' )"
             echo "SLICE HOST NO-OP — only the repository owner can create the site and add SLICE_NETLIFY_SITE_ID."
             echo "SLICE HOST NO-OP — the five steps are in rebuild/slice/A5-REPORT.md."
-            echo "SLICE HOST NO-OP — once both secrets exist, the NEXT PUSH to rebuild/t2-client-core touching rebuild/slice/pwa/** or rebuild/m3/w7-preview/today/** deploys. Do not look for a Run-workflow button: GitHub lists workflow_dispatch only for workflows on the default branch, and this file is deliberately never on main."
+            echo "SLICE HOST NO-OP — once both secrets exist, the NEXT PUSH to rebuild/t2-client-core or rebuild/c-live touching rebuild/slice/pwa/** or rebuild/m3/w7-preview/today/** deploys. Do not look for a Run-workflow button: GitHub lists workflow_dispatch only for workflows on the default branch, and this file is deliberately never on main."
             exit 0
           fi
           META=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites/$SITE")
