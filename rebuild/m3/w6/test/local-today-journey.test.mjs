@@ -767,8 +767,15 @@ export const PAGE_PINS = Object.freeze({
      untouched, no store is opened by the new hunks, an INJECTED installation is still never closed by this page (the
      re-boot passes it on as the rollover does), and a declared-day caller still gets no watcher. gym-host.mjs,
      reading-host.mjs and checkin-host.mjs did not move. MEASURED: 82db0b146a0e00175676d1e9891bad1b767c9cdbd4f5fb45937e3c5e0c63766c
-     -> the value below. */
-  'today-entry.mjs': 'f09c23e34f67ffecebcf4265769667e2e0998a37031c1bad43fb88af8229c088',
+     -> f09c23e34f67ffecebcf4265769667e2e0998a37031c1bad43fb88af8229c088.
+     S18 WHY? re-pin (the owner's iPhone: a coach suggestion shows its proposal and a "Why?" to tap for its paragraph).
+     today-entry.mjs moves by TWO hunks and nothing else, both in the next-weight panel: (1) a new exported word,
+     NATIVE_LOAD_WHY ("Why?"); (2) in the panel's paint(), an offer's reason is created hidden with its own id and a
+     "Why?" button (aria-expanded, aria-controls) that shows and hides it is placed before it; Yes and Not now are
+     unchanged and answer the offer whether or not Why? was opened. boot() is byte-unchanged, no store is opened by
+     the new hunks, and gym-host.mjs, reading-host.mjs and checkin-host.mjs did not move. MEASURED:
+     f09c23e34f67ffecebcf4265769667e2e0998a37031c1bad43fb88af8229c088 -> the value below. */
+  'today-entry.mjs': 'a15606e62f636d643624e75969cb06aa1b149a0749e01f4a7da126eedf4ceca3',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

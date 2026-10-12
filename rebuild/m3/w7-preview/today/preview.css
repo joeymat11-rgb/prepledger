@@ -631,15 +631,32 @@
   margin-right: calc(-1 * var(--inset)); padding-left: var(--inset); padding-right: var(--inset); padding-top: 12px;
   background: color-mix(in srgb, var(--surface) 94%, transparent); border-top: 1px solid var(--line-soft); }
 /* 6. TODAY. The morning weigh-in's dot sits on the centre of its one row (measured: 29 px puts the dot's centre on the
-      row's), and the day keeps 34 px of room above Start at the end of its scroll. */
+      row's), and the day keeps 34 px of room above Start at the end of its scroll. S18: the bottom fade (20 px, over a
+      clear band of --fade-bot-inset) lies INSIDE that 34 px room (14 + 20), so while only the room overflows the last row
+      (Change my routine) is never drawn faded at the foot of the day (measured with the phone the whole screen). */
 .scene-frame > .view.ui > .body[data-day="train"] #card-weigh:has(> #weigh-form) > .tdot { top: 29px; }
-.scene-frame.screen-today > .view.ui > .body { padding-bottom: 34px; --fade-bot-inset: 34px; }
+.scene-frame.screen-today > .view.ui > .body { padding-bottom: 34px; --fade-bot-inset: 14px; }
 /* 7. THE DEPLOYED PAGE ON A PHONE. The deployed shell reserves the status bar and the home indicator as the stage's own
       padding (preflight.css, at least 24 px each), and the phone was still the full screen height under it, so the page
       itself scrolled by both paddings and every bar drawn at the foot of the screen (Back to Today, the set screen's bar,
-      the check-in card under Start) began below the fold. The phone is the screen less those two paddings, so the page
-      never scrolls and the foot of every screen is on the screen. A1's preview page (no data-earned-app) is untouched. */
+      the check-in card under Start) began below the fold. S17 made the phone the screen less those two paddings; on the
+      installed app that left the two paddings as bare bands with no art in them (the owner's iPhone, S18: a black bar under
+      the screen and a dark band under the status bar). S18: on a phone the stage keeps NO padding of its own and the phone
+      is the whole screen, edge to edge, so the art covers the status bar and the home indicator; the screens inside
+      already keep their own safe areas (the header's max(53px, inset + 6px), every chassis stack's max(24px, inset)), and
+      the page still never scrolls. The selector outranks preflight.css's own stage rule, which stays as it is for every
+      other width. A1's preview page (no data-earned-app) is untouched. */
 @media (max-width: 430px) {
-  body[data-earned-app] .phone { height: calc(100dvh - max(24px, env(safe-area-inset-top, 0px)) - max(24px, env(safe-area-inset-bottom, 0px))); }
+  html > body[data-earned-app] .stage { padding-top: 0; padding-bottom: 0; }
+  body[data-earned-app] .phone { height: 100dvh; }
 }
 /* ===== S17 POLISH: END ===== */
+/* ===== S18 (the owner's iPhone, 2026-10-12: the Lateral machine volume card): BEGIN =====
+   A coach suggestion shows the lift and its one-line proposal and its own actions; the engine's reason is behind a "Why?"
+   button and stays hidden until it is tapped (today-app.cjs, the proposal card; today-entry.mjs, the next-weight offers).
+   A hidden reason is never drawn, whatever display a rule above gives it. */
+.view [data-slot="proposal-reason"][hidden] { display: none; }
+.view [data-native-load="reason"][hidden] { display: none; }
+.view [data-slot="proposal-why"], .view [data-native-load="why"] { align-self: flex-start; min-height: var(--hit); padding: 0;
+  color: var(--text-soft); }
+/* ===== S18: END ===== */

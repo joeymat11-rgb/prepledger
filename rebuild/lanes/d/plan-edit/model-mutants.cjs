@@ -37,6 +37,11 @@ const cases = [
     ["? C.nextLocalDate(recorded) : recorded);", '? recorded : recorded);']] },
   { id:'same-day-after-session-refused', file:'model', test:'S17 a same-day change recorded after that day\'s workout started replays from the next day; one recorded before it applies today', replacements:[
     ["? C.nextLocalDate(recorded) : recorded);", "? fail('PLAN_EDIT_SAME_DAY_AFTER_SESSION') : recorded);"]] },
+  // S18 (PM ruling): a bare Start does not begin the day; a set, a skip or a close does.
+  { id:'bare-start-begins', file:'model', test:'S18 a same-day change after a bare Start, opened with nothing recorded, applies today on every replay', replacements:[
+    ["const BEGUN = Object.freeze(['session-set', 'session-skip', 'session-close']);", "const BEGUN = Object.freeze(['session-start', 'session-set', 'session-skip', 'session-close']);"]] },
+  { id:'only-a-set-begins', file:'model', test:'S18 a set, a skip or a close recorded that day before a same-day change begins the day: it replays from the next date', replacements:[
+    ["const BEGUN = Object.freeze(['session-set', 'session-skip', 'session-close']);", "const BEGUN = Object.freeze(['session-set']);"]] },
   { id:'order-ignores-deferral', file:'model', test:'S17 a deferred same-day change keeps date order: a later record that would start before it refuses', replacements:[
     ["starts.get(active[i - 1].op_id) > starts.get(op.op_id)", 'active[i - 1].members[0].value.starts_on > op.members[0].value.starts_on']] },
   { id:'empty-tags-fall-back', file:'model', test:'explicit empty original tag snapshots require exact provenance and survive rename', replacements:[

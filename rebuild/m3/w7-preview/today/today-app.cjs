@@ -482,6 +482,9 @@ const PROPOSAL_SAID_NO = "You said no."; // T-40d
 const PROPOSAL_NOTHING_CHANGES = "Nothing changes."; // T-40d
 const PROPOSAL_WITHDRAWN_WORD = "Withdrawn."; // T-40e
 const PROPOSAL_REBUILT = "Your plan was rebuilt and this proposal no longer applies."; // T-40e
+/* S18 (the owner, on his iPhone: "It should probably have the proposal, and a "why?" Button that you can tap to see that
+   paragraph"; PM-approved word). The control that shows and hides the engine's reason on an open card. */
+const PROPOSAL_WHY = "Why?";
 const PROPOSAL_CHANGE_ANSWER = "Change my answer"; // T-40b, T-40d
 const PROPOSAL_WORDS = Object.freeze({
   sets: Object.freeze({ yes: "Yes, add it", no: "No, keep it as is", change: "Add one set this week" }), // T-40
@@ -518,7 +521,11 @@ function proposalFace(open, stored, answer, shownId, plain) {
     /* F7: an open card with no decisions takes no eyebrow. */
     kind: state === "open" ? (words ? PROPOSAL_KIND_OPEN : "") : state === "applied" ? PROPOSAL_KIND_APPLIED
       : state === "withdrawn" ? PROPOSAL_KIND_WITHDRAWN : PROPOSAL_KIND_ANSWERED,
-    lift, change: words ? words.change : "",
+    /* Fable l1 D3 (S18): with the reason behind Why?, the card's own lines must say what changes. Where the pack has
+       no change line for the kind and the card shows the LIFT, the engine's own title (which states the move: "VOLUME
+       -1 - ...", "RESET ...") is the change line; where the title is already the card's name, nothing is repeated. */
+    lift, change: words && words.change ? words.change
+      : (state === "open" && card.lift && card.title && clean(card.title, "proposal-change")) || (words ? words.change : ""),
     reason: state !== "open" ? "" : words ? (why ? why.replace(/\s*$/, " ") : "") + PROPOSAL_UNTIL_YES : why,
     yes: words ? words.yes : null, no: words ? words.no : null,
     stateWord: null, stateText: "", changeAnswer: null };
@@ -946,7 +953,27 @@ function mountToday(doc, model, options = {}) {
     map.get("proposal-decisions").remove();
     if (face.state === "open") {
       map.get("proposal-done").remove();
-      map.get("proposal-reason").textContent = plainOrDrop(face.reason, "proposal-reason");
+      const reason = map.get("proposal-reason");
+      reason.textContent = plainOrDrop(face.reason, "proposal-reason");
+      /* S18 (the owner's iPhone, the Lateral machine volume card): the card shows the lift and its one-line proposal;
+         the engine's reason, unchanged, is behind a real "Why?" button (aria-expanded, aria-controls) and is hidden
+         until it is tapped; a second tap hides it again. Every proposal kind is this one card, so this is every kind. */
+      if (reason.textContent) {
+        reason.hidden = true;
+        const why = doc.createElement("button");
+        why.type = "button";
+        why.className = "link";
+        why.setAttribute("data-slot", "proposal-why");
+        why.setAttribute("aria-expanded", "false");
+        why.setAttribute("aria-controls", reason.id || "proposal-reason");
+        why.textContent = plainOrDrop(PROPOSAL_WHY, "proposal-why");
+        hooks.listen(why, "click", () => {
+          const show = reason.hidden;
+          reason.hidden = !show;
+          why.setAttribute("aria-expanded", show ? "true" : "false");
+        });
+        reason.parentNode.insertBefore(why, reason);
+      }
       return face;
     }
     map.get("proposal-open").remove();

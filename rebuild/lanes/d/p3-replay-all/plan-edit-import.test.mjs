@@ -19,7 +19,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { IDBFactory, sealInventedBundle, eraFor, firstRun, admit,
-  IMPORTED_LOADS } from '../../../m3/w7-preview/import/test/support.mjs';
+  IMPORTED_LOADS, SETUP } from '../../../m3/w7-preview/import/test/support.mjs';
+import { createGymModel } from '../../../m3/w7-preview/today/gym-model.mjs';
+import { createCleanInitState } from '../../../m3/w7-preview/today/setup-model.mjs';
 import { admittedLocalSourceBasis } from '../../../m3/w7-preview/today/local-source-basis.mjs';
 import { createRoutineEntry } from '../../../m3/w7-preview/today/routine-host.mjs';
 import Routine from '../../../m3/w7-preview/today/routine-model.mjs';
@@ -143,6 +145,53 @@ test('PE-I3 - a routine change saved for TODAY before the import: the import is 
   assert.deepEqual(result.view.families.filter(row => row.family === 'F10'),
     [{ family: 'F10', state: 'superseded', op_id: change.op_id }]);
   assert.deepEqual(await planOps(era), before, 'the import moved or deleted the same-day change');
+  const state = await imported(era, scope);
+  assert.ok(state, 'the admitted import is not visible to Today');
+  assert.deepEqual(await createRoutineEntry({ installation: era, day: DAY }).adopt(copy(state)), state,
+    'Today adopted a same-day change the import superseded');
+});
+
+/* S18 (PM ruling): AN OPENED-EMPTY-THEN-SWITCHED DAY, THEN THE IMPORT. The gym card's Start with nothing recorded, then a
+   routine change saved for TODAY, which first removes that empty Start (a session tombstone through the gym host) and
+   then writes the plan-mutation. RED before S18: the same-day save was refused PLAN_EDIT_TODAY_STARTED (a bare Start
+   closed the day), so no such day could exist. Admission takes the day as it is: ADMITTED, F10 answers for the change as
+   superseded, the empty Start and its removal stay on the record byte for byte, and Today reads the imported routine. */
+test('PE-I4 - an opened, EMPTY workout switched by a change for TODAY, then the import: ADMITTED, F10 answers for the '
+  + 'change, the removed Start and its removal are kept byte for byte, and the routine is the imported one', async t => {
+  const { era, scope } = await open(t, 'opened-empty');
+  const engineState = copy(createCleanInitState({ setup: SETUP }));
+  for (const ex of engineState.exercises) ex.w = typeof ex.steps?.[0] === 'number' ? ex.steps[0] : 20;
+  const gymHost = await era.createGymHost({ day: DAY, engineState, plannedSplitSlotId: 'earned-today-preview/' + DAY });
+  let opened;
+  try {
+    const gym = createGymModel({ gymHost, sessionTitle: null });
+    assert.equal((await gym.read()).phase, 'ready', 'the gym card would not prepare');
+    opened = await gym.start();
+    assert.equal(opened.ok, true, 'the Start was refused: ' + opened.code);
+  } finally { gymHost.close(); }
+  const session = await createRoutineEntry({ installation: era, day: DAY }).session();
+  assert.equal(session.ok, true, 'the routine would not open: ' + session.code);
+  let change;
+  try {
+    const view = await session.view();
+    assert.equal(view.today_allowed, true, 'an opened, empty workout closed today: ' + view.today_code);
+    const row = Routine.rowsOf(view.state).U[0];
+    change = await session.save(Routine.updateEdit(row, { ...row, sets: row.sets + 1 }).edit, view.today);
+    assert.equal(change.ok, true, 'the same-day change was refused: ' + change.code);
+    assert.equal(change.starts_on, DAY);
+  } finally { session.close(); }
+  const all = async () => (await era.generation()).generation.collections.ops || {};
+  const before = copy(await all());
+  const removal = Object.values(before).find(op => op.class === 'session' && op.kind === 'tombstone' && op.target_op_id === opened.opId);
+  assert.ok(removal, 'the empty Start was not removed');
+  assert.ok(removal.device_seq < before[change.op_id].device_seq, 'the removal is written before the change');
+  const result = await admit(era, SEALED, { day: DAY, ...scope });
+  assert.equal(result.admitted, true, 'an opened-empty-then-switched day blocked the import: '
+    + JSON.stringify(result.codes || result.code || result.stage));
+  assert.deepEqual(result.view.families.filter(row => row.family === 'F10'),
+    [{ family: 'F10', state: 'superseded', op_id: change.op_id }]);
+  const after = await all();
+  for (const id of [opened.opId, removal.op_id, change.op_id]) assert.deepEqual(copy(after[id]), before[id], id + ' kept byte for byte');
   const state = await imported(era, scope);
   assert.ok(state, 'the admitted import is not visible to Today');
   assert.deepEqual(await createRoutineEntry({ installation: era, day: DAY }).adopt(copy(state)), state,

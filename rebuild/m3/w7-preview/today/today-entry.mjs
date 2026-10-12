@@ -170,6 +170,8 @@ export const NATIVE_LOAD_COPY = Object.freeze({
   yes: "Yes",
   decline: "Not now",
 });
+/* S18 (PM-approved word): the control that shows and hides an offer's reason. */
+export const NATIVE_LOAD_WHY = "Why?";
 /* PROPOSED - NEW COPY, NOT APPROVED. Every string below needs Joe's approval before
    release (round 4, D9 undo control and D-B2-1 disputed label; spec R7/R8 :153, :156,
    :157). Nothing else in this file's copy changed. A lift's display name is prefixed to
@@ -302,7 +304,20 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
       card.append(make("h3", {}, nameOf(offer.lift) + (offer.kind === "earn" ? ": next weight" : offer.kind === "compensate" ? NATIVE_LOAD_PROPOSED_COPY.undoHeading : ": set your working weight")));
       const list = make("ul", { "aria-label": "Offered weight for each set" });
       offer.loads.forEach((load, i) => { const item = make("li", {}, "Set " + (i + 1) + ": "); item.append(make("span", { "data-native-load": "set-load" }, load === null ? NATIVE_LOAD_PROPOSED_COPY.noWeight : load + " " + offer.unit)); list.append(item); });
-      card.append(list, make("p", { "data-native-load": "reason" }, offer.reason));
+      /* S18 (the owner's iPhone: a coach suggestion shows the proposal and a "Why?" to tap for its paragraph). The
+         reason, unchanged, is hidden behind a real button (aria-expanded, aria-controls) until it is tapped; Yes and
+         Not now below answer the offer whether or not it was ever opened. */
+      const reasonId = "native-load-reason-" + String(offer.proposalId).replace(/[^A-Za-z0-9_-]/g, "_");
+      const reason = make("p", { "data-native-load": "reason", id: reasonId }, offer.reason);
+      reason.hidden = true;
+      const why = make("button", { type: "button", "data-native-load": "why", class: "link", "aria-expanded": "false",
+        "aria-controls": reasonId }, NATIVE_LOAD_WHY);
+      why.addEventListener("click", () => {
+        const show = reason.hidden;
+        reason.hidden = !show;
+        why.setAttribute("aria-expanded", show ? "true" : "false");
+      });
+      card.append(list, why, reason);
       const yes = make("button", { type: "button", "data-native-load": "yes", class: "btn" }, NATIVE_LOAD_COPY.yes);
       yes.addEventListener("click", () => { api.accept(offer.proposalId); });
       const no = make("button", { type: "button", "data-native-load": "decline", class: "btn" }, NATIVE_LOAD_COPY.decline);

@@ -44,6 +44,8 @@ export const ENTER_PERFORMED = 'Enter the weight and reps you actually completed
 export const LOAD_NOT_A_NUMBER = 'That weight cannot be saved. Enter it as a number above zero, like 25.';
 export const REPS_NOT_A_NUMBER = 'Enter the reps as a whole number, like 10.';
 export const UNDO_REASON = 'Undone on this device from the saved-set screen before the next set.';
+/* S18: the reason recorded on the removal of an opened, empty workout when a routine change starts today. */
+export const OPENED_EMPTY_REASON = 'Opened on this device with nothing recorded, and removed when the routine changed for today.';
 /* P0-B r2/r3 (review findings 3, N5) - Start's own refusal while an enrolled
    installation's adoption is pending or never swapped the host. Exported at
    module level, exactly as the three copy constants above are, so a copy
@@ -344,8 +346,17 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
      refuses to prepare a new workout while one is open (its own
      WORKOUT_HISTORY_RECONCILIATION_REQUIRED), so without this the athlete is
      stuck: today's card can neither start nor see the thing that is blocking it. */
+  /* S18 (PM ruling): a session whose Start was removed AND which holds no set, skip or close (in any status) is no session
+     of the athlete's: it is neither today's workout, nor one to recover. Its Start and its removal stay on the record.
+     Fable l1 D1 (a): a removed Start that holds any record is NOT skipped, so it still surfaces (the client refuses it
+     WORKOUT_HISTORY_RECONCILIATION_REQUIRED, the same narrow shape). */
+  const removedAndEmpty = session => !!(session && session.projection && session.projection.start_record
+    && session.projection.start_record.included === false
+    && !(session.records || []).some(row => row && row.operation
+      && ['session-set', 'session-skip', 'session-close'].includes(row.operation.kind)));
   function unfinishedBefore(list) {
     for (const session of list.sessions || []) {
+      if (removedAndEmpty(session)) continue;
       if (session.projection.close_records.length) continue;
       const record = session.projection.start_record;
       const date = record && record.current && record.current.effective && record.current.effective.local_date;
@@ -359,6 +370,7 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
   function sessionsToday(list) {
     const open = [], closed = [];
     for (const session of list.sessions || []) {
+      if (removedAndEmpty(session)) continue;
       const record = session.projection && session.projection.start_record;
       const date = record && record.current && record.current.effective && record.current.effective.local_date;
       if (date !== day) continue;
@@ -683,7 +695,44 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     }
   }
 
+  /* S18 (PM ruling): TODAY'S OPENED, EMPTY WORKOUT GIVES WAY TO A ROUTINE CHANGE THAT STARTS TODAY. A session of this
+     host's day whose Start is on record and which holds NO set, skip or close (in any status) is removed with the
+     layer's own removal of its Start (action remove, the writer's existing tombstone): the Start stays on the record
+     byte for byte, the engine skips it, the client treats exactly that shape as resolved, and Start then opens a fresh
+     session. A session that recorded anything is refused by name (PLAN_EDIT_TODAY_STARTED) and nothing is written; a
+     Start this layer cannot interpret is refused as the client refuses it. Called by routine-host.mjs BEFORE the plan
+     change is saved, so a stop between the two leaves today's workout ready to start on the old plan. */
+  async function discardOpenedEmpty() {
+    const listed = await history();
+    if (!listed.ok) return { ok: false, code: listed.code, copy: listed.copy || null };
+    const removed = [];
+    for (const session of listed.history.sessions || []) {
+      if (removedAndEmpty(session)) continue;
+      const record = session.projection && session.projection.start_record;
+      const date = record && record.current && record.current.effective && record.current.effective.local_date;
+      if (date !== day) continue;
+      if (record.included !== true || record.issues.length)
+        return { ok: false, code: 'WORKOUT_HISTORY_RECONCILIATION_REQUIRED', copy: null };
+      if ((session.records || []).some(row => row && row.operation
+        && ['session-set', 'session-skip', 'session-close'].includes(row.operation.kind)))
+        return { ok: false, code: 'PLAN_EDIT_TODAY_STARTED', copy: null };
+      const startId = session.start.operation.op_id;
+      /* Fable l1 D1 (PM ruling): through the layer's PREPARED edit, so the removal is bound to the snapshot the client
+         judged empty (its causal parents name the Start and every record of the session read there); a set, skip or close
+         landing before the commit - another tab, another device - makes it stale (WORKOUT_EDIT_STALE) and nothing is
+         removed. */
+      const prepared = await client.prepareWorkoutEdit({ target_op_id: startId });
+      if (!prepared || prepared.prepared !== true) return remember(prepared);
+      const result = await client.commitWorkoutEdit({ editId: prepared.editId, action: 'remove', change: OPENED_EMPTY_REASON });
+      if (!result || result.acknowledged !== true) return remember(result);
+      removed.push(startId);
+    }
+    preparedId = null;
+    return { ok: true, removed };
+  }
+
   return Object.freeze({ read: readTracked, start, logSet, undo, finish, forget, closeUnfinished, rebase, holdForAdoption,
+    discardOpenedEmpty,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
     previous: () => previousByLift,
     /* P0-B r2 (review finding 4) - a LIVE getter, not a value captured at

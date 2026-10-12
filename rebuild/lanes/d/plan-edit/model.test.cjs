@@ -529,13 +529,17 @@ function appendOn(f, edit, id, day, startsOn) {
   const op = build(f.commands.prepare({ action:Commands.ACTION, input:value }), last.device_seq+1, last.op_id, day);
   f.generation.collections.ops[op.op_id] = op; return op;
 }
-function startOn(f, day) {
+function sessionOn(f, day, kind) {
   const last = Object.values(f.generation.collections.ops).sort((a,b)=>a.device_seq-b.device_seq).at(-1), seq = last.device_seq+1;
   const op = { op_id:'op-synthetic-'+seq, athlete_id:'synthetic-athlete', device_id:'synthetic-device', device_seq:seq,
-    device_predecessor_op_id:last.op_id, causal_parents:[], class:'session', kind:'session-start', payload:null,
+    device_predecessor_op_id:last.op_id, causal_parents:[], class:'session', kind, payload:null,
     effective:{ local_date:day, local_time:'09:00', utc_offset:'+00:00' }, canonical_content_commitment:'c'.repeat(64) };
   f.generation.collections.ops[op.op_id] = op; return op;
 }
+/* S18 (PM ruling): a workout has STARTED once something of it is recorded that day - here a Start and its first set.
+   A bare Start (openOn: the set screen opened, nothing recorded) does not begin the day. */
+const openOn = (f, day) => sessionOn(f, day, 'session-start');
+function startOn(f, day) { openOn(f, day); return sessionOn(f, day, 'session-set'); }
 const saturdayUpper = { kind:'split', map:{0:'REST',1:'U',2:'L',3:'REST',4:'U',5:'L',6:'U'} };
 test('S17 a change may start on its authored day or the next one, and on no other day',()=>{
   const f=fixture(), op=appendOn(f, change('press',{sets:3}), 'same-day', today, today);
@@ -621,4 +625,36 @@ test('S17 a deferred same-day change keeps date order: a later record that would
   assert.deepEqual(f.model.read(f.generation,today).pending_dates, [tomorrow]);
   appendOn(f, change('press',{sets:3}), 'clock-back', '2026-09-11', today);
   assert.throws(()=>f.model.read(f.generation,tomorrow), {code:'PLAN_EDIT_DATE_ORDER_UNPROVEN'});
+});
+
+/* S18 (PM ruling): THE SAME-DAY RULE KEYS ON SOMETHING RECORDED, NOT ON A BARE START. An opened, empty workout (a
+   Start with no set, skip or close) does not begin the day: the saving host removes that session before the change is
+   saved, and on replay a same-day change after a bare Start applies from its own day. A set, a skip or a close of the
+   day before it still defers it to the next date (S17, Fable l1 D1). */
+test('S18 a same-day change after a bare Start, opened with nothing recorded, applies today on every replay',()=>{
+  const f=fixture(); openOn(f, today);
+  const op=appendOn(f, saturdayUpper, 'after-open', today, today);
+  const now=f.model.read(f.generation,today);
+  assert.deepEqual(now.applied_ids, [op.op_id], 'the opened, empty workout did not begin the day');
+  assert.deepEqual(now.pending_dates, []);
+  assert.deepEqual(now.state.split.at(-1), { from:today, map:saturdayUpper.map });
+  // Deterministic: the same record read again, and read with its operations in the reverse order, gives the same.
+  const again=f.model.read(f.generation,today);
+  assert.deepEqual(again, now);
+  const reversed=copy(f.generation); reversed.collections.ops=Object.fromEntries(Object.entries(reversed.collections.ops).reverse());
+  assert.deepEqual(f.model.read(reversed,today).state, now.state);
+  assert.deepEqual(f.model.read(reversed,today).applied_ids, now.applied_ids);
+});
+test('S18 a set, a skip or a close recorded that day before a same-day change begins the day: it replays from the next date',()=>{
+  for (const kind of ['session-set','session-skip','session-close']) {
+    const f=fixture(); openOn(f, today); sessionOn(f, today, kind);
+    const op=appendOn(f, saturdayUpper, 'after-'+kind, today, today);
+    assert.deepEqual(f.model.read(f.generation,today).applied_ids, [], kind+' began the day');
+    assert.deepEqual(f.model.read(f.generation,today).pending_dates, [tomorrow], kind);
+    assert.deepEqual(f.model.read(f.generation,tomorrow).applied_ids, [op.op_id], kind+': applied from the next date');
+  }
+  const begun=require('../../../m4/workout/plan-edit-model.cjs').begunOn;
+  assert.equal(begun([{ class:'session', kind:'session-start', effective:{ local_date:today }, device_seq:5 }], today), false, 'a Start alone');
+  assert.equal(begun([{ class:'session', kind:'session-set', effective:{ local_date:today }, device_seq:5 }], today, 5), false, 'only before the change');
+  assert.equal(begun([{ class:'session', kind:'session-set', effective:{ local_date:tomorrow }, device_seq:5 }], today), false, 'only that date');
 });

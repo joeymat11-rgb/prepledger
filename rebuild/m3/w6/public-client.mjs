@@ -135,10 +135,17 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     const ops = generation.collections.ops || {}, rejected = generation.collections.rejected || {};
     const needsHistory = () => ({ ...workoutRefusal("WORKOUT_HISTORY_RECONCILIATION_REQUIRED"),
       copy: "A saved workout needs to be recovered before starting another. No new workout was created." });
-    const closedAfter = new Map();
+    const closedAfter = new Map(), removedEmpty = new Set();
     if(!history)return needsHistory();
     for(const session of history.sessions){
       if(session.start.status==='rejected')return {...needsHistory(),state:19};
+      /* S18 (PM ruling): AN OPENED, EMPTY WORKOUT THAT WAS REMOVED IS RESOLVED. Exactly that shape and nothing wider: the
+         Start is removed by the accepted removal (its record excluded, with no interpretation issue) and the session holds
+         no set, skip or close at all, in any status. Its Start and its removal stay on the record; the device-scope checks
+         below still apply to it. Anything else keeps WORKOUT_HISTORY_RECONCILIATION_REQUIRED. */
+      if(session.projection.start_record.included===false&&!session.projection.start_record.issues.length&&
+        !session.records.some(row=>['session-set','session-skip','session-close'].includes(row.operation?.kind))){
+        removedEmpty.add(session.start.operation.op_id);continue;}
       if(session.projection.start_record.included!==true||session.projection.start_record.issues.length)return needsHistory();
       const closes=session.projection.close_records;
       if(closes.length!==1||closes[0].included!==true||closes[0].issues.length||!['normal','early'].includes(closes[0].kind))continue;
@@ -157,6 +164,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       // Legacy/other-device history needs the separately qualified projection;
       // missing legacy capture is not itself corrupt storage (state 18).
       if (start.device_id !== deviceId || start.schema_version !== 2) return needsHistory();
+      if (removedEmpty.has(start.op_id)) continue;
       if (!(closedAfter.get(start.op_id) > start.device_seq)) return needsHistory();
     }
     return null;
@@ -332,7 +340,28 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if(snapshot.generation.collections.sync?.frontier?.authorityW!==history.frontier)throw new StorageFailure('WORKOUT_EDIT_PREFIX_INCOMPLETE',18);
       const session=history.sessions.find(s=>s.projection.facts.some(f=>f.source_op_id===input.target_op_id));
       const fact=session?.projection.facts.find(f=>f.source_op_id===input.target_op_id);
-      if(!fact)throw new StorageFailure('WORKOUT_EDIT_TARGET_UNAVAILABLE',3);
+      /* S18 (PM ruling, Fable l1 D1): the removal of an opened, EMPTY Start goes through this same prepared edit, so it
+         is bound to the snapshot it was judged on (revision + token, editFailure WORKOUT_EDIT_STALE): a set, skip or close
+         that lands between this read and the commit - another tab, another device on the era - makes the removal stale
+         and nothing is removed. Exactly that target: a Start whose record is interpretable and included, of a session
+         holding no set, skip or close in any status; only `remove` may follow (commitWorkoutEdit), and its causal
+         parents name the Start and every record of the session read here. */
+      if(!fact){
+        const opened=history.sessions.find(s=>s.start.operation.op_id===input.target_op_id),start=opened?.projection.start_record;
+        if(!opened||opened.start.status==='rejected'||start.included!==true||start.issues.length||
+          opened.records.some(row=>['session-set','session-skip','session-close'].includes(row.operation?.kind)))
+          throw new StorageFailure('WORKOUT_EDIT_TARGET_UNAVAILABLE',3);
+        const changedStart=contextFailure(candidate.context.observationEpoch);if(changedStart)return {...changedStart,prepared:false};
+        const latestStart=await repository.load();if(latestStart.revision!==snapshot.revision||latestStart.token!==snapshot.token)return workoutRefusal('WORKOUT_EDIT_STALE');
+        const finalStart=contextFailure(candidate.context.observationEpoch);if(finalStart)return {...finalStart,prepared:false};
+        if(lifetime!==preparationEpoch)return workoutRefusal('WORKOUT_PREPARATION_RETIRED');
+        const startEditId=Array.from((crypto||globalThis.crypto).getRandomValues(new Uint8Array(24)),b=>b.toString(16).padStart(2,'0')).join('');
+        const startParents=[...new Set([input.target_op_id,...(start.edit_op_ids||[]),...opened.records.map(row=>row.operation.op_id)])];
+        workoutEdits.set(startEditId,{revision:snapshot.revision,token:snapshot.token,...copy(candidate.context),targetId:input.target_op_id,
+          lineage:undefined,parents:startParents,startRemoval:true,retired:false,operation:null});
+        return {prepared:true,editId:startEditId,view:{target_op_id:input.target_op_id,session_start_op_id:input.target_op_id,
+          kind:'session-start',current:copy(start.current),edit_op_ids:startParents.slice(1)}};
+      }
       if(fact.source_status==='rejected')throw new StorageFailure('WORKOUT_EDIT_TARGET_REJECTED',19);
       // A known exact fact can be corrected/removed even when another fact uses
       // its slot. This does not resolve the slot or award workout eligibility.
@@ -359,7 +388,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if(!entry||entry.retired)return workoutRefusal('WORKOUT_EDIT_REQUIRED');entry.retired=true;workoutEdits.delete(input.editId);
       const failure=contextFailure(entry.observationEpoch)||lateRefusal;if(failure)return {...failure,acknowledged:false};
       if(!['correct','remove'].includes(input.action))return workoutRefusal('WORKOUT_INPUT_INVALID');
-      const values={target_op_id:entry.targetId,lift_lineage_id:entry.lineage,causal_parents:entry.parents.slice(),
+      // S18: a prepared Start (an opened, empty workout) may only be removed, and a Start carries no lift lineage.
+      if(entry.startRemoval&&input.action!=='remove')return workoutRefusal('WORKOUT_INPUT_INVALID');
+      const values={target_op_id:entry.targetId,...(entry.startRemoval?{}:{lift_lineage_id:entry.lineage}),causal_parents:entry.parents.slice(),
         ...(input.action==='correct'?{replacement_fields:input.change}:{reason:input.change})};
       entry.args={action:input.action,input:values};entry.spec=resumeCommands.prepare(entry.args);entry.retired=false;activeEdit=entry;
       let result=completedOutcome(await bridge.execute('workout',entry.args));

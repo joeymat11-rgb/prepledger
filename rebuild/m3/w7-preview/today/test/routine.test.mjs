@@ -642,7 +642,8 @@ test('RT-14 S17: the set screen bar, the whole reason, Setup, the example pill, 
   assert.match(rules, /article\.page > \.bottom \{[^}]*background: color-mix\(in srgb, var\(--surface\) 94%, transparent\);[^}]*border-top: 1px solid var\(--line-soft\);/,
     'Back to Today is the same bar');
   assert.match(rules, /#card-weigh:has\(> #weigh-form\) > \.tdot \{ top: 29px; \}/, 'the weigh-in dot sits on its row');
-  assert.match(rules, /\.screen-today > \.view\.ui > \.body \{ padding-bottom: 34px; --fade-bot-inset: 34px; \}/, 'room above Start');
+  // S18: the fade lies inside the 34 px room (inset 34 -> 14, measured: Change my routine never drawn faded at 390x844).
+  assert.match(rules, /\.screen-today > \.view\.ui > \.body \{ padding-bottom: 34px; --fade-bot-inset: 14px; \}/, 'room above Start');
   assert.doesNotMatch(rules, /:is\(/, 'no :is() list (the 16px law reads selector lists split on commas)');
   assert.doesNotMatch(rules, /#[0-9a-f]{3,8}\b|rgba?\(/i, 'no colour is invented');
   const markup = fs.readFileSync(new URL('../../../../m1/approved-2026-09-18/app/app.html', import.meta.url), 'utf8');
@@ -655,17 +656,38 @@ test('RT-14 S17: the set screen bar, the whole reason, Setup, the example pill, 
    padding (preflight.css, at least 24 px each) while the phone was the full screen height, so the page itself scrolled by
    both and every screen's foot began below the fold. Measured at the builder seat (the same four sizes): the phone is the
    screen less the two paddings, so the page never scrolls, Back to Today and the check-in card under Start are on the
-   screen, and Change my routine is never drawn under the fade. A1's preview page (no data-earned-app) is untouched. */
-test('RT-18 S17: on the deployed page a phone is the screen less the stage\'s two paddings, so the page itself never scrolls', () => {
+   screen, and Change my routine is never drawn under the fade. A1's preview page (no data-earned-app) is untouched.
+   S18 (the owner's iPhone: a black bar under the screen and a dark band under the status bar, the two paddings left bare in
+   the installed app): on a phone the stage keeps NO padding of its own and the phone is the whole screen, so the art runs
+   edge to edge; the screens inside keep their own safe areas. The page still never scrolls (measured, the same four sizes:
+   the phone covers the viewport exactly). The S17 rule (phone = screen less the paddings) is replaced, by PM ruling. */
+test('RT-18 S18: on the deployed page a phone is the whole screen, edge to edge, and the stage keeps no padding of its own', () => {
   const css = fs.readFileSync(new URL('../preview.css', import.meta.url), 'utf8');
   const begin = css.indexOf('/* ===== S17 POLISH'), end = css.indexOf('/* ===== S17 POLISH: END');
   const rules = css.slice(begin, end).replace(/\/\*[\s\S]*?\*\//g, '');
-  assert.match(rules, /@media \(max-width: 430px\) \{\s*body\[data-earned-app\] \.phone \{ height: calc\(100dvh - max\(24px, env\(safe-area-inset-top, 0px\)\) - max\(24px, env\(safe-area-inset-bottom, 0px\)\)\); \}\s*\}/,
-    'the phone is the screen less the stage\'s top and bottom paddings');
+  assert.match(rules, /@media \(max-width: 430px\) \{\s*html > body\[data-earned-app\] \.stage \{ padding-top: 0; padding-bottom: 0; \}\s*body\[data-earned-app\] \.phone \{ height: 100dvh; \}\s*\}/,
+    'on a phone the stage has no padding and the phone is the whole screen');
+  assert.doesNotMatch(rules, /calc\(100dvh -/, 'the phone is no longer the screen less the paddings');
   const shell = fs.readFileSync(new URL('../../../../slice/pwa/preflight.css', import.meta.url), 'utf8');
   assert.match(shell, /body\[data-earned-app\] \.stage \{\s*padding-top: max\(24px, env\(safe-area-inset-top, 0px\)\);\s*padding-bottom: max\(24px, env\(safe-area-inset-bottom, 0px\)\);\s*\}/,
-    'the two paddings the phone gives back are exactly the deployed stage\'s');
+    'preflight.css keeps its own stage rule, which the phone rule outranks (html > body ... .stage)');
+  const pack = fs.readFileSync(new URL('../../../../m1/approved-2026-09-18/app/app.css', import.meta.url), 'utf8');
+  assert.match(pack, /\.screen-today \.ui > \.stack \{ padding-bottom: max\(24px, env\(safe-area-inset-bottom, 0px\)\); \}/,
+    'the screens keep the home indicator clear themselves');
+  assert.match(css, /\.scene-frame > \.view\.ui \.header \{ margin-top: max\(53px, calc\(env\(safe-area-inset-top, 0px\) \+ 6px\)\); \}/,
+    'and the status bar');
   assert.doesNotMatch(rules, /(^|[,{}])\s*\.phone \{/m, 'the preview page\'s own phone frame is not touched');
+});
+/* S18: the reason of a coach suggestion is never drawn while hidden, whatever display a rule above gives it. */
+test('RT-23 S18: a hidden suggestion reason is never drawn, and Why? is a quiet control on its own row', () => {
+  const css = fs.readFileSync(new URL('../preview.css', import.meta.url), 'utf8');
+  const begin = css.indexOf('/* ===== S18 ('), end = css.indexOf('/* ===== S18: END');
+  assert.ok(begin >= 0 && end > begin, 'the S18 block is in preview.css');
+  const rules = css.slice(begin, end).replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(rules, /\.view \[data-slot="proposal-reason"\]\[hidden\] \{ display: none; \}/);
+  assert.match(rules, /\.view \[data-native-load="reason"\]\[hidden\] \{ display: none; \}/);
+  assert.match(rules, /\.view \[data-slot="proposal-why"\], \.view \[data-native-load="why"\] \{[^}]*min-height: var\(--hit\);/);
+  assert.doesNotMatch(rules, /:is\(|font-size|#[0-9a-f]{3,8}\b|rgba?\(/i, 'no :is() list, no type size and no colour of its own');
 });
 
 /* S17 (PM ruling, the owner's words: "I should be able to elect to change my workout today (I wanna hit upper on Mondays
@@ -781,4 +803,210 @@ test('RT-17 once today\'s workout has started (a set logged), a change cannot st
     assert.equal(slot(page.doc, 'routine-today-why').textContent, 'Today\u2019s workout has started, so this starts tomorrow.');
     assert.deepEqual(page.booted.model.basisState(), basisBefore, 'Today keeps the workout it began');
   } finally { page.close(); }
+});
+
+/* S18 (PM ruling, capture 4 of db6a054: the owner's own morning, today's workout opened at set 1 with nothing logged).
+   Opening the set screen is not starting the workout: a day begins once something of it is recorded (a set, a skip or
+   a close). A change saved to start today over an OPENED, EMPTY workout first removes that workout's Start with the
+   layer's own removal (the Start stays on the record byte for byte), then saves the change; the page re-opens on today,
+   Today shows the new workout and Start opens a fresh session on the new basis. Monday 2026-09-21 is Upper here. */
+const lowerIds = state => state.exercises.filter(e => e.day === 'L').map(e => e.id).sort();
+test('RT-19 S18 an opened, EMPTY workout gives way to a change that starts today: the empty Start is removed and kept, '
+  + 'Today repaints to the new workout and Start opens a fresh session on it', { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('opened');
+  era.close();
+  const page = await bootOn(indexedDB, 'opened', MONDAY);
+  let next = null;
+  try {
+    const title = () => (slot(page.doc, 'workout-title') || {}).textContent || '';
+    assert.match(title(), /UPPER/, 'Monday is an Upper day before the change: ' + title());
+    const gym = page.booted.workout.gym;
+    const opened = await gym.start();
+    assert.equal(opened.ok, true, opened.code);
+    assert.equal((await gym.read()).phase, 'active', 'the set screen is open with nothing recorded');
+    const emptyStart = copy((await ops(page.era)).ops[opened.opId]);
+    const before = copy((await ops(page.era)).ops);
+    await openEditor(page);
+    assert.equal(slot(page.doc, 'routine-when-today').getAttribute('aria-pressed'), 'true', 'an opened, empty workout leaves today open');
+    assert.equal(slot(page.doc, 'routine-today-why'), null);
+    tap(slot(page.doc, 'routine-week'));
+    tap(slot(page.doc, 'routine-day-1-L'));
+    tap(slot(page.doc, 'routine-save'));
+    next = await until(() => page.booted.reopened(), 'the page re-opening on today');
+    next = await next; await next.api.ready;
+    const after = await ops(page.era);
+    for (const [id, op] of Object.entries(before)) assert.deepEqual(copy(after.ops[id]), op, 'op ' + id + ' untouched');
+    assert.deepEqual(copy(after.ops[opened.opId]), emptyStart, 'the empty Start is on the record byte for byte');
+    const added = Object.values(after.ops).filter(op => !before[op.op_id]).sort((a, b) => a.device_seq - b.device_seq);
+    assert.deepEqual(added.map(op => op.kind), ['tombstone', 'plan-mutation'], 'the removal is written first, then the change');
+    assert.equal(added[0].target_op_id, opened.opId); assert.equal(added[0].class, 'session');
+    assert.equal(added[1].members[0].value.starts_on, MONDAY, 'the change starts today');
+    await until(() => /LOWER/.test(title()), 'Today showing the Lower workout');
+    const card = await next.workout.gym.read();
+    assert.equal(card.phase, 'ready', 'a fresh session is ready: ' + (card.code || card.phase));
+    assert.ok(lowerIds(next.model.stateFromOps()).includes(card.lift.id), 'the card opens a Lower lift: ' + card.lift.id);
+    const fresh = await next.workout.gym.start();
+    assert.equal(fresh.ok, true, fresh.code);
+    assert.notEqual(fresh.opId, opened.opId, 'Start opened a NEW session');
+    const started = (await ops(page.era)).ops[fresh.opId];
+    assert.ok(started.prescription_capture.slots.every(s => lowerIds(next.model.stateFromOps()).includes(s.lift_lineage_id)),
+      'the new session stands on the new basis');
+  } finally {
+    if (next) { try { next.rollover && next.rollover.stop(); next.teardown(); } catch (_) { /* closed */ } }
+    page.close();
+  }
+});
+
+test('RT-20 S18 the two writes are ordered, removal first: a stop between them leaves today\'s workout ready to start '
+  + 'again on the plan it had, and a removal never reaches a workout that recorded anything', { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('between');
+  era.close();
+  const page = await bootOn(indexedDB, 'between', MONDAY);
+  try {
+    const gym = page.booted.workout.gym;
+    const opened = await gym.start();
+    assert.equal(opened.ok, true, opened.code);
+    // The state a stop between the two writes leaves: the empty Start removed, no change saved.
+    const removed = await gym.discardOpenedEmpty();
+    assert.equal(removed.ok, true, removed.code); assert.deepEqual(removed.removed, [opened.opId]);
+    assert.equal(Object.values((await ops(page.era)).ops).filter(op => op.kind === 'plan-mutation').length, 0);
+    const card = await gym.read();
+    assert.equal(card.phase, 'ready', 'today reads as a workout ready to start: ' + (card.code || card.phase));
+    const upper = page.booted.model.stateFromOps().exercises.filter(e => e.day === 'U').map(e => e.id);
+    assert.ok(upper.includes(card.lift.id), 'on the plan it had (Upper)');
+    const again = await gym.start();
+    assert.equal(again.ok, true, again.code);
+    // A workout that recorded anything is never removed: one set, and the removal refuses by name and writes nothing.
+    const set = await gym.read();
+    const reserve = gym.effortChoices().find(c => c.label === '1').reserve;
+    assert.equal((await gym.logSet({ startId: set.startId, slot: set.set.slot, lift: set.set.lift, load: '40', reps: '8', effort: reserve })).ok, true);
+    const count = Object.keys((await ops(page.era)).ops).length;
+    const refused = await gym.discardOpenedEmpty();
+    assert.equal(refused.ok, false); assert.equal(refused.code, 'PLAN_EDIT_TODAY_STARTED');
+    assert.equal(Object.keys((await ops(page.era)).ops).length, count, 'a refused removal writes nothing');
+  } finally { page.close(); }
+});
+
+/* S18 (the owner's iPhone, the Lateral machine volume card: "It should probably have the proposal, and a "why?" Button
+   that you can tap to see that paragraph"). Every coach suggestion with a reason paragraph shows the lift, its one-line
+   proposal and its own actions; the reason, unchanged, is behind a real "Why?" button and hidden until it is tapped. The
+   two such surfaces: Today's proposal card (one card for every proposal kind) and the next-weight offers. */
+const whyToggles = (doc, button, reason, label) => {
+  assert.ok(button, label + ': no Why? button'); assert.ok(reason, label + ': no reason');
+  assert.equal(button.tagName, 'BUTTON', label + ': Why? is a real button'); assert.equal(button.type, 'button');
+  assert.equal(button.textContent, 'Why?');
+  assert.equal(button.getAttribute('aria-controls'), reason.id, label + ': Why? controls the reason');
+  assert.equal(reason.hidden, true, label + ': the reason is hidden until Why? is tapped');
+  assert.equal(button.getAttribute('aria-expanded'), 'false');
+  assert.ok(reason.textContent.trim().length > 0, label + ': the reason is still there, unchanged');
+  tap(button);
+  assert.equal(reason.hidden, false, label + ': Why? shows the reason'); assert.equal(button.getAttribute('aria-expanded'), 'true');
+  tap(button);
+  assert.equal(reason.hidden, true, label + ': a second tap hides it again'); assert.equal(button.getAttribute('aria-expanded'), 'false');
+};
+test('RT-21 S18 Today\'s proposal card shows the lift and its one-line proposal; its reason is behind Why?', { timeout: 60000 }, async () => {
+  const win = shellWindow();
+  Object.defineProperty(win, 'indexedDB', { configurable: true, value: new IDBFactory() });
+  const booted = await Entry.boot({ document: win.document, today: DAY1, setupFirst: false });
+  try {
+    await booted.api.ready;
+    const doc = win.document, card = slot(doc, 'proposal');
+    assert.ok(card && !card.hidden, 'the board athlete\'s open proposal card is on Today');
+    assert.ok(slot(doc, 'proposal-lift').textContent.trim(), 'the lift is shown');
+    const reason = slot(doc, 'proposal-reason');
+    const words = reason.textContent;
+    whyToggles(doc, slot(doc, 'proposal-why'), reason, 'proposal card');
+    assert.equal(reason.textContent, words, 'the reason text is unchanged by showing and hiding it');
+  } finally { booted.rollover && booted.rollover.stop(); booted.teardown(); }
+});
+test('RT-22 S18 a next-weight offer shows the lift and its weights with Why?; Yes answers it without opening Why?',
+  { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('why');
+  era.close();
+  const page = await bootOn(indexedDB, 'why', MONDAY);
+  try {
+    const gym = page.booted.workout.gym, doc = page.doc;
+    assert.equal((await gym.start()).ok, true);
+    const reserve = gym.effortChoices().find(c => c.label === '1').reserve;
+    for (let g = 0; g < 40; g++) {
+      const v = await gym.read();
+      if (v.phase === 'saved') { if (v.complete) break; gym.forget(); continue; }
+      if (v.phase !== 'active') break;
+      const r = await gym.logSet({ startId: v.startId, slot: v.set.slot, lift: v.set.lift, load: String(v.entry.load || 20), reps: '10', effort: reserve });
+      assert.equal(r.ok, true, r.code || r.copy);
+    }
+    page.booted.api.render('today', false);
+    tap(doc.getElementById('start'));
+    const finish = await until(() => [...doc.querySelectorAll('button')].find(b => b.textContent.includes('Finish this workout')), 'Finish');
+    tap(finish);
+    const offers = await until(() => { const o = [...doc.querySelectorAll('[data-native-load="offer"]')]; return o.length >= 2 ? o : null; }, 'two offers');
+    const [first, second] = offers;
+    for (const offer of offers) {
+      assert.ok(offer.querySelector('h3').textContent.trim(), 'the lift is named');
+      assert.ok(offer.querySelectorAll('[data-native-load="set-load"]').length > 0, 'the weights are shown');
+      assert.ok(offer.querySelector('[data-native-load="yes"]') && offer.querySelector('[data-native-load="decline"]'), 'its own actions');
+    }
+    whyToggles(doc, second.querySelector('[data-native-load="why"]'), second.querySelector('[data-native-load="reason"]'), 'offer');
+    const reasons = new Set(offers.map(o => o.querySelector('[data-native-load="reason"]').id));
+    assert.equal(reasons.size, offers.length, 'each reason has its own id');
+    // Yes answers the first offer while its reason was never opened.
+    assert.equal(first.querySelector('[data-native-load="reason"]').hidden, true);
+    const lift = first.getAttribute('data-lift');
+    tap(first.querySelector('[data-native-load="yes"]'));
+    await until(() => ![...doc.querySelectorAll('[data-native-load="offer"]')].some(o => o.getAttribute('data-lift') === lift), 'the answered offer leaving');
+    const saved = Object.values((await ops(page.era)).ops).filter(op => op.kind === 'proposal-response');
+    assert.equal(saved.length, 1, 'the Yes was written without opening Why?');
+  } finally { page.close(); }
+});
+
+/* Fable l1 D1 (a), PM ruling: the recovery screen skips ONLY a removed-AND-empty session. A removed Start that holds a set,
+   a skip or a close (a removal that raced a record before S18 D1 bound it) still surfaces as the earlier day's unfinished
+   workout, so the athlete is never left unable to start and unable to see why. Over a stand-in client, by the card's own
+   read(): the history the layer would hand back, and the layer's own refusal of a new workout. */
+test('RT-24 S18 D1 the recovery screen skips only a removed-AND-empty session; a removed Start holding a record still surfaces',
+  async () => {
+  const { createGymModel } = await import('../gym-model.mjs');
+  const session = (id, date, removed, kinds) => ({ start: { operation: { op_id: id }, status: 'stored-on-this-device' },
+    records: kinds.map((kind, i) => ({ operation: { op_id: id + '-' + i, kind }, status: 'stored-on-this-device' })),
+    projection: { start_record: { included: removed ? false : true, issues: [], current: { effective: { local_date: date } } },
+      close_records: [], facts: kinds.filter(k => k === 'session-set').map((k, i) => ({ included: true, source_op_id: id + '-' + i })) } });
+  const cardOver = sessions => createGymModel({ gymHost: { day: MONDAY, plannedSplitSlotId: 'slot', engine: {},
+    host: { client: { readWorkoutHistory: async () => ({ read: true, history: { sessions } }),
+      prepareWorkout: async () => ({ prepared: false, code: 'WORKOUT_HISTORY_RECONCILIATION_REQUIRED' }) },
+      lastProjection: () => null } } });
+  const held = await cardOver([session('held', '2026-09-20', true, ['tombstone', 'session-set'])]).read();
+  assert.equal(held.phase, 'unfinished', 'a removed Start holding a set surfaces');
+  assert.equal(held.unfinished.startId, 'held'); assert.equal(held.unfinished.day, '2026-09-20');
+  const empty = await cardOver([session('empty', '2026-09-20', true, ['tombstone'])]).read();
+  assert.equal(empty.phase, 'blocked', 'a removed, empty Start is no workout to recover');
+  assert.equal(empty.unfinished, undefined);
+});
+
+/* Fable l1 D1 (c), PM ruling: THE SECOND TAB. Two pages on one device (one store). Tab A opens today's workout and leaves it
+   empty; tab B logs a set on it. Tab A's routine change for today is then refused by name (today has begun), nothing is
+   removed, and Today keeps its workout. */
+test('RT-25 S18 D1 the second tab: a set logged in another tab closes today; the change is refused and nothing is removed',
+  { timeout: 60000 }, async () => {
+  const { indexedDB, era } = await enrolled('second-tab');
+  era.close();
+  const tabA = await bootOn(indexedDB, 'second-tab', MONDAY);
+  let tabB = null;
+  try {
+    const opened = await tabA.booted.workout.gym.start();
+    assert.equal(opened.ok, true, opened.code);
+    tabB = await bootOn(indexedDB, 'second-tab', MONDAY);
+    const gymB = tabB.booted.workout.gym, set = await gymB.read();
+    assert.equal(set.phase, 'active', 'tab B sees the open workout: ' + (set.code || set.phase));
+    const reserve = gymB.effortChoices().find(c => c.label === '1').reserve;
+    assert.equal((await gymB.logSet({ startId: set.startId, slot: set.set.slot, lift: set.set.lift, load: '40', reps: '8', effort: reserve })).ok, true);
+    const before = copy((await ops(tabA.era)).ops);
+    const session = await createRoutineEntry({ installation: tabA.era, day: MONDAY, live: AT(MONDAY) }).session();
+    const refused = await session.save(M.splitEdit({ 0: 'REST', 1: 'L', 2: 'U', 3: 'REST', 4: 'REST', 5: 'U', 6: 'L' }), MONDAY);
+    session.close();
+    assert.equal(refused.ok, false); assert.equal(refused.code, 'PLAN_EDIT_TODAY_STARTED');
+    assert.deepEqual(copy((await ops(tabA.era)).ops), before, 'nothing removed, nothing saved');
+    assert.equal(Object.values(before).some(op => op.kind === 'tombstone' && op.target_op_id === opened.opId), false);
+    const card = await tabA.booted.workout.gym.read();
+    assert.ok(['active', 'saved'].includes(card.phase), 'Today keeps its workout: ' + card.phase);
+  } finally { if (tabB) tabB.close(); tabA.close(); }
 });

@@ -78,13 +78,14 @@ export async function createPlanEditHost({ client, clock, liveDay, basisState, s
     return projector;
   }
   const read = (generation, date) => projectorFor(generation).read(generation, date);
-  /* S17 (PM ruling): MAY A CHANGE START TODAY? Only while today's workout has not begun (no session-start of today on
-     the record, Model.startedOn, the reader the projector replays with; no session of today in the basis's own
-     history) and while no saved change is still waiting for a later day (a same-day change after it would put the
-     record's start dates out of order, which the projector refuses as PLAN_EDIT_DATE_ORDER_UNPROVEN). Null when it
-     may; otherwise the code that says why. */
+  /* S17 (PM ruling): MAY A CHANGE START TODAY? Only while today's workout has not begun (S18: nothing of it recorded
+     today, no set, skip or close - Model.begunOn, the reader the projector replays with; a Start alone does not
+     begin the day, routine-host.mjs removes that empty session before the change is saved; and no session of today
+     in the basis's own history) and while no saved change is still waiting for a later day (a same-day change after
+     it would put the record's start dates out of order, which the projector refuses as
+     PLAN_EDIT_DATE_ORDER_UNPROVEN). Null when it may; otherwise the code that says why. */
   function todayClosed(generation, day) {
-    if (Model.startedOn(generation?.collections?.ops, day)) return 'PLAN_EDIT_TODAY_STARTED';
+    if (Model.begunOn(generation?.collections?.ops, day)) return 'PLAN_EDIT_TODAY_STARTED';
     const now = read(generation, day);
     if (Object.hasOwn(now.state.sessionLog || {}, day)) return 'PLAN_EDIT_TODAY_STARTED';
     if (now.pending_dates.length) return 'PLAN_EDIT_TODAY_AFTER_PENDING';

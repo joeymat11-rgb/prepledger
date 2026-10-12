@@ -830,7 +830,12 @@ test('S10 - PAGE_PINS names exactly four files, and all four are sha-identical',
    is the UNSEALED --ci reseal child of the SEALED S14 that carries every byte S16 declared plus the S17 polish (S16 retired by
    supersession): the files it moves are declared in packages/S17.json, so the declaring-spec chain has to know about it. S17
    releases nothing. Youngest first, so 'S17' goes last and is consulted first; the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17'];
+/* S18 ADDS 'S18', and the cell is unchanged in every other way. S18 (M2-S18-OPENED, brief rebuild/lanes/b/S18-OPENED-BRIEF.md)
+   is the UNSEALED --ci reseal child of the SEALED S14 that carries every byte S17 declared plus the S18 change for an opened,
+   empty workout (S17 retired by supersession): the files it moves are declared in packages/S18.json, so the declaring-spec
+   chain has to know about it. S18 releases nothing. Youngest first, so 'S18' goes last and is consulted first; the red side
+   is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18'];
 function declaredPost(file) {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;

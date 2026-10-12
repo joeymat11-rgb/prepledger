@@ -958,3 +958,67 @@ test('v2 uncertain Start reconciles its same stored capture once without invokin
   const ops=await operations(f);assert.equal(Object.keys(ops).length,1);assert.equal(JSON.stringify(ops[recovered.op_id].prescription_capture),original);
  }finally{f.repo.close();}
 });
+/* S18 (PM ruling): AN OPENED, EMPTY WORKOUT WHOSE START WAS REMOVED IS RESOLVED, and exactly that shape. The removal is
+   the writer's existing one (action remove on the Start); the Start stays on the record byte for byte and the engine
+   order skips it. A removed Start that still holds a set, a skip or a close, and an open session nobody removed, keep
+   WORKOUT_HISTORY_RECONCILIATION_REQUIRED exactly as before. */
+const removeStart=(f,id,parents=[id])=>f.c.execute('workout',{action:'remove',input:{target_op_id:id,reason:'Opened with nothing recorded',causal_parents:parents}});
+test('S18 an opened, empty workout whose Start was removed is resolved: another Start prepares and the removed Start is kept',async()=>{
+ const f=await setup();
+ try{const a=await start(f,await prepare(f));assert.equal(a.acknowledged,true);
+  const kept=structuredClone((await operations(f))[a.op_id]);
+  assert.equal((await prepare(f)).code,'WORKOUT_HISTORY_RECONCILIATION_REQUIRED','an open session nobody removed still refuses');
+  const removed=await removeStart(f,a.op_id);assert.equal(removed.acknowledged,true,JSON.stringify(removed));
+  const p=await recreate(f).prepareWorkout({planned_split_slot_id:'synthetic-slot'});assert.equal(p.prepared,true,JSON.stringify(p));
+  const fresh=await start(f,await prepare(f));assert.equal(fresh.acknowledged,true,JSON.stringify(fresh));
+  const ops=await operations(f);assert.deepEqual(ops[a.op_id],kept,'the removed Start is on the record byte for byte');
+  assert.equal(ops[removed.op_id].kind,'tombstone');assert.equal(ops[removed.op_id].target_op_id,a.op_id);
+  const r=await recreate(f).readWorkoutHistory();assert.equal(r.read,true,r.code);
+  assert.equal(r.history.sessions.find(s=>s.start.operation.op_id===a.op_id).projection.start_record.included,false);
+ }finally{f.repo.close();}
+});
+test('S18 a removed Start that holds a set, a skip or a close is NOT resolved: Start still refuses by name',async()=>{
+ for(const what of ['set','skip','close']){
+  const f=await setup();
+  try{const a=await start(f,await prepare(f));assert.equal(a.acknowledged,true);
+   const held=what==='set'?await perform(f,a.op_id):what==='skip'?await f.c.execute('workout',{action:'skip',input:{session_start_op_id:a.op_id,
+    logical_set_slot:'slot-1',lift_lineage_id:'same-lineage',skip_scope:'set',reason:'Time',causal_parents:[a.op_id]}}):await close(f,a.op_id);
+   assert.equal(held.acknowledged,true,what+' '+JSON.stringify(held));
+   const removed=await removeStart(f,a.op_id,[a.op_id,held.op_id]);assert.equal(removed.acknowledged,true,what+' '+JSON.stringify(removed));
+   assert.equal((await recreate(f).prepareWorkout({planned_split_slot_id:'synthetic-slot'})).code,'WORKOUT_HISTORY_RECONCILIATION_REQUIRED',what);
+  }finally{f.repo.close();}
+ }
+});
+/* Fable l1 D1 (PM ruling): THE REMOVAL OF AN OPENED, EMPTY START IS A PREPARED EDIT, bound to the snapshot it was judged
+   empty on. Its causal parents name the Start and every record of the session read there; a set that lands from a second
+   tab between the prepare and the commit makes the removal stale (WORKOUT_EDIT_STALE): nothing is removed and the session
+   with its set reads as before. Only `remove` may follow, and a Start holding a record is never a target. */
+test('S18 D1 a prepared removal of an opened, empty Start: committed when nothing moved; stale when a second tab logs a set in between',async()=>{
+ const f=await setup();
+ try{const a=await start(f,await prepare(f));assert.equal(a.acknowledged,true);
+  // The race: tab A prepares, tab B logs a set, tab A commits.
+  const p=await f.c.prepareWorkoutEdit({target_op_id:a.op_id});assert.equal(p.prepared,true,JSON.stringify(p));
+  assert.deepEqual(p.view.session_start_op_id,a.op_id);
+  const tabB=recreate(f);
+  const set=await tabB.execute('workout',{action:'set',input:{session_start_op_id:a.op_id,logical_set_slot:'slot-0',lift_lineage_id:'same-lineage',load:{value:42.5,unit:'lb'},reps:{value:8,unit:'rep'}}});
+  assert.equal(set.acknowledged,true,JSON.stringify(set));
+  const before=structuredClone(await operations(f));
+  const raced=await f.c.commitWorkoutEdit({editId:p.editId,action:'remove',change:'Opened with nothing recorded'});
+  assert.equal(raced.acknowledged,false);assert.equal(raced.code,'WORKOUT_EDIT_STALE',JSON.stringify(raced));
+  assert.deepEqual(await operations(f),before,'nothing was removed');
+  const r=await recreate(f).readWorkoutHistory();assert.equal(r.history.sessions[0].projection.start_record.included,true,'the Start stands');
+  // Now the session holds a set: it is never a removal target again.
+  assert.equal((await f.c.prepareWorkoutEdit({target_op_id:a.op_id})).code,'WORKOUT_EDIT_TARGET_UNAVAILABLE');
+ }finally{f.repo.close();}
+ const g=await setup();
+ try{const a=await start(g,await prepare(g));
+  const p=await g.c.prepareWorkoutEdit({target_op_id:a.op_id});assert.equal(p.prepared,true);
+  assert.equal((await g.c.commitWorkoutEdit({editId:p.editId,action:'correct',change:{planned_split_slot_id:'other'}})).code,'WORKOUT_INPUT_INVALID','only remove');
+  const q=await g.c.prepareWorkoutEdit({target_op_id:a.op_id});
+  const done=await g.c.commitWorkoutEdit({editId:q.editId,action:'remove',change:'Opened with nothing recorded'});
+  assert.equal(done.acknowledged,true,JSON.stringify(done));
+  const op=(await operations(g))[done.op_id];assert.equal(op.kind,'tombstone');assert.equal(op.target_op_id,a.op_id);
+  assert.ok(op.causal_parents.includes(a.op_id),'the removal names the Start');assert.equal(Object.hasOwn(op,'lift_lineage_id'),false);
+  assert.equal((await recreate(g).prepareWorkout({planned_split_slot_id:'synthetic-slot'})).prepared,true,'resolved');
+ }finally{g.repo.close();}
+});

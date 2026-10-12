@@ -270,7 +270,7 @@ test('F3 — the four refusals r7 fired bare now carry names in the vocabulary',
 });
 
 test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION where DECISIONS:414 (2) puts it, M2-S4-REAL-DAY as S3\'s own child directly behind it, and M2-S5-TODAY-CHILD as S4\'s', () => {
-  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S17', 'B1', 'B2', 'B4', 'B3']);
+  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S18', 'B1', 'B2', 'B4', 'B3']);
   // ":124 — ORDER B-NTC → H3 → B1 → B2 → B4 → B3". DECISIONS:414 (2) adopts the scout's
   // order as PM routing: P1 M2-S3-COMPANION is H3's child and B1 re-pins at its own rebase
   // behind it (CRITICAL-PATH-2026-09-15 section 4 P1). M2-S4-REAL-DAY is S3's own child
@@ -327,12 +327,17 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // M2-S17-POLISH, the UNSEALED --ci child of the sealed S14 that carries every byte S16 declared plus the S17 polish of the
   // owner's iPhone captures, holds the one parent claim; packages/S16.json stays as the record with its claim withdrawn.
   // The ruled sequence is SEVENTEEN still, S17 where S16 stood, and it is still the WHOLE list.
-  assert.deepEqual(api.IDS.slice(0, 17), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S17', 'B1', 'B2', 'B4', 'B3']);
+  // S17 LEAVES in its turn (S17 RETIRED BY SUPERSESSION, the same shape): S17 merged onto the chain (DECISIONS:952), so
+  // M2-S18-OPENED, the UNSEALED --ci child of the sealed S14 that carries every byte S17 declared plus the S18 change for an
+  // opened, empty workout, holds the one parent claim; packages/S17.json stays as the record with its claim withdrawn.
+  // The ruled sequence is SEVENTEEN still, S18 where S17 stood, and it is still the WHOLE list.
+  assert.deepEqual(api.IDS.slice(0, 17), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S14', 'S18', 'B1', 'B2', 'B4', 'B3']);
   assert.equal(api.IDS.length, 17);
   assert.equal(api.IDS.includes('S12'), false, 'S12 is superseded by S13 and is not runnable, DECISIONS:920');
   assert.equal(api.IDS.includes('S13'), false, 'S13 is superseded by S14 and is not runnable, DECISIONS:922 (f)');
   assert.equal(api.IDS.includes('S15'), false, 'S15 is superseded by S16 and is not runnable (S15 RETIRED BY SUPERSESSION)');
   assert.equal(api.IDS.includes('S16'), false, 'S16 is superseded by S17 and is not runnable (S16 RETIRED BY SUPERSESSION)');
+  assert.equal(api.IDS.includes('S17'), false, 'S17 is superseded by S18 and is not runnable (S17 RETIRED BY SUPERSESSION)');
   assert.equal(api.IDS.includes('B-LOM'), false,
     'the B-LOM id is removed with its skeleton spec, DECISIONS:487 stop 2');
   // AND THE DELETION IS ACCOUNTED FOR RATHER THAN EXEMPTED BY ACCIDENT. Removing an id and
@@ -386,7 +391,8 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // S16 is in for the same reason a thirteenth time (the S15 polish carried as its own reseal child of the sealed S14, no
   // rebuild/engine byte, no register D-id), and S15 leaves with its id (S15 RETIRED BY SUPERSESSION).
   // S17 is in for the same reason a fourteenth time, and S16 leaves with its id (S16 RETIRED BY SUPERSESSION).
-  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S10', 'S11', 'S14', 'S17', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']);
+  // S18 is in for the same reason a fifteenth time, and S17 leaves with its id (S17 RETIRED BY SUPERSESSION).
+  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S10', 'S11', 'S14', 'S18', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']);
   assert.equal(api.NO_REGISTER_IDS.size, 13);
   for (const id of api.NO_REGISTER_IDS) assert(/^[HFS][0-9]+$/.test(id) || id === 'B-NTC');
   for (const id of api.NO_REGISTER_IDS) assert(api.IDS.includes(id));

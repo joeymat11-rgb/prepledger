@@ -64,8 +64,10 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // S12b R6 (DECISIONS:914, :915): re-measured after the screen and layout fixes (four pieces moved; see S12_DELTA_SHA256). R9: re-measured again.
 // S14 (M2-S14-HOLD, E12): re-measured for exactly one new piece, the R4 panel line (CL-S14-DELTA; the S13 value is S13_CORPUS_SHA256).
 // S15 (Change my routine, PM S15 round 2): re-measured for exactly the S15 pieces and three scanned files (CL-S15-DELTA;
-// the S14 value is S14_CORPUS_SHA256).
-const CORPUS_SHA256 = '019b94742a9bb31383653f3797e19e2658de6a5b5ba90f712a753aed9a2658c9';
+// the S14 value is S14_CORPUS_SHA256). S18: re-measured for exactly one more piece in gym-model.mjs, the recorded reason
+// on the removal of an opened, empty workout (CL-S15-DELTA 43 -> 44; was 019b9474...), and for "Why?"'s two new owners
+// (CL-S18-REOWNED; 8f8d84db... with the piece alone).
+const CORPUS_SHA256 = '9bee3abe91214d372a55463c15e41896d77f3a9230ce205a01195157e86063ab';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -511,21 +513,43 @@ const S15_NEW = Object.freeze([
   ['Changes start today, DATE.', { [S15_MODEL]: 1 }],
   ['Today\u2019s workout has started, so this starts tomorrow.', { [S15_MODEL]: 1 }],
   ['A change already starts tomorrow, so this starts tomorrow too.', { [S15_MODEL]: 1 }],
+  // S18 (PM ruling): the reason recorded on the removal of an opened, empty workout when a change starts today.
+  ['Opened on this device with nothing recorded, and removed when the routine changed for today.', { [T + '/gym-model.mjs']: 1 }],
 ]);
 const S15_SCANNED = Object.freeze([T + '/routine-app.mjs', T + '/routine-host.mjs', T + '/routine-model.mjs']);
 const S15_COPY_APPROVAL = 'DECISIONS:913';
-// The S14 view: this corpus minus the S15 pieces and the S15 scanned files.
-function s14View(corpus) {
-  const added = new Set(S15_NEW.map(([text]) => text));
-  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)),
-    scanned: corpus.scanned.filter((f) => !S15_SCANNED.includes(f)) };
+/* S18 (the owner's iPhone; the PM-approved word "Why?"): ONE existing piece gains two owners, the control that shows and
+   hides a coach suggestion's reason on Today's proposal card (today-app.cjs) and on a next-weight offer (today-entry.mjs).
+   No piece is removed and no other owner, count or list moves. beforeS18 gives every older view the piece as it stood, so
+   CL-S15/S14/S12/S11-DELTA keep judging what they judged; CL-S18-REOWNED below pins both sides. */
+const S18_REOWNED = Object.freeze([['Why?', Object.freeze({ [T + '/coach-app.mjs']: 2, [T + '/screens.template.html']: 1 }),
+  Object.freeze({ [T + '/coach-app.mjs']: 2, [T + '/screens.template.html']: 1, [T + '/today-app.cjs']: 1, [T + '/today-entry.mjs']: 1 })]]);
+function beforeS18(corpus) {
+  return { ...corpus, entries: corpus.entries.map((e) => {
+    const row = S18_REOWNED.find(([text]) => text === e.text);
+    return row ? { ...e, files: sortedFiles(row[1]) } : e;
+  }) };
 }
+// The S14 view: this corpus (as it stood before S18) minus the S15 pieces and the S15 scanned files.
+function s14View(corpus) {
+  const added = new Set(S15_NEW.map(([text]) => text)), before = beforeS18(corpus);
+  return { ...before, entries: before.entries.filter((e) => !added.has(e.text)),
+    scanned: before.scanned.filter((f) => !S15_SCANNED.includes(f)) };
+}
+test('CL-S18-REOWNED: "Why?" gains exactly its two S18 owners, and the view before S18 is exactly the S17 piece', () => {
+  const { corpus } = loaded();
+  for (const [text, was, now] of S18_REOWNED) {
+    const got = corpus.entries.find((e) => e.text === text);
+    assert.deepEqual(got, { text, files: sortedFiles(now), lists: [] }, 'CL-S18-REOWNED NOW ' + text);
+    assert.deepEqual(beforeS18(corpus).entries.find((e) => e.text === text), { text, files: sortedFiles(was), lists: [] }, 'CL-S18-REOWNED WAS ' + text);
+  }
+});
 
 test('CL-S15-DELTA: the S15 corpus is the S14 corpus plus exactly the approved S15 routine pieces, both directions', () => {
   const { corpus } = loaded();
   const byText = new Map(corpus.entries.map((e) => [e.text, e]));
   const failed = [];
-  assert.equal(S15_NEW.length, 43, 'CL-S15-DELTA-COUNT');
+  assert.equal(S15_NEW.length, 44, 'CL-S15-DELTA-COUNT');
   for (const [text, files] of S15_NEW) {
     const want = { text, files: sortedFiles(files), lists: [] };
     const got = byText.get(text) || null;

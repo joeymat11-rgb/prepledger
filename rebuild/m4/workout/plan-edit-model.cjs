@@ -96,13 +96,16 @@ function importPresentIn(generation) {
     !!metadata.localSources || !!metadata.localSourceApplication ||
     !!(collections.derived && collections.derived.localSource);
 }
-/* S17 (PM ruling): HAS A WORKOUT OF `date` STARTED on this record (before device_seq `before`, when given)? A
-   session-start operation of that local date, whatever became of it after (logged, closed, edited or abandoned):
-   a workout that began keeps the basis it began on. The one reader the saving host and the projector share, so
-   they cannot disagree about what counts as a begun day. */
-function startedOn(ops, date, before = Infinity) {
+/* S18 (PM ruling, superseding S17's bare-start rule): HAS A WORKOUT OF `date` BEGUN on this record (before
+   device_seq `before`, when given)? Something of that workout RECORDED on that local date: a set, a skip or a close,
+   whatever became of it after (corrected, removed). A Start alone - the set screen opened and nothing recorded - does
+   not begin the day: that empty session is removed when a change starts today, and the day takes the change. A
+   workout that recorded anything keeps the basis it began on. The one reader the saving host and the projector
+   share, so they cannot disagree about what counts as a begun day. */
+const BEGUN = Object.freeze(['session-set', 'session-skip', 'session-close']);
+function begunOn(ops, date, before = Infinity) {
   return (Array.isArray(ops) ? ops : Object.values(ops || {})).some(o => o && o.class === 'session' &&
-    o.kind === 'session-start' && o.effective && o.effective.local_date === date &&
+    BEGUN.includes(o.kind) && o.effective && o.effective.local_date === date &&
     Number.isSafeInteger(o.device_seq) && o.device_seq < before);
 }
 function createPlanEditProjector({ basisState, setupOperation, validateTags, projectNewExerciseTags,
@@ -324,13 +327,14 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
       if (value.edit.exercise) { if (added.has(value.edit.exercise.id)) fail('PLAN_EDIT_ID_REUSED'); added.add(value.edit.exercise.id); }
       if (statuses.get(op.op_id) === 'active' && op.causal_parents.some(id => statuses.has(id) && statuses.get(id) !== 'active')) fail('PLAN_EDIT_BASIS_INVALIDATED');
       /* S17 (PM ruling on Fable l1 D1): A SAME-DAY CHANGE NEVER REACHES A WORKOUT ALREADY BEGUN THAT DAY. A change dated
-         for its own authored day applies from that day only when no workout of that day had started before it was
-         recorded: no session-start of that date earlier on this device's record, and no session of that date in the
-         basis's own history. The saving host refuses such a save; on EVERY replay a record that has one anyway is
-         DEFERRED, deterministically, to the next local date - exactly as a next-day change would apply - so the begun
-         day keeps its basis, the read never refuses, the change is never dropped and nothing new is recorded. */
+         for its own authored day applies from that day only when no workout of that day had begun before it was
+         recorded: no set, skip or close of that date earlier on this device's record (S18: a bare Start is not a
+         begun day, begunOn above), and no session of that date in the basis's own history. The saving host refuses
+         such a save; on EVERY replay a record that has one anyway is DEFERRED, deterministically, to the next local
+         date - exactly as a next-day change would apply - so the begun day keeps its basis, the read never refuses,
+         the change is never dropped and nothing new is recorded. */
       const recorded = value.starts_on;
-      starts.set(op.op_id, recorded === op.effective.local_date && (startedOn(rows, recorded, op.device_seq) ||
+      starts.set(op.op_id, recorded === op.effective.local_date && (begunOn(rows, recorded, op.device_seq) ||
         Object.hasOwn(base.sessionLog || {}, recorded)) ? C.nextLocalDate(recorded) : recorded);
     }
     const basisAt = before => hash({ origin: coreOrigin,
@@ -474,5 +478,5 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
   }
   return Object.freeze({ read, preview });
 }
-module.exports = { createPlanEditProjector, importPresentIn, startedOn,
+module.exports = { createPlanEditProjector, importPresentIn, begunOn,
   planEditCollections: () => COLLECTIONS.slice(), P2_ROW: P2_ROW.slice() };

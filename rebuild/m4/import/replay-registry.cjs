@@ -47,13 +47,19 @@ const ENTRIES = Object.freeze([
       + 'the start interpretation engine-order.cjs requires (local-capture-start-resume); '
       + 'a No, an unanswered question, a start the file does not precede, or a malformed '
       + 'record refuses LOCAL_SOURCE_WORKOUT_UNRESOLVED'}),
+  /* S18 (PM ruling): the gym host also writes the class's own removal (kind tombstone, action remove) - the card's
+     Undo of a set, and the removal of today's opened, EMPTY Start (no set, skip or close) that "Change my routine"
+     makes before a change that starts today (routine-host.mjs -> gym-model.mjs discardOpenedEmpty). Same module,
+     same class, same family: the removed Start stays on the record and the accepted workout projector excludes it. */
   Object.freeze({module: 'rebuild/m4/workout/commands.cjs', class: 'session',
-    kinds: Object.freeze(['session-start', 'session-set', 'session-skip', 'session-close']),
+    kinds: Object.freeze(['session-start', 'session-set', 'session-skip', 'session-close', 'tombstone']),
     profiles: Object.freeze(['earned/workout-prescription/v2']),
     disposition: 'family', family: 'F3',
     rule: 'programme evidence: the same family, over the operations the gym card writes '
       + 'through the accepted W6 host, whose captures carry this profile and are read '
-      + 'with it (local-capture-start-resume); malformed refuses '
+      + 'with it (local-capture-start-resume); a removed Start (an opened workout with '
+      + 'nothing recorded, removed when a routine change started that day) is kept on '
+      + 'record and excluded by the accepted projector, never projected; malformed refuses '
       + 'LOCAL_SOURCE_WORKOUT_UNRESOLVED'}),
   Object.freeze({module: 'rebuild/m3/w7-preview/today/setup-commands.mjs', class: 'event',
     kinds: Object.freeze(['fact']), profiles: Object.freeze(['earned/first-run-setup/v1']),

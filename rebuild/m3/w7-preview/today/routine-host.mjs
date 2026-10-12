@@ -23,6 +23,7 @@ import { ENGINE_MG, REGION_MG } from './exercise-catalogue.mjs';
 import { createCleanInitState } from './setup-model.mjs';
 import { admittedLocalSourceBasis } from './local-source-basis.mjs';
 import { PROFILE as SETUP_PROFILE } from './setup-commands.mjs';
+import { createGymModel } from './gym-model.mjs';
 
 const tagRules = SetupTags.createSetupTagProjector({ taxonomy: { muscles: [...ENGINE_MG], regions: { ...REGION_MG } } });
 const detached = value => JSON.parse(JSON.stringify(value));
@@ -106,6 +107,23 @@ export function createRoutineEntry({ installation, day, live = null, crypto = gl
     return { ok: true, host, basis };
   }
 
+  /* S18: today's opened, empty workout, removed through a gym host standing on today over THIS installation (the
+     host the gym card itself uses; the basis it is handed only gives the engine its lifts, nothing is prepared or
+     prescribed). An installation with no gym host has no workout to remove. */
+  async function clearOpenedToday(today, basis) {
+    if (typeof installation.createGymHost !== 'function') return { ok: true, removed: [] };
+    let gymHost = null;
+    try {
+      gymHost = await installation.createGymHost({ day: today, engineState: detached(basis.clean),
+        plannedSplitSlotId: 'earned-today-preview/' + today });
+      return await createGymModel({ gymHost, sessionTitle: null }).discardOpenedEmpty();
+    } catch (error) {
+      return { ok: false, code: (error && error.code) || 'ROUTINE_WORKOUT_UNAVAILABLE' };
+    } finally {
+      if (gymHost && typeof gymHost.close === 'function') { try { gymHost.close(); } catch (_) { /* closed */ } }
+    }
+  }
+
   /* THE EDITOR'S LANE. view() reads the routine as it will stand on the next
      local day (every saved change composed), which is what the editor shows and
      what the next change is made against. save() reviews then saves ONE edit;
@@ -146,6 +164,18 @@ export function createRoutineEntry({ installation, day, live = null, crypto = gl
         if (shownStartsOn !== undefined && review.starts_on !== shownStartsOn) {
           host.cancel(review.review_id);
           return { ok: false, code: 'PLAN_EDIT_DAY_TURNED', message: null };
+        }
+        /* S18 (PM ruling): A CHANGE THAT STARTS TODAY OVER AN OPENED, EMPTY WORKOUT. Today's session that holds no set,
+           skip or close is removed FIRST (gym-model.mjs discardOpenedEmpty, the layer's own removal of its Start), and
+           the change is saved after it. The two are separate writes on this client, so they are ORDERED: a stop between
+           them leaves today's workout ready to start again on the plan it had, which reads correctly, and the change
+           can simply be saved again. The other order would leave the old workout open under a new plan. */
+        if (review.starts_on === liveToday) {
+          const cleared = await clearOpenedToday(liveToday, basis);
+          if (!cleared.ok) {
+            host.cancel(review.review_id);
+            return { ok: false, code: cleared.code || 'ROUTINE_WORKOUT_UNAVAILABLE', message: null };
+          }
         }
         const saved = await host.save(review.review_id);
         if (!saved.ok) {

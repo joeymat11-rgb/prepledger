@@ -125,7 +125,9 @@ test("C-UI-3 T-40..T-40e: each state says the prototype's words, bound to the en
   assert.deepEqual([ladder.yes, ladder.no, ladder.change], ["Yes, use them", "No, keep the plan’s steps", "Use the machine’s own steps"]);
   for (const other of [{ kind: "cal", delta: null }, { kind: "sets", delta: -1 }, { kind: "sets", delta: 2 }, { kind: "volume", delta: null }]) {
     const f = face({ ...SETS, ...other }, {}, undefined, null);
-    assert.deepEqual([f.yes, f.no, f.change], [null, null, ""], "no decision words the prototype does not draw for " + JSON.stringify(other));
+    /* S18, Fable l1 D3 (PM ruling): with the reason behind "Why?", a card that names its LIFT says what changes on its
+       own line, and where the pack has no words for the kind that line is the engine's own title (was ""). */
+    assert.deepEqual([f.yes, f.no, f.change], [null, null, "ENGINE TITLE"], "no decision words the prototype does not draw for " + JSON.stringify(other) + ", and the engine's own title says the change");
     assert.equal(f.reason, SETS.why, "and no invitation to a yes that cannot be given");
     /* F7 (Fable l1, PM ruling): the prototype draws no card without decisions (every open
        state in app/states-today.js T-40, T-40f, T-40g, T-40h carries yes and no), so it has no

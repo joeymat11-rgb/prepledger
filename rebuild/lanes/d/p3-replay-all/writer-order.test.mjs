@@ -215,6 +215,32 @@ const WRITERS = {
       .filter(op => op.kind === 'plan-mutation').map(op => op.op_id).sort();
     return { close: () => session.close(), read: changes };
   } },
+  /* S18 (PM ruling). AN OPENED, EMPTY WORKOUT GIVES WAY TO A CHANGE THAT STARTS TODAY: the gym card's Start with
+     nothing recorded, then "Change my routine" saved for today, which first removes that Start (the class's own
+     removal, a session tombstone, through the gym host: routine-host.mjs -> gym-model.mjs discardOpenedEmpty) and
+     then writes the plan-mutation. The removed Start stays on the record; F10 answers for the change (superseded
+     before an import, used after it) and the workout projector excludes the removed Start. What this screen reads
+     back is the removed Start ids and the routine changes on this device. */
+  'opened workout removed (an empty Start, then Change my routine for today)': { family: 'F10', async use(era) {
+    const open = day => era.createGymHost({ day, engineState: nativeState(),
+      plannedSplitSlotId: 'earned-today-preview/' + day });
+    const gymHost = await open(DAY);
+    const gym = createGymModel({ gymHost, sessionTitle: null, hostForDay: open });
+    assert.equal((await gym.read()).phase, 'ready', 'the gym card would not prepare');
+    ok('the start', await gym.start());
+    gymHost.close();
+    const routine = createRoutineEntry({ installation: era, day: DAY });
+    const session = await routine.session();
+    assert.equal(session.ok, true, 'the routine would not open: ' + session.code);
+    const view = await session.view();
+    assert.equal(view.today_allowed, true, 'an opened, empty workout leaves today open: ' + view.today_code);
+    const row = Routine.rowsOf(view.state).U[0];
+    ok('the same-day change', await session.save(Routine.updateEdit(row, { ...row, sets: row.sets + 1 }).edit, view.today));
+    const written = async () => Object.values((await era.generation()).generation.collections.ops || {})
+      .filter(op => (op.class === 'session' && op.kind === 'tombstone') || op.kind === 'plan-mutation')
+      .map(op => op.kind + ':' + op.op_id).sort();
+    return { close: () => session.close(), read: written };
+  } },
 };
 
 const importedState = async era => admittedLocalSourceBasis(
