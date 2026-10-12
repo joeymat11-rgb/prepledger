@@ -385,7 +385,11 @@ async function observedWorkout(era, day, engineState, pick = () => true, { effor
     if (lift === null && pick(view.set.lift)) { lift = view.set.lift; card = empty(view.entry.load) ? null : Number(view.entry.load); }
     const shown = empty(view.entry.load) ? null : Number(view.entry.load);
     /* Round 9: `top` logs the chosen lift at its card's own load and `top` reps (a session at the top of the window), not 5 lb over. */
-    const load = view.set.lift === lift ? String(shown === null ? 20 : top === null ? shown + 5 : shown) : shown === null ? '20' : view.entry.load;
+    /* S15 round 5 (PM UI pass item 2, DECISIONS:940): on a card that asks for a baseline, set 2 onward now opens at the load
+       just logged for that lift in this session, so a filled box no longer means "the card's load". Whether the chosen lift's
+       card asked for a baseline is read once, from its FIRST set (`card`), and a baseline is logged at 20 on every set, as a
+       person keeps the prefilled 20; a card with a load is still lifted 5 lb over the load each set shows. */
+    const load = view.set.lift === lift ? String(card === null || shown === null ? 20 : top === null ? shown + 5 : shown) : shown === null ? '20' : view.entry.load;
     const reps = view.set.lift === lift && top !== null ? top : empty(view.entry.reps) ? '8' : view.entry.reps;
     if (view.set.lift === lift) lifted.push(Number(load));
     ok('the set', await gym.logSet({ startId, slot: view.set.slot, lift: view.set.lift, load, reps,
