@@ -14,11 +14,13 @@
  * bindings: the operation the store holds is the gym card's operation, and
  * building one here instead is mutant D4.
  *
- * No model, no network, no key. This module requires tools.cjs for the tag and
- * traceability vocabulary; the world is injected.
+ * No model, no network, no key. This module requires tool-kernel.cjs (which tools.cjs
+ * re-exports) for the tag and traceability vocabulary; the world is injected.
  */
 
-const T = require("./tools.cjs");
+/* Coach v1 (S19 amend): the tag helpers and envelopes come from tool-kernel.cjs, the same objects tools.cjs
+   re-exports, so the page can carry these tools without tools.cjs's FACT and PROPOSAL tools. */
+const T = require("./tool-kernel.cjs");
 const EditValues = require("../m4/workout/edit-values.cjs");
 
 const TIER = T.TIER;

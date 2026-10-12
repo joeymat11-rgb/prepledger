@@ -587,7 +587,7 @@ test("CV1-5 typing or speaking says, once, that those come later; nothing listen
   }
   assert.equal(mic, 0, "the microphone was never asked for");
   assert.equal(net, 0, "nothing was fetched");
-  for (const file of ["page-coach.cjs", "coach-intents.cjs", "tools.cjs", "wave1-tools.cjs", "sha256.cjs"]) {
+  for (const file of ["page-coach.cjs", "read-tools.cjs", "tool-kernel.cjs", "coach-intents.cjs", "wave1-tools.cjs", "tools.cjs", "sha256.cjs"]) {
     const src = fs.readFileSync(path.join(design.ROOT, "rebuild/coach", file), "utf8");
     for (const word of ["fetch(", "XMLHttpRequest", "WebSocket", "sendBeacon", "getUserMedia", "api.openai.com"]) {
       assert(!src.includes(word), file + " reaches for " + word);

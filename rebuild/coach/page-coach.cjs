@@ -1,7 +1,7 @@
 "use strict";
 /* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"; brief rebuild/lanes/b/S19-LIVE-BRIEF.md, Coach v1).
  *
- * The page's coach: the tested tools (tools.cjs, wave1-tools.cjs) composed over the world a page hands in, and
+ * The page's coach: the tested READ tools (read-tools.cjs, wave1-tools.cjs) composed over the world a page hands in, and
  * coach-intents.cjs ask() as the only way a question is answered. One module, so the Today page takes ONE edge to the
  * coach (the writer fence pins the released view's edges) and the composition is tested where the tools are.
  *
@@ -14,7 +14,10 @@
  * tool layer stays the adapter seam: a later model adapter builds the same createWave1Tools dispatcher (openTurn,
  * dispatch) over the same world and is held to the same untraceable() check; ask() is the template speaker this
  * build uses instead of a model. Nothing here fetches, listens or writes. */
-const { createCoachTools } = require("./tools.cjs");
+/* The READ tools only (read-tools.cjs), never tools.cjs: its FACT and PROPOSAL tools (the consent path's respond,
+   the engine revision a proposal is stamped with) stay off the page, which the page laws require (page-bundle P3-B4,
+   writer-enumeration P3-EN3). */
+const { createReadTools } = require("./read-tools.cjs");
 const { createWave1Tools } = require("./wave1-tools.cjs");
 const { ask } = require("./coach-intents.cjs");
 
@@ -49,7 +52,7 @@ function readOnlyWorld(world) {
 
 function createPageCoach(world) {
   const held = readOnlyWorld(world);
-  const tools = createWave1Tools({ world: held, coach: createCoachTools(held) });
+  const tools = createWave1Tools({ world: held, coach: createReadTools(held) });
   let turns = 0;
   const liftId = async () => {
     if (!held.gym || typeof held.gym.read !== "function") return null;

@@ -292,8 +292,8 @@ test("H18b - the 32 are still the WHOLE today/ half of build.mjs's REQUIRED_INPU
     + " paths this seal pins: it now holds " + today.length
     + ". An ADDED entry is invisible to H18 and this is the cell that sees it");
   /* COACH V1 (S19 amend): 59, MEASURED from build.mjs's own source text by this file's rule: 54 before, and the
-     difference is exactly the five rebuild/coach inputs the live Coach screen needs (page-coach.cjs, tools.cjs,
-     wave1-tools.cjs, coach-intents.cjs, sha256.cjs); nothing removed or renamed, and the today/ half above is still
+     difference is exactly the five rebuild/coach inputs the live Coach screen needs (page-coach.cjs, read-tools.cjs,
+     tool-kernel.cjs, wave1-tools.cjs, coach-intents.cjs); nothing removed or renamed, and the today/ half above is still
      the 32. No row is dropped and no count is loosened. */
   assert.equal(all.length, 59,
     "build.mjs's REQUIRED_INPUTS no longer holds 59 path literals but " + all.length

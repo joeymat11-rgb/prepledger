@@ -104,8 +104,49 @@ test("PC-5: the coach's world is read-only wrappers; no writer of the Today mode
 test("PC-4: page-coach.cjs takes no edge but the three coach modules, and no network word", () => {
   const src = fs.readFileSync(path.join(__dirname, "..", "page-coach.cjs"), "utf8");
   const edges = [...src.matchAll(/\b(?:require|import)\s*\(\s*["']([^"']+)["']\s*\)/g)].map((m) => m[1]);
-  assert.deepEqual(edges, ["./tools.cjs", "./wave1-tools.cjs", "./coach-intents.cjs"]);
+  assert.deepEqual(edges, ["./read-tools.cjs", "./wave1-tools.cjs", "./coach-intents.cjs"]);
   for (const word of ["fetch(", "XMLHttpRequest", "WebSocket", "sendBeacon", "getUserMedia", "indexedDB", "localStorage"]) {
     assert.equal(src.includes(word), false, word);
   }
+});
+
+/* PC-6 (the PM's hosted run of 9e41ef3: page-bundle P3-B4 and writer-enumeration P3-EN3 red). Everything page-coach.cjs
+   reaches, walked by its literal require/import edges the way the bundler follows them, is held to the page laws a
+   builder seat can check without building the page: no plan-writer call (P3-EN3's own pattern, comments included, so
+   it can only over-read), none of tools.cjs, the engine revision (an Import-route-only module, P3-B4's ROUTE_MODULES),
+   the proposal digest or the check-in writer's refusals, and nothing under rebuild/engine or rebuild/m4/import. The
+   walk refuses a forbidden path BEFORE reading it, so it never opens a protected file. */
+const REPO = path.resolve(__dirname, "..", "..", "..");
+const PLAN_WRITER_CALL = /\.\s*(planEdit|respond|decision|undoRequest|acceptInitialPlan)\s*\(/g;
+const OFF_PAGE = ["rebuild/coach/tools.cjs", "rebuild/coach/engine-revision.cjs", "rebuild/coach/sha256.cjs",
+  "rebuild/coach/checkin-refusals.cjs"];
+const FORBIDDEN_DIR = /^rebuild\/(engine|m4\/import)\//;
+function coachClosure() {
+  const seen = new Set(), refused = [], stack = ["rebuild/coach/page-coach.cjs"];
+  while (stack.length) {
+    const rel = stack.pop();
+    if (seen.has(rel)) continue;
+    if (FORBIDDEN_DIR.test(rel) || OFF_PAGE.includes(rel)) { refused.push(rel); continue; }
+    seen.add(rel);
+    const src = fs.readFileSync(path.join(REPO, rel), "utf8");
+    for (const m of src.matchAll(/\b(?:require|import)\s*\(\s*["']([^"']+)["']\s*\)|\bfrom\s+["']([^"']+)["']/g)) {
+      const spec = m[1] || m[2];
+      if (!spec.startsWith(".")) continue;
+      stack.push(path.posix.normalize(path.posix.join(path.posix.dirname(rel), spec)));
+    }
+  }
+  return { modules: [...seen].sort(), refused: refused.sort() };
+}
+test("PC-6: the page's coach reaches no plan writer, no tools.cjs, no engine revision and no engine or import file", () => {
+  const { modules, refused } = coachClosure();
+  assert.deepEqual(refused, [], "the page's coach reaches a module the page laws keep off the Today boot graph");
+  assert.deepEqual(modules, ["rebuild/coach/coach-intents.cjs", "rebuild/coach/page-coach.cjs", "rebuild/coach/read-tools.cjs",
+    "rebuild/coach/tool-kernel.cjs", "rebuild/coach/wave1-tools.cjs", "rebuild/m4/workout/edit-values.cjs"],
+    "the coach the page carries is exactly these modules (edit-values.cjs is already a page input)");
+  const calls = modules.flatMap((rel) => [...fs.readFileSync(path.join(REPO, rel), "utf8").matchAll(PLAN_WRITER_CALL)]
+    .map((m) => rel + " ." + m[1] + "("));
+  assert.deepEqual(calls, [], "a module the page's coach reaches calls a plan writer");
+  /* and the walk has teeth: tools.cjs itself, walked the same way, is refused and carries the consent path's respond */
+  assert.equal([...fs.readFileSync(path.join(REPO, "rebuild/coach/tools.cjs"), "utf8").matchAll(PLAN_WRITER_CALL)].length > 0, true,
+    "tools.cjs no longer carries the consent path's respond, so this cell stopped proving anything");
 });

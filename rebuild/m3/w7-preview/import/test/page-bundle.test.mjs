@@ -233,9 +233,16 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
        plan-edit-host.mjs, plan-edit-commands.cjs and plan-edit-model.cjs, and F2's setup-tags.cjs. None of the seven was
        in the route, and the route-only set is UNMOVED at 19. MEASURED by the builder with every protected engine file
        held external (never read) on both sides of the change: 147 -> 154 non-protected inputs, so 150 -> 157 here. */
-    assert.equal(withAdmission.inventory.length, 157,
+    /* COACH V1 (S19 amend, owner ruling DECISIONS:963; red first: the PM's seat run at 9e41ef3, which put tools.cjs and
+       the engine revision on the boot path) moves it by FIVE, all on the BOOT side: today-app.cjs requires
+       rebuild/coach/page-coach.cjs, which reaches read-tools.cjs, tool-kernel.cjs, wave1-tools.cjs and coach-intents.cjs
+       (wave1-tools.cjs's one other edge, rebuild/m4/workout/edit-values.cjs, was already here). Never tools.cjs: the
+       coach's FACT and PROPOSAL tools and engine-revision.cjs stay off the page, and the route-only set is UNMOVED at 19
+       (engine-revision.cjs still route-only). MEASURED by the builder with every protected engine file held external
+       (never read) on both sides (de259ca and this tree): 154 -> 159 non-protected inputs, so 157 -> 162 here. */
+    assert.equal(withAdmission.inventory.length, 162,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 157 (S15\'s seven routine modules on the 150 before them: the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'measured 162 (Coach v1\'s five coach modules on the 157 before them, S15\'s seven routine modules on the 150 before those: the brief\'s 133, the F7 family\'s one, the F8 family and '
       + 'the shared-class router\'s two, the route\'s own four, B-LOM\'s '
       + 'order-mapping provider, P3-REAL-SHAPE\'s lift-correspondence '
       + 'helper, PASSPHRASE-NORMALIZE\'s shared passphrase form, S10\'s '
@@ -504,9 +511,11 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
   assert.ok(['routine-host.mjs', 'routine-model.mjs', 'routine-app.mjs'].every(n =>
     today.inventory.some(i => i.path === 'rebuild/m3/w7-preview/today/' + n)), 'S15\'s routine modules are not among the pinned inputs');
   const BASE_PINNED_INPUTS = 121;
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 36,
+  /* COACH V1 (S19 amend) moves it by FIVE boot modules (see P3-B2: page-coach.cjs, read-tools.cjs, tool-kernel.cjs, wave1-tools.cjs and coach-intents.cjs); the
+     route-only set is UNMOVED at 19. MEASURED on the esbuild graph with protected files held external: 36 -> 41. */
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 41,
     'the delta is ' + (today.inventory.length - BASE_PINNED_INPUTS) + ' modules, not the '
-    + 'measured 36 (S15\'s seven routine modules on the 29 before them: the route\'s 19 plus the nine boot modules, B-LOM\'s order '
+    + 'measured 41 (Coach v1\'s five coach modules on the 36 before them, S15\'s seven routine modules on the 29 before those: the route\'s 19 plus the nine boot modules, B-LOM\'s order '
     + 'mapping, the shared passphrase form, S10\'s three Today writer '
     + 'lanes, S11\'s two native-load modules, S11 FC09 round 6\'s lift-correspondence '
     + 'helper and S12\'s coach screen, plus S12\'s appended scene input): re-measure and say so');

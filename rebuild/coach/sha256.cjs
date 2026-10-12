@@ -1,8 +1,10 @@
 "use strict";
 
-/* sha256.cjs - a dependency-free SHA-256 for the coach (Coach v1). tools.cjs now ships inside the page bundle,
-   whose W6 browser boundary admits node:crypto only for rebuild/client's own two importers, so the one digest
-   tools.cjs takes (a proposal's id) is taken here instead. The function below is rebuild/client/index.cjs's own
+/* sha256.cjs - a dependency-free SHA-256 for the coach (Coach v1). The page's W6 browser boundary admits
+   node:crypto only for rebuild/client's own two importers, so the one digest tools.cjs takes (a proposal's id) is
+   taken here and tools.cjs carries no Node import. (Coach v1's first cut put tools.cjs in the page; the page now
+   carries only read-tools.cjs and tool-kernel.cjs, but tools.cjs stays browser-safe for a later on-device
+   adapter.) The function below is rebuild/client/index.cjs's own
    sha256Hex COPIED BYTE FOR BYTE (that module does not export it): the client recomputes the same id from the
    same domain and refuses an answer whose id it cannot reproduce, so the two must agree exactly.
    test/sha256.test.cjs holds it against node:crypto and against the client's own copy, byte for byte. */

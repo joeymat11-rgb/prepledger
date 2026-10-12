@@ -42,7 +42,7 @@ const stripComments = (src) => src
 test("no dash survives in any source string this lane writes for the athlete", () => {
   for (const file of ["tools.cjs", "coach-text.cjs", "local-world.mjs",
     /* Coach v1: the templates and the page's questions moved here from coach-text.cjs and wave1-text.cjs. */
-    "coach-intents.cjs", "page-coach.cjs",
+    "coach-intents.cjs", "page-coach.cjs", "tool-kernel.cjs", "read-tools.cjs",
     /* C6 Part A: the onboarding modules are athlete-facing too. */
     "onboarding-tools.cjs", "onboarding-text.cjs",
     /* Coach wave one: so are the demo's. */

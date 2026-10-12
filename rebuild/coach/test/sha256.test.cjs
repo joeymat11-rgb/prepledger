@@ -1,9 +1,10 @@
 "use strict";
 
-/* Coach v1: tools.cjs takes its one digest (a proposal's id) through sha256.cjs so that it can ship in the page
-   bundle. These rows hold that copy to node:crypto, to the client's own copy (the client recomputes the id and
-   refuses one it cannot reproduce) and to tools.cjs's actual use of it, and they hold tools.cjs to having no Node
-   import at all, which is what the page bundle needs. */
+/* Coach v1: tools.cjs takes its one digest (a proposal's id) through sha256.cjs so that it carries no Node import
+   (the page bundle refuses one; the page now carries the coach's reads through read-tools.cjs and tool-kernel.cjs,
+   and tools.cjs stays browser-safe for a later on-device adapter). These rows hold that copy to node:crypto, to the
+   client's own copy (the client recomputes the id and refuses one it cannot reproduce) and to tools.cjs's actual use
+   of it, and they hold tools.cjs and every coach module the page carries to having no Node import at all. */
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -33,7 +34,8 @@ test("SHA-3: tools.cjs takes the proposal id through it, and carries no Node imp
   assert.ok(src.includes('require("./sha256.cjs")'), "tools.cjs does not use sha256.cjs");
   assert.ok(src.includes('sha256Hex("earned/coach/proposal/v1" + JSON.stringify(obj))'), "the proposal digest moved");
   assert.equal(/require\(\s*["']node:/.test(src), false, "tools.cjs requires a Node module, which the page bundle refuses");
-  for (const file of ["sha256.cjs", "coach-intents.cjs", "wave1-tools.cjs", "checkin-refusals.cjs", "engine-revision.cjs"]) {
+  for (const file of ["sha256.cjs", "coach-intents.cjs", "wave1-tools.cjs", "checkin-refusals.cjs", "engine-revision.cjs",
+    "tool-kernel.cjs", "read-tools.cjs", "page-coach.cjs"]) {
     const code = fs.readFileSync(path.join(__dirname, "..", file), "utf8");
     assert.equal(/require\(\s*["']node:/.test(code), false, file + " requires a Node module");
   }

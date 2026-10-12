@@ -177,15 +177,16 @@ const REQUIRED_INPUTS = Object.freeze([
      settings, or whose capture, silently went nowhere. */
   "rebuild/coach/machine-settings-commands.cjs",
   /* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"). The Coach screen answers from this device's records
-     through the coach's own tested tools: the page's one edge to them (page-coach.cjs), the C5 tools, the wave-one
-     tools, the pure templates and questions, and the dependency-free SHA-256 the tools take a proposal's id with. A
-     build that lost any of them would be a page whose coach had to say something of its own, which is the one thing
-     it may never do. */
+     through the coach's own tested READ tools: the page's one edge to them (page-coach.cjs), the seven C5 read tools
+     (read-tools.cjs) and their kernel (tool-kernel.cjs), the wave-one tools, and the pure templates and questions.
+     Never tools.cjs: its FACT and PROPOSAL tools stay off the page (page-bundle P3-B4, writer-enumeration P3-EN3).
+     A build that lost any of these would be a page whose coach had to say something of its own, which is the one
+     thing it may never do. */
   "rebuild/coach/page-coach.cjs",
-  "rebuild/coach/tools.cjs",
+  "rebuild/coach/read-tools.cjs",
+  "rebuild/coach/tool-kernel.cjs",
   "rebuild/coach/wave1-tools.cjs",
   "rebuild/coach/coach-intents.cjs",
-  "rebuild/coach/sha256.cjs",
   "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
   "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
   /* N2 SLEEP (DECISIONS:167) - the producer, the projector seam S2 needs and the

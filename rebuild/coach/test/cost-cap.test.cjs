@@ -230,7 +230,7 @@ test("there is no override: the gate takes no flag that skips it", () => {
 });
 
 test("no live model call and no network exists in this build", () => {
-  for (const file of ["tools.cjs", "coach-text.cjs", "local-world.mjs", "coach-intents.cjs"]) {
+  for (const file of ["tools.cjs", "coach-text.cjs", "local-world.mjs", "coach-intents.cjs", "tool-kernel.cjs", "read-tools.cjs"]) {
     const src = fs.readFileSync(path.join(__dirname, "..", file), "utf8");
     for (const forbidden of ["node:http", "node:https", "fetch(", "WebSocket", "api.openai.com", "OPENAI_API_KEY"]) {
       assert.ok(!src.includes(forbidden), file + " reaches the network via " + forbidden);

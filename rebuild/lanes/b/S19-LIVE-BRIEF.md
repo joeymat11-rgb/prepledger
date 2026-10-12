@@ -81,10 +81,16 @@ only at milestones.
   APPROVED_COPY). The Talk row's second line and its marker stay off Today.
 - The tool layer is the adapter seam. rebuild/coach/coach-intents.cjs holds the templates (moved byte for byte out
   of coach-text.cjs and wave1-text.cjs, which re-export them) and the page intents; rebuild/coach/page-coach.cjs is
-  the page's one edge, ask(intent) over createWave1Tools, and hands out no dispatcher, so no FACT-tier write is
-  reachable from the page. A later model adapter calls the same createWave1Tools dispatcher and is held to the same
-  untraceable() check. tools.cjs takes its one digest (a proposal id, the same value as before) through
-  rebuild/coach/sha256.cjs, a byte-for-byte copy of rebuild/client/index.cjs's own, so no Node import enters the page.
+  the page's one edge, ask(intent) over createWave1Tools, and hands out no dispatcher. A later model adapter calls the
+  same createWave1Tools dispatcher and is held to the same untraceable() check.
+- The page carries the coach's READS and none of its writers. tools.cjs's kernel (tags, traceability, charter,
+  envelopes) and its seven TIER.READ tools moved byte for byte to rebuild/coach/tool-kernel.cjs and read-tools.cjs;
+  tools.cjs re-exports every name it had (the same objects) and keeps the FACT and PROPOSAL tools, the cost cap and
+  the opt-in. page-coach.cjs composes read-tools.cjs, never tools.cjs, so the consent path's respond and
+  engine-revision.cjs stay off the Today boot graph (page-bundle P3-B4, writer-enumeration P3-EN3), and it hands the
+  tools read-only wrappers of the Today model, gym card and check-in carrying only the reads those tools call, with
+  no writer reachable (Fable D1). tools.cjs takes its one digest (a proposal id, the same value as before) through
+  rebuild/coach/sha256.cjs, a byte-for-byte copy of rebuild/client/index.cjs's own, so it has no Node import.
 - Not in v1: the machine seat question. The gym card keeps machine settings in its own sealed lane and the writer
   fence refuses a released edge to machine-settings-host.mjs, so machine_seat (tested in the tool layer) waits for a
   sealed read of that lane. The weekly review card (scope item 2) is the next piece.
@@ -99,10 +105,16 @@ only at milestones.
   byte, so the older deltas judge what they judged; corpus fadf6140... -> e61da75a...); the writer fence
   (today-app.cjs gains the edge require:../../../coach/page-coach.cjs; FENCE-MODEL-HELD 33 -> 34, the coach's
   world); package.test.cjs H18b/H18c, build.mjs REQUIRED_INPUTS 54 -> 59 path literals (the five rebuild/coach
-  inputs; the today/ half stays 32).
+  inputs page-coach, read-tools, tool-kernel, wave1-tools and coach-intents; the today/ half stays 32);
+  page-bundle.test.mjs P3-B2 157 -> 162 and P3-B5 36 -> 41 (the same five, all boot; the route-only set unmoved at
+  19), measured on the esbuild graph with every protected file held external on both sides (154 -> 159).
+  view.test.mjs's unwired-entry cell pinned the board's "There is no live coach in this build." on the Coach
+  screen; the coach is wired now, so the cell holds that a tapped question is answered and the screen says neither
+  that nor "not wired yet", the way it holds the wired check-in.
 - Outside S19-REGEN's SCOPE, as public-client.mjs was in S18 (only rebuild/coach/NATIVE-LOAD-SPEC.md is in it):
-  rebuild/coach tools.cjs, coach-text.cjs, wave1-text.cjs, the new coach-intents.cjs, page-coach.cjs and sha256.cjs,
-  and the coach tests (new coach-intents, page-coach and sha256; file lists in no-dashes, cost-cap and wave1-demo).
+  rebuild/coach tools.cjs, coach-text.cjs, wave1-text.cjs, wave1-tools.cjs, the new coach-intents.cjs,
+  page-coach.cjs, read-tools.cjs, tool-kernel.cjs and sha256.cjs, and the coach tests (new coach-intents, page-coach
+  and sha256; file lists in no-dashes, cost-cap and wave1-demo).
 
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above, no
@@ -146,6 +158,19 @@ Seat-only (they load a protected engine file or build the page): view.test.mjs S
 Today's link: five questions, no figure before asking, each figure in the answer the Today model's own, typing
 says it comes later), package.test.cjs (H18b/H18c at 59), scene.test.mjs C-UI-1, browser-check.mjs and
 engine-revision-gap R4.
+
+Coach v1, the page laws (red first: the PM's seat and hosted run 38295648534 at 9e41ef3). With tools.cjs on the
+page, writer-enumeration P3-EN3 found a third plan-writer call (tools.cjs accept_proposal's consent.respond), page-
+bundle P3-B4 found engine-revision.cjs moved from the Import route to the Today boot graph, P3-B2/P3-B5 counted
+modules their pins did not, and view.test.mjs's unwired-entry cell still pinned C-61. After the split, the builder's own
+measurement of the esbuild graph (protected files held external, never read) over de259ca and this tree reads:
+exactly five modules added, all boot (page-coach, read-tools, tool-kernel, wave1-tools, coach-intents); the
+route-only set unchanged name for name, engine-revision.cjs in it; and P3-EN3's own pattern over every page input
+reads exactly its KNOWN_CALLS (t2-stage.cjs respond 2, today-entry.mjs respond 1). page-coach.test.cjs PC-6 (the
+coach's import closure holds no tools.cjs, engine revision, plan-writer call, engine file or import-lane file) fails
+on 9e41ef3's page-coach.cjs and passes on this one; PC-5 (Fable D1: no writer reachable from the coach's world, none
+called by any page question) passes on both. The coach suite is 390/391 at the seat (the seat-only R4). Seat-only:
+the page-bundle and writer-enumeration cells themselves (they build the page).
 
 ## Acceptance
 At the exact head: the fence's real row reports FENCE-RESEAL-CHILD S19 (skip); `node

@@ -607,8 +607,8 @@ const RELEASED_FILES = [
        API, and its three PUT-word hits are not writes (o.undo is an options flag; level.start is an
        injected level meter today-app.cjs never hands in). Nothing on that screen records (today-app.cjs:2018).
        COACH V1 RE-MEASURE (S19 amend, owner ruling "No-AI coach first"): require:../../../coach/page-coach.cjs, one
-       edge for the coach's tested tools (rebuild/coach tools.cjs, wave1-tools.cjs and coach-intents.cjs, composed
-       there). What the view reaches through it is ONE call, ask(intent), and ask() runs only the page's read intents
+       edge for the coach's tested READ tools (rebuild/coach read-tools.cjs, tool-kernel.cjs, wave1-tools.cjs and
+       coach-intents.cjs, composed there; never tools.cjs). What the view reaches through it is ONE call, ask(intent), and ask() runs only the page's read intents
        (coach-intents.cjs PAGE_INTENTS, each a TIER.READ tool): page-coach.cjs hands out no dispatcher, so no FACT-tier
        write is reachable from the view, and the view hands in no machineSettings lane (machine-settings-host.mjs
        stays gym-settings-lane.mjs's edge alone, row 5). No network or microphone word in those files (coach.test.mjs

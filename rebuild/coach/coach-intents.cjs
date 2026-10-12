@@ -16,7 +16,8 @@
  * dispatch (wave1-tools.cjs) and is held to the same check; this file has no adapter and no model.
  */
 
-const T = require("./tools.cjs");
+/* The kernel (tool-kernel.cjs), the same objects tools.cjs re-exports: this module ships in the page. */
+const T = require("./tool-kernel.cjs");
 /* EVERY INTERPOLATION DECLARES ITS UNIT (C5 review round 1, C2). `d(tag, "kcal")`
    says "a calorie figure goes here", and a tag that is not a calorie figure is a
    bug in the template, not a sentence to be rendered. That is the answer side of

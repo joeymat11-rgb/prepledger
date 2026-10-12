@@ -629,15 +629,20 @@ test("every unwired entry point says so on Today's own face, in secondary text",
   assert(at >= 0);
   assert(!face.slice(at, at + 120).includes(app.NOT_WIRED), "the check-in is wired");
   for (const screen of ["nutrition", "coach"]) {
-    /* S12b R6: the Coach screen is opened through the page's router; nothing on Today links to it. */
-    if (screen === "coach") kit.api.render("coach", true);
-    else doc.querySelector(`[data-go="${screen}"]`).click();
+    /* S12b R6 opened the Coach screen through the page's router, because nothing on Today linked to it. COACH V1
+       (owner ruling 2026-10-12, DECISIONS:963): Today's own link is back, so it is opened from there. */
+    doc.querySelector(`[data-go="${screen}"]`).click();
     if (screen === "coach") {
-      /* S12 SC-5 (view.test.mjs:529-531, DECISIONS:820 R2): the board's coach screen says it is
-         not live in the board's own words (C-61) as soon as he asks, as the test above proves
-         in full; it carries no "not wired yet" of its own. */
+      /* S12 SC-5 (DECISIONS:820 R2) pinned the board's C-61 here, "There is no live coach in this build.", because the
+         screen had no coach behind it. COACH V1 WIRES IT (red first: the PM's seat run at 9e41ef3, this assertion), so
+         the cell now holds the wired fact the way it holds the check-in's: a tapped question is answered on the
+         screen (SC-5 above checks every figure in the answer against the Today model), and the screen says neither
+         C-61 nor "not wired yet". */
       doc.querySelector("#prompts .prompt").click();
-      assert.match(phoneText(doc), /There is no live coach in this build\./, screen);
+      for (let at = 0; at < 200 && doc.querySelector("#coach-answer").hidden; at += 1) await new Promise((r) => setTimeout(r, 5));
+      assert.equal(doc.querySelector("#coach-answer").hidden, false, "a tapped question is answered");
+      assert.doesNotMatch(phoneText(doc), /There is no live coach in this build\./, screen);
+      assert.doesNotMatch(phoneText(doc), /not wired yet/, screen);
     } else {
       assert.match(phoneText(doc), /not wired yet/, screen);
     }
