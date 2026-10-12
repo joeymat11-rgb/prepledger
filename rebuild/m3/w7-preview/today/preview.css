@@ -567,7 +567,8 @@
       read it) and leaves the athlete's screen. On a training day the plan's headline, its label and its long
       sentence give way to the one short status line, so the workout card, the weigh-in and the food card sit
       straight under the date and Start (the fixed primary) is on the first screen. */
-.scene-frame > .view.ui > .body > :is([data-slot="measure-tile"], [data-slot="import-entry"], [data-slot="routine-entry"]) {
+.scene-frame > .view.ui > .body > [data-slot="measure-tile"], .scene-frame > .view.ui > .body > [data-slot="import-entry"],
+.scene-frame > .view.ui > .body > [data-slot="routine-entry"] {
   display: flex; align-items: center; width: auto; min-height: var(--hit); margin: 0; padding: 0; border: 0;
   border-radius: 0; background: none; font-family: var(--sans); font-size: 13.5px; font-weight: 460;
   color: var(--text-soft); text-align: left; text-shadow: var(--text-shadow); }

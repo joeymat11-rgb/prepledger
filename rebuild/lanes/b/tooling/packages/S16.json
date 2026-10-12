@@ -1899,7 +1899,7 @@
     },
     "review": {
       "role": "cowork",
-      "prefix": "POSTFIX-ACCEPTANCE M2-S15-ROUTINE",
+      "prefix": "POSTFIX-ACCEPTANCE M2-S16-POLISH",
       "terminal": "ACCEPTED"
     }
   },
