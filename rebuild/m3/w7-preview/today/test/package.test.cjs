@@ -322,7 +322,7 @@ test("H18b - the 35 are still the WHOLE today/ half of build.mjs's REQUIRED_INPU
 test("H18c - a prose string alone on its own line inside REQUIRED_INPUTS is not a path", () => {
   const src = buildSource();
   const real = requiredInputsOf(src);
-  assert.equal(real.length, 59, "the baseline is not 59 (Coach v1: five rebuild/coach inputs added to S15's 54): " + real.length);
+  assert.equal(real.length, 62, "the baseline is not 62 (N2 Part B: three steps inputs added to Coach v1's 59): " + real.length);
   const planted = src.replace("\nconst REQUIRED_INPUTS = Object.freeze([\n",
     "\nconst REQUIRED_INPUTS = Object.freeze([\n  \"and this line is prose, not a path\",\n");
   assert.notEqual(planted, src, "the plant did not land: the block header has moved");
