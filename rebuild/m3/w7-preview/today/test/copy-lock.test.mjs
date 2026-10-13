@@ -92,7 +92,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // owner counts down (CL-E1-DELTA; the value before is PRE_E1_CORPUS_SHA256, 2b9c2568...).
 // Polish 7 (PM, ui-pass14): re-measured for exactly the sheet's "Close" and the steps row's "Change" (CL-P7-DELTA; the
 // value before is PRE_P7_CORPUS_SHA256, 975061da...).
-const CORPUS_SHA256 = 'ae2b1609660536eb9eae1dd7d4297e209beb2a45573c9bc70f006b2491ee7e66';
+// Polish 8 (PM, ui-pass15): re-measured for exactly Why this plan?'s gated sentence and one " lb" count (CL-P8-DELTA; the
+// value before is PRE_P8_CORPUS_SHA256, ae2b1609...).
+const CORPUS_SHA256 = '1f393735e079410b4048195726bf705382b4a4a96d549e9e7bc8bc4a449a2965';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -768,6 +770,7 @@ const P7_OWNERS_MOVED = Object.freeze([
 /* the PM's ruling on P7: both words are approved under DECISIONS:913 (5), the short-plain-copy rule */
 const P7_COPY_APPROVAL = 'DECISIONS:913';
 function beforeP7(corpus) {
+  corpus = beforeP8(corpus);   /* polish 8 stands on top of polish 7 */
   const added = new Set(P7_NEW.map(([text]) => text));
   return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
     const rows = P7_OWNERS_MOVED.filter(([text, owner, , now]) => text === e.text && e.files[owner] === now);
@@ -801,6 +804,59 @@ test('CL-P7-DELTA: the corpus is the E1 corpus plus exactly the sheet\'s Close a
 });
 test('CL-P7-APPROVAL: the polish 7 copy delta names the ledger line that approves it', () => {
   assert.match(P7_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-P7-APPROVAL-PENDING: the polish 7 copy is not approved');
+});
+/* POLISH 8 (PM, ui-pass15): while the band is gated, Why this plan?'s calorie paragraph says how the range is measured,
+   in the PM's own words: one new piece, today-app.cjs WHY_CALORIES_GATED (the gate line after it is the card's, already
+   locked). The sheet's weight row says the kept value without the morning card's "This morning" and tick, so the
+   value's " lb" is said in one more place: one owner count (" lb", today-app.cjs 2 -> 3). The coach's copy of the
+   sentence (coach-intents.cjs PLAIN.measuredFrom) is outside the scanned files, as every PLAIN line is. beforeP8 gives
+   every older view the corpus as polish 7 sealed it (PRE_P8_CORPUS_SHA256), and beforeP7 starts from that view.
+   IDEMPOTENT, as every older view is. */
+const PRE_P8_CORPUS_SHA256 = 'ae2b1609660536eb9eae1dd7d4297e209beb2a45573c9bc70f006b2491ee7e66';
+const P8_APP = T + '/today-app.cjs';
+const P8_NEW = Object.freeze([
+  ['Your calorie range is measured from your food logs and weigh-ins.', { [P8_APP]: 1 }, []],
+]);
+const P8_OWNERS_MOVED = Object.freeze([
+  /* [text, owner, count before, count now] */
+  [' lb', P8_APP, 2, 3],
+]);
+/* the PM's ruling on P8: the sentence (the PM's own wording) is approved under DECISIONS:989, the never-shown ruling */
+const P8_COPY_APPROVAL = 'DECISIONS:989';
+function beforeP8(corpus) {
+  const added = new Set(P8_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
+    const rows = P8_OWNERS_MOVED.filter(([text, owner, , now]) => text === e.text && e.files[owner] === now);
+    if (rows.length === 0) return e;
+    const files = { ...e.files };
+    for (const [, owner, before] of rows) { if (before === 0) delete files[owner]; else files[owner] = before; }
+    return { ...e, files: sortedFiles(files) };
+  }) };
+}
+test('CL-P8-DELTA: the corpus is the polish 7 corpus plus exactly Why this plan?\'s gated sentence and one " lb", both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of P8_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-P8-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text, owner, , now] of P8_OWNERS_MOVED) {
+    const entry = byText.get(text);
+    if (!entry || entry.files[owner] !== now) failed.push('CL-P8-DELTA OWNER ' + JSON.stringify(text) + ' ' + owner + ' is ' + JSON.stringify(entry ? entry.files[owner] : null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforeP8(corpus)), 'utf8'));
+  if (before !== PRE_P8_CORPUS_SHA256) failed.push('CL-P8-DELTA PRE-P8-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the polish 7 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-P8-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeP8(moved)), 'utf8')) === PRE_P8_CORPUS_SHA256) failed.push('CL-P8-DELTA PRE-P8-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-P8-DELTA');
+});
+test('CL-P8-APPROVAL: the polish 8 copy delta names the ledger line that approves it', () => {
+  assert.match(P8_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-P8-APPROVAL-PENDING: the polish 8 copy is not approved');
 });
 function beforeNutri2a(corpus) {
   corpus = beforeNutri2b(corpus);   /* N2 part B stands on top of N2 part A */

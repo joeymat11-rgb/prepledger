@@ -255,12 +255,29 @@ function createReadTools(world) {
       values.whyNot = text(turn_id, "today.theOneFix.whyNot", fix.whyNot);
     } else if (topic === "calories") {
       const cal = E.calorieTarget(s);
-      values.body = text(turn_id, "energy.calorieTarget.why", cal.why);
-      values.weekly = text(turn_id, "energy.calorieTarget.wkWhy", cal.wkWhy);
+      /* POLISH 8 (PM, ui-pass15; the :989 "never shown" rule, audited past today_plan): while the band is gated the
+         engine's why and weekly why price the estimate in kcal, so neither reaches the coach; both are blanks, and the
+         flag lets the answer say how the range is measured instead. */
+      const gated = !!(cal && cal.gated === true);
+      values.gated = tagged(turn_id, "energy.calorieTarget.gated", gated, "flag", "");
+      values.body = gated ? blank(turn_id, "energy.calorieTarget.why", "text", "the band is gated, and a gated band is never shown")
+        : text(turn_id, "energy.calorieTarget.why", cal.why);
+      values.weekly = gated ? blank(turn_id, "energy.calorieTarget.wkWhy", "text", "the band is gated, and a gated band is never shown")
+        : text(turn_id, "energy.calorieTarget.wkWhy", cal.wkWhy);
     } else if (topic === "protein") {
-      values.body = text(turn_id, "energy.proteinTarget.why", E.proteinTarget(s).why);
+      /* POLISH 8 (found by the extended E1-NOFIG sweep): with no lean-mass estimate the protein target is not a number
+         and its sentence says "NaN g today"; as Why this plan? drops that section (today-model.cjs whySections) and the
+         floor topic carries a blank, so does this. The guard is on the target the engine gave (a number that is not
+         finite); any other reason string still passes through verbatim (science-correction-contract.test.cjs). */
+      const pt = E.proteinTarget(s);
+      values.body = typeof pt.g === "number" && !Number.isFinite(pt.g)
+        ? blank(turn_id, "energy.proteinTarget.why", "text", "no lean-mass estimate yet, so no protein target is measured")
+        : text(turn_id, "energy.proteinTarget.why", pt.why);
     } else if (topic === "maintenance") {
-      const tdee = E.observedTDEE(s);
+      /* POLISH 8 (found by the extended E1-NOFIG sweep): with too few food days the engine measures no maintenance and
+         observedTDEE is null; the topic then carries blanks (why_maintenance says "Maintenance is not measured yet.")
+         instead of throwing. */
+      const tdee = E.observedTDEE(s) || {};
       values.body = text(turn_id, "energy.observedTDEE.stepsWhy", tdee.stepsWhy);
       values.matched = tagged(turn_id, "energy.observedTDEE.matched", !!tdee.matched, "flag", "");
       values.impossible = tagged(turn_id, "energy.observedTDEE.impossible", !!tdee.impossible, "flag", "");
@@ -269,7 +286,11 @@ function createReadTools(world) {
          sentence never reaches the coach, which carries a blank instead (E1a; the engine's own floor fix, energy.cjs,
          is E2b's). */
       const fl = E.calorieFloor(s);
-      values.body = Number.isFinite(fl.floor) ? text(turn_id, "energy.calorieFloor.why", fl.why)
+      /* POLISH 8: while the band is gated the floor's sentence is a kcal figure of the same estimate, so it is a blank too. */
+      const band = typeof E.calorieTarget === "function" ? E.calorieTarget(s) : null;
+      const bandGated = !!(band && band.gated === true);
+      values.body = bandGated ? blank(turn_id, "energy.calorieFloor.why", "text", "the band is gated, and a gated band is never shown")
+        : Number.isFinite(fl.floor) ? text(turn_id, "energy.calorieFloor.why", fl.why)
         : blank(turn_id, "energy.calorieFloor.why", "text", "no lean-mass estimate yet, so no floor is measured");
     } else if (topic === "status") {
       const face = E.statusFace(s);

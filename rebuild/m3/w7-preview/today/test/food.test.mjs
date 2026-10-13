@@ -1885,3 +1885,86 @@ test('P7.6 - back on Today from the check-in reached from the sheet, the sheet o
   assert.equal(page.api.logOpen(), false, 'goes back to Today alone');
   page.api.dispose();
 });
+
+/* POLISH 8 (PM, ui-pass15): the sheet's rows that open another screen are chevron rows, the weight is said once, the
+   kept steps count and its Change are one line, an entry row's focus is its underline, the sleep modes have room, and
+   a row hidden under Start at rest has a cue. Layout itself (the rows full width and 44 px or more, the weight box's
+   gap, the steps line on one row, the last row clear of Done's foot at 375x667, the underline on focus, the sleep
+   spacing, the cue and the list's last row clear of Start at 375, 390 and 430) is measured in Chromium at the builder
+   seat (the brief's P8 probe); these cells hold the structure, the words and the stylesheet rules that draw them.
+   Red first: every P8 cell fails on 637521f's today-app.cjs, screens.template.html and preview.css. Every value is
+   invented. */
+test('P8.1 - Food, Sleep and Check in are full-width chevron rows in the Ask Coach row\'s look, not underlined links', () => {
+  const page = screenOn({ model: cleanModel() });
+  page.api.openLogToday();
+  for (const [slot, words] of [['log-food-go', N2B.LOG_FOOD_GO], ['log-sleep-go', N2B.LOG_SLEEP_GO], ['log-checkin-go', N2B.SLEEP_OPEN_CHECKIN]]) {
+    const row = page.pick(slot);
+    assert.equal(row.tagName, 'BUTTON', slot + ' is a button');
+    assert.deepEqual([...row.classList].sort(), ['nav', 'tcard'], slot + ': the pack\'s .tcard.nav, not a .text-link');
+    assert.equal(page.pick(slot + '-label').textContent, words, slot + ' says its words as the row\'s title');
+    assert(page.pick(slot + '-label').classList.contains('title'));
+    const chev = row.querySelector(':scope > .chev');
+    assert(chev && chev.querySelector('svg'), slot + ' ends in the pack\'s chevron');
+    assert.equal(chev.getAttribute('aria-hidden'), 'true', 'which is not read');
+    assert.equal(row.textContent, words, 'so the row\'s name is its words alone');
+  }
+  assert.equal(page.pick('log-sheet').querySelectorAll('.text-link:not([hidden])').length, 0, 'no underlined link left on a clean sheet');
+  page.api.dispose();
+});
+
+test('P8.2 - a logged weight is said once: the row\'s tick and the value, not "This morning" and a second tick', async () => {
+  const clean = cleanModel();
+  const weighed = clean.engine.applyRead(clean.stateFromOps(), DAY, 182.4, { hour: 8 });
+  const page = screenOn({ model: createTodayModel({ today: DAY, basisState: weighed }) });
+  page.api.openLogToday();
+  assert.equal(page.pick('log-weight-form'), null, 'this morning\'s weight is kept: no entry');
+  assert.equal(page.pick('log-weight-tick').textContent, N2B.LOG_TICK.trim(), 'the row is ticked');
+  assert.equal(page.pick('log-weight-state').textContent, '182.4 lb', 'the line under it is the value');
+  const said = page.pick('log-weight-row').textContent + page.pick('log-weight-state').textContent;
+  assert.equal(said.split(N2B.LOG_TICK.trim()).length - 1, 1, 'one tick: ' + said);
+  assert.doesNotMatch(said, /This morning/, 'the morning card\'s own words stay on the morning card');
+  page.api.dispose();
+});
+
+test('P8.3 - a kept steps count and its Change are ONE line, "8,432 steps", a middle dot, "Change"', async () => {
+  const page = await storedScreen(faultDatabase());
+  page.api.openLogToday();
+  const line = page.pick('log-steps-line');
+  assert.deepEqual([...line.children].map((el) => el.dataset.slot), ['log-steps-state', 'log-steps-sep', 'log-steps-change'],
+    'the count, the dot and Change in one line');
+  assert.equal(page.pick('log-steps-sep').hidden, true, 'nothing kept: no dot');
+  assert.equal(page.pick('log-steps-change').hidden, true, 'and no Change');
+  page.pick('log-steps-box').value = '8432';
+  click(page, page.pick('log-steps-save'));
+  await page.api.stepsPending();
+  const sep = page.pick('log-steps-sep');
+  assert.equal(sep.hidden, false);
+  assert.equal(sep.textContent, N2B.LOG_JOIN.trim(), 'the sheet\'s own middle dot');
+  assert.equal(sep.getAttribute('aria-hidden'), 'true', 'which is not read');
+  assert.equal(page.pick('log-steps-change').hidden, false);
+  assert.match([...page.pick('log-steps-line').childNodes].filter((n) => !n.hidden).map((n) => n.textContent).join(' '),
+    /^8,?432 steps \u00b7 Change$/);
+  page.api.dispose();
+});
+
+test('P8.4 - the stylesheet: chevron rows, no stray weight gap, the steps line, the underline focus, sleep\'s room and the cue above Start', () => {
+  const chrome = design.chromeCss();
+  const block = chrome.slice(chrome.indexOf('/* ===== POLISH 8'), chrome.indexOf('/* ===== POLISH 8: END ===== */'));
+  assert(block.length > 0, 'the polish 8 block is in the chrome');
+  assert.match(block, /\.view \[data-slot="log-sheet"\] \.tcard\.nav \{\s*display: block; width: 100%; box-sizing: border-box;[^}]*min-height: 52px;/,
+    'the sheet\'s chevron rows are full width and taller than 44 px');
+  assert.match(block, /\.view \[data-slot="log-sheet"\] \.weigh-row > \.field \{ margin-top: 0; \}/, 'no stray gap under the weight label');
+  assert.match(block, /\[data-slot="log-steps-line"\] \{ display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; \}/);
+  assert.match(block, /\[data-slot="log-steps-change"\] \{ min-height: 44px; \}/, 'Change is a 44 px target');
+  assert.match(block, /\.scene-frame \.view \.weigh-row input:focus-visible \{ outline: none; \}/);
+  assert.match(block, /\.scene-frame \.view \.weigh-row > \.field:focus-within \{ border-bottom-color: var\(--text\); box-shadow: 0 1px 0 0 var\(--text\); \}/,
+    'the entry\'s focus is its underline, in the 3:1 text colour (P7.5\'s measure)');
+  assert.match(block, /\[data-slot="sleep-mode-label"\] \{ margin-top: 20px; \}/);
+  assert.match(block, /\[data-slot="sleep-modes"\] \{ gap: 12px; margin-top: 10px; margin-bottom: 18px; \}/);
+  assert.match(block, /\[data-slot="sleep-modes"\] > \.choice \{ min-height: 44px; padding: 0 16px; font-size: 15px; \}/);
+  assert.match(block, /\[data-slot="sleep-times"\] > \.field \+ \.field \{ margin-top: 14px; \}/);
+  assert.match(block, /\.scene-frame\.screen-today > \.view\.ui > \.body\.can-scroll:not\(\.at-end\) \+ \.stack::before \{\s*content: "";[^}]*pointer-events: none; \}/,
+    'a cue above Start while the list continues under it');
+  assert.doesNotMatch(block, /\.sleep\b/, 'N2-18: no .sleep class in the chrome');
+  assert.doesNotMatch(block, /[^\x00-\x7f]/, 'ASCII');
+});

@@ -875,3 +875,39 @@
       the band is drawn whole as before (COACH V1 BATCH 2), and at the end of the scroll nothing is faded. */
 .scene-frame.screen-today > .view.ui > .body.can-scroll:not(.at-end) { --fade-bot: calc(100% - 22px); --fade-bot-end: calc(100% - 10px); }
 /* ===== POLISH 7: END ===== */
+/* ===== POLISH 8 (PM, ui-pass15, 2026-10-13): BEGIN =====
+   1. THE SHEET'S ROWS THAT OPEN ANOTHER SCREEN (Food, Sleep, Check in) are full-width chevron rows in the Ask Coach row's
+      look (the pack's .tcard.nav and .chev), without the feed's dot; the weight and steps rows keep their inline Save. */
+.view [data-slot="log-sheet"] .tcard.nav {
+  display: block; width: 100%; box-sizing: border-box; margin: 8px 0 0; min-height: 52px; padding: 14px 38px 14px 16px;
+  text-align: left; }
+.view [data-slot="log-sheet"] .tcard.nav > .title { margin: 0; }
+/* 2. NO STRAY GAP UNDER THE WEIGHT LABEL: the sheet's .field top margin also caught the entry row's own .field (the
+      underline box inside .weigh-row), pushing the box 12 px below the row; inside a row it takes none, and the row
+      itself takes no top margin, so the box sits the label's own 12 px under it, as every row's next line does. */
+.view [data-slot="log-sheet"] .weigh-row > .field { margin-top: 0; }
+.view [data-slot="log-sheet"] .weigh-row { margin-top: 0; }
+/* 3. THE KEPT STEPS COUNT AND ITS CHANGE ON ONE LINE ("8,432 steps", the middle dot, Change). */
+.view [data-slot="log-sheet"] [data-slot="log-steps-line"] { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; }
+.view [data-slot="log-sheet"] [data-slot="log-steps-line"] > [data-slot="log-steps-change"] { min-height: 44px; }
+/* 4. AN ENTRY ROW'S FOCUS IS ITS UNDERLINE (the weight and steps boxes, on the sheet and on Today's weigh-in card): the
+      underline takes the text colour and a second pixel instead of a box drawn round the input. The text colour on
+      --card is 16.4:1 in ink and 15.8:1 in dawn (the P7 cell's measure), past the 3:1 a focus indicator needs. */
+.scene-frame .view .weigh-row input:focus-visible { outline: none; }
+.scene-frame .view .weigh-row > .field:focus-within { border-bottom-color: var(--text); box-shadow: 0 1px 0 0 var(--text); }
+/* 5. THE SLEEP SCREEN'S MODES ARE NOT CRAMPED: room above "How do you want to record it?", inside and between its two
+      chips (one size, 44 px tall, 16 px of side room) and before the box labels under them, and between the bed and
+      wake boxes. */
+.view [data-slot="sleep-entry-form"] > [data-slot="sleep-mode-label"] { margin-top: 20px; }
+.view [data-slot="sleep-entry-form"] > [data-slot="sleep-modes"] { gap: 12px; margin-top: 10px; margin-bottom: 18px; }
+.view [data-slot="sleep-modes"] > .choice { min-height: 44px; padding: 0 16px; font-size: 15px; }
+.view [data-slot="sleep-times"] > .field + .field { margin-top: 14px; }
+/* 6. A SCROLL CUE ABOVE START: while Today's list continues under the Start bar (the body can scroll and is not at its
+      end), a small chevron sits above the bar, so a row hidden under it at rest is never hidden without a cue. At the
+      end of the scroll the list clears the bar (the body's 34 px room) and the cue is gone. Drawn by the stack itself,
+      no element and no word. */
+.scene-frame.screen-today > .view.ui > .body.can-scroll:not(.at-end) + .stack::before {
+  content: ""; position: absolute; left: 50%; top: -18px; width: 9px; height: 9px; margin-left: -6px;
+  border-right: 1.5px solid var(--text-soft); border-bottom: 1.5px solid var(--text-soft); transform: rotate(45deg);
+  pointer-events: none; }
+/* ===== POLISH 8: END ===== */

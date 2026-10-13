@@ -421,6 +421,10 @@ function setupNoteNeeded(enrolled, athleteLabel, state) {
 const STATUS_NOTHING_TO_DECIDE = " today. Nothing to decide."; // owner's pattern; T-32, T-40c
 const STATUS_SAMPLE = " today. Sample data."; // T-02
 const STATUS_NO_CALORIE_RANGE = " today. Your calorie range is not available yet."; // T-19
+/* POLISH 8 (PM, ui-pass15 shot 06d; the :989 "never shown" rule): while the band is gated, Why this plan?'s calorie
+   paragraph is these plain words and the gate line (calorieGateLine), never the engine's own why text, which prices the
+   estimate in kcal. The PM's words. */
+const WHY_CALORIES_GATED = "Your calorie range is measured from your food logs and weigh-ins.";
 const STATUS_UNDER_WAY = " is under way."; // T-14
 const STATUS_LOGGED = " logged. Nothing to decide."; // T-15
 const STATUS_CANNOT_OPEN = "Today’s workout cannot open."; // T-16
@@ -1491,7 +1495,13 @@ function mountToday(doc, model, options = {}) {
     } else {
       put(map, "why-lead", view.nowModel.move.body);
       const host = map.get("why-sections");
-      for (const section of view.why) {
+      /* POLISH 8: today-model.cjs whySections() puts the calories section first, its body the engine's calorieTarget.why;
+         while the band is gated that body is replaced, so no figure of the gated estimate reaches this screen. */
+      const gated = !!(view.calorieTarget && view.calorieTarget.gated === true);
+      const gateLine = gated ? calorieGateLine(view.calorieGate) : null;
+      for (const [index, shown] of view.why.entries()) {
+        const section = gated && index === 0
+          ? { heading: shown.heading, body: WHY_CALORIES_GATED + (gateLine ? " " + gateLine : "") } : shown;
         const block = doc.createElement("div");
         block.className = "macro-row";
         const head = doc.createElement("strong");
@@ -1680,7 +1690,10 @@ function mountToday(doc, model, options = {}) {
     const weighForm = map.get("log-weight-form");
     const weighError = map.get("log-weight-error");
     if (view.blocked || done.weight) {
-      logRow(map, "weight", view.blocked ? NOT_AVAILABLE : morningLine(view), !view.blocked && done.weight);
+      /* POLISH 8: the row's gold tick says it is logged; the line under it is the value alone, not the morning card's
+         own "This morning" and tick a second time. */
+      const kept = view.morningRead ? pounds(view.morningRead.lb) + " lb" + ((view.morningRead.note || "").trim() ? LOG_JOIN + view.morningRead.note.trim() : "") : morningLine(view);
+      logRow(map, "weight", view.blocked ? NOT_AVAILABLE : kept, !view.blocked && done.weight);
       weighForm.remove();
       weighError.remove();
     } else {
@@ -1718,7 +1731,7 @@ function mountToday(doc, model, options = {}) {
     /* done.food is FOOD_SAVED from nutritionState(), which is only said when model.loggedFood answered a day. */
     const food = done.food ? model.loggedFood(model.today) : null;
     logRow(map, "food", food ? intakeLine(food) : nutritionState(), done.food);
-    map.get("log-food-go").textContent = plainOrDrop(LOG_FOOD_GO, "log-food-go");
+    put(map, "log-food-go-label", LOG_FOOD_GO);
     hooks.listen(map.get("log-food-go"), "click", () => closeLogToday("nutrition"));
 
     /* STEPS: the winning count for today, and the one new entry. POLISH 7: the entry is the weight's own row (the box,
@@ -1731,9 +1744,11 @@ function mountToday(doc, model, options = {}) {
     const stepsChange = map.get("log-steps-change");
     logRow(map, "steps", done.stepsRow ? amount(done.stepsRow.day.steps) + STEPS_UNIT
       : stepsLane ? null : stepsFailure ? STEPS_NO_STORE : FOOD_OPENING, done.steps);
+    const stepsSep = map.get("log-steps-sep");
     if (!stepsLane) {
       stepsEntry.remove();
       stepsChange.remove();
+      stepsSep.remove();
       stepsError.remove();
     } else {
       put(map, "log-steps-box-label", STEPS_LABEL);
@@ -1744,6 +1759,9 @@ function mountToday(doc, model, options = {}) {
       stepsEntry.hidden = kept;
       stepsChange.hidden = !kept;
       stepsChange.textContent = kept ? plainOrDrop(STEPS_CHANGE, "log-steps-change") : "";
+      /* POLISH 8: "8,432 steps, a middle dot, Change" on one line, the separator Today's card already uses. */
+      stepsSep.hidden = !kept;
+      stepsSep.textContent = kept ? plainOrDrop(LOG_JOIN.trim(), "log-steps-sep") : "";
       if (done.stepsRow && stepsEditing) stepsBox.value = String(done.stepsRow.day.steps);
       hooks.listen(stepsChange, "click", () => { stepsEditing = true; logFocus = "log-steps-box"; paintLogSheet(false); });
       const saveSteps = () => { stepsSaving = recordSteps(stepsSave, stepsBox, stepsError); };
@@ -1753,12 +1771,12 @@ function mountToday(doc, model, options = {}) {
 
     /* SLEEP: last night's hours as the projection holds them, and the sleep screen, whose writer is the sleep lane's. */
     logRow(map, "sleep", done.slept, done.sleep);
-    map.get("log-sleep-go").textContent = plainOrDrop(LOG_SLEEP_GO, "log-sleep-go");
+    put(map, "log-sleep-go-label", LOG_SLEEP_GO);
     hooks.listen(map.get("log-sleep-go"), "click", () => closeLogToday("sleep"));
 
     /* CHECK IN: the check-in lane's own summary, and the recovery screen, whose writer is the check-in's. */
     logRow(map, "checkin", recoveryState(), done.checkin);
-    map.get("log-checkin-go").textContent = plainOrDrop(SLEEP_OPEN_CHECKIN, "log-checkin-go");
+    put(map, "log-checkin-go-label", SLEEP_OPEN_CHECKIN);
     hooks.listen(map.get("log-checkin-go"), "click", () => closeLogToday("recovery"));
 
     /* POLISH 7: Done is the sheet's one primary action, in its foot (preview.css holds the foot on the screen). */
@@ -3170,4 +3188,4 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   SLEEP_KEPT,
   LOG_TITLE, LOG_ITEMS, LOG_TICK, LOG_JOIN, LOG_DONE, LOG_FOOD_GO, LOG_SLEEP_GO, LOG_NOTHING_YET, LOG_CLOSE, STEPS_CHANGE, nightWords,
   STEPS_LABEL, STEPS_SAVE, STEPS_UNIT, STEPS_NO_STORE, STEPS_REFUSED, STEPS_UNKNOWN, STEPS_SAVED_UNREAD, STEPS_REFUSAL_COPY,
-  athleteStateFailureCopy };
+  WHY_CALORIES_GATED, athleteStateFailureCopy };

@@ -58,8 +58,11 @@ const TEMPLATES = Object.freeze({
       ? "At least " + d(v.proteinG, "g") + " grams is the provisional protein target, using the available lean-mass input. It is not a measured personal minimum."
       : "I do not have a protein target for you today.",
   ]),
-  why_calories: (v) => join([has(v.body) ? d(v.body, "text") : "The engine gave no reasoning for that number.",
-    has(v.weekly) ? " " + d(v.weekly, "text") : ""]),
+  /* POLISH 8 (PM, ui-pass15): while the band is gated the engine's reasoning is a blank in the turn (read-tools.cjs), and
+     the answer says how the range is measured, Why this plan?'s own plain words, with no figure. */
+  why_calories: (v) => flag(v.gated) ? PLAIN.measuredFrom
+    : join([has(v.body) ? d(v.body, "text") : "The engine gave no reasoning for that number.",
+      has(v.weekly) ? " " + d(v.weekly, "text") : ""]),
   why_instruction: (v) => join([
     has(v.title) ? d(v.title, "text") + ". " : "",
     has(v.body) ? d(v.body, "text") : "The engine has nothing to change right now.",
@@ -446,6 +449,8 @@ const PLAIN = Object.freeze({
   /* E1 (Fable 7143a722 D1): gated with no gate line to say, the coach says T-19's sentence, Today's food card's own words
      (today-app.cjs calorieBand), so a gated band is never met with silence or a figure */
   noRange: "A calorie range is not available yet.",
+  /* POLISH 8: how a gated range is measured, the words Why this plan? says (today-app.cjs WHY_CALORIES_GATED). */
+  measuredFrom: "Your calorie range is measured from your food logs and weigh-ins.",
   protein: "Protein: at least ",
   proteinTail: " grams.",
   /* "Why this weight?" */

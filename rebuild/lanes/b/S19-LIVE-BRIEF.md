@@ -1071,17 +1071,74 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   CL-P7-APPROVAL; measured).
 - At the builder seat (on c8e86e6): the today batch 701/722 (693/714 plus P7.1 to P7.6, CL-P7-DELTA and CL-P7-APPROVAL; the same 21 seat-only build failures), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 43/43 (corpus ae2b1609, unchanged by the move), food-live-save 7/7, s12-look 81/82 (the same seat-only C-UI-1 build failure), the import suites reached and refused by the guard by name (they read the protected engine, PM seat), and the P7 Chromium probe 87 of 87.
 
+## Polish 8: Why this plan? while gated, the sheet's rows, the steps line, sleep's room and Start's cue (PM, ui-pass15; on 637521f, rebuild/c-polish8)
+- Why this plan? (the priority): while the band is gated its calories section printed the engine's own why, which
+  prices the estimate in kcal and names it an estimate, against the :989 rule that a gated band is never shown. While
+  gated the section now says, in plain words, "Your calorie range is measured from your food logs and weigh-ins."
+  followed by the card's own gate line ("Log food for N more days and weigh in M more times to measure yours.", or the
+  blackout's day), and no figure; with no gate line to say, the sentence alone (today-app.cjs WHY_CALORIES_GATED). A
+  measured band is explained by the engine as before (P8.5).
+- The audit of every surface that prints an engine why or reason for calories or the floor: Today's card, the Energy
+  row and the status line (E1a), the page coach's today_plan (E1a), Why this plan? (this batch), and the coach's
+  why_this_instruction tool (read-tools.cjs), whose "calories" topic carried the engine's why and weekly why and whose
+  "floor" topic the floor's own kcal sentence. While the band is gated both are blanks in the turn ("the band is gated,
+  and a gated band is never shown") and the calories topic carries the gated flag, so the scripted why_calories answer
+  says the same plain sentence (coach-intents.cjs PLAIN.measuredFrom). The other topics (instruction, protein,
+  maintenance, levers, status) carry no kcal figure in the gated worlds. The page coach's own questions do not read
+  why_this_instruction.
+- Found by the sweep and fixed in the same tool, kept by the PM's ruling on P8 (the same never-show-junk rule): with too few food days the
+  maintenance topic threw (observedTDEE is null; it now carries blanks, and why_maintenance says "Maintenance is not
+  measured yet."), and with no lean-mass estimate the protein topic carried "NaN g today" (now a blank, as Why this
+  plan? drops that section; the guard is on the engine's target being a number that is not finite, so an engine reason
+  string still passes through verbatim, science-correction-contract.test.cjs).
+- E1-NOFIG now sweeps Why this plan? (its calories paragraph exactly the plain sentence and the card's gate line, and no
+  band figure, kcal figure or NaN on any row of the screen), every why_this_instruction topic and every scripted answer
+  that reads it (no band figure, kcal figure or NaN; no "estimate" in the calories and floor topics, as the other
+  topics name the weight rate an estimate by its own name), in the three gated worlds, and the bare gated world's Why
+  this plan? says the sentence alone.
+- The sheet: Food, Sleep and Check in are full-width chevron rows in the Ask Coach row's look (the pack's .tcard.nav
+  title and .chev, no feed dot; 342 by 52 px at 390), not underlined links; their words and screens are unchanged. The
+  weight and steps rows keep their inline Save. The stray gap under the Weight label is gone (the entry row's own .field
+  took the sheet's .field top margin; 30 -> 12 px, the label's own spacing). A logged weight is said once: the row's gold
+  tick and the value ("182.4 lb", and its note), not the morning card's "This morning" and a second tick. A kept steps
+  count and its Change are one line, "8,432 steps", the sheet's middle dot (aria-hidden) and Change (a 44 px target).
+  At 375x667 the last row ends 16 px above Done's pinned foot at the end of the scroll, and Done is on the screen.
+- Steps focus: an entry row's focus is its underline (the text colour and a second pixel, 16.4:1 or more), not a box
+  drawn round the input; the rule covers the sheet's weight and steps boxes and Today's weigh-in card.
+- Sleep: room above "How do you want to record it?" (20 px), between and inside its two chips (12 px apart, 44 px tall,
+  16 px of side room) and before the box labels (18 px), and 14 px between the bed and wake boxes.
+- Today at rest: measured at 390x844 the problem entry and the Measure row sit under Start at first paint (at 430x932
+  Measure; at 375x667 Ask Coach, Why this plan?, the problem entry and Measure). While the list continues under Start a
+  small chevron sits 18 px above the bar (drawn by the stack, no element and no word); at the end of the scroll the last
+  row ends 24 px above Start's top at every width and the cue is gone. The no-ring after a tapped Done is :focus-visible
+  behaving as it should for pointer input; no change.
+- New string: "Your calorie range is measured from your food logs and weigh-ins." (the PM's own wording in the P8
+  request), in today-app.cjs and in coach-intents.cjs PLAIN; one more " lb" owner count in today-app.cjs (2 -> 3). The
+  copy lock re-measures for exactly them (CL-P8-DELTA; corpus ae2b1609 -> 1f393735); the sentence is approved under
+  DECISIONS:989, the never-shown ruling (the PM's ruling on P8; CL-P8-APPROVAL cites it).
+- New cells, red first on 637521f's today-app.cjs, screens.template.html and preview.css (4 of 4): food.test.mjs P8.1
+  (the chevron rows), P8.2 (the weight said once), P8.3 (the steps line), P8.4 (the stylesheet rules). E1-NOFIG red on
+  637521f's today-app.cjs (Why this plan?'s figure), on its coach-intents.cjs (why_calories) and on its read-tools.cjs
+  (the maintenance topic throws). P8.5 (a measured band keeps the engine's why) passes on both, by design.
+- The Chromium probe at the builder seat (the invented fixture athlete, 390x844, 430x932 and 375x667: no sideways
+  scroll, the cue at rest and the last row clear of Start at the end, the chevron rows full width and 52 px, the weight
+  gap, the last row clear of Done's foot, Done on the screen, the steps line on one row, the underline on focus, the
+  sleep spacing): 51 of 51.
+- Needles: today-17 891 -> 896 (P8.1 to P8.5; expected, observed at the PM seat); s10-copy-lock 43 -> 45 (CL-P8-DELTA,
+  CL-P8-APPROVAL; measured).
+- At the builder seat (on 637521f): the today batch 708/729 (701/722 plus P8.1 to P8.5, CL-P8-DELTA and CL-P8-APPROVAL; the same 21 seat-only build failures), the coach suite 403/404 (the one failure the guard's refusal of rebuild/engine/index.cjs in engine-revision-gap R4, PM seat), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 45/45 (corpus 1f393735), food-live-save 7/7, s12-look 81/82 (the same seat-only C-UI-1 build failure), the import suites reached and refused by the guard by name (they read the protected engine, PM seat), and the P8 Chromium probe 51 of 51.
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 -> 41 -> 43 (the polish's CL-COACH-POLISH-DELTA
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 -> 41 -> 43 -> 45 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL; E1a's CL-E1-DELTA and CL-E1-APPROVAL; polish 7's CL-P7-DELTA and CL-P7-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL; E1a's CL-E1-DELTA and CL-E1-APPROVAL; polish 7's CL-P7-DELTA and CL-P7-APPROVAL; polish 8's CL-P8-DELTA and CL-P8-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
 polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell; N2 part B's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW), and with E1a 884 -> 885 (E1-NOFIG), and with polish 7 885 -> 891 (P7.1 to P7.6); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW), and with E1a 884 -> 885 (E1-NOFIG), and with polish 7 885 -> 891 (P7.1 to P7.6), and with polish 8 891 -> 896 (P8.1 to P8.5); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

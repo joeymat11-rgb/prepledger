@@ -176,6 +176,8 @@
      today: the weight is entered here through the page's ONE weigh-in write site (today-app.cjs submitWeighIn), the
      steps through the steps lane, and food, sleep and the check-in each open their own existing screen, whose writer
      is the existing one. Preview-owned: every word and value is bound at runtime from today-app.cjs. -->
+<!-- POLISH 8 (PM, ui-pass15): the rows that open another screen (Food, Sleep, Check in) are full-width chevron rows in
+     the Ask Coach row's look (tcard nav, title, chevron); the kept steps count and its Change share one line. -->
 <!-- POLISH 7 (PM, ui-pass14): the sheet's title is a heading above its section labels, with a close control beside it;
      each row's tick sits beside its label (log-*-tick); the steps entry is the weight's own row (box, unit, Save); and
      Done is the sheet's one primary action, in a foot that stays on the screen while the rows scroll. No new class:
@@ -200,12 +202,11 @@
   <section class="field" data-slot="log-food">
     <div data-slot="log-food-row"><div class="section-label" data-slot="log-food-label"></div><span data-slot="log-food-tick"></span></div>
     <p class="small muted" data-slot="log-food-state"></p>
-    <button class="text-link" type="button" data-slot="log-food-go"></button>
+    <button class="tcard nav" type="button" data-slot="log-food-go"><div class="title" data-slot="log-food-go-label"></div><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
   </section>
   <section class="field" data-slot="log-steps">
     <div data-slot="log-steps-row"><div class="section-label" data-slot="log-steps-label"></div><span data-slot="log-steps-tick"></span></div>
-    <p class="small muted" data-slot="log-steps-state"></p>
-    <button class="text-link" type="button" data-slot="log-steps-change" hidden></button>
+    <p class="small muted" data-slot="log-steps-line"><span data-slot="log-steps-state"></span><span data-slot="log-steps-sep" aria-hidden="true" hidden></span><button class="text-link" type="button" data-slot="log-steps-change" hidden></button></p>
     <form class="weigh-row" data-slot="log-steps-entry" novalidate>
       <label for="log-steps-box" class="visually-hidden" data-slot="log-steps-box-label"></label>
       <div class="field" data-slot="log-steps-field"><input id="log-steps-box" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off" data-slot="log-steps-box"></div>
@@ -217,12 +218,12 @@
   <section class="field" data-slot="log-sleep">
     <div data-slot="log-sleep-row"><div class="section-label" data-slot="log-sleep-label"></div><span data-slot="log-sleep-tick"></span></div>
     <p class="small muted" data-slot="log-sleep-state"></p>
-    <button class="text-link" type="button" data-slot="log-sleep-go"></button>
+    <button class="tcard nav" type="button" data-slot="log-sleep-go"><div class="title" data-slot="log-sleep-go-label"></div><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
   </section>
   <section class="field" data-slot="log-checkin">
     <div data-slot="log-checkin-row"><div class="section-label" data-slot="log-checkin-label"></div><span data-slot="log-checkin-tick"></span></div>
     <p class="small muted" data-slot="log-checkin-state"></p>
-    <button class="text-link" type="button" data-slot="log-checkin-go"></button>
+    <button class="tcard nav" type="button" data-slot="log-checkin-go"><div class="title" data-slot="log-checkin-go-label"></div><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
   </section>
   <div data-slot="log-foot"><button class="primary" type="button" data-action="log-done" data-slot="log-done"></button></div>
 </div>

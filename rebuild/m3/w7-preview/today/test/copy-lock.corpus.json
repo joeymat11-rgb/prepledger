@@ -647,7 +647,7 @@
   {
    "text": " lb",
    "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 2
+    "rebuild/m3/w7-preview/today/today-app.cjs": 3
    },
    "lists": []
   },
@@ -8728,6 +8728,13 @@
    "lists": [
     "RUNTIME_COPY"
    ]
+  },
+  {
+   "text": "Your calorie range is measured from your food logs and weigh-ins.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
   },
   {
    "text": "Your calories",

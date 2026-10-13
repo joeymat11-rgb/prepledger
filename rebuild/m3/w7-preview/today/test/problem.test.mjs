@@ -40,6 +40,7 @@ import Ops from '../../../../client/ops.cjs';
 import { sleepNightFor, dayBefore } from '../checkin-model.mjs';
 import PageCoach from '../../../../coach/page-coach.cjs';
 import Intents from '../../../../coach/coach-intents.cjs';
+import ReadTools from '../../../../coach/read-tools.cjs';
 
 const readAsset = (name) => fs.readFile(path.join(DIST, name), 'utf8');
 
@@ -4127,13 +4128,55 @@ test('E1-NOFIG - a gated athlete, with and without lean mass, sees no kcal figur
     const slot = (name) => doc.querySelector('[data-slot="' + name + '"]');
     const surfaces = { card: slot('eat-title').textContent + ' | ' + (slot('kcal-note').hidden ? '' : slot('kcal-note').textContent),
       status: slot('status-line').textContent };
+    const cardNote = slot('kcal-note').hidden ? '' : slot('kcal-note').textContent;
     api.render('nutrition', false);
     surfaces.energy = [...doc.querySelectorAll('.macro-row')].map((row) => row.textContent).find((t) => t.startsWith('Energy')) || '';
+    /* POLISH 8 (PM, ui-pass15; the :989 "never shown" rule, audited past the card): Why this plan? printed the engine's
+       calorie why ("this prices 2160 from your measured 180 lb at 12 kcal/lb ... It is an ESTIMATE"). While gated its
+       calorie paragraph is plain words and the card's own gate line, and no row of the screen carries a figure. */
+    api.render('why', false);
+    const whyRows = [...doc.querySelectorAll('[data-slot="why-sections"] .macro-row')];
+    const calRow = whyRows.find((row) => row.querySelector('strong').textContent === 'Your calories');
+    assert.ok(calRow, label + ': Why this plan? has its calories section');
+    assert.equal(calRow.querySelector('p').textContent,
+      'Your calorie range is measured from your food logs and weigh-ins.' + (cardNote ? ' ' + cardNote : ''),
+      label + ': the calories paragraph is plain words and the card\'s gate line');
+    surfaces.whyCalories = calRow.textContent;
+    const whyScreen = slot('why-lead').textContent + ' | ' + whyRows.map((row) => row.textContent).join(' | ');
     api.dispose();
     const coach = PageCoach.createPageCoach({ today: model });
     const answers = [];
     for (const intent of Intents.PAGE_INTENT_IDS) { const got = await coach.ask(intent); answers.push(intent + ': ' + (got.answer || '')); }
+    /* POLISH 8: every engine why the coach's tools carry (read-tools.cjs why_this_instruction, every topic, the floor's
+       included), and the scripted answers that speak them, swept like the page's answers */
+    /* (the other topics speak of the weight rate, which is an estimate by its own name, so "estimate" is swept on the
+       calorie and floor whys only; figures, kcal and NaN on every one) */
+    const reader = ReadTools.createReadTools({ today: model });
+    const whyTurn = reader.openTurn('p8-why');
+    const whys = [];
+    for (const topic of ['instruction', 'calories', 'protein', 'maintenance', 'floor', 'levers', 'status']) {
+      const r = await whyTurn.call.why_this_instruction({ topic });
+      assert.equal(r.ok, true, label + ': why ' + topic + ' answers');
+      const said = 'why tool ' + topic + ': ' + JSON.stringify(r.values);
+      if (topic === 'calories' || topic === 'floor') answers.push(said); else whys.push(said);
+    }
+    for (const intent of Object.keys(Intents.READ_INTENTS).filter((id) => Intents.READ_INTENTS[id].tool === 'why_this_instruction')) {
+      const got = await Intents.answerOne(reader, { id: 'p8-' + intent, ask: intent, intent }, {});
+      assert.deepEqual(got.untraceable, [], label + ': ' + intent + ' is traceable: ' + got.answer);
+      if (intent === 'why_calories') {
+        assert.equal(got.answer, 'Your calorie range is measured from your food logs and weigh-ins.', label + ': why_calories says how the range is measured');
+        answers.push(intent + ': ' + got.answer);
+      } else whys.push(intent + ': ' + got.answer);
+    }
     surfaces.coach = answers.join('\n');
+    /* (a band with no finite end has no figure to look for: fmt(null) is "0", which the levers' own indices carry) */
+    const bandFigures = [target.lo, target.hi].every(Number.isFinite) ? figures : [];
+    for (const [where, words] of [['Why this plan?', whyScreen], ...whys.map((w) => [w.split(':')[0], w])]) {
+      for (const n of bandFigures) assert.equal(new RegExp('(^|[^\\d,])' + n + '($|[^\\d,])').test(words), false,
+        label + ': the band\'s figure ' + n + ' is not in ' + where + ': ' + words);
+      assert.doesNotMatch(words, KCAL, label + ': no kcal figure in ' + where + ': ' + words);
+      assert.doesNotMatch(words, /NaN/, label + ': no NaN in ' + where + ': ' + words);
+    }
     /* Fable on E1a: \d never matches "NaN", so the NaN sweep is its own assertion, on every coach answer and every surface */
     for (const answer of answers) assert.doesNotMatch(answer, /NaN/, label + ': no NaN in the coach answer: ' + answer);
     assert.equal(surfaces.card.startsWith('A calorie range is not available yet.'), true, label + ': the card says T-19: ' + surfaces.card);
@@ -4159,5 +4202,30 @@ test('E1-NOFIG - a gated athlete, with and without lean mass, sees no kcal figur
   const bdoc = new JSDOM(shell()).window.document;
   const bapi = mountToday(bdoc, bare, {});
   assert.equal(bdoc.querySelector('[data-slot="eat-title"]').textContent, 'A calorie range is not available yet.', 'which is what Today\'s card says');
+  /* POLISH 8: Why this plan? then says the plain sentence alone, with no gate line after it */
+  bapi.render('why', false);
+  const bareCal = [...bdoc.querySelectorAll('[data-slot="why-sections"] .macro-row')].find((row) => row.querySelector('strong').textContent === 'Your calories');
+  assert.equal(bareCal.querySelector('p').textContent, 'Your calorie range is measured from your food logs and weigh-ins.');
   bapi.dispose();
+});
+
+/* POLISH 8, the other side of E1-NOFIG's Why this plan? sweep: a MEASURED band is explained by the engine as before, on
+   Why this plan? and in the coach's why_calories, so only the gated state lost its figures. Every value is invented. */
+test('P8.5 - a measured band keeps the engine\'s own why on Why this plan? and in the coach\'s why_calories', async () => {
+  const model = createTodayModel({ today: DAY, basisState: TodayModel.createBasisState(DAY) });
+  const target = model.read().calorieTarget;
+  assert.equal(target.gated, false, 'fixture: the band is measured');
+  assert.ok(typeof target.why === 'string' && target.why.trim(), 'and the engine explains it');
+  const doc = new JSDOM(shell()).window.document;
+  const api = mountToday(doc, model, {});
+  api.render('why', false);
+  const cal = [...doc.querySelectorAll('[data-slot="why-sections"] .macro-row')].find((row) => row.querySelector('strong').textContent === 'Your calories');
+  assert.equal(cal.querySelector('p').textContent, PlainCopy.plainCopy(target.why), 'Why this plan? says the engine\'s why, in the page\'s plain punctuation');
+  api.dispose();
+  const reader = ReadTools.createReadTools({ today: model });
+  const got = await Intents.answerOne(reader, { id: 'p8-5', ask: 'why_calories', intent: 'why_calories' }, {});
+  assert.deepEqual(got.untraceable, []);
+  assert.equal(got.answer.startsWith(target.why), true, 'the coach says the engine\'s why: ' + got.answer);
+  const floor = await reader.openTurn('p8-5-floor').call.why_this_instruction({ topic: 'floor' });
+  assert.equal(floor.values.body.display, model.engine.calorieFloor(model.stateFromOps()).why, 'and the floor\'s own sentence');
 });
