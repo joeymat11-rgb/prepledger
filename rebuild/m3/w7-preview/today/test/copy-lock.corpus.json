@@ -358,6 +358,13 @@
    "lists": []
   },
   {
+   "text": " and weigh in ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": " answer choices harvested",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1
@@ -623,7 +630,7 @@
   {
    "text": " kcal",
    "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 2
+    "rebuild/m3/w7-preview/today/today-app.cjs": 4
    },
    "lists": []
   },
@@ -726,9 +733,37 @@
    "lists": []
   },
   {
+   "text": " more day",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " more days",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": " more reps.",
    "files": {
     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " more time",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " more times",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
   },
@@ -887,8 +922,15 @@
   {
    "text": " to ",
    "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 2,
     "rebuild/m3/w7-preview/today/today-model.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": " to measure yours.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
   },
@@ -931,6 +973,13 @@
    "lists": [
     "RUNTIME_COPY"
    ]
+  },
+  {
+   "text": " today. Your calorie range is an estimate for now.",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
   },
   {
    "text": " today. Your calorie range is not available yet.",
@@ -3100,6 +3149,20 @@
    "lists": []
   },
   {
+   "text": "Estimate: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Estimate: about ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Estimated 1RM uses the Epley formula: ",
    "files": {
     "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
@@ -4107,6 +4170,13 @@
    "lists": [
     "RUNTIME_COPY"
    ]
+  },
+  {
+   "text": "Log food for ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
   },
   {
    "text": "Log set ",
@@ -7795,6 +7865,13 @@
    "text": "Weeks 1 and 2 are run in: recorded, shown, and not the weeks the comparison reads.",
    "files": {
     "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Weigh in ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
   },

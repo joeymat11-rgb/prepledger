@@ -188,11 +188,28 @@ test("C-UI-2 R3: the status line says the prototype's words for each state, and 
        C-UI-3 binds T-40). */
     ["open proposal after the session is logged", day({ nowModel: { decisionsN: 1 } }), { phase: "finished" }, false, ""],
     ["open proposal on a rest day", day({ workout: { title: "LOWER BODY" + DOT + "TOMORROW", today: false, exerciseCount: 4, unavailableReason: null }, nowModel: { decisionsN: 1 } }), null, false, ""],
+    /* DECISIONS:980 (the owner's ruling, "Labelled estimate"): while the band is the engine's own labelled estimate
+       (gated, from "mass-estimate", both ends figures) the line says the ruling's words, which supersede T-19's for
+       that state only; a gated band that is not that estimate still says T-19's. */
+    ["DECISIONS:980 the engine's labelled estimate", day({ calorieTarget: { gated: true, from: "mass-estimate", lo: 1886, hi: 2011 } }), null, false,
+      "Upper body today. Your calorie range is an estimate for now.", "DECISIONS:980"],
+    ["DECISIONS:980 one figure is still the estimate", day({ calorieTarget: { gated: true, from: "mass-estimate", lo: 1700, hi: 1700 } }), null, false,
+      "Upper body today. Your calorie range is an estimate for now.", "DECISIONS:980"],
+    ["T-19 a gated band with no estimate figures", day({ calorieTarget: { gated: true, from: "mass-estimate", lo: null, hi: null } }), null, false,
+      "Upper body today. Your calorie range is not available yet."],
+    ["T-19 no bodyweight yet", day({ calorieTarget: { gated: true, from: "none", lo: null, hi: null } }), null, false, "Upper body today. Your calorie range is not available yet."],
+    ["T-02 sample over an estimate: the sample line", day({ calorieTarget: { gated: true, from: "mass-estimate", lo: 1886, hi: 2011 } }), null, true, "Upper body today. Sample data."],
   ];
-  for (const [label, view, session, sample, want] of rows) {
+  const app = fs.readFileSync(APP, "utf8");
+  for (const [label, view, session, sample, want, ruling] of rows) {
     const got = statusLine(view, session, sample);
     assert.equal(got, want, label);
-    if (want) assert(proto.includes("'" + want + "'"), label + ": the prototype draws exactly these words");
+    if (want && !ruling) assert(proto.includes("'" + want + "'"), label + ": the prototype draws exactly these words");
+    if (ruling) {
+      /* the ruling's words, not the prototype's: the departure is real, and the line that carries them cites the ruling */
+      assert.equal(proto.includes(want.replace(/^Upper body/, "")), false, label + ": the prototype does not draw these words");
+      assert(app.includes('const STATUS_CALORIE_ESTIMATE = "' + want.replace(/^Upper body/, "") + '"; // ' + ruling), label + ": declared under " + ruling);
+    }
   }
 });
 

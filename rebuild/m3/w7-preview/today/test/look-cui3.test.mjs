@@ -200,9 +200,22 @@ test("C-UI-3 T-40: the status line says the prototype's words while a proposal i
   const gface = live(gctx.view.proposal || null, gctx.view.proposalStored || {}, null, plainOrDrop);
   rows.push(["F4 pending adoption: the fixture's card and its count are hidden, T-12's line", gctx.view, null, false,
     gface ? gface.state : undefined, "Nothing scheduled today, so there is nothing to start."]);
-  for (const [label, v, session, sample, card, want] of rows) {
+  /* DECISIONS:980 (the owner's ruling, "Labelled estimate"): while the band is the engine's own labelled estimate the
+     line says the ruling's words, which supersede T-19's for that state only; an open proposal still stands ahead of
+     it, and its T-40 lines are unchanged. */
+  const estimate = { calorieTarget: { gated: true, from: "mass-estimate", lo: 1886, hi: 2011 } };
+  rows.push(["DECISIONS:980 the estimate, no proposal: the ruling's words", view(0, estimate), null, false, undefined,
+    "Upper body today. Your calorie range is an estimate for now.", "DECISIONS:980"]);
+  rows.push(["DECISIONS:980 the estimate beside an open card: T-40's line still", view(1, estimate), null, false, "open", "Upper body today. One change to review."]);
+  rows.push(["DECISIONS:980 the estimate beside a declined card: T-40d's line still", view(1, estimate), null, false, "declined", "Upper body today. Nothing to decide."]);
+  for (const [label, v, session, sample, card, want, ruling] of rows) {
     assert.equal(statusLine(v, session, sample, card), want, label);
-    if (want) assert(PROTO.includes("'" + want + "'"), label + ": the prototype draws exactly these words");
+    if (want && !ruling) assert(PROTO.includes("'" + want + "'"), label + ": the prototype draws exactly these words");
+    if (ruling) {
+      const words = want.replace(/^Upper body/, "");
+      assert.equal(PROTO.includes(words), false, label + ": the prototype does not draw these words");
+      assert(read(APP).includes('const STATUS_CALORIE_ESTIMATE = "' + words + '"; // ' + ruling), label + ": declared under " + ruling);
+    }
   }
   assert(read(APP).includes("statusLine(view, today, sample, face ? face.state : undefined)"), "renderToday hands the card's state to the line");
 });

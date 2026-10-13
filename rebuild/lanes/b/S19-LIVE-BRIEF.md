@@ -574,17 +574,76 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   the week probe (42 of 42), the 76 layout invariants, the deployed-shell probe (24 of 24), the foot probe (44 of 44),
   the coach-screen probe (46 of 46) and the quiet-link rhythm probe (6 of 6).
 
+## Nutri 1: the labelled estimate (owner ruling DECISIONS:980, "Labelled estimate"; on aa81776, rebuild/c-nutri1)
+- The ruling, as put to the owner: "show the estimated range now, clearly marked Estimate; switches to your measured
+  range once you've logged enough; no change to how the calories are calculated". No engine file changes and none of
+  the protected five: the band is the engine's own (rebuild/engine/energy.cjs calorieTarget). While gated it returns
+  its labelled "mass-estimate" branch (measured bodyweight at a labelled convention, his own band taken off it, lo and
+  hi included), reachable through the page's existing composition (today-engine.cjs); Today used to hide every gated
+  band (today-app.cjs calorieBand).
+- The food card (today-app.cjs calorieEstimate): while the band is that estimate, the card's title is "Estimate: " and
+  the engine's own lo and hi ("Estimate: 2,050 to 2,250 kcal"), and the line under it says what will make it measured
+  (calorieGateLine): "Log food for 8 more days and weigh in 10 more times to measure yours.", "Log food for 1 more day
+  to measure yours.", "Weigh in 1 more time to measure yours."; an estimate whose two ends are one figure (the engine's
+  calorie floor binding both) is said as one figure, "Estimate: about 1,700 kcal" (PM ruling on N1); any other gated
+  band (no bodyweight yet, a record still opening) is T-19 as before, and a measured band reads exactly as before. The
+  nutrition screen's Energy row says the same estimate.
+- The counts (today-model.cjs calorieGateOf, on the view as calorieGate) are the engine's own gate inputs, counted
+  with its own filters and thresholds: weigh-ins as currentRate's regression reads them (10 of the last 28 readings
+  that are not sealed, not off-window and carry a weight, energy.cjs:229-230; currentRate's own `measured` says when
+  that is met); days with calories logged as observedTDEE reads them (8, inside the rate's window or else since 21
+  days ago, energy.cjs:392-404); a blackout (energy.cjs:370) says no count. They move as he logs. problem.test.mjs
+  N1-GATE holds them to the engine itself: over the fixture athlete through the page's engine, adding exactly the
+  days and weigh-ins left turns the engine's band measured, and one fewer leaves it gated, in seven worlds.
+- The Coach (read-tools.cjs today_plan, coach-intents.cjs PAGE_TEMPLATES.plan): "What am I hitting today?" says the
+  estimate as one ("Estimate: eat between 2050 and 2250 calories.", or "Estimate: eat about 1700 calories.") and the
+  same gate line; today_plan tags the
+  estimate flag (energy.cjs calorieTarget, from) and the two counts ("day"; weigh-ins as the kernel's unknownNoun
+  "time"/"times"), so the number check passes and each count is licensed only by its own tag
+  (page-coach.test.cjs PC-12). Before this the coach said the gated estimate as "Eat between ...", unmarked.
+- The status line (PM ruling under DECISIONS:980): while the band is the engine's labelled estimate the C-UI-2 status
+  line says "<session> today. Your calorie range is an estimate for now." (today-app.cjs STATUS_CALORIE_ESTIMATE, its
+  declaration citing :980); a gated band that is not that estimate keeps T-19's words, and an open proposal still
+  stands ahead of it. look-cui2.test.mjs C-UI-2 R3 and look-cui3.test.mjs C-UI-3 T-40 assert the new words state by
+  state, and no looser: the ruling's words must equal the declared constant, carry the :980 citation and be absent from
+  the prototype; every other row still holds the prototype's own words.
+- The design laws the ruling supersedes for the gated state (DECISIONS:980): the
+  coaching rule N05 (rebuild/m1/approved-2026-09-18/states/COACHING-RULES-INVENTORY-v1-notes.md:15, "N05 LIVE (Today
+  shows 'not available' when gated)"); the board's T-19 "Gated calorie band" (app/states-today.js:106-108, its card
+  title "A calorie range is not available yet."; STATE-INVENTORY-DRAFT.md:109 "Calorie headline is blank"); and the
+  coach's C-12 "Answer, no calorie band" (states-coach.js:279), with T-19's status-line words.
+- New strings (approved under DECISIONS:980): today-app.cjs "Estimate: ", "Estimate: about ", "Log food for ",
+  "Weigh in ", " and weigh in ", " more day", " more days", " more time", " more times", " to measure yours." and
+  " today. Your calorie range is an estimate for now."; coach-intents.cjs "Estimate: eat between ", "Estimate: eat
+  about " and the same gate words (not copy-locked). The copy lock re-measures for exactly these and
+  the estimate's own " to " and " kcal" (CL-NUTRI1-DELTA, CL-NUTRI1-APPROVAL citing DECISIONS:980; corpus a4374f49 ->
+  e8193158).
+- Pins and needles, measured: s10-copy-lock 31 -> 33 (CL-NUTRI1-DELTA, CL-NUTRI1-APPROVAL), today-17 858 -> 860
+  expected (problem.test N1-GATE, N1-CARD; observed at the PM seat); s12-look 81 unchanged (C-UI-2 R3 and C-UI-3 T-40
+  gain rows inside existing cells); the writer fence unchanged
+  (417); PAGE_PINS unchanged. The coach suite gains PC-12 (400 -> 401 here, without the seat-only
+  engine-revision-gap file).
+- Red first: on aa81776's sources (today-app.cjs, today-model.cjs, read-tools.cjs, coach-intents.cjs, the copy-lock
+  corpus) 7 rows fail and pass on these: problem.test.mjs N1-GATE and N1-CARD, page-coach.test.cjs PC-12, copy-lock
+  CL-PIN and CL-NUTRI1-DELTA, look-cui2.test.mjs C-UI-2 R3 (the status line) and look-cui3.test.mjs C-UI-3 T-40.
+- At the builder seat: the today batch 659/680 (the same 21 seat-only build failures), the fences batch 2208/2210
+  (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 33/33, the coach
+  suite 401/401 without the seat-only engine-revision-gap file, the estimate probe (38 of 38: the estimate title, one
+  figure and a band, and its line inside the food card, unclipped, at 390 and 430, a measured world the control), the week probe (42 of 42),
+  the 76 layout invariants, the deployed-shell probe (24 of 24), the foot probe (44 of 44), the coach-screen probe
+  (46 of 46) and the quiet-link rhythm probe (6 of 6).
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 (the polish's CL-COACH-POLISH-DELTA
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
 polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

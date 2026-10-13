@@ -42,6 +42,14 @@ function createReadTools(world) {
       day: tagged(turn_id, "today-model.read.today", view.today, "date", view.today),
       kcalLo: num(turn_id, "energy.calorieTarget.lo", cal?.lo, "kcal"),
       kcalHi: num(turn_id, "energy.calorieTarget.hi", cal?.hi, "kcal"),
+      /* NUTRI 1 (owner ruling 2026-10-13, "Labelled estimate"): whether that band is the engine's own labelled
+         estimate (gated, from "mass-estimate"), and what will make it measured, in the counts today-model.cjs
+         calorieGateOf reads off the engine's own gate inputs: days with calories logged ("day") and weigh-ins, said
+         as "times" (the kernel's unknownNoun, singular for one). */
+      kcalEstimate: tagged(turn_id, "energy.calorieTarget.from", !!(cal && cal.gated === true && cal.from === "mass-estimate"), "flag", ""),
+      foodDaysLeft: num(turn_id, "today-model.calorieGate.foodLeft", view.calorieGate ? view.calorieGate.foodLeft : null, "day"),
+      weighInsLeft: num(turn_id, "today-model.calorieGate.weighLeft", view.calorieGate ? view.calorieGate.weighLeft : null,
+        K.unknownNoun(view.calorieGate && view.calorieGate.weighLeft === 1 ? "time" : "times")),
       proteinG: num(turn_id, "energy.proteinTarget.g", pro?.g, "g"),
       statusWord: text(turn_id, "today.statusFace.word", view.statusFace.word),
       statusCause: text(turn_id, "today.statusFace.cause", view.statusFace.cause),

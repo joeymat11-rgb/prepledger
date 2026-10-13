@@ -3912,3 +3912,90 @@ test('S10 S-R33 - a PLAIN options object: the accepted acquisition counts and th
   assert.deepEqual(boot, { workout: 1, checkin: 1, setup: 1, installation: 1, setupFirst: 1, food: 1, sleep: 2 },
     'the boot acquisition counts moved from the accepted ones (S-R33: sleep twice, the rest once)');
 });
+
+/* NUTRI 1 (owner ruling 2026-10-13, "Labelled estimate": "show the estimated range now, clearly marked Estimate;
+   switches to your measured range once you've logged enough; no change to how the calories are calculated").
+   N1-GATE: the counts the line says are the engine's own gate inputs, and they are EXACT: over the fixture athlete
+   through the page's own engine, adding exactly the days and weigh-ins left turns the engine's band measured, and one
+   fewer leaves it gated. Every value is invented (rebuild/m3/w7-preview/fixtures.cjs). */
+const n1Trim = (base, keepFood, keepReads) => {
+  const state = structuredClone(base);
+  const days = Object.keys(base.dailyLogs).sort();
+  for (const d of days.slice(0, days.length - keepFood)) delete state.dailyLogs[d];
+  state.reads = base.reads.slice(-keepReads);
+  return state;
+};
+test('N1-GATE - the counts are the engine gate inputs, exactly: adding what is left makes the engine band measured, one fewer does not', () => {
+  const { createBasisState, calorieGateOf, MEASURE_FOOD_DAYS, MEASURE_WEIGH_INS } = TodayModel;
+  const E = createTodayModel({ today: DAY }).engine;
+  const base = createBasisState(DAY);
+  assert.equal(E.calorieTarget(base).gated, false, 'fixture: the fixture athlete is measured');
+  for (const [keepFood, keepReads] of [[0, 28], [3, 28], [7, 28], [8, 6], [0, 9], [5, 9], [7, 9]]) {
+    const s = n1Trim(base, keepFood, keepReads);
+    const target = E.calorieTarget(s);
+    const label = keepFood + ' food days, ' + keepReads + ' weigh-ins';
+    assert.deepEqual([target.gated, target.from], [true, 'mass-estimate'], label + ': gated, the engine\'s labelled estimate');
+    const gate = calorieGateOf(E, s, target);
+    assert.deepEqual([gate.foodLeft, gate.weighLeft], [Math.max(0, MEASURE_FOOD_DAYS - keepFood),
+      keepReads >= MEASURE_WEIGH_INS ? 0 : MEASURE_WEIGH_INS - keepReads], label);
+    const enough = n1Trim(base, keepFood + gate.foodLeft, keepReads + gate.weighLeft);
+    assert.equal(E.calorieTarget(enough).gated, false, label + ': exactly what is left makes it measured');
+    if (gate.foodLeft > 0) assert.equal(E.calorieTarget(n1Trim(base, keepFood + gate.foodLeft - 1, keepReads + gate.weighLeft)).gated, true, label + ': one food day fewer is still gated');
+    if (gate.weighLeft > 0) assert.equal(E.calorieTarget(n1Trim(base, keepFood + gate.foodLeft, keepReads + gate.weighLeft - 1)).gated, true, label + ': one weigh-in fewer is still gated');
+  }
+  assert.equal(calorieGateOf(E, base, E.calorieTarget(base)), null, 'a measured band has no gate line');
+  assert.equal(calorieGateOf(E, base, { gated: true }), null, 'a gated band that is not the labelled estimate has none either');
+});
+
+/* N1-CARD: the food card, while the band is gated, says the engine's labelled estimate, marked Estimate, its figures
+   the engine's own lo and hi, and on the line under it what will make it measured, moving as the counts move; a
+   measured band reads exactly as before; the nutrition screen says the same estimate. Red first: on aa81776 the card
+   says "A calorie range is not available yet." whatever the engine holds. */
+test('N1-CARD - the food card shows the engine estimate, marked Estimate, and what will measure it; a measured band reads as before', () => {
+  const base = TodayModel.createBasisState(DAY);
+  const fmt = (n) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
+  const card = (state) => {
+    const model = createTodayModel({ today: DAY, basisState: state });
+    const doc = new JSDOM(shell()).window.document;
+    const api = mountToday(doc, model, {});
+    const slot = (name) => doc.querySelector('[data-slot="' + name + '"]');
+    const out = { target: model.read().calorieTarget, title: slot('eat-title').textContent,
+      note: slot('kcal-note').hidden ? null : slot('kcal-note').textContent, phone: doc.getElementById('phone').textContent,
+      status: slot('status-line').textContent };
+    api.render('nutrition', false);
+    out.energy = [...doc.querySelectorAll('.macro-row')].map((row) => row.textContent).find((t) => t.startsWith('Energy')) || null;
+    api.dispose();
+    return out;
+  };
+  for (const [keepFood, keepReads, line] of [[0, 28, 'Log food for 8 more days to measure yours.'], [5, 28, 'Log food for 3 more days to measure yours.'],
+    [7, 28, 'Log food for 1 more day to measure yours.'], [0, 6, 'Log food for 8 more days and weigh in 4 more times to measure yours.'],
+    [7, 9, 'Log food for 1 more day and weigh in 1 more time to measure yours.'], [8, 9, 'Weigh in 1 more time to measure yours.']]) {
+    /* both the fixture's own weight (its two ends one figure, the engine's floor binding both: "about", PM ruling on N1)
+       and a heavier one (a band with width) */
+    for (const trend of [base.trend, 230]) {
+      const state = n1Trim(base, keepFood, keepReads);
+      state.trend = trend;
+      const got = card(state);
+      assert.deepEqual([got.target.gated, got.target.from], [true, 'mass-estimate'], 'fixture');
+      const said = fmt(got.target.lo) === fmt(got.target.hi) ? 'Estimate: about ' + fmt(got.target.lo) + ' kcal'
+        : 'Estimate: ' + fmt(got.target.lo) + ' to ' + fmt(got.target.hi) + ' kcal';
+      assert.equal(got.title, said, trend + ': the engine\'s own band, marked Estimate');
+      assert.equal(got.note, line, keepFood + '/' + keepReads + ': what will make it measured');
+      assert.equal(got.phone.includes('A calorie range is not available yet.'), false, 'the card no longer says no range');
+      /* the status line (look-cui2 C-UI-2 R3 and look-cui3 hold its DECISIONS:980 words state by state; on this
+         preview mount the fixture's open card stands ahead of it, T-40) never says there is no range beside an estimate */
+      assert.doesNotMatch(got.status, /not available yet/, 'the status line does not contradict the card: ' + got.status);
+      assert(got.energy && got.energy.includes(said), 'the nutrition screen says the same: ' + got.energy);
+    }
+  }
+  /* the two forms really are both drawn: the fixture's weight is one figure, the heavier one a band */
+  const one = n1Trim(base, 0, 28), wide = n1Trim(base, 0, 28);
+  wide.trend = 230;
+  assert.match(card(one).title, /^Estimate: about [\d,]+ kcal$/, 'one figure');
+  assert.match(card(wide).title, /^Estimate: [\d,]+ to [\d,]+ kcal$/, 'a band');
+  const measured = card(base);
+  assert.equal(measured.target.gated, false);
+  assert.match(measured.title, /^Eat about /, 'measured: the headline as before');
+  assert.equal(measured.note, TodayApp.calorieBand(measured.target), 'measured: the band line as before');
+  assert.doesNotMatch(measured.phone, /Estimate|to measure yours/, 'measured: no estimate, no count');
+});

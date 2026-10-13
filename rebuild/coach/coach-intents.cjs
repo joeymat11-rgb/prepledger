@@ -428,6 +428,19 @@ const PLAIN = Object.freeze({
   calories: "Eat between ",
   caloriesAnd: " and ",
   caloriesTail: " calories.",
+  /* NUTRI 1 (owner ruling 2026-10-13, "Labelled estimate"): the engine's labelled estimate, marked as one, and what
+     will make it measured, in the words Today's food card says it (today-app.cjs CALORIE_GATE). Approved under
+     DECISIONS:980, which supersedes C-12 for the gated state. */
+  caloriesEstimate: "Estimate: eat between ",
+  caloriesEstimateOne: "Estimate: eat about ",   /* both ends one figure (PM ruling on N1); approved under DECISIONS:980 */
+  gateFood: "Log food for ",
+  gateWeigh: "Weigh in ",
+  gateAndWeigh: " and weigh in ",
+  gateDay: " more day",
+  gateDays: " more days",
+  gateTime: " more time",
+  gateTimes: " more times",
+  gateTail: " to measure yours.",
   protein: "Protein: at least ",
   proteinTail: " grams.",
   /* "Why this weight?" */
@@ -540,6 +553,19 @@ function whyLines(lifts, earlierOf = () => null) {
   return [...groups].map(([after, names]) => names.join(", ") + after);
 }
 const planned = (v) => !!(v && flag(v.available) && Array.isArray(v.lifts) && v.lifts.length);
+/* NUTRI 1: "Log food for 8 more days and weigh in 10 more times to measure yours.", each count a tagged tool result
+   of the turn in the word it is said in (days: "day"; weigh-ins: the kernel's unknownNoun "time" or "times"). */
+function gateLine(v) {
+  const food = has(v.foodDaysLeft) && v.foodDaysLeft.value > 0;
+  const weigh = has(v.weighInsLeft) && v.weighInsLeft.value > 0;
+  const days = () => d(v.foodDaysLeft, "day") + (v.foodDaysLeft.value === 1 ? PLAIN.gateDay : PLAIN.gateDays);
+  const times = () => (v.weighInsLeft.value === 1 ? d(v.weighInsLeft, T.unknownNoun("time")) + PLAIN.gateTime
+    : d(v.weighInsLeft, T.unknownNoun("times")) + PLAIN.gateTimes);
+  if (food && weigh) return PLAIN.gateFood + days() + PLAIN.gateAndWeigh + times() + PLAIN.gateTail;
+  if (food) return PLAIN.gateFood + days() + PLAIN.gateTail;
+  if (weigh) return PLAIN.gateWeigh + times() + PLAIN.gateTail;
+  return null;
+}
 
 /* Each page template takes the turn's results by tool name and returns the answer's lines, or null when a tool
    refused (the intent's PLAIN_REFUSALS sentence is said instead). */
@@ -551,7 +577,14 @@ const PAGE_TEMPLATES = Object.freeze({
     if (!s || !s.ok) return null;
     const lines = planned(s.values) ? [PLAIN.today + sessionTitle(s.values) + ".", ...s.values.lifts.map(targetLine)] : [PLAIN.noWorkout];
     const v = t && t.ok ? t.values : {};
-    if (has(v.kcalLo) && has(v.kcalHi)) lines.push(PLAIN.calories + d(v.kcalLo, "kcal") + PLAIN.caloriesAnd + d(v.kcalHi, "kcal") + PLAIN.caloriesTail);
+    if (has(v.kcalLo) && has(v.kcalHi)) {
+      /* NUTRI 1: the engine's labelled estimate is said as one, then what will make it measured */
+      const estimate = flag(v.kcalEstimate);
+      if (estimate && v.kcalLo.display === v.kcalHi.display) lines.push(PLAIN.caloriesEstimateOne + d(v.kcalLo, "kcal") + PLAIN.caloriesTail);
+      else lines.push((estimate ? PLAIN.caloriesEstimate : PLAIN.calories) + d(v.kcalLo, "kcal") + PLAIN.caloriesAnd + d(v.kcalHi, "kcal") + PLAIN.caloriesTail);
+      const gate = estimate ? gateLine(v) : null;
+      if (gate) lines.push(gate);
+    }
     if (has(v.proteinG)) lines.push(PLAIN.protein + d(v.proteinG, "g") + PLAIN.proteinTail);
     return lines;
   },

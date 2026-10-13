@@ -374,3 +374,53 @@ test("PC-11: the lifts are said in plan order, today's first, and the first week
   const settled = await createPageCoach(weekWorld("2026-10-12", {}, rows)).ask("week_review");
   assert.match(settled.lines[1].text, /All lifts held steady\.$/, "with history before the week, held steady is true");
 });
+
+/* PC-12 (NUTRI 1, owner ruling 2026-10-13, "Labelled estimate"): while the engine's band is gated it may be the engine's
+   own labelled estimate (energy.cjs calorieTarget, from "mass-estimate"); "What am I hitting today?" then says it as an
+   estimate and says what will make it measured, in the counts today-model.cjs calorieGateOf reads off the engine's own
+   gate inputs. Every number is a tool result of the turn: the counts are licensed only by the tags today_plan adds. A
+   measured band is said as before. Red first: on aa81776 the estimate is said as "Eat between ...", unmarked. */
+test("PC-12: What am I hitting today? says the engine's labelled estimate as one, and what will measure it, every number traced", async () => {
+  const Kernel = require("../tool-kernel.cjs");
+  const DAY = TodayModel.SYNTHETIC_DAY;
+  const base = TodayModel.createBasisState(DAY);
+  const days = Object.keys(base.dailyLogs).sort();
+  const world = (keepFood, keepReads, trend) => {
+    const state = structuredClone(base);
+    for (const d of days.slice(0, days.length - keepFood)) delete state.dailyLogs[d];
+    state.reads = state.reads.slice(-keepReads);
+    if (trend) state.trend = trend;   /* a heavier invented weight gives the estimate a band with width */
+    return TodayModel.createTodayModel({ today: DAY, basisState: state });
+  };
+  for (const [keepFood, keepReads, gate, trend] of [[5, 9, "Log food for 3 more days and weigh in 1 more time to measure yours."],
+    [7, 28, "Log food for 1 more day to measure yours."], [0, 6, "Log food for 8 more days and weigh in 4 more times to measure yours."],
+    [5, 9, "Log food for 3 more days and weigh in 1 more time to measure yours.", 230]]) {
+    const today = world(keepFood, keepReads, trend);
+    const cal = today.read().calorieTarget;
+    assert.deepEqual([cal.gated, cal.from], [true, "mass-estimate"], "fixture: the engine's labelled estimate");
+    const asked = await createPageCoach({ today }).ask("today_plan");
+    assert.equal(asked.shipped, true, asked.answer);
+    assert.deepEqual(asked.untraceable, [], "every number is a tool result of the turn");
+    const lines = asked.answer.split("\n");
+    /* both ends one figure (the engine's floor binding both): "about" (PM ruling on N1); else the band */
+    const said = cal.lo === cal.hi ? "Estimate: eat about " + cal.lo + " calories." : "Estimate: eat between " + cal.lo + " and " + cal.hi + " calories.";
+    assert.equal(trend ? cal.lo !== cal.hi : cal.lo === cal.hi, true, "fixture: both forms are asked");
+    assert(lines.includes(said), "the estimate, marked: " + asked.answer);
+    assert(lines.includes(gate), "what will measure it: " + asked.answer);
+    assert.equal(lines.some((line) => line.startsWith("Eat between ")), false, "never said as the measured band");
+    /* the counts are tool results: without today_plan's two count tags they are refused */
+    const stripped = asked.results.map((r) => (r.tool === "today_plan"
+      ? { ...r, values: { ...r.values, foodDaysLeft: null, weighInsLeft: null } } : r));
+    const counts = gate.match(/\d+/g);
+    assert.deepEqual(Kernel.untraceable(asked.answer, stripped, asked.turn_id).filter((t) => counts.includes(t)).sort(), counts.slice().sort(),
+      "each count is licensed only by its own tag");
+  }
+  /* measured: said exactly as before, with no estimate and no count */
+  const measured = TodayModel.createTodayModel({ today: DAY });
+  const mcal = measured.read().calorieTarget;
+  assert.equal(mcal.gated, false, "fixture: the fixture athlete's band is measured");
+  const plain = await createPageCoach({ today: measured }).ask("today_plan");
+  assert.equal(plain.shipped, true);
+  assert(plain.answer.split("\n").includes("Eat between " + mcal.lo + " and " + mcal.hi + " calories."), plain.answer);
+  assert.doesNotMatch(plain.answer, /Estimate|to measure yours/);
+});

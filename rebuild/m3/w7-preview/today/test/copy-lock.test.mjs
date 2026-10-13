@@ -80,7 +80,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // (CL-POLISH5-DELTA; the value before is PRE_POLISH5_CORPUS_SHA256, 0f7f06de...), including Fable's D1 pieces.
 // Polish 6 (ui-pass12): re-measured for exactly one more piece, the board's T-03 status line (CL-POLISH6-DELTA; the value
 // before is PRE_POLISH6_CORPUS_SHA256, e63812ae...).
-const CORPUS_SHA256 = 'a4374f49ba1d6fc625be85bfa9c9a753e821edd7f1aef5822f705b52cb09f60c';
+// Nutri 1 (the owner's labelled estimate): re-measured for exactly the estimate band and its gate line (CL-NUTRI1-DELTA;
+// the value before is PRE_NUTRI1_CORPUS_SHA256, a4374f49...).
+const CORPUS_SHA256 = 'e8193158be573082b5c2a8ba737a472971d12a658b09e4560654eb3437ed0b97';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -596,6 +598,58 @@ const POLISH_COPY_APPROVAL = 'DECISIONS:913';
 const PRE_SEAT_CORPUS_SHA256 = '218da3dc82a04fca3d958679b7896093cc77a36497e15bdc4b2b5980223bedde';
 const SEAT_NEW = Object.freeze([["Where's my seat set?", CV1_LIVE, []]]);
 const SEAT_COPY_APPROVAL = 'DECISIONS:913';
+/* Nutri 1 (owner ruling 2026-10-13, "Labelled estimate"): the food card's estimate band and its gate line
+   (today-app.cjs CALORIE_ESTIMATE, CALORIE_GATE), and the estimate's " to " and " kcal" (calorieEstimate) as one more
+   owner count each (two, with the one-figure form), the one-figure estimate and the status line's estimate words.
+   beforeNutri1 gives every older view the corpus as polish 6 sealed it (PRE_NUTRI1_CORPUS_SHA256), and beforePolish6
+   starts from that view. Approved under DECISIONS:980, the owner's ruling, which supersedes N05, T-19's title and
+   status-line words and C-12 for the gated state. */
+const PRE_NUTRI1_CORPUS_SHA256 = 'a4374f49ba1d6fc625be85bfa9c9a753e821edd7f1aef5822f705b52cb09f60c';
+const N1_APP = { [T + '/today-app.cjs']: 1 };
+const NUTRI1_NEW = Object.freeze([
+  ['Estimate: ', N1_APP, []], ['Log food for ', N1_APP, []], ['Weigh in ', N1_APP, []], [' and weigh in ', N1_APP, []],
+  [' more day', N1_APP, []], [' more days', N1_APP, []], [' more time', N1_APP, []], [' more times', N1_APP, []],
+  [' to measure yours.', N1_APP, []],
+  /* DECISIONS:980 (PM rulings on N1): the one-figure estimate, and the status line's words for the estimate */
+  ['Estimate: about ', N1_APP, []], [' today. Your calorie range is an estimate for now.', N1_APP, []],
+]);
+const NUTRI1_CHANGED = Object.freeze([
+  [' kcal', { [T + '/today-app.cjs']: 2 }, { [T + '/today-app.cjs']: 4 }],
+  [' to ', { [T + '/today-app.cjs']: 1, [T + '/today-model.cjs']: 2 }, { [T + '/today-app.cjs']: 2, [T + '/today-model.cjs']: 2 }],
+]);
+const NUTRI1_COPY_APPROVAL = 'DECISIONS:980';
+function beforeNutri1(corpus) {
+  const added = new Set(NUTRI1_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
+    const row = NUTRI1_CHANGED.find(([text]) => text === e.text);
+    return row ? { ...e, files: sortedFiles(row[1]) } : e;
+  }) };
+}
+test('CL-NUTRI1-DELTA: the corpus is the polish 6 corpus plus exactly the estimate band and its gate line, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of NUTRI1_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-NUTRI1-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text, , now] of NUTRI1_CHANGED) {
+    const want = { text, files: sortedFiles(now), lists: [] };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-NUTRI1-DELTA CHANGED ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforeNutri1(corpus)), 'utf8'));
+  if (before !== PRE_NUTRI1_CORPUS_SHA256) failed.push('CL-NUTRI1-DELTA PRE-NUTRI1-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the polish 6 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-NUTRI1-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeNutri1(moved)), 'utf8')) === PRE_NUTRI1_CORPUS_SHA256) failed.push('CL-NUTRI1-DELTA PRE-NUTRI1-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-NUTRI1-DELTA');
+});
+test('CL-NUTRI1-APPROVAL: the nutri 1 copy delta names the ledger line that approves it', () => {
+  assert.match(NUTRI1_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-NUTRI1-APPROVAL-PENDING: the nutri 1 copy is not approved');
+});
 /* Polish 6 (PM, ui-pass12, item 1): exactly one more piece, the board's own T-03 status line (app/states-today.js T-03,
    the C-UI-2 status-line words, DECISIONS:820 (2)), owned by today-app.cjs's status-line block and said while an
    enrolled device's adoption has not settled, and declared in design.cjs RUNTIME_COPY (Fable D1). beforePolish6 gives every older view the corpus as polish 5 sealed it
@@ -607,6 +661,7 @@ const POLISH6_NEW = Object.freeze([
 ]);
 const POLISH6_COPY_APPROVAL = 'DECISIONS:820';
 function beforePolish6(corpus) {
+  corpus = beforeNutri1(corpus);   /* nutri 1 stands on top of polish 6 */
   const added = new Set(POLISH6_NEW.map(([text]) => text));
   return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)) };
 }

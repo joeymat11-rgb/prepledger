@@ -289,14 +289,48 @@ function sessionPlanOf(E, state, day) {
   return { available: true, code: null, name: session.name || null, exercises };
 }
 
+/* NUTRI 1 (owner ruling 2026-10-13, "Labelled estimate": "show the estimated range now, clearly marked Estimate;
+   switches to your measured range once you've logged enough; no change to how the calories are calculated").
+   WHAT THE MEASURED RANGE IS WAITING FOR, counted off the engine's OWN gate inputs with the engine's OWN filters, so
+   the line Today and the coach say moves as he logs. Nothing here prices a calorie: the band is the engine's
+   (energy.cjs calorieTarget, its labelled "mass-estimate" branch while gated), and this only counts what the gate in
+   front of the measured branch reads:
+   - weigh-ins: currentRate's regression needs 10 of the last 28 readings that are not sealed, not off-window and
+     carry a weight (energy.cjs:229-230); the engine's own currentRate says whether that is met;
+   - food days: observedTDEE needs 8 days with calories logged, inside the rate's own window, or else since 21 days
+     ago (energy.cjs:392-404: `if (rows.length < 8)` falls back to the 21-day window, then `cals.length < 8`).
+   A blackout (observedTDEE's first line, energy.cjs:370) is a wait no logging shortens, so it says no count. Returns
+   null when the band is not the engine's labelled estimate. The counts are cross-checked against the engine itself
+   (problem.test.mjs N1-GATE): adding exactly the days and weigh-ins left turns the engine's band measured. */
+const MEASURE_WEIGH_INS = 10;   /* energy.cjs:229-230 `.slice(-28)`, `if (reads.length >= 10)` */
+const MEASURE_FOOD_DAYS = 8;    /* energy.cjs:401-404 `if (rows.length < 8)`, `if (cals.length < 8) return null` */
+function calorieGateOf(E, state, target) {
+  if (!target || target.gated !== true || target.from !== "mass-estimate") return null;
+  if (state && state.blackout && E.daysUntil(state.blackout.until) > 0) return null;
+  const rate = E.currentRate(state);
+  const reads = (state.reads || []).filter((r) => r && !r.sealed && !r.offWindow && r.w != null).slice(-28).length;
+  const weighIns = reads;
+  const fallback = E.isoOf(new Date(E.todayStart().getTime() - 21 * 86400000));
+  const logged = (from, to) => Object.entries(state.dailyLogs || {})
+    .filter(([d, v]) => d >= from && (to === null || d <= to) && v && v.cal != null).length;
+  const inWindow = rate && rate.measured && rate.from && rate.to ? logged(rate.from, rate.to) : 0;
+  const foodDays = inWindow >= MEASURE_FOOD_DAYS ? inWindow : logged(fallback, null);
+  return {
+    foodDays, foodNeed: MEASURE_FOOD_DAYS, foodLeft: Math.max(0, MEASURE_FOOD_DAYS - foodDays),
+    weighIns, weighNeed: MEASURE_WEIGH_INS, weighLeft: rate && rate.measured ? 0 : Math.max(0, MEASURE_WEIGH_INS - weighIns),
+  };
+}
+
 function projectionOf(E, state) {
   const nowModel = E.nowModel(state);
   const move = planMove(E, state, nowModel);
+  const calorieTarget = E.calorieTarget(state);
   return {
     nowModel: move === nowModel.move ? nowModel : { ...nowModel, move },
     statusFace: E.statusFace(state),
     currentRate: E.currentRate(state),
-    calorieTarget: E.calorieTarget(state),
+    calorieTarget,
+    calorieGate: calorieGateOf(E, state, calorieTarget),
     proteinTarget: E.proteinTarget(state),
     marchingOrder: E.marchingOrder(state),
     readRecency: E.readRecency(state),
@@ -517,6 +551,7 @@ function createTodayModel(options = {}) {
        place. */
     if (pendingAdoption) {
       view.calorieTarget = { gated: true };
+      view.calorieGate = null;   /* NUTRI 1: no estimate and no count while his record is still opening */
       view.proteinTarget = { g: NaN };
       if (view.nowModel && view.nowModel.headed) {
         view.nowModel = { ...view.nowModel, headed: { ...view.nowModel.headed, weight: NaN } };
@@ -621,7 +656,7 @@ function createTodayModel(options = {}) {
 
 module.exports = {
   createTodayModel, createBasisState, previewClock, engineClockFor, projectionOf,
-  marchingOrderSentence,
+  marchingOrderSentence, calorieGateOf, MEASURE_FOOD_DAYS, MEASURE_WEIGH_INS,
   NO_STORE, NO_STORE_NOTE, STORE_NOTE,
   SYNTHETIC_DAY,
 };
