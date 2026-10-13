@@ -510,6 +510,13 @@ function sessionTitle(v) {
 function targetLine(ex) {
   const name = d(ex.name, "text");
   if (flag(ex.firstTime)) return name + PLAIN.firstTimeShort;
+  /* UI-PASS13 (item 2): when the set screen's own sets carry different loads, each set is said as it will be shown,
+     "Bench press: 3 sets, 10 reps at 95 lb, 10 reps at 100 lb, 9 reps at 100 lb." (read-tools.cjs setLoads) */
+  const perSet = (ex.setLoads || []).filter(has);
+  if (perSet.length > 1 && has(ex.sets) && perSet.length === (ex.reps || []).length && ex.reps.every(has)) {
+    return sentence(name + ": " + d(ex.sets, "set") + " sets, "
+      + perSet.map((load, k) => d(ex.reps[k], "rep") + PLAIN.reps + PLAIN.at + d(load, "lb") + " lb").join(", "));
+  }
   const reps = (ex.reps || []).filter(has);
   const same = reps.length > 0 && reps.every((r) => r.display === reps[0].display);
   const repWords = !reps.length ? "" : (same ? d(reps[0], "rep") : reps.map((r) => d(r, "rep")).join(", ")) + PLAIN.reps;

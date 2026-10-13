@@ -70,6 +70,18 @@ function createReadTools(world) {
      set and the top of the rep range as "rep", a numeric load as "lb"; a text load (a machine setting) is carried as
      text and a bodyweight marker as a flag. It writes nothing. */
   const BODYWEIGHT_KEYS = Object.freeze(["bw", "bodyweight"]);
+  /* UI-PASS13 (item 2; shot 04: "3 sets of 8 reps at 95 lb" for every lift while the set screen said 95 x 10). The
+     sets, reps and loads come from the SET SCREEN'S OWN SOURCE whenever the gym card holds one: the capture its own
+     read() prepared (gym-model.mjs prescriptions), lift by lift, set by set. The engine plan above stands on the Today
+     model's state, which carries no native workout history and no native-load spend, so its targets are not the card's
+     once a lift has history. The plan still names the session and each lift and carries the flags the "why" needs; with
+     no gym lane on this device (no store) it is the only source, and its figures are said as before. */
+  async function capturedSets() {
+    if (!gym || typeof gym.read !== "function" || typeof gym.prescriptions !== "function") return null;
+    try { await gym.read(); } catch (_) { return null; }
+    const rows = gym.prescriptions();
+    return Array.isArray(rows) && rows.length ? rows : null;
+  }
   async function today_session(_args, turn_id) {
     const plan = typeof today.sessionPlan === "function" ? today.sessionPlan() : null;
     if (!plan || plan.available !== true) {
@@ -82,22 +94,38 @@ function createReadTools(world) {
         lifts: [],
       }));
     }
+    const captured = await capturedSets();
     const exercises = plan.exercises.map((ex, i) => {
       const at = "today-model.sessionPlan.exercises[" + i + "]";
-      const textLoad = typeof ex.weight === "string" ? ex.weight.trim() : "";
+      const ci = captured ? captured.findIndex((row) => row && row.lift === ex.id) : -1;
+      const row = ci >= 0 ? captured[ci] : null;
+      const cat = "gym-model.prescriptions[" + ci + "]";
+      /* the capture's loads, set by set: one figure when every set carries the same one, each set's otherwise */
+      const loads = row ? row.sets.map((s) => s.load) : [];
+      const oneLoad = row && loads.length > 0 && loads.every((v) => typeof v === "number" && v === loads[0]) ? loads[0] : null;
+      const setting = row ? (row.sets.map((s) => s.setting).find((v) => typeof v === "string" && v.trim()) || "") : "";
+      const textLoad = row ? setting.trim() : typeof ex.weight === "string" ? ex.weight.trim() : "";
       const bodyweight = textLoad !== "" && BODYWEIGHT_KEYS.includes(textLoad.toLowerCase());
+      const numericLoad = row ? oneLoad : typeof ex.weight === "number" ? ex.weight : null;
       return Object.freeze({
         /* batch 2: the card's lift id, so "What did I do last time?" matches each lift to the gym card's last sets */
         id: tagged(turn_id, at + ".id (genSession card.id)", ex.id, "id", ""),
         name: text(turn_id, at + ".name (genSession card.n)", ex.name),
-        sets: num(turn_id, at + ".sets (genSession card.tgt length)", ex.sets, "set"),
-        reps: ex.reps.map((r, k) => num(turn_id, at + ".reps[" + k + "] (genSession card.tgt)", r, "rep")),
-        load: typeof ex.weight === "number" ? num(turn_id, at + ".weight (genSession card.w)", ex.weight, "lb")
+        sets: row ? num(turn_id, cat + ".sets length (capture slots)", row.sets.length, "set")
+          : num(turn_id, at + ".sets (genSession card.tgt length)", ex.sets, "set"),
+        reps: row ? row.sets.map((s, k) => num(turn_id, cat + ".sets[" + k + "].reps (capture reps cell)", s.reps, "rep"))
+          : ex.reps.map((r, k) => num(turn_id, at + ".reps[" + k + "] (genSession card.tgt)", r, "rep")),
+        load: typeof numericLoad === "number" ? num(turn_id, row ? cat + ".sets[0].load (capture load cell)" : at + ".weight (genSession card.w)", numericLoad, "lb")
           : blank(turn_id, at + ".weight", "lb", "no numeric load"),
-        textLoad: textLoad !== "" && !bodyweight ? text(turn_id, at + ".weight (genSession card.w, a setting)", textLoad)
+        /* the capture's per-set loads when they differ, so the line says each set as the set screen does */
+        setLoads: row && oneLoad === null && loads.length > 1 && loads.every((v) => typeof v === "number")
+          ? loads.map((v, k) => num(turn_id, cat + ".sets[" + k + "].load (capture load cell)", v, "lb")) : [],
+        textLoad: textLoad !== "" && !bodyweight ? text(turn_id, row ? cat + ".sets.setting (capture load cell, a setting)" : at + ".weight (genSession card.w, a setting)", textLoad)
           : blank(turn_id, at + ".weight", "text", "no text load"),
         bodyweight: tagged(turn_id, at + ".weight (bodyweight marker)", bodyweight, "flag", ""),
-        firstTime: tagged(turn_id, at + ".firstTime (genSession card.baselineAsk)", ex.firstTime === true, "flag", ""),
+        /* with the capture, a first time is what the set screen shows as one: no set carries a load or a setting */
+        firstTime: row ? tagged(turn_id, cat + ".sets (no load cell specified)", row.sets.every((s) => s.load === null && !s.setting), "flag", "")
+          : tagged(turn_id, at + ".firstTime (genSession card.baselineAsk)", ex.firstTime === true, "flag", ""),
         newWeight: tagged(turn_id, at + ".newWeight (genSession card.isDebutNow)", ex.newWeight === true, "flag", ""),
         held: tagged(turn_id, at + ".held (engine lift holdFlag)", ex.held === true, "flag", ""),
         repTop: num(turn_id, at + ".repTop (engine lift hi)", ex.repTop, "rep"),

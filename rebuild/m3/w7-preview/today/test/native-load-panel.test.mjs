@@ -2542,3 +2542,71 @@ test('P5-NL-VERBS: a new weight says Use 45 lb, an undo says Undo and is the qui
     'the undo button is drawn quieter: no fill, the line, the secondary text colour');
   entry.gymHost.close(); era.close();
 });
+
+/* UI-PASS13 item 2 (shot 04; live since coach batch 2): "What am I hitting today?" said "3 sets of 8 reps at 95 lb" for
+   every lift while the plan and the set screen said 95 x 10. ROOT CAUSE: the coach read the Today model's own
+   genSession (today-model.cjs sessionPlanOf), which stands on a state with no native workout history and no native-load
+   spend; the set screen reads the capture the gym card prepares over the gym host's projection, which has both. Now the
+   coach reads the gym card's own prepared slots (gym-model.mjs prescriptions). This cell ties the coach's line for EVERY
+   lift to the set screen's cells, on this file's real durable world: before any history (the two agree), after one
+   trained session (the targets move with history) and after an accepted next-weight offer (the load moves). Red first:
+   on f4bd98c's read-tools.cjs, gym-model.mjs and page-coach.cjs the second world fails (the coach says the engine's
+   reps). */
+const PageCoach = require('../../../../coach/page-coach.cjs');
+const cellOf = c => (c && c.state === 'specified' && typeof c.source_json === 'string' ? JSON.parse(c.source_json) : null);
+function setScreenLine(name, slots) {
+  const loads = slots.map(s => cellOf(s.load) && cellOf(s.load).value), reps = slots.map(s => cellOf(s.reps) && cellOf(s.reps).value);
+  const n = slots.length;
+  if (loads.every(l => l === loads[0])) {
+    const said = reps.every(r => r === reps[0]) ? String(reps[0]) : reps.join(', ');
+    return name + ': ' + n + (n === 1 ? ' set of ' : ' sets of ') + said + ' reps at ' + loads[0] + ' lb.';
+  }
+  return name + ': ' + n + ' sets, ' + slots.map((s, k) => reps[k] + ' reps at ' + loads[k] + ' lb').join(', ') + '.';
+}
+async function coachMatchesSetScreen(model, entry, day, label) {
+  const got = await PageCoach.createPageCoach({ today: model, gym: entry.gym }).ask('today_plan');
+  assert.ok(got.shipped === true && typeof got.answer === 'string', label + ': the coach answered: ' + JSON.stringify(got.answer));
+  const said = got.answer.split('\n');
+  const slots = await slotsOf(entry, day);
+  const lifts = [...new Set(slots.map(s => s.lift_lineage_id))];
+  assert.ok(lifts.length > 0, label + ': the set screen has lifts');
+  for (const lift of lifts) {
+    const mine = slots.filter(s => s.lift_lineage_id === lift);
+    for (const slot of mine) {
+      const load = cellOf(slot.load), reps = cellOf(slot.reps);
+      assert.ok(load && reps, label + ': ' + lift + ' carries a specified load and reps on the set screen');
+      assert.ok(prescriptionLine(slot).includes(String(load.value)) && prescriptionLine(slot).includes(String(reps.value)),
+        label + ': the set screen says ' + prescriptionLine(slot));
+    }
+    const name = model.sessionPlan().exercises.find(e => e.id === lift).name;
+    const line = said.find(l => l.startsWith(name + ':'));
+    assert.equal(line, setScreenLine(name, mine), label + ': the coach says ' + lift + ' as the set screen shows it');
+  }
+  return got;
+}
+test('UP13-COACH: "What am I hitting today?" says every lift exactly as the set screen shows it, before history, after it and after an accepted offer', async () => {
+  const fault = faultDatabase();
+  const era = await openTodayInstallation({ indexedDB: fault.indexedDB, crypto: webcrypto, day: D1 });
+  const one = await dayEntry(era, D1);
+  await coachMatchesSetScreen(one.model, one.entry, D1, 'D1, no history');
+  assert.equal((await train(one.entry)).finished.ok, true);
+  one.entry.gymHost.close();
+  const two = await dayEntry(era, D2);
+  const plan = two.model.sessionPlan().exercises.map(e => e.reps.join(','));
+  const screen = (await slotsOf(two.entry, D2)).map(s => cellOf(s.reps).value);
+  assert.notEqual(plan.join('|'), '', 'the engine-only plan is there to differ from');
+  await coachMatchesSetScreen(two.model, two.entry, D2, 'D2, after one session');
+  assert.ok(two.model.sessionPlan().exercises.some(e => !e.reps.every((r, k) => r === screen[k])),
+    'teeth: in this world the engine-only plan the coach used to read is NOT the set screen');
+  assert.equal((await train(two.entry)).finished.ok, true);
+  await two.entry.nativeLoad.settled();
+  await two.entry.nativeLoad.check();
+  const offer = two.entry.nativeLoad.view().offers.find(o => o.lift === 'demo-press');
+  assert.ok(offer, 'an offer for demo-press');
+  assert.equal((await two.entry.nativeLoad.accept(offer.proposalId)).acknowledged, true);
+  two.entry.gymHost.close();
+  const three = await dayEntry(era, D3);
+  await coachMatchesSetScreen(three.model, three.entry, D3, 'D3, after an accepted offer');
+  three.entry.gymHost.close();
+  era.close();
+});

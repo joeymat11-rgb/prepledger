@@ -164,7 +164,8 @@ const FOOD_SAVED = "Recorded today";
 const FOOD_CORRECTION = "Recording it again replaces today's figures.";
 const FOOD_REFUSED = "This intake could not be recorded on this device, and no part of it was recorded.";
 const FOOD_NO_TARGETS = "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.";
-const FOOD_NOT_PRESCRIBED = "Not prescribed. The engine issues no carbohydrate or fat target.";
+/* UI-PASS13 item 4 (PM's wording): plain, said once, and it never names the engine. */
+const FOOD_NOT_PRESCRIBED = "No carb or fat target; protein and calories are what count.";
 /* D2 ROUND 1 - A REFUSAL THE ATHLETE CAN ACT ON (finding 3), AND A DAY THE ENGINE
    CANNOT READ BACK (finding 1). Every refusal this screen shows now says three things:
    WHAT was refused, WHY in the words of whatever refused it, and WHAT TO DO next. The
@@ -1491,8 +1492,11 @@ function mountToday(doc, model, options = {}) {
       ["Energy", calorieHeadline(view.calorieTarget), "kcal", calorieEstimate(view.calorieTarget) || calorieBand(view.calorieTarget)],
       ["Protein", Number.isFinite(view.proteinTarget.g) ? amount(view.proteinTarget.g) : null, "g",
         "Your daily protein target."],
-      ["Carbohydrate", null, "g", "Not prescribed. The engine issues no carbohydrate target."],
-      ["Fat", null, "g", "Not prescribed. The engine issues no fat target."],
+      /* UI-PASS13 item 4 (shot 03): each row said "Not prescribed. The engine issues no ... target." and the screen's
+         note said it a third time. The two rows keep their "Not prescribed" figure and carry no sentence; the one plain
+         sentence, FOOD_NOT_PRESCRIBED, is said once, under them, and never names the engine. */
+      ["Carbohydrate", null, "g", null],
+      ["Fat", null, "g", FOOD_NOT_PRESCRIBED],
     ];
     for (const [label, value, unit, copy] of rows) {
       const row = doc.createElement("div");
@@ -1513,9 +1517,12 @@ function mountToday(doc, model, options = {}) {
         figure.append(big, u);
       }
       top.append(name, figure);
-      const note = doc.createElement("p");
-      note.textContent = plainOrDrop(copy, "macro-note");
-      row.append(top, note);
+      row.append(top);
+      if (copy) {
+        const note = doc.createElement("p");
+        note.textContent = plainOrDrop(copy, "macro-note");
+        row.append(note);
+      }
       host.append(row);
     }
     /* N1 - the entry, and the one sentence under it.
@@ -1550,7 +1557,10 @@ function mountToday(doc, model, options = {}) {
          and says why. The entry below still records - his intake is his fact, and the
          target is the engine's. This branch flips to the figures the moment the
          engine can produce them; nothing here has to change for it. */
-      put(map, "stub-note", view.blocked ? FOOD_NO_TARGETS : FOOD_NOT_PRESCRIBED);
+      /* UI-PASS13 item 4: the carbohydrate and fat sentence is said once, under the Fat row; this note says only what
+         is not already on the screen. */
+      if (view.blocked) put(map, "stub-note", FOOD_NO_TARGETS);
+      else { map.get("stub-note").textContent = ""; map.get("stub-note").hidden = true; }
       foodEntry(map);
     }
     wire(root);
@@ -2230,7 +2240,13 @@ function mountToday(doc, model, options = {}) {
      state, never a flag this page sets: with no lane it is A1's unwired marker, with a
      lane and nothing recorded it is silent, and with a recorded day it says so. */
   function nutritionState() {
-    if (!facade.foodLane()) { hooks.openFoodLane(); return NOT_WIRED; }
+    /* UI-PASS13 item 5: while the lane is still opening the marker says nothing, which is what it says once the lane
+       is open with nothing logged; "Not wired yet" is said only when no lane can open on this device (it used to flash
+       for about 120 ms at every boot). */
+    if (!facade.foodLane()) {
+      const opening = hooks.openFoodLane();
+      return opening && !facade.foodLaneFailure() ? "" : NOT_WIRED;
+    }
     const logged = typeof model.loggedFood === "function" ? model.loggedFood(model.today) : null;
     return logged && (logged.cal !== null || logged.pro !== null) ? FOOD_SAVED : "";
   }
@@ -2557,6 +2573,13 @@ function mountToday(doc, model, options = {}) {
              Today he saw before. */
           hooks.settleAdoption(adopting);
           render("today", true);
+          /* UI-PASS13 item 3 (shot 00; live since polish 6: Today stayed on "Your set targets are loading" with Start
+             held for minutes after "Start using Earned", until a reload). The polish 6 gate reads the chain's settle
+             (today-lanes.cjs settleAdoption flips it only after the whole chain answers), and the chain's own repaint
+             (workout.refresh) runs BEFORE that flip, so it still drew loading. At boot settleLoading (below) repaints
+             Today once the chain settles; this transition armed a NEW chain and nothing repainted after it. Now the
+             same repaint follows this chain too: the card is drawn from what it holds the moment the adoption settles. */
+          Promise.resolve(facade.ready()).then(() => settleLoading(), () => settleLoading());
           return facade.ready();
         } });
     }

@@ -472,8 +472,32 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
       sameLift: next.lift_lineage_id === current.lift_lineage_id };
   }
 
+  /* UI-PASS13 (item 2; shot 04: the coach said "3 sets of 8 reps at 95 lb" for every lift while the set screen said
+     95 x 10). Today's prescription for every lift, EXACTLY as the set screen reads it: the cells of the slots this card's
+     own last read() prepared (the capture of client.prepareWorkout, or the open session's continuation), lift by lift
+     in the session's order, set by set. The coach used to read the Today model's own genSession instead, which stands
+     on a state with no native workout history and no native-load spend, so its targets were not the card's. It prepares
+     nothing of its own and writes nothing; after a read with no prepared session (finished, blocked) it holds nothing. */
+  let lastSlots = null;
+  function prescriptions() {
+    if (!Array.isArray(lastSlots)) return null;
+    const lifts = [];
+    for (const slot of lastSlots) {
+      let lift = lifts.find(l => l.lift === slot.lift_lineage_id);
+      if (!lift) { lift = { lift: slot.lift_lineage_id, label: slot.label, sets: [] }; lifts.push(lift); }
+      const load = specified(slot.load), reps = specified(slot.reps);
+      lift.sets.push({
+        load: load && Number.isFinite(load.value) ? load.value : null,
+        setting: load && load.kind === 'configuration' && typeof load.configuration_key === 'string' ? load.configuration_key : null,
+        reps: reps && Number.isSafeInteger(reps.value) ? reps.value : null,
+        line: prescriptionLine(slot) });
+    }
+    return lifts;
+  }
+
   async function read() {
     const told = message; message = null;
+    lastSlots = null;
     /* S15 polish item 1: the title is read when the card reads (a function of the Today view), not frozen at
        boot, so a card rebased onto the athlete's own week names his session and not the preview's. */
     const base = { day, title: (typeof sessionTitle === 'function' ? sessionTitle() : sessionTitle) || null,
@@ -504,6 +528,7 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
       const unorderable = await orderRefusal();
       if (unorderable) { preparedId = null; return { ...base, phase: 'blocked', ...unorderable }; }
       preparedId = prepared.preparedId;
+      lastSlots = prepared.view.slots;
       readPrevious();
       const shape = slotsView(prepared.view.slots.map(slot => ({ ...slot, completion: null })), prepared.view);
       return { ...base, phase: 'ready', session: prepared.view.session, ...activeView(shape),
@@ -513,6 +538,7 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     const startId = open[0].start.operation.op_id;
     const resumed = await client.prepareWorkoutContinuation({ session_start_op_id: startId });
     if (!resumed.prepared) return { ...base, phase: 'blocked', ...refusalOf(resumed) };
+    lastSlots = resumed.view.slots;
     readPrevious();
     const shape = slotsView(resumed.view.slots, resumed.view.original);
     const done = resumed.view.slots.filter(slot => slot.completion).length;
@@ -776,7 +802,7 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
   }
 
   return Object.freeze({ read: readTracked, start, logSet, undo, finish, forget, closeUnfinished, rebase, holdForAdoption,
-    discardOpenedEmpty, weekSessions, lastTimes,
+    discardOpenedEmpty, weekSessions, lastTimes, prescriptions,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
     previous: () => previousByLift,
     /* P0-B r2 (review finding 4) - a LIVE getter, not a value captured at

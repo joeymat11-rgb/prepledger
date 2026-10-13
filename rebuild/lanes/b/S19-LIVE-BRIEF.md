@@ -633,17 +633,69 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   the 76 layout invariants, the deployed-shell probe (24 of 24), the foot probe (44 of 44), the coach-screen probe
   (46 of 46) and the quiet-link rhythm probe (6 of 6).
 
+## UI-pass13 fix-forward (PM, on f4bd98c, rebuild/c-nutri1)
+- ui-pass13 (the real built page, the synthetic 7-lift world) found five problems. Items 2 to 5 are fixed here; item 1
+  is held for its own engine package. No rebuild/engine file and none of the protected five; no sealed file
+  (today-readings.cjs, today-lanes.cjs and gym-settings-lane.mjs are untouched); today-entry.mjs and today-bindings.mjs
+  are untouched, so PAGE_PINS stand.
+- Item 1, the estimate never shows (HELD, not fixed). Measured on the page's own path (boot over a real store, the
+  in-page first run, one weigh-in): energy.cjs calorieTarget's mass-estimate branch returns its tdee and band but lo
+  and hi NaN, because calorieFloor(s).floor is NaN for an athlete with no lean-mass estimate yet and the branch takes
+  Math.max(floor, ...). Nutri 1's probe passed on the fixture athlete, whose floor is finite. The card, the status line
+  and the Energy row rightly refuse a non-finite band (calorieEstimate), so NUTRI 1'S ESTIMATE STAYS INERT, saying "not
+  available", until the engine floor fix lands in its own engine package (the owner authorised it at DECISIONS:982; it
+  is not in this batch); no engine file is changed here and nothing prices a calorie outside the engine. The
+  built-page cell (UP13-ESTIMATE: boot, first run, weigh-in, the estimate on the card, the status line and the Energy
+  row) is written and held outside the repository, red for exactly that reason.
+- Item 2, the coach's numbers (live since coach batch 2). "What am I hitting today?" said the Today model's own
+  genSession targets (today-model.cjs sessionPlan), which stand on a state with no native workout history and no
+  native-load spend, while the set screen says the capture the gym card prepares over the gym host's projection.
+  Measured on native-load-panel.test.mjs's own world: after one session the coach said 11, 10 reps against the set
+  screen's 12, 12, and after an accepted offer 40 lb against 45 lb. Now gym-model.mjs carries one more read,
+  prescriptions() (the cells of the slots its own last read() prepared; it prepares and writes nothing), page-coach.cjs
+  hands it to the coach (READS.gym + prescriptions), and read-tools.cjs today_session takes each lift's sets, reps,
+  loads and first-time flag from it, the engine plan naming the session and the lifts and standing alone only on a
+  device with no gym lane; coach-intents.cjs says unequal per-set loads set by set, in words it already had.
+- Item 3, Today stuck loading after "Start using Earned" (live since polish 6). The polish 6 gate reads the adoption
+  chain's settle, which today-lanes.cjs flips only after the whole chain answers, and the chain's own repaint runs
+  before that; at boot a repaint follows the settle (today-app.cjs settleLoading), and the setup-to-Today transition
+  armed a new chain with nothing after it. The transition now takes the same repaint after its own chain.
+- Item 4, the nutrition screen's carbohydrate and fat rows: the two rows keep their "Not prescribed" figure and carry
+  no sentence; one plain sentence, "No carb or fat target; protein and calories are what count." (today-app.cjs
+  FOOD_NOT_PRESCRIBED, design.cjs PREVIEW_RUNTIME_COPY, approved under DECISIONS:913 (5)), is said once, under Fat; the
+  three "The engine issues no ..." pieces are gone. A DEBT, recorded: FOOD_PLAN_UNWIRED ("... today's engine targets
+  ...") still says "engine" on the no-store path; view.test.mjs is pinned on disk by B-NTC (DECISIONS:144) and asserts
+  it, so it is left for now.
+- Item 5, the food card's marker said "Not wired yet" for about 120 ms at boot while the food lane opened. While the
+  lane opens it now says nothing, which is what it says once the lane is open with nothing logged (PM ruling); "Not
+  wired yet" is said only when no lane can open on this device.
+- Cells, each red first on f4bd98c's bytes of the files it names and green on these: native-load-panel.test.mjs
+  UP13-COACH (the coach's line for every lift equals the set screen's cells, before history, after a session and after
+  an accepted offer; red at the second world on f4bd98c's read-tools.cjs, gym-model.mjs, page-coach.cjs and
+  coach-intents.cjs); problem.test.mjs UP13-SETTLE (setup to Today with no reload and no render of the cell's own:
+  Start names his workout and is live; red on f4bd98c's today-app.cjs, the bar still loading); food.test.mjs
+  UP13-CARBFAT (the sentence once, under Fat, and no "engine" on the screen) and UP13-MARKER (nothing while the lane
+  opens, "Not wired yet" with no store). page-coach.test.cjs PC-5's fake gym card gains the new read (null: no
+  prepared slots), so its READS.gym equality holds; no assertion moves.
+- Copy lock: re-measured for exactly the one sentence in and the three out (CL-UP13-DELTA, CL-UP13-APPROVAL citing
+  DECISIONS:913; corpus e8193158 -> f95b7915); beforeUp13 is idempotent, as the chain's older views are.
+- Measured on the way: problem.test.mjs R5 ("enrolled after it") is intermittent on f4bd98c's own bytes (it failed in 2
+  of 3 full-file runs at the builder seat) and is not moved by this change.
+- Needles: today-17 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER; expected, observed at the PM seat)
+  and s10-copy-lock 33 -> 35 (CL-UP13-DELTA, CL-UP13-APPROVAL, measured).
+- At the builder seat: the today batch 665/686 (the four UP13 cells and the two copy-lock rows added; the same 21 seat-only build failures), the fences batch 2208/2210 (the same two seat-only failures, P-MEASURE (g) among them), the copy lock 35/35, and the coach suite 401/401 without the seat-only engine-revision-gap file.
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 (the polish's CL-COACH-POLISH-DELTA
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
 polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

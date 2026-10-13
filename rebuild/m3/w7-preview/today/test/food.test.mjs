@@ -1293,3 +1293,44 @@ test('D2.R2 - the new sentences are declared, dash free, and carry no figure', (
     assert.equal(/\d/.test(line), false, 'no invented figure: ' + line);
   }
 });
+
+/* UI-PASS13 item 4 (shot 03): the Carbohydrate and Fat rows each said "Not prescribed. The engine issues no ... target."
+   and the screen's note said it a third time. The rows keep their "Not prescribed" figure; the one plain sentence (the
+   PM's wording) is said once, under the Fat row, and no word on the screen names the engine. Red first: on f4bd98c's
+   today-app.cjs the sentence is not on the screen and "engine" is said three times. */
+test('UP13-CARBFAT - carbohydrate and fat: one plain sentence, said once, and never "engine"', async () => {
+  const kit = await device();
+  const page = screenOn({ model: createTodayModel({ today: DAY }), mount: { food: await laneOver(kit.host) } });
+  page.api.render('nutrition');
+  const rows = [...page.doc.querySelectorAll('.macro-row')];
+  assert.equal(FOOD_NOT_PRESCRIBED, 'No carb or fat target; protein and calories are what count.');
+  assert.equal(page.text().split(FOOD_NOT_PRESCRIBED).length - 1, 1, 'the sentence is said exactly once');
+  assert.equal(rows[2].querySelector('p'), null, 'the Carbohydrate row carries no sentence of its own');
+  assert.equal(rows[3].querySelector('p').textContent, FOOD_NOT_PRESCRIBED, 'the one sentence sits under the Fat row');
+  for (const row of rows.slice(2)) assert.match(row.textContent, /Not prescribed/, 'each row still says it in its figure');
+  assert.doesNotMatch(page.text(), /engine/i, 'no word on the screen names the engine');
+  kit.host.close();
+});
+
+/* UI-PASS13 item 5: the food card's marker said "Not wired yet" for about 120 ms at every boot, while the food lane was
+   still opening. While it opens the marker says nothing (what it says once the lane is open with nothing logged);
+   "Not wired yet" is only said when no lane can open on this device. Red first: on f4bd98c's today-app.cjs the first
+   frame over a real store says "Not wired yet". */
+test('UP13-MARKER - while the food lane opens the card says nothing, never "Not wired yet"; with no store it still says so', async () => {
+  const fault = faultDatabase();
+  const dom = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' });
+  Object.defineProperty(dom.window, 'indexedDB', { value: fault.indexedDB, configurable: true });
+  Object.defineProperty(dom.window, 'crypto', { value: webcrypto, configurable: true });
+  const doc = dom.window.document;
+  const api = mountToday(doc, createTodayModel({ today: DAY }), {});
+  const marker = () => doc.querySelector('#phone [data-slot="nutrition-state"]').textContent;
+  assert.notEqual(api.foodReady(), null, 'the lane is opening on this frame');
+  assert.equal(marker(), '', 'the first frame says nothing while the lane opens: ' + marker());
+  await api.foodReady();
+  api.render('today', false);
+  assert.equal(marker(), '', 'and nothing once it is open with nothing logged');
+  api.dispose();
+  const bare = screenOn();
+  assert.equal(bare.doc.querySelector('#phone [data-slot="nutrition-state"]').textContent, NOT_WIRED,
+    'a device with no store still says the entry cannot be wired here');
+});

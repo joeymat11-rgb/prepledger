@@ -1183,6 +1183,42 @@ test('P0C.1 - completing setup adopts his own state in place, exactly as a fresh
   booted.hosts.close();
 });
 
+/* UI-PASS13 item 3 (shot 00-tue-after-setup-stuck-loading; live since polish 6): right after "Start using Earned" on a
+   fresh device, Today stayed on "Your set targets are loading" with Start held for over 2.5 minutes, until a reload.
+   ROOT CAUSE: the polish 6 gate (workoutStillLoading) reads the adoption chain's settle, which today-lanes.cjs flips only
+   after the whole chain answers; the chain's own repaint (workout.refresh) runs before that flip and still draws loading.
+   At boot a repaint follows the chain's settle (today-app.cjs settleLoading); the setup-to-Today transition armed a new
+   chain and nothing repainted after it. Here nothing but the page itself paints: no reload, no render call of the
+   cell's own. Red first: on f4bd98c's today-app.cjs the bar still says the loading state (measured for 3 s). */
+test('UP13-SETTLE - right after "Start using Earned", Today settles to his workout with Start live, with no reload', async () => {
+  const fault = faultDatabase();
+  const dom = new JSDOM(shell());
+  const doc = dom.window.document;
+  const booted = await boot({ document: doc, today: P0B_DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  assert.equal(booted.setup.firstRun(), true, 'a fresh device');
+  booted.api.render('setup');
+  const model = booted.setup.setup;
+  model.setName('Joe-test');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const press = model.addExercise('U');
+  model.setExerciseField(press.key, 'n', 'Joe-test Bench Press');
+  model.chooseMg(press.key, 'chest');
+  model.setExerciseField(press.key, 'first', '20');
+  model.goto(6);
+  booted.api.render('setup');
+  doc.querySelector('#phone [data-slot="primary"]').click();
+  await landedOnToday(booted.api, 'the in-page first run');
+  await booted.api.ready;
+  const slot = (name) => doc.querySelector('#phone [data-slot="' + name + '"]');
+  const LOADING = 'Your set targets are loading';
+  for (let i = 0; i < 200 && slot('primary-label').textContent === LOADING; i += 1) await new Promise((r) => setTimeout(r, 5));
+  assert.equal(slot('primary-label').textContent, 'Start ' + booted.model.read().workout.title,
+    'Start names his workout once the adoption settles: ' + slot('primary-label').textContent);
+  assert.equal(slot('primary').disabled, false, 'and Start is live');
+  assert.match(slot('workout-count').textContent, /Your set targets are ready$/, 'the card is settled: ' + slot('workout-count').textContent);
+  booted.hosts.close();
+});
+
 test("P0C.2 + S12b R6 - the primary button's label names what it opens, before and after the weigh-in", async () => {
   /* S12b R6 (DECISIONS:915 (4); this cell pinned the P0-C gate, a primary that named and opened the weigh-in
      sheet while the weight was owed). The weigh-in no longer gates the workout. The law this cell keeps is

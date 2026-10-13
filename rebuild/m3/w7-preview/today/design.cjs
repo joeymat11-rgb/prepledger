@@ -326,7 +326,8 @@ const RUNTIME_COPY_CANDIDATES = Object.freeze([
   "Protein is recorded as a whole number of grams between 0 and 1000. Nothing was recorded.",
   "This intake could not be recorded on this device, and no part of it was recorded.",
   "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.",
-  "Not prescribed. The engine issues no carbohydrate or fat target.",
+  /* UI-PASS13 item 4 (the PM's wording): the carbohydrate and fat line, said once and without "engine" */
+  "No carb or fat target; protein and calories are what count.",
   /* D2 round 1 - the refusals the nutrition entry can now act on, and the day the
      engine could not read back. Preview-owned for the same reason as the rest. */
   "Your figures are still in the boxes above. Record them again, and if it keeps failing, report a problem from Today.",

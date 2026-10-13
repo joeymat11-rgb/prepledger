@@ -96,7 +96,9 @@ test("PC-5: the coach's world is read-only wrappers; no writer of the Today mode
   const today = spyWriters(Object.assign(Object.create(real), { read: () => real.read(), stateFromOps: () => real.stateFromOps(), today: real.today }));
   const gym = spyWriters({ read: async () => ({ phase: "ready", lift: { id: "x", label: "Lift", index: 1, count: 1 }, set: { position: 1, count: 1 },
     prescription: { line: "", effort: "", reason: [], setup: "" }, previous: null }),
-    weekSessions: async () => ({ ok: true, done: 1, dates: [] }), lastTimes: () => [] });
+    weekSessions: async () => ({ ok: true, done: 1, dates: [] }), lastTimes: () => [],
+    /* ui-pass13 item 2: the card's prepared slots, the set screen's own source (none prepared on this fake card) */
+    prescriptions: () => null });
   const checkin = spyWriters({ refresh: async () => {}, read: () => ({ day: real.today, recorded: null, note: "", recordedLines: [] }) });
   const held = readOnlyWorld({ today, gym, checkin });
   /* the seat read (PM ruling option A) adds `seats`, its one read */

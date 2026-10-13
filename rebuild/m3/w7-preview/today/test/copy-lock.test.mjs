@@ -82,7 +82,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // before is PRE_POLISH6_CORPUS_SHA256, e63812ae...).
 // Nutri 1 (the owner's labelled estimate): re-measured for exactly the estimate band and its gate line (CL-NUTRI1-DELTA;
 // the value before is PRE_NUTRI1_CORPUS_SHA256, a4374f49...).
-const CORPUS_SHA256 = 'e8193158be573082b5c2a8ba737a472971d12a658b09e4560654eb3437ed0b97';
+// UI-pass13 fix-forward: re-measured for exactly the nutrition screen's carbohydrate and fat wording, one sentence in
+// and three out (CL-UP13-DELTA; the value before is PRE_UP13_CORPUS_SHA256, e8193158...).
+const CORPUS_SHA256 = 'f95b7915202a30b5c851a97c2b4ce37e467c665c978a186f2bd66a23bea521ed';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -618,7 +620,56 @@ const NUTRI1_CHANGED = Object.freeze([
   [' to ', { [T + '/today-app.cjs']: 1, [T + '/today-model.cjs']: 2 }, { [T + '/today-app.cjs']: 2, [T + '/today-model.cjs']: 2 }],
 ]);
 const NUTRI1_COPY_APPROVAL = 'DECISIONS:980';
+/* UI-PASS13 (fix-forward on f4bd98c, item 4): the nutrition screen's carbohydrate and fat wording. One new piece, the
+   PM's own sentence, said once (today-app.cjs FOOD_NOT_PRESCRIBED, declared in design.cjs PREVIEW_RUNTIME_COPY), and
+   the three "engine issues no ..." pieces it replaces leave the corpus. No scanned file, owner count or mounted state
+   moves otherwise. beforeUp13 gives every older view the corpus as nutri 1 sealed it (PRE_UP13_CORPUS_SHA256), and
+   beforeNutri1 starts from that view. Approved under DECISIONS:913 (5) (PM ruling on the ui-pass13 fix-forward: short
+   plain copy under the owner's standing Yes). */
+const PRE_UP13_CORPUS_SHA256 = 'e8193158be573082b5c2a8ba737a472971d12a658b09e4560654eb3437ed0b97';
+const UP13_NEW = Object.freeze([
+  ['No carb or fat target; protein and calories are what count.', { [T + '/design.cjs']: 1, [T + '/today-app.cjs']: 1 }, ['PREVIEW_RUNTIME_COPY']],
+]);
+const UP13_REMOVED = Object.freeze([
+  ['Not prescribed. The engine issues no carbohydrate or fat target.', { [T + '/design.cjs']: 1, [T + '/today-app.cjs']: 1 }, ['PREVIEW_RUNTIME_COPY']],
+  ['Not prescribed. The engine issues no carbohydrate target.', { [T + '/today-app.cjs']: 1 }, []],
+  ['Not prescribed. The engine issues no fat target.', { [T + '/today-app.cjs']: 1 }, []],
+]);
+const UP13_COPY_APPROVAL = 'DECISIONS:913';
+const byEntryText = (a, b) => (a.text < b.text ? -1 : a.text > b.text ? 1 : 0);
+function beforeUp13(corpus) {
+  const added = new Set(UP13_NEW.map(([text]) => text));
+  /* IDEMPOTENT, as every older view is: s14View applies the whole chain to a view already taken back, so a piece is
+     put back only where it is not already there. */
+  const kept = corpus.entries.filter((e) => !added.has(e.text)), have = new Set(kept.map((e) => e.text));
+  const back = UP13_REMOVED.filter(([text]) => !have.has(text))
+    .map(([text, files, lists]) => ({ text, files: sortedFiles(files), lists: [...lists] }));
+  return { ...corpus, entries: [...kept, ...back].sort(byEntryText) };
+}
+test('CL-UP13-DELTA: the corpus is the nutri 1 corpus with exactly the carbohydrate and fat wording replaced, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of UP13_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-UP13-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text] of UP13_REMOVED) if (byText.has(text)) failed.push('CL-UP13-DELTA REMOVED ' + JSON.stringify(text) + ' is still locked');
+  const before = lock.sha256(Buffer.from(serialize(beforeUp13(corpus)), 'utf8'));
+  if (before !== PRE_UP13_CORPUS_SHA256) failed.push('CL-UP13-DELTA PRE-UP13-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the nutri 1 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-UP13-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeUp13(moved)), 'utf8')) === PRE_UP13_CORPUS_SHA256) failed.push('CL-UP13-DELTA PRE-UP13-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-UP13-DELTA');
+});
+test('CL-UP13-APPROVAL: the ui-pass13 copy delta names the ledger line that approves it', () => {
+  assert.match(UP13_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-UP13-APPROVAL-PENDING: the ui-pass13 copy is not approved');
+});
 function beforeNutri1(corpus) {
+  corpus = beforeUp13(corpus);   /* the ui-pass13 fix-forward stands on top of nutri 1 */
   const added = new Set(NUTRI1_NEW.map(([text]) => text));
   return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
     const row = NUTRI1_CHANGED.find(([text]) => text === e.text);

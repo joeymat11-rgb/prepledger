@@ -4622,6 +4622,16 @@
    "lists": []
   },
   {
+   "text": "No carb or fat target; protein and calories are what count.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
    "text": "No check-in was recorded for this date.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -4882,30 +4892,6 @@
   },
   {
    "text": "Not prescribed",
-   "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1
-   },
-   "lists": []
-  },
-  {
-   "text": "Not prescribed. The engine issues no carbohydrate or fat target.",
-   "files": {
-    "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1
-   },
-   "lists": [
-    "PREVIEW_RUNTIME_COPY"
-   ]
-  },
-  {
-   "text": "Not prescribed. The engine issues no carbohydrate target.",
-   "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1
-   },
-   "lists": []
-  },
-  {
-   "text": "Not prescribed. The engine issues no fat target.",
    "files": {
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },

@@ -34,10 +34,13 @@ const { ask, WEEK_WORDS } = require("./coach-intents.cjs");
    composes it, read-tools.cjs today_session). Batch 2 adds one more: the gym card's lastTimes() (every lift's "Last
    time" sets, read-tools.cjs last_times). The seat read adds one more, and only a read: the settings already saved for
    today's lifts, `seats.read(liftIds)` (today-entry.mjs seatSettings over the sealed gym lane's readSavedSettings, the
-   lane's own single store handle; read-tools.cjs seat_settings). */
+   lane's own single store handle; read-tools.cjs seat_settings).
+   UI-PASS13 (item 2) adds one more, and only a read: the gym card's prescriptions(), the cells of the slots its own
+   last read() prepared, so "What am I hitting today?" says each lift's sets exactly as the set screen shows them
+   (read-tools.cjs today_session). */
 const READS = Object.freeze({
   today: Object.freeze(["read", "stateFromOps", "plannedDays", "sessionPlan"]),
-  gym: Object.freeze(["read", "weekSessions", "lastTimes"]),
+  gym: Object.freeze(["read", "weekSessions", "lastTimes", "prescriptions"]),
   checkin: Object.freeze(["refresh", "read"]),
   week: Object.freeze(["lifts"]),
   seats: Object.freeze(["read"]),
