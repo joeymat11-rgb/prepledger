@@ -38,7 +38,13 @@ const ENTRIES = Object.freeze([
       + 'overwritten; malformed refuses LOCAL_SOURCE_DAILY_UNRESOLVED'}),
   /* N2 "LOG TODAY" (Part A, the steps lane): the page's steps producer writes ONE fact of the accepted class
      `steps` per save, profile earned/steps-day/v1. Until this entry a steps op of any shape fell to admission's
-     catch-all and refused LOCAL_SOURCE_DAILY_UNRESOLVED; F11 answers for the producer's own, by F2's rule. */
+     catch-all and refused LOCAL_SOURCE_DAILY_UNRESOLVED; F11 answers for the producer's own, by F2's rule.
+     WHAT EACH SIDE CHECKS (Fable's Part A debt D3): the producer's Steps.validate checks only the SHAPE of
+     effective.local_date (four, two and two digits); it does not read local_time or utc_offset. Admission checks those
+     for every operation before any family runs (source-admission.mjs, the loop over `rows` after prep.candidateState():
+     a local_time of HH:MM, a utc_offset of +HH:MM or -HH:MM, and that offset equal to the zone's own at that local
+     instant), and refuses LOCAL_SOURCE_CONTEXT_UNRESOLVED otherwise; it then refuses a local_date that is not a real
+     day or is after the day it stands on. */
   Object.freeze({module: 'rebuild/m3/w7-preview/today/steps-commands.cjs', class: 'steps',
     kinds: Object.freeze(['fact']), profiles: Object.freeze(['earned/steps-day/v1']),
     disposition: 'family', family: 'F11',
@@ -46,7 +52,9 @@ const ENTRIES = Object.freeze([
       + 'onto the replayed state through the page\'s own daily projector, after the food days, '
       + 'and a date the imported history already holds a count for is not overwritten and '
       + 'refuses LOCAL_SOURCE_DAILY_UNRESOLVED; earlier counts for a date are retained on record; '
-      + 'malformed refuses LOCAL_SOURCE_DAILY_UNRESOLVED'}),
+      + 'malformed refuses LOCAL_SOURCE_DAILY_UNRESOLVED. The producer\'s validate checks only the shape of '
+      + 'local_date; admission checks every operation\'s local_time and utc_offset (the offset must be the zone\'s own at '
+      + 'that instant) and refuses LOCAL_SOURCE_CONTEXT_UNRESOLVED'}),
   Object.freeze({module: 'rebuild/client/index.cjs', class: 'session',
     kinds: Object.freeze(['session-start', 'session-set', 'session-close',
       'session-relationship-resolution']), profiles: Object.freeze([]),

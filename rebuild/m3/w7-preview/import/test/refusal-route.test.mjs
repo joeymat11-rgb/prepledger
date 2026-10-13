@@ -524,3 +524,23 @@ test('P3-X11 - NO STALE "Working." BESIDE A REFUSAL: the note that said work '
     '"Working." is still on the screen after everything stopped: ' + textOf(doc));
   phone.close();
 });
+
+/* N2 "LOG TODAY" (Part B; Fable's Part A debt D1). A device step count that collides with one the imported history
+   already holds refuses the import LOCAL_SOURCE_DAILY_UNRESOLVED with the field `steps_day` and the phone's own
+   record's local date (source-admission.mjs; the admission half is local-source-admission.test.mjs
+   S3-Q-N2-STEPS-HELD). The screen says that day in plain words when the collision LEADS, and only for a real day.
+   No drop-the-day offer: a refusal here ends the work, retracts custody and returns to the first step, with no
+   per-issue action to hang one on. */
+test('N2B-D1 - a step-count collision names its day in plain words, and nothing else moves', () => {
+  assert.equal(Screen.dayWords('2026-09-03'), 'Thursday, September 3');
+  for (const bad of ['', '2026-02-30', '2026-9-3', null, undefined, 20260903])
+    assert.equal(Screen.dayWords(bad), null, 'not a real day: ' + String(bad));
+  assert.deepEqual(Screen.refusalLines('LOCAL_SOURCE_DAILY_UNRESOLVED', '', 'steps_day', '2026-09-03'),
+    ['LOCAL_SOURCE_DAILY_UNRESOLVED',
+      'This phone and this file both have a step count for Thursday, September 3. Nothing on this phone was changed.']);
+  assert.deepEqual(Screen.refusalLines('LOCAL_SOURCE_DAILY_UNRESOLVED', '', 'steps_day', 'not-a-day'),
+    ['LOCAL_SOURCE_DAILY_UNRESOLVED'], 'an unreal day falls through to the code, which has no sentence of its own');
+  assert.deepEqual(Screen.refusalLines('LOCAL_SOURCE_PROGRAMME_UNRESOLVED', 'athlete_label', 'athlete_label', '2026-09-03'),
+    Screen.refusalLines('LOCAL_SOURCE_PROGRAMME_UNRESOLVED', 'athlete_label', 'athlete_label'),
+    'a date beside any other leading field changes nothing');
+});

@@ -42,6 +42,9 @@ const FoodModel = require("./food-model.cjs");
 /* N2 (DECISIONS:167) - the sleep entry's refusal rules and the projector seam S2 needs,
    because the engine has no writer that appends a night. Pure: no DOM, no store. */
 const SleepModel = require("./sleep-model.cjs");
+/* N2 "LOG TODAY" (Part B) - the steps lane's pure half: its refusal codes and the box turned into the producer's day.
+   No store, no host and no engine: the lane itself is opened lazily below (openStepsLane), as N1's food lane was. */
+const StepsModel = require("./steps-model.cjs");
 /* THE SPLIT (spec B.1 to B.8, DECISIONS:550 S-R1). Every function that can put a row
    of the athlete's food, sleep or check-in log on disk is sealed in today-lanes.cjs;
    what comes back is two frozen objects. The require is at module level, once, and
@@ -276,6 +279,34 @@ const SLEEP_REFUSAL_COPY = Object.freeze({
   AWAKE: "Enter whole minutes awake within the time in bed.",
   HOURS: "Enter hours from 0 to 24, with up to two decimal places.",
   NIGHT_DATE: "Choose a completed night.",
+});
+
+/* N2 "LOG TODAY" (PM N2 brief, Part B; the owner's ruling, food logging in "Log today"). The card near the top of
+   Today and the one sheet behind it. Every word is preview-owned (design.cjs RUNTIME_COPY_CANDIDATES): the approved
+   board has no Log today card and no steps entry. Each of the five logs is named once; the card ticks the ones this
+   device holds for today, read from the durable record (logToday below), never from a flag this page sets. Words this
+   page already says are taken as they stand: "Sleep" (SLEEP_TITLE), the weigh-in's "Save" and "Saving", the board's
+   "Your weight" and "Your weight in pounds", "lb", and the sleep screen's "Open recovery check-in". steps-model.cjs
+   owns the steps RULE and names each refusal by code; the wording is this file's. */
+const LOG_TITLE = "Log today";
+const LOG_ITEMS = Object.freeze({ weight: "Weight", food: "Food", steps: "Steps", sleep: SLEEP_TITLE, checkin: "Check in" });
+const LOG_TICK = " \u2713";
+const LOG_JOIN = " \u00b7 ";
+const LOG_DONE = "Done";
+const LOG_FOOD_GO = "Enter food";
+const LOG_SLEEP_GO = "Enter sleep";
+const LOG_NOTHING_YET = "Nothing logged yet.";
+const STEPS_LABEL = "Steps today";
+const STEPS_SAVE = "Save steps";
+const STEPS_UNIT = " steps";
+const STEPS_NO_STORE = "Steps cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep them.";
+const STEPS_REFUSED = "These steps could not be recorded on this device, and nothing was recorded.";
+const STEPS_UNKNOWN = "Earned could not tell whether these steps were recorded on this device. They may have been kept and they may not.";
+const STEPS_SAVED_UNREAD = "Recorded on this device. Earned could not read today's record back just now.";
+/* One sentence per steps refusal code, and no code without one. */
+const STEPS_REFUSAL_COPY = Object.freeze({
+  NOTHING: "Enter today's steps. Nothing was recorded.",
+  STEPS_RANGE: "Steps are recorded as a whole number between 0 and 100000. Nothing was recorded.",
 });
 
 const PROBLEM_ENTRY = "Report a problem";
@@ -1137,19 +1168,21 @@ function mountToday(doc, model, options = {}) {
       bindWeighIn(map, false);
       /* S12b R6 (audit B6, the board's T-06): each card says NOT_AVAILABLE ONCE, on its title
          line, and draws no figure line under it; the trend link has no figure to name, so it is
-         not drawn; Sleep keeps its own label; Start, with nothing it could start and no label of
+         not drawn; Sleep keeps its own label (N2 Part B: the Sleep link is folded into the Log today card, which
+         is not drawn here); Start, with nothing it could start and no label of
          its own, stays disabled and is not drawn. No new words. */
       for (const name of ["eat-title", "workout-title", "morning", "primary-label"]) put(map, name, null);
       for (const name of ["protein-line", "kcal-note", "workout-count"]) map.get(name).hidden = true;
       map.get("trend").parentNode.hidden = true;
       map.get("why-plan").parentNode.hidden = true;   /* POLISH 5, item 8: the two rows that were one link */
-      put(map, "sleep-entry-label", SLEEP_TITLE);
       put(map, "nutrition-state", NOT_WIRED);
       /* S12b R7 (Fable REVIEW-S12B-R6 section 7): under a headline that already says nothing is shown,
          NOT_AVAILABLE is said ONCE, on the food card, which keeps its link to the nutrition plan; the
          morning and training cards, which would only repeat it, are not drawn, and the Recovery row
          says nothing rather than repeating it (written straight, as on a normal day with nothing recorded). */
       for (const id of ["card-weigh", "card-train"]) root.querySelector("#" + id).hidden = true;
+      /* N2 "LOG TODAY" (Part B): nothing is logged over a record that could not be trusted, so the card is not drawn. */
+      root.querySelector("#card-log").hidden = true;
       map.get("recovery-state").textContent = "";
       map.get("primary").disabled = true;
       map.get("primary").hidden = true;
@@ -1250,10 +1283,9 @@ function mountToday(doc, model, options = {}) {
     /* C-UI-2 round 3 (DECISIONS:820 (2), board #recovery, T-26): with nothing recorded the
        row carries the board's invitation; any durable fact replaces it (T-27, T-28). */
     map.get("recovery-prompt").hidden = map.get("recovery-state").textContent !== "";
-    /* N2 - Today's sleep entry and its one line. Written straight, like the other two:
-       a night this device holds nothing for says NOTHING rather than a placeholder. */
-    put(map, "sleep-entry-label", SLEEP_TITLE);
-    map.get("sleep-state").textContent = plainOrDrop(sleepState(), "sleep-state");
+    /* N2 "LOG TODAY" (Part B): the quiet Sleep link and its one line are FOLDED into the Log today card, which ticks
+       each of the day's five logs from the durable record and opens the one sheet (bindLogCard). */
+    bindLogCard(map, view);
     setupTile(map);
     const setupOwed = setupNote(map);
     const sample = sampleNote(map, root);
@@ -1375,6 +1407,13 @@ function mountToday(doc, model, options = {}) {
     wire(root);
     wire(stack);
     show(root, focus, stack);
+    /* N2 "LOG TODAY" (Part B): a repaint of Today while the sheet is open (a lane that opened, a save) paints the sheet
+       again over the new Today, with the new Today inert under it. */
+    if (logOpen) {
+      logOpen.pages = [root, stack];
+      for (const page of logOpen.pages) page.inert = true;
+      paintLogSheet(false);
+    }
     fitHeadline(phone, root);
     /* S12b R6: the fit measures text, so it is taken again once the page's two inlined faces
        are ready (their metrics, not a fallback's, decide the lines), on this frame only. */
@@ -1476,6 +1515,230 @@ function mountToday(doc, model, options = {}) {
     }
     wire(root);
     show(root, focus);
+  }
+
+  /* ---------------- N2 "LOG TODAY" (Part B): the steps lane, the card and the one sheet ----------------
+     THE STEPS LANE is opened HERE, lazily and FAILING CLOSED, for the reason N1's food lane was opened by this page and
+     not by boot(): today-entry.mjs and today-bindings.mjs are pinned, and today-lanes.cjs, which opens the food and
+     sleep lanes, is SEALED (S10), so no lane can be added there. There is NO injection point: a third read of the
+     mount's `options` is what B.3's one-handoff rule forbids (writer fence FENCE-OPTIONS-HELD), so the lane is always
+     the page's own, opened from the window's indexedDB and crypto. jsdom has neither, so every mount in this
+     repository says that this device has no store for steps, and records nothing; the suites that drive the lane
+     hand the jsdom window a real store before mounting, which is the page's own path end to end.
+     ONE DECLARED WRITE SITE (writer fence, TODAY_APP_DECLARED_SEAMS "stepsHost.save"): recordSteps below, called only
+     from the sheet's own Save listener. The weight in the sheet goes through the page's ONE weigh-in site
+     (submitWeighIn, unchanged); food, sleep and the check-in each open their own existing screen and writer. */
+  let stepsLane = null;
+  let stepsOpening = null;
+  let stepsFailure = null;
+  let stepsOwned = false;
+  let stepsNote = "";
+  let stepsSaving = null;
+  function stepsLaneOver(host, rows) {
+    let cache = rows;
+    return { host, rows: () => cache, async refresh() { cache = await host.all(); return cache; } };
+  }
+  /* Fable 4a010467 D3: A SIDE EFFECT OF PAINTING. Nothing calls this on purpose before the athlete asks: painting the Log
+     today card (bindLogCard -> logToday, on every paint of Today) opens the steps lane here when it is not open yet, and
+     opens the food lane through nutritionState() (and reads sleep through sleepState()), so the first paint of Today is
+     what opens both lanes. One attempt per mount, failing closed, as the food lane's own opening is. */
+  function openStepsLane() {
+    if (stepsLane || stepsOpening || stepsFailure) return stepsOpening;
+    const view = doc.defaultView || null;
+    const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
+    const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
+    if (!idb || !web || !web.subtle) { stepsFailure = "NO_LOCAL_STORE"; return null; }
+    stepsOpening = Promise.resolve()
+      .then(() => import("./steps-host.mjs"))
+      .then((module) => module.createStepsHost({ day: model.today, indexedDB: idb, crypto: web }))
+      .then(async (host) => {
+        if (disposed) { host.close(); return null; }
+        stepsLane = stepsLaneOver(host, await host.all());
+        stepsOwned = true;
+        model.setStepDays(stepsLane);
+        if (screen === "today") render("today", false);
+        return stepsLane;
+      })
+      .catch((error) => {
+        /* `stepsOpening` is LEFT SET, as the food lane's is: one attempt per mount. */
+        stepsLane = null;
+        stepsFailure = (error && (error.code || error.message)) || "STEPS_LANE_UNAVAILABLE";
+        if (screen === "today") render("today", false);
+        return null;
+      });
+    return stepsOpening;
+  }
+  /* What this device holds for TODAY, one flag per log, each read from the durable record the screen behind it reads:
+     the adopted morning reading, the projected food day, the winning steps op, the projected night (sleepState) and
+     the check-in lane's own summary. Opening the food and sleep lanes here is what Today's own lines did before. */
+  function logToday(view) {
+    const food = nutritionState();
+    const slept = sleepState();
+    const stepsRow = stepsLane ? model.recordedSteps(model.today) : (openStepsLane(), null);
+    return { weight: view.hasReadToday === true, food: food === FOOD_SAVED, steps: !!stepsRow,
+      sleep: slept !== "", checkin: recoveryState() === CHECKIN_RECORDED_TODAY, slept, stepsRow };
+  }
+  function bindLogCard(map, view) {
+    const done = logToday(view);
+    put(map, "log-title", LOG_TITLE);
+    map.get("log-ticks").textContent = plainOrDrop(Object.keys(LOG_ITEMS)
+      .map((key) => LOG_ITEMS[key] + (done[key] ? LOG_TICK : "")).join(LOG_JOIN), "log-ticks");
+    hooks.listen(map.get("log-entry"), "click", () => openLogToday());
+  }
+
+  /* THE SHEET: a dialog over Today in the weigh-in sheet's own look, Today inert under it. It is painted from the record
+     every time (a repaint of Today while it is open paints it again over the new Today), and it holds no state of its
+     own but the steps note below. */
+  let logOpen = null;
+  function openLogToday() {
+    if (logOpen || phone.querySelector('[role="dialog"]')) return;
+    const pages = [...phone.children];
+    for (const page of pages) page.inert = true;
+    logOpen = { pages, sheet: null };
+    paintLogSheet(true);
+  }
+  function closeLogToday(next) {
+    if (!logOpen) return null;
+    const { pages, sheet } = logOpen;
+    logOpen = null;
+    stepsNote = "";
+    if (sheet) sheet.remove();
+    for (const page of pages) page.inert = false;
+    if (next === "recovery") checkinOrigin = "today";
+    const shown = render(next || "today", !!next);
+    /* Fable 4a010467 D1: Done and Escape hand focus back to the card that opened the sheet, as the weigh-in sheet's own
+       close hands it back to what opened it; a row that opens another screen leaves focus to that screen. */
+    if (!next) {
+      const card = phone.querySelector("#card-log");
+      if (card && !card.hidden && card.isConnected) card.focus();
+    }
+    return shown;
+  }
+  function logRow(map, key, state) {
+    put(map, "log-" + key + "-label", LOG_ITEMS[key]);
+    map.get("log-" + key + "-state").textContent = plainOrDrop(state || LOG_NOTHING_YET, "log-" + key + "-state");
+  }
+  function paintLogSheet(focus) {
+    if (!logOpen || disposed) return;
+    const view = model.read();
+    const done = logToday(view);
+    const sheet = template("t-log");
+    const map = slots(sheet);
+    sheet.setAttribute("aria-label", LOG_TITLE);
+    put(map, "log-head", LOG_TITLE);
+
+    /* WEIGHT: recorded, the morning card's own line; owed, the board's field and Save, through submitWeighIn. */
+    const weighForm = map.get("log-weight-form");
+    const weighError = map.get("log-weight-error");
+    if (view.blocked || done.weight) {
+      logRow(map, "weight", view.blocked ? NOT_AVAILABLE : morningLine(view));
+      weighForm.remove();
+      weighError.remove();
+    } else {
+      logRow(map, "weight", null);
+      map.get("log-weight-state").hidden = true;
+      put(map, "log-weight-box-label", "Your weight in pounds");
+      const box = map.get("log-weight-box");
+      box.placeholder = plainOrDrop("Your weight", "log-weight-box");
+      put(map, "log-weight-unit", "lb");
+      const save = map.get("log-weight-save");
+      save.textContent = plainOrDrop(WEIGH_SAVE, "log-weight-save");
+      hooks.listen(weighForm, "submit", async (event) => {
+        event.preventDefault();
+        if (save.disabled) return;
+        save.disabled = true;
+        save.textContent = plainOrDrop(WEIGH_SAVING, "log-weight-save");
+        const raw = box.value.trim();
+        const result = await submitWeighIn(raw);
+        save.disabled = false;
+        save.textContent = plainOrDrop(WEIGH_SAVE, "log-weight-save");
+        if (!result.ok) {
+          weighError.textContent = plainOrDrop(result.copy || WEIGH_FAILED, "log-weight-error");
+          map.get("log-weight-field").classList.toggle("is-invalid", weighNamesTheField(raw, result.copy, model.OUT_OF_RANGE));
+          box.focus();
+          return;
+        }
+        paintLogSheet(false);
+      });
+    }
+
+    /* FOOD: what the projected day holds, and the nutrition screen, whose writer is the food lane's own. */
+    /* done.food is FOOD_SAVED from nutritionState(), which is only said when model.loggedFood answered a day. */
+    const food = done.food ? model.loggedFood(model.today) : null;
+    logRow(map, "food", food ? intakeLine(food) : nutritionState());
+    map.get("log-food-go").textContent = plainOrDrop(LOG_FOOD_GO, "log-food-go");
+    hooks.listen(map.get("log-food-go"), "click", () => closeLogToday("nutrition"));
+
+    /* STEPS: the winning count for today, and the one new entry. */
+    const stepsBox = map.get("log-steps-box");
+    const stepsSave = map.get("log-steps-save");
+    const stepsError = map.get("log-steps-error");
+    logRow(map, "steps", done.stepsRow ? amount(done.stepsRow.day.steps) + STEPS_UNIT
+      : stepsLane ? null : stepsFailure ? STEPS_NO_STORE : FOOD_OPENING);
+    if (!stepsLane) {
+      map.get("log-steps-entry").remove();
+      stepsSave.remove();
+      stepsError.remove();
+    } else {
+      put(map, "log-steps-box-label", STEPS_LABEL);
+      stepsSave.textContent = plainOrDrop(STEPS_SAVE, "log-steps-save");
+      stepsError.textContent = stepsNote ? plainOrDrop(stepsNote, "log-steps-error") : "";
+      hooks.listen(stepsSave, "click", () => { stepsSaving = recordSteps(stepsSave, stepsBox, stepsError); });
+    }
+
+    /* SLEEP: last night's hours as the projection holds them, and the sleep screen, whose writer is the sleep lane's. */
+    logRow(map, "sleep", done.slept);
+    map.get("log-sleep-go").textContent = plainOrDrop(LOG_SLEEP_GO, "log-sleep-go");
+    hooks.listen(map.get("log-sleep-go"), "click", () => closeLogToday("sleep"));
+
+    /* CHECK IN: the check-in lane's own summary, and the recovery screen, whose writer is the check-in's. */
+    logRow(map, "checkin", recoveryState());
+    map.get("log-checkin-go").textContent = plainOrDrop(SLEEP_OPEN_CHECKIN, "log-checkin-go");
+    hooks.listen(map.get("log-checkin-go"), "click", () => closeLogToday("recovery"));
+
+    map.get("log-done").textContent = plainOrDrop(LOG_DONE, "log-done");
+    hooks.listen(map.get("log-done"), "click", () => closeLogToday());
+    hooks.listen(sheet, "keydown", (event) => {
+      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeLogToday(); }
+    });
+    if (logOpen.sheet && logOpen.sheet.isConnected) logOpen.sheet.replaceWith(sheet);
+    else phone.append(sheet);
+    logOpen.sheet = sheet;
+    if (focus) {
+      const head = map.get("log-head");
+      head.tabIndex = -1;
+      head.focus();
+    }
+  }
+  /* THE ONE STEPS WRITE. The box's words go through steps-model.cjs's rule first: a refused entry writes nothing. The
+     host answers acknowledged or refused, and a save that THROWS has told us nothing, so it is said as unknown, never as
+     "nothing was recorded". The read after an acknowledged save is a separate outcome, as the food lane's is. */
+  async function recordSteps(save, box, error) {
+    const entry = { steps: box.value };
+    const refusal = StepsModel.refusalFor(entry);
+    if (refusal) { error.textContent = plainOrDrop(STEPS_REFUSAL_COPY[refusal], "log-steps-error"); return; }
+    const lane = stepsLane;
+    if (!lane) { error.textContent = plainOrDrop(STEPS_NO_STORE, "log-steps-error"); return; }
+    const stepsHost = lane.host;
+    const token = mountToken;
+    save.disabled = true;
+    save.textContent = plainOrDrop(WEIGH_SAVING, "log-steps-save");
+    let result = null;
+    try { result = await stepsHost.save(StepsModel.dayFromEntry(entry)); }
+    catch (thrown) { result = { ok: null, code: (thrown && (thrown.code || thrown.message)) || "STEPS_WRITE_UNKNOWN" }; }
+    if (token !== mountToken || disposed) return;
+    save.disabled = false;
+    save.textContent = plainOrDrop(STEPS_SAVE, "log-steps-save");
+    if (!result || result.ok !== true) {
+      const lead = result && result.ok === null ? STEPS_UNKNOWN : STEPS_REFUSED;
+      error.textContent = plainOrDrop((lead + " " + reasonOf(result)).trim(), "log-steps-error");
+      return;
+    }
+    let readBack = true;
+    try { await lane.refresh(); } catch (_) { readBack = false; }
+    if (token !== mountToken || disposed) return;
+    stepsNote = readBack ? "" : STEPS_SAVED_UNREAD;
+    paintLogSheet(false);
   }
 
   /* ---------------- entry points that are NOT wired ---------------- */
@@ -2744,6 +3007,10 @@ function mountToday(doc, model, options = {}) {
     /* N2 - the in-flight sleep write, the lane's own opening, and the check-in
        rebind's module load, so a check and a test can wait for each honestly. */
     sleepPending: () => facade.sleepSaving(), sleepReady: () => facade.sleepOpening(),
+    /* N2 "LOG TODAY" (Part B) - the one sheet, and the steps lane's opening, so a cell can open the sheet the card
+       opens and wait for the lane honestly. */
+    openLogToday: () => openLogToday(), logOpen: () => !!logOpen,
+    stepsReady: () => stepsOpening, stepsLane: () => stepsLane, stepsPending: () => stepsSaving, stepsFailure: () => stepsFailure,
     sleepCheckInReady: () => screen === "sleep-checkin" ? facade.sleepCheckInViewPending() : facade.sleepCheckInPending(),
     checkInKitReady: () => facade.checkInKitLoading(), sleepLane: () => facade.sleepLane(),
     /* D2 round 1 - what the fixed screen now holds, so a cell can assert the
@@ -2777,6 +3044,8 @@ function mountToday(doc, model, options = {}) {
       mountToken += 1;
       closeCoach();   /* C-UI-6 */
       if (typeof phone.removeEventListener === "function") hooks.unlisten(phone, "keydown", onPhoneKeydown);
+      /* N2 "LOG TODAY" (Part B): the steps lane this mount opened for itself is released with it. */
+      if (stepsOwned && stepsLane && stepsLane.host && typeof stepsLane.host.close === "function") stepsLane.host.close();
       return true;
     },
     disposed: () => disposed };
@@ -2810,4 +3079,6 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   SLEEP_ROLLOVER, SLEEP_KEEP_NIGHT, SLEEP_NIGHT_CHANGED, SLEEP_CHECKIN_CHANGED,
   SLEEP_UNCERTAIN, SLEEP_CONFIRMED_PLAIN, SLEEP_CORRECTED_PREFIX, SLEEP_READ_RETRY,
   SLEEP_KEPT,
+  LOG_TITLE, LOG_ITEMS, LOG_TICK, LOG_JOIN, LOG_DONE, LOG_FOOD_GO, LOG_SLEEP_GO, LOG_NOTHING_YET,
+  STEPS_LABEL, STEPS_SAVE, STEPS_UNIT, STEPS_NO_STORE, STEPS_REFUSED, STEPS_UNKNOWN, STEPS_SAVED_UNREAD, STEPS_REFUSAL_COPY,
   athleteStateFailureCopy };

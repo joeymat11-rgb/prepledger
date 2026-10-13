@@ -421,6 +421,26 @@ const RUNTIME_COPY_CANDIDATES = Object.freeze([
   "Corrected ",
   "Try reading it again",
   "What you typed is still here.",
+  /* N2 "LOG TODAY" (PM N2 brief, Part B; the owner's ruling, food logging in "Log today"). The approved board has no
+     Log today card, no sheet that gathers the day's logs and no steps entry at all, so the words below are preview-owned
+     by construction, checked ABSENT from the approved references and PRESENT in today-app.cjs. The card's other words
+     are not declared here because the approved references already say them inside longer sentences ("Log today",
+     "Weight", "Sleep", the tick and the separator, " steps"); each is still copy-locked where today-app.cjs says it. */
+  "Food",
+  "Steps",
+  "Check in",
+  "Done",
+  "Enter food",
+  "Enter sleep",
+  "Nothing logged yet.",
+  "Steps today",
+  "Save steps",
+  "Steps cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep them.",
+  "These steps could not be recorded on this device, and nothing was recorded.",
+  "Earned could not tell whether these steps were recorded on this device. They may have been kept and they may not.",
+  "Recorded on this device. Earned could not read today's record back just now.",
+  "Enter today's steps. Nothing was recorded.",
+  "Steps are recorded as a whole number between 0 and 100000. Nothing was recorded.",
 ]);
 /* These exact runtime sentences were adopted by the named pinned 2026-09-18
    source. Every other candidate remains preview-owned and must stay absent upstream. */

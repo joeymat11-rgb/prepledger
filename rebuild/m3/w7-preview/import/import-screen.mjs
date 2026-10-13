@@ -134,6 +134,12 @@ export const COPY = Object.freeze({
     + 'this file does not have. Nothing on this phone was changed.',
   unnamedLift: 'A lift in this file has no name Earned can read. Nothing on this '
     + 'phone was changed.',
+  /* N2 "LOG TODAY" PART B (Fable's Part A debt D1). F11 refuses an import whose file already holds a step count
+     for a day this phone has a count for (field `steps_day`). The sentence names that day in plain words (the
+     phone's own record's local date, the day the two counts share), between these two halves, and keeps the
+     second half every refusal here keeps. Approved under DECISIONS:980 with the rest of the N2 words. */
+  stepsDayHead: 'This phone and this file both have a step count for ',
+  stepsDayTail: '. Nothing on this phone was changed.',
   cancelled: 'Cancelled. Nothing on this phone was changed.',
   retracted: 'That file was taken back. Nothing on this phone was changed.',
   retractRefused: 'That file could not be taken back on its own. It is still listed below.',
@@ -182,8 +188,23 @@ export const REFUSAL_FIELD_SENTENCE = Object.freeze({
 const codeLine = (code, detail) =>
   String(code) + (detail && String(detail) !== String(code) ? ' (' + detail + ')' : '');
 
-export function refusalLines(code, detail, leadField) {
+/* N2 Part B (Fable D1): a local date in the words Today says one (today-app.cjs dayLabel: en-US, weekday, month and
+   day of the local calendar date at noon). Null for anything that is not a real ISO day. */
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+export function dayWords(iso) {
+  if (typeof iso !== 'string' || !ISO_DAY.test(iso)) return null;
+  const [y, m, d] = iso.split('-').map(Number);
+  const at = new Date(y, m - 1, d, 12);
+  if (at.getFullYear() !== y || at.getMonth() !== m - 1 || at.getDate() !== d) return null;
+  return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(at);
+}
+
+export function refusalLines(code, detail, leadField, leadDate) {
   const lines = [codeLine(code, detail)];
+  /* N2 Part B (Fable D1): the step-count collision names its day. Only when it is the LEADING fault, by the rule
+     below, and only for a real day; otherwise the code's own sentence stands, as for every other field. */
+  const day = leadField === 'steps_day' ? dayWords(leadDate) : null;
+  if (day) { lines.push(COPY.stepsDayHead + day + COPY.stepsDayTail); return lines; }
   /* P3-PORT-FIX-2, AMENDED IN THE FIX ROUND (independent review R1, NOTE 1).
      THE SENTENCE DESCRIBES THE FAULT THE CODE LINE LEADS WITH. `leadField` is
      the FIRST issue's field, which is the fault whose code is printed above,
@@ -347,10 +368,11 @@ export function createImportScreen(deps = {}) {
      machinery gave one, so the sentence under the code line can describe the
      fault the code line leads with. It is added to the refusal only when there
      is one, so a refusal that never had a field is the same object it was. */
-  const fail = (code, detail, field) => {
+  const fail = (code, detail, field, date) => {
     note = '';
     refusal = { code: code || 'IMPORT_ROUTE_REFUSED', detail: detail || null,
-      ...(typeof field === 'string' && field ? { field } : {}) };
+      ...(typeof field === 'string' && field ? { field } : {}),
+      ...(typeof date === 'string' && date ? { date } : {}) };
   };
 
   /* ROUND 4, REVIEW R3 MAJOR 2: THE WAY BACK TO ANOTHER FILE, with no reload.
@@ -485,6 +507,9 @@ export function createImportScreen(deps = {}) {
             const value = issue[key];
             if (typeof value === 'string' && value && !parts.includes(value)) parts.push(value);
           }
+          /* N2 Part B (Fable D1): a step-count collision also prints its day on the code line, whether or not it
+             leads. It is the phone's own record's local date (F11, steps-model.cjs admitStepRows), a real ISO day. */
+          if (issue.field === 'steps_day' && dayWords(issue.date) && !parts.includes(issue.date)) parts.push(issue.date);
         }
         /* THE LEADING ISSUE'S FIELD, and only its own (fix round, review R1
            NOTE 1). `codes[0]` above is the FIRST issue's code, so the sentence
@@ -495,7 +520,8 @@ export function createImportScreen(deps = {}) {
            which cannot be wrong about which fault led. */
         const lead = (prepared.issues || [])[0];
         fail(codes[0] || 'LOCAL_SOURCE_NOT_READY', parts.join(' ') || null,
-          lead && typeof lead.field === 'string' ? lead.field : null);
+          lead && typeof lead.field === 'string' ? lead.field : null,
+          lead && lead.field === 'steps_day' ? lead.date : null);
         await retract(RETRACT_REASON.refused);
       } else {
         const capability = localSourceCommitCapability(prepared);
@@ -546,7 +572,7 @@ export function createImportScreen(deps = {}) {
          R1 NOTE 1): a refusal that carries no field is one the machinery gave
          no field for, which is not the same as a caller that cannot say. */
       box.textContent = refusalLines(refusal.code, refusal.detail,
-        refusal.field || null).join(' ');
+        refusal.field || null, refusal.date || null).join(' ');
       root.append(box);
     }
     if (note) { const p = el('p', 'import-note', note); p.className = 'note'; root.append(p); }
@@ -701,5 +727,5 @@ export function createImportScreen(deps = {}) {
 
 export default { createImportScreen, COPY, STEPS, IDENTITY_QUESTION, RETRACT_REASON,
   REFUSAL_SENTENCE, REFUSAL_FIELD_SENTENCE,
-  refusalLines, unlockedFacts, reviewFacts, summaryRows, retractionRows,
+  refusalLines, dayWords, unlockedFacts, reviewFacts, summaryRows, retractionRows,
   ENGINE_REVISION_LABEL };

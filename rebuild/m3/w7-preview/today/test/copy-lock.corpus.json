@@ -916,6 +916,13 @@
    "lists": []
   },
   {
+   "text": " steps",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": " stored reading(s) the plan did not use.",
    "files": {
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
@@ -1153,6 +1160,13 @@
    "text": "--headline: 33px",
    "files": {
     "rebuild/m3/w7-preview/today/preview.css": 2
+   },
+   "lists": []
+  },
+  {
+   "text": ". Nothing on this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
    },
    "lists": []
   },
@@ -2383,6 +2397,16 @@
    "lists": []
   },
   {
+   "text": "Check in",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
    "text": "Check next weight",
    "files": {
     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
@@ -2749,6 +2773,16 @@
    ]
   },
   {
+   "text": "Done",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
    "text": "Down ",
    "files": {
     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
@@ -2908,6 +2942,16 @@
   },
   {
    "text": "Earned could not read today's record back just now, so what is shown here may not be the whole day.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Earned could not tell whether these steps were recorded on this device. They may have been kept and they may not.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
@@ -3084,12 +3128,32 @@
    ]
   },
   {
+   "text": "Enter food",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
    "text": "Enter hours from 0 to 24, with up to two decimal places.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 2,
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
+  },
+  {
+   "text": "Enter sleep",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
   },
   {
    "text": "Enter the reps as a whole number, like 10.",
@@ -3104,6 +3168,16 @@
     "rebuild/m3/w7-preview/today/gym-model.mjs": 1
    },
    "lists": []
+  },
+  {
+   "text": "Enter today's steps. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
   },
   {
    "text": "Enter valid times.",
@@ -3140,7 +3214,7 @@
   {
    "text": "Escape",
    "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 2
+    "rebuild/m3/w7-preview/today/today-app.cjs": 3
    },
    "lists": []
   },
@@ -3285,6 +3359,16 @@
     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
    },
    "lists": []
+  },
+  {
+   "text": "Food",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
   },
   {
    "text": "Food logging adherence",
@@ -4207,6 +4291,13 @@
    "lists": []
   },
   {
+   "text": "Log today",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Logged",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -5021,6 +5112,16 @@
    "lists": []
   },
   {
+   "text": "Nothing logged yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
    "text": "Nothing scheduled today, so there is nothing to start.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -5547,6 +5648,16 @@
    ]
   },
   {
+   "text": "Recorded on this device. Earned could not read today's record back just now.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
    "text": "Recorded today",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 2,
@@ -5877,6 +5988,16 @@
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
+  },
+  {
+   "text": "Save steps",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
   },
   {
    "text": "Save the settings for this machine",
@@ -6308,6 +6429,46 @@
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
    },
    "lists": []
+  },
+  {
+   "text": "Steps",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Steps are recorded as a whole number between 0 and 100000. Nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Steps cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep them.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
+   "text": "Steps today",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
   },
   {
    "text": "Still needs the import review",
@@ -6896,6 +7057,16 @@
    "lists": []
   },
   {
+   "text": "These steps could not be recorded on this device, and nothing was recorded.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "PREVIEW_RUNTIME_COPY"
+   ]
+  },
+  {
    "text": "This browser did not give the page an encrypted local store to import into.",
    "files": {
     "rebuild/m3/w7-preview/import/import-screen.mjs": 1
@@ -7083,6 +7254,13 @@
    "text": "This page is not being served by its offline copy yet. Reload once, with a connection, to finish.",
    "files": {
     "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This phone and this file both have a step count for ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
    },
    "lists": []
   },
@@ -7866,6 +8044,13 @@
   },
   {
    "text": "Weigh in ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Weight",
    "files": {
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
@@ -8829,7 +9014,8 @@
    "text": "Your weight",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/screens.template.html": 2
+    "rebuild/m3/w7-preview/today/screens.template.html": 2,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": [
     "APPROVED_COPY"
@@ -8839,7 +9025,8 @@
    "text": "Your weight in pounds",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/screens.template.html": 2
+    "rebuild/m3/w7-preview/today/screens.template.html": 2,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": [
     "APPROVED_COPY"

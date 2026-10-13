@@ -221,8 +221,11 @@ const TODAY_APP_DECLARED_SEAMS = {
   "model.weighIn": "TA-M05, SEAM 1: the weigh-in submit's write half. The writer is sealed in today-readings.cjs (F.1); this is the released view calling today-model.cjs's re-export, and it is the acquisition S-R27 pins.",
   "(call).recover": "TA-M04, SEAM 4: facade.workout().recover() in the primary handler. The workout entry is one of B.7's measured pass-throughs (E.5 row 14).",
   "(call).reopen": "facade.importScreen().reopen(): a SCREEN reopened, not a reading. Declared BY LINE under S-R28, as the part 1 report said part 2 would have to.",
+  /* N2 "LOG TODAY" (PM N2 brief, Part B): a FOURTH seam, declared here as this table asks a fourth to be. */
+  "stepsHost.save": "N2 Part B: the Log today sheet's Save steps (today-app.cjs recordSteps), the ONE write of the steps lane (steps-host.mjs, one steps fact per save, a correction a new op). today-lanes.cjs is sealed (S10), so the lane is opened and written by the released view, as N1 opened the food lane before the cut. Called only from the sheet's own Save listener, after steps-model.cjs's rule has passed the entry.",
 };
-const TODAY_APP_DECLARED_SITES = 3;
+/* N2 "LOG TODAY" (Part B): 3 -> 4, the one new site being "stepsHost.save" above. */
+const TODAY_APP_DECLARED_SITES = 4;
 const siteOf = (h) => (h.receiver || "(call)") + "." + h.name;
 
 function planted(rel, edit) {
@@ -618,11 +621,17 @@ const RELEASED_FILES = [
        (coach-intents.cjs PAGE_INTENTS, each a TIER.READ tool): page-coach.cjs hands out no dispatcher, so no FACT-tier
        write is reachable from the view, and the view hands in no machineSettings lane (machine-settings-host.mjs
        stays gym-settings-lane.mjs's edge alone, row 5). No network or microphone word in those files (coach.test.mjs
-       CV1-5). The world it is handed is the view's own `model` and two facade reads (FENCE-MODEL-HELD 33 -> 34). */
+       CV1-5). The world it is handed is the view's own `model` and two facade reads (FENCE-MODEL-HELD 33 -> 34).
+       N2 "LOG TODAY" RE-MEASURE (Part B): two edges, measured with this cell's own lexer and in its order.
+       require:./steps-model.cjs is the steps lane's pure half (its refusal codes and the box turned into the produced
+       day; no store, no engine of its own, the same class as food-model.cjs and sleep-model.cjs beside it).
+       import:./steps-host.mjs is the steps lane itself, opened lazily by openStepsLane exactly as the food and sleep
+       lanes are opened, failing closed with no store; its ONE write is the declared seam "stepsHost.save" above, by
+       site and by count. today-lanes.cjs is SEALED (S10), so the lane could not be opened there. */
     edges: ['require:./today-model.cjs', 'require:./plain-copy.cjs', 'require:./coach-app.mjs',
       'require:../../../coach/page-coach.cjs', 'require:./problem-report.cjs',
-      'require:./food-model.cjs', 'require:./sleep-model.cjs', 'require:./today-lanes.cjs',
-      'import:../measure/measure-screen.mjs', 'import:../import/import-screen.mjs'],
+      'require:./food-model.cjs', 'require:./sleep-model.cjs', 'require:./steps-model.cjs', 'require:./today-lanes.cjs',
+      'import:../measure/measure-screen.mjs', 'import:../import/import-screen.mjs', 'import:./steps-host.mjs'],
     syntax: { bracket: [], templateCall: [], shadow: [], arguments: [], destructure: [
       '} = createTodayLanes (',
     ] },
@@ -1758,8 +1767,16 @@ test("RED E.5 row 12: an unfrozen facade in today-lanes.cjs FAILS", () => {
    COACH V1 RE-MEASURE (S19 amend): 34, measured, and the one added name is said here. The live coach's world is
    `today: model` in coachHandle (page-coach.cjs createPageCoach), reached only through ask(), which runs the coach's
    READ tools alone (today_plan and weight_trend call model.read()); ask() reaches no writer, so model.weighIn is still reached
-   at ONE site and the declared seams are unchanged. */
-const TODAY_APP_MODEL_SITES = 34;
+   at ONE site and the declared seams are unchanged.
+   N2 "LOG TODAY" RE-MEASURE (Part B): 42, measured (34 before; the first Part B draft measured 46, and three `typeof`
+   guards and an injection point were removed so the debt grows by less). The eight added names, each a read or a lane
+   hand-in and none a writer reach: model.setStepDays once (the lane this mount opened; it sets the projection's rows,
+   the same shape as setFoodDays), model.today three times (the steps lane's day, today's winning count, today's food
+   day), model.recordedSteps once (the card's Steps tick), model.read() once (the sheet's view), model.OUT_OF_RANGE
+   once (the sheet's weight field flagged exactly as the inline form flags it), model.loggedFood once (the sheet's
+   Food row). The sheet's weight goes through submitWeighIn, so model.weighIn is still reached at ONE site (look-cui3
+   S12 R3, now with the sheet as its third entry). */
+const TODAY_APP_MODEL_SITES = 42;
 const TODAY_APP_OPTIONS_SITES = 2;
 
 test("FENCE-MODEL-HELD: the released today-app.cjs names `model` exactly as many times as this round measured", () => {

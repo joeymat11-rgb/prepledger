@@ -43,6 +43,9 @@
 }
 .sheet-panel .field { margin-top: 12px; }
 .sheet-panel .error:empty { display: none; }
+/* N2 "LOG TODAY" (Part B): the Log today sheet is this panel with five rows, taller than a small phone (measured in
+   Chromium with a store: 759 px, its head at -92 px at 375x667). It is held to the screen and scrolls inside itself. */
+.sheet-panel[data-slot="log-sheet"] { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
 /* A3: the check-in's refusal line occupies no space until there is a refusal to
    print. An empty alert must not push the primary action down. */
 .view .error:empty { display: none; }
@@ -743,7 +746,9 @@
 .scene-frame > .view.ui > .body > [data-slot="import-entry"],
 .scene-frame > .view.ui > .body > [data-slot="routine-entry"] {
   min-height: var(--hit); margin-top: 8px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
-.scene-frame > .view.ui > .body > button.day-foot[data-slot="sleep-entry"] { margin-top: 16px; }
+/*    N2 "LOG TODAY" (Part B): the Sleep link that was the first of them is folded into the Log today card, so the first
+      is now the weight trend's row, and it keeps the 16 px. */
+.scene-frame > .view.ui > .body > div.day-foot[data-slot="trend-row"] { margin-top: 16px; }
 /* ===== POLISH 3: END ===== */
 /* ===== POLISH 4 (PM, the owner's 7-lift Upper/Lower week, 2026-10-12): BEGIN =====
    The weekly review opens collapsed (today-app.cjs paintWeekReview): the heading, one summary line and "See details".

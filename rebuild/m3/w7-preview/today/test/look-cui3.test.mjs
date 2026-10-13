@@ -484,8 +484,20 @@ function weighSiteProblems(app) {
     if (uses !== 1) problems.push(name + " submits through submitWeighIn " + uses + " times, not once");
     if (body.includes("model.weighIn(")) problems.push(name + " calls model.weighIn itself");
   }
+  /* N2 "LOG TODAY" (Part B; red first: this cell went red on the Part B tree with "openWeighIn submits through
+     submitWeighIn 2 times, not once", because the Log today sheet sat between the weigh sheet and Why this plan).
+     The Log today sheet is a THIRD entry point to the same one write site: it now sits after Why this plan, and it is
+     held to the same rule as the other two, one submit through submitWeighIn and no model.weighIn of its own. */
+  const l = app.indexOf(LOG_BEGIN), le = app.indexOf(LOG_END, l);
+  if (!(l > e && le > l)) return problems.concat("the Log today sheet's anchors are not in order after Why this plan");
+  const logBody = app.slice(l, le);
+  const logUses = logBody.split("await submitWeighIn(raw)").length - 1;
+  if (logUses !== 1) problems.push("paintLogSheet submits through submitWeighIn " + logUses + " times, not once");
+  if (logBody.includes("model.weighIn(")) problems.push("paintLogSheet calls model.weighIn itself");
   return problems;
 }
+const LOG_BEGIN = "  function paintLogSheet(focus) {";
+const LOG_END = "  async function recordSteps(save, box, error) {";
 test("S12 R3: the inline form and the Start sheet reach model.weighIn through ONE call site", () => {
   const app = read(APP);
   assert.deepEqual(weighSiteProblems(app), []);
@@ -494,6 +506,12 @@ test("S12 R3: the inline form and the Start sheet reach model.weighIn through ON
     "      let result;\n      try { result = await model.weighIn(raw === \"\" ? raw : Number(raw)); } catch (_) { result = { ok: false }; }\n      submit.disabled = false;");
   assert.notEqual(twoSites, app, "the teeth plant landed");
   assert(weighSiteProblems(twoSites).some((p) => /occurs 2 times|openWeighIn/.test(p)), JSON.stringify(weighSiteProblems(twoSites)));
+  // teeth for the third entry (N2 Part B): the Log today sheet calling the writer itself is refused by name
+  const logSite = app.replace("        const result = await submitWeighIn(raw);\n        save.disabled = false;",
+    "        const result = await model.weighIn(Number(raw));\n        save.disabled = false;");
+  assert.notEqual(logSite, app, "the Log today teeth plant landed");
+  assert(weighSiteProblems(logSite).some((p) => /occurs 2 times/.test(p)) && weighSiteProblems(logSite).some((p) => /paintLogSheet/.test(p)),
+    JSON.stringify(weighSiteProblems(logSite)));
   // the duplicated refusal sentence is written once now
   const SENT = "This weight could not be recorded, and nothing was recorded.";
   assert.equal(app.split('"' + SENT + '"').length - 1, 1, "the refusal sentence is one literal");

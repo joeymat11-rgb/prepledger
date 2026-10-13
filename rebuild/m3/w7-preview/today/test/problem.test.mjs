@@ -1948,7 +1948,12 @@ test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', 
    ========================================================================== */
 test('N2-15 - with no store the sleep screen says what cannot happen, why and what to do', () => {
   const page = screenOn();
-  page.doc.querySelector('#phone [data-go="sleep"]').dispatchEvent(new page.dom.window.Event('click'));
+  /* N2 "LOG TODAY" (Part B; red first: "Cannot read properties of null (reading 'dispatchEvent')" on the Part B tree).
+     Today's quiet Sleep link is folded into the Log today card, so the sleep screen is reached the way an athlete now
+     reaches it from Today: the card, then the sheet's Sleep row. The screen behind it is asserted exactly as before. */
+  assert.equal(page.doc.querySelector('#phone [data-go="sleep"]'), null, 'Today carries no separate Sleep link');
+  page.doc.querySelector('#phone #card-log').dispatchEvent(new page.dom.window.Event('click'));
+  page.pick('log-sleep-go').dispatchEvent(new page.dom.window.Event('click'));
   assert.equal(page.api.screen(), 'sleep');
   const note = page.pick('sleep-note').textContent;
   assert(note.startsWith(SLEEP_NO_STORE), 'what cannot happen and what to do: ' + note);

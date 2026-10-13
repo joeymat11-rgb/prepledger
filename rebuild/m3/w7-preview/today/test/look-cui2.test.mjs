@@ -126,7 +126,13 @@ test("C-UI-2 R3: the board's words on Today (DECISIONS:820 (2))", () => {
   assert(entry, "Today carries one compact row to the Coach screen");
   assert.match(entry[1], /^\s*<span class="tdot" aria-hidden="true"><\/span>\s*<div class="title">Ask Coach<\/div>\s*<span class="chev" aria-hidden="true">/,
     "the feed's dot, one line, and a chevron");
-  const timeline = today.slice(today.indexOf('<div class="timeline">'), today.indexOf('<span data-slot="sleep-entry-label">'));
+  /* N2 "LOG TODAY" (Part B): this slice used to end at the quiet Sleep link's label, which Part B folds into the Log
+     today card, so that anchor is gone (indexOf -1 would have sliced to the template's last character and kept this
+     cell green for the wrong reason). It now ends at the trend row, the first thing after the feed closes, and the
+     anchor's presence is asserted, so a lost anchor is red and not a wider slice. */
+  const feedEnd = today.indexOf('<div class="on-scene day-foot" data-slot="trend-row">');
+  assert(feedEnd > today.indexOf('<div class="timeline">'), "the trend row still follows the feed");
+  const timeline = today.slice(today.indexOf('<div class="timeline">'), feedEnd);
   assert(timeline.includes(entry[0]), "inside the feed");
   assert(today.indexOf(entry[0]) < today.indexOf('<div class="stack">'), "above Start's stack");
   const declared = design.indexOf(JSON.stringify("Ask Coach"));
@@ -145,6 +151,33 @@ test("C-UI-2 R3: the board's words on Today (DECISIONS:820 (2))", () => {
   assert.match(weigh, /placeholder="Your weight"/);
   for (const old of ["How are you feeling today?", "Ask your coach"]) assert(!today.includes(old), "the app's words gave way on Today: " + old);
   assert(fs.readFileSync(APP, "utf8").includes('put(map, "weigh-submit", "Save")'), "the weigh-in submits with the board's Save");
+});
+
+test("N2 LOG TODAY: one card in the feed, above Start, preview-owned, and the weigh-in and the check-in stay where C-UI-2 holds them", () => {
+  const board = fs.readFileSync(PACK_HTML, "utf8");
+  const today = templateBlock("t-today");
+  const card = /<button class="tcard nav" id="card-log" type="button" data-slot="log-entry">([\s\S]*?)<\/button>/.exec(today);
+  assert(card, "Today carries one Log today card");
+  assert.match(card[1], /^\s*<span class="tdot" aria-hidden="true"><\/span>\s*<div class="title" data-slot="log-title"><\/div>\s*<div class="sub" data-slot="log-ticks"><\/div>\s*<span class="chev" aria-hidden="true">/,
+    "the feed's dot, a title and one line of ticks, a chevron, and no literal word");
+  const feedStart = today.indexOf('<div class="timeline">');
+  const feedEnd = today.indexOf('<div class="on-scene day-foot" data-slot="trend-row">');
+  assert(feedStart >= 0 && feedEnd > feedStart, "the feed and the trend row that follows it are both there");
+  const at = today.indexOf(card[0]);
+  assert(at > feedStart && at < feedEnd, "inside the feed");
+  assert(at > today.indexOf('id="card-train"'), "after today's workout, so the card Start opens stays beside Start");
+  assert(at < today.indexOf('<div class="stack">'), "above Start's stack");
+  assert.equal((today.match(/id="card-log"/g) || []).length, 1, "exactly one Log today card");
+  assert(!board.includes('id="card-log"'), "which the approved board does not draw");
+  /* the two folds C-UI-2 does NOT allow: ruling 5 keeps the weigh-in the board's inline card, and ruling 4 keeps the
+     stack Start, Recovery and nothing else. The third fold, the quiet Sleep link (DECISIONS:167, preview-owned), is done. */
+  assert(today.includes('id="card-weigh"') && today.includes('id="weigh-form"'), "the inline weigh-in card stays (ruling 5, C-UI-2 LOCKED, C-UI-3)");
+  const stack = today.slice(today.indexOf('<div class="stack">'));
+  assert(stack.includes('id="start"') && stack.includes('id="recovery"'), "the stack is still Start and the check-in (ruling 4, C-UI-2 LOCKED)");
+  assert.doesNotMatch(today, /data-slot="sleep-entry"/, "the quiet Sleep link has folded into the card");
+  const sheet = templateBlock("t-log");
+  for (const slot of ["log-weight", "log-food", "log-steps", "log-sleep", "log-checkin", "log-done"])
+    assert(sheet.includes('data-slot="' + slot + '"'), "the Log today sheet carries its " + slot + " row");
 });
 
 function statusModule() {

@@ -231,13 +231,20 @@ const TODAY_REQUIRED_INPUTS = [
   "rebuild/m3/w7-preview/today/routine-host.mjs",
   "rebuild/m3/w7-preview/today/routine-model.mjs",
   "rebuild/m3/w7-preview/today/routine-app.mjs",
+  /* N2 "LOG TODAY" (PM N2 brief, Part B): the steps producer, its projection and its durable lane join build.mjs's
+     REQUIRED_INPUTS. MEASURED from build.mjs's own source text by this file's rule: 62 path literals / 35 today/ on
+     this tree, 59 / 32 before, and the difference is exactly these three paths (nothing removed, nothing renamed). No
+     row is dropped and no count is loosened. */
+  "rebuild/m3/w7-preview/today/steps-commands.cjs",
+  "rebuild/m3/w7-preview/today/steps-model.cjs",
+  "rebuild/m3/w7-preview/today/steps-host.mjs",
 ];
 
-test("H18 - the build still refuses a bundle that lost any of the 32 today/ required inputs", () => {
-  assert.equal(TODAY_REQUIRED_INPUTS.length, 32,
-    "the literal list is not the 32 today/ entries of REQUIRED_INPUTS measured at S15 (A.4's 26, the split's three, S15's routine three)");
-  assert.equal(new Set(TODAY_REQUIRED_INPUTS).size, 32, "the literal list repeats a path");
-  /* the green control first, so the 32 rows below fail for the reason they name rather
+test("H18 - the build still refuses a bundle that lost any of the 35 today/ required inputs", () => {
+  assert.equal(TODAY_REQUIRED_INPUTS.length, 35,
+    "the literal list is not the 35 today/ entries of REQUIRED_INPUTS measured at N2 Part B (A.4's 26, the split's three, S15's routine three, N2's steps three)");
+  assert.equal(new Set(TODAY_REQUIRED_INPUTS).size, 35, "the literal list repeats a path");
+  /* the green control first, so the 35 rows below fail for the reason they name rather
      than because assertBundleInputs refuses everything it is handed. */
   assert.doesNotThrow(() => build.assertBundleInputs(result.inputs.map((p) => ({ path: p }))));
   for (const required of TODAY_REQUIRED_INPUTS) {
@@ -282,7 +289,7 @@ const requiredInputsOf = (src) => {
 };
 const requiredInputsOfBuildSource = () => requiredInputsOf(buildSource());
 
-test("H18b - the 32 are still the WHOLE today/ half of build.mjs's REQUIRED_INPUTS", () => {
+test("H18b - the 35 are still the WHOLE today/ half of build.mjs's REQUIRED_INPUTS", () => {
   const all = requiredInputsOfBuildSource();
   /* the today/ half FIRST, because its failure NAMES the paths that moved and the
      counts below only name a number: R1 N6's lesson, applied to this cell's own reds. */
@@ -294,11 +301,13 @@ test("H18b - the 32 are still the WHOLE today/ half of build.mjs's REQUIRED_INPU
   /* COACH V1 (S19 amend): 59, MEASURED from build.mjs's own source text by this file's rule: 54 before, and the
      difference is exactly the five rebuild/coach inputs the live Coach screen needs (page-coach.cjs, read-tools.cjs,
      tool-kernel.cjs, wave1-tools.cjs, coach-intents.cjs); nothing removed or renamed, and the today/ half above is still
-     the 32. No row is dropped and no count is loosened. */
-  assert.equal(all.length, 59,
-    "build.mjs's REQUIRED_INPUTS no longer holds 59 path literals but " + all.length
-    + ": A.4's seven laws are stated over that list and this seal pins 32 of it");
-  assert.equal(new Set(all).size, 59, "build.mjs's REQUIRED_INPUTS repeats a path literal");
+     the 32. No row is dropped and no count is loosened.
+     N2 "LOG TODAY" (Part B): 62, MEASURED by the same rule: 59 before, and the difference is exactly the three steps
+     inputs (steps-commands.cjs, steps-model.cjs, steps-host.mjs), all under today/, which is now 35. */
+  assert.equal(all.length, 62,
+    "build.mjs's REQUIRED_INPUTS no longer holds 62 path literals but " + all.length
+    + ": A.4's seven laws are stated over that list and this seal pins 35 of it");
+  assert.equal(new Set(all).size, 62, "build.mjs's REQUIRED_INPUTS repeats a path literal");
 });
 
 /* H18c, R2 N7. H18b's per-line rule counts any bare quoted string that sits alone on its

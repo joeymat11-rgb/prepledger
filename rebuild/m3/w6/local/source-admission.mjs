@@ -172,7 +172,13 @@ const KNOWN_REPLAY_CODES=Object.freeze(new Set(['LOCAL_SOURCE_AUTHORITY_CONTEXT'
      capture_sets     a capture's slot count for a lift is not the count the
                       document that produced it prescribed            (per lift)
      capture_membership  the capture's lift pool or order is not the one the
-                      engine's own membership reader gives for that day */
+                      engine's own membership reader gives for that day
+     steps_day        N2 Part B (F11; Fable's Part A debt D1): a step count this
+                      phone recorded for a day the file already holds one for.
+                      Raised by F11's own issue, not by a throw, and it carries
+                      `date`: the PHONE's own record's local date (a real ISO
+                      day, never a value read out of the file), so the Import
+                      screen can name the day in plain words */
 const detailOf=e=>(e?.field?{field:e.field,...(e.exercise_id?{exercise_id:e.exercise_id}:{})}:undefined);
 const {encode,digest,freeze,validDay,sourceEngineContext,engineContextAt}=Profile;
 const copy=structuredClone;
@@ -610,7 +616,8 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   // projected through the page's own daily projector, after the food days; a date the imported history already holds a
   // count for is not overwritten and refuses LOCAL_SOURCE_DAILY_UNRESOLVED; the rest are retained on record.
   const stepped=StepsModel.admitStepRows(state,stepRows,engineFor,'F11');
-  for(const row of stepped.issues)issue(row.code,row.op_id);
+  // N2 Part B (Fable D1): a collision carries its field and its day, so the Import screen can name the day.
+  for(const row of stepped.issues)issue(row.code,row.op_id,row.field?{field:row.field,date:row.date}:null);
   for(const row of stepped.families)families.push(row);
   state=stepped.state;
   // F3 READS THE PAGE'S OWN CAPTURES (local-capture-start-resume). The shipped

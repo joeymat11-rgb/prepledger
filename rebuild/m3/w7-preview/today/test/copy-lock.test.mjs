@@ -86,7 +86,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // and three out (CL-UP13-DELTA; the value before is PRE_UP13_CORPUS_SHA256, e8193158...).
 // N2 "Log today", Part A: re-measured for exactly the steps lane's three files and pieces and the blackout words
 // (CL-NUTRI2A-DELTA; the value before is PRE_NUTRI2A_CORPUS_SHA256, f95b7915...).
-const CORPUS_SHA256 = '25eefea475523b81cd96e83638f697d57952027655bde78c9fc354adba2841ab';
+// N2 "Log today", Part B: re-measured for exactly the Log today card and sheet's words, the import screen's day words and
+// three owner counts (CL-NUTRI2B-DELTA; the value before is PRE_NUTRI2B_CORPUS_SHA256, 25eefea4...).
+const CORPUS_SHA256 = '2b9c25683f1e3d1a880de5f30d73f8e5d9ae61921e25203f282163949af206be';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -620,7 +622,80 @@ const N2A_OWNERS_ADDED = Object.freeze([
   ['forDate requires a date', { [T + '/steps-host.mjs']: 1 }],
 ]);
 const NUTRI2A_COPY_APPROVAL = 'DECISIONS:980';
+/* N2 "Log today", Part B: the Log today card and its one sheet (today-app.cjs), and the import screen's day words for
+   a step-count collision (Fable's Part A debt D1; import-screen.mjs COPY.stepsDayHead and stepsDayTail). Eighteen new
+   pieces in today-app.cjs (fifteen also declared in design.cjs PREVIEW_RUNTIME_COPY; "Log today", "Weight" and
+   " steps" are words the approved references already carry, so design.cjs's binding needs no declaration for them),
+   two in import-screen.mjs, and three owner counts in today-app.cjs: the sheet's weight field says the board's
+   "Your weight in pounds" and "Your weight" once each, and its Escape key is a third "Escape". No scanned file and no
+   mounted state moves. beforeNutri2b gives every older view the corpus as N2 part A sealed it
+   (PRE_NUTRI2B_CORPUS_SHA256), and beforeNutri2a starts from that view. Approved under DECISIONS:980 (2) (PM ruling on Part B). */
+const PRE_NUTRI2B_CORPUS_SHA256 = '25eefea475523b81cd96e83638f697d57952027655bde78c9fc354adba2841ab';
+const N2B_APP = { [T + '/today-app.cjs']: 1 };
+const N2B_APP_DECLARED = { [T + '/design.cjs']: 1, [T + '/today-app.cjs']: 1 };
+const N2B_IMPORT = { ['rebuild/m3/w7-preview/import/import-screen.mjs']: 1 };
+const N2B_NEW = Object.freeze([
+  ['Log today', N2B_APP, []], ['Weight', N2B_APP, []], [' steps', N2B_APP, []],
+  ['Food', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']], ['Steps', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ['Check in', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']], ['Done', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ['Enter food', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']], ['Enter sleep', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ['Nothing logged yet.', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']], ['Steps today', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ['Save steps', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ['Steps cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep them.',
+    N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ['These steps could not be recorded on this device, and nothing was recorded.', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ['Earned could not tell whether these steps were recorded on this device. They may have been kept and they may not.',
+    N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ["Recorded on this device. Earned could not read today's record back just now.", N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ["Enter today's steps. Nothing was recorded.", N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ['Steps are recorded as a whole number between 0 and 100000. Nothing was recorded.', N2B_APP_DECLARED, ['PREVIEW_RUNTIME_COPY']],
+  ['This phone and this file both have a step count for ', N2B_IMPORT, []],
+  ['. Nothing on this phone was changed.', N2B_IMPORT, []],
+]);
+/* [text, owner, count before, count now] */
+const N2B_OWNERS_MOVED = Object.freeze([
+  ['Escape', T + '/today-app.cjs', 2, 3],
+  ['Your weight', T + '/today-app.cjs', 0, 1],
+  ['Your weight in pounds', T + '/today-app.cjs', 0, 1],
+]);
+const NUTRI2B_COPY_APPROVAL = 'DECISIONS:980';
+function beforeNutri2b(corpus) {
+  const added = new Set(N2B_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
+    const rows = N2B_OWNERS_MOVED.filter(([text]) => text === e.text);
+    if (rows.length === 0) return e;
+    const files = { ...e.files };
+    for (const [, owner, before] of rows) { if (before === 0) delete files[owner]; else files[owner] = before; }
+    return { ...e, files: sortedFiles(files) };
+  }) };
+}
+test('CL-NUTRI2B-DELTA: the corpus is the N2 part A corpus plus exactly the Log today words and the import day words, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of N2B_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-NUTRI2B-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text, owner, , now] of N2B_OWNERS_MOVED) {
+    const entry = byText.get(text);
+    if (!entry || entry.files[owner] !== now) failed.push('CL-NUTRI2B-DELTA OWNER ' + JSON.stringify(text) + ' ' + owner + ' is ' + JSON.stringify(entry ? entry.files[owner] : null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforeNutri2b(corpus)), 'utf8'));
+  if (before !== PRE_NUTRI2B_CORPUS_SHA256) failed.push('CL-NUTRI2B-DELTA PRE-NUTRI2B-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the part A corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-NUTRI2B-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeNutri2b(moved)), 'utf8')) === PRE_NUTRI2B_CORPUS_SHA256) failed.push('CL-NUTRI2B-DELTA PRE-NUTRI2B-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-NUTRI2B-DELTA');
+});
+test('CL-NUTRI2B-APPROVAL: the N2 part B copy delta names the ledger line that approves it', () => {
+  assert.match(NUTRI2B_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-NUTRI2B-APPROVAL-PENDING: the N2 part B copy is not approved');
+});
 function beforeNutri2a(corpus) {
+  corpus = beforeNutri2b(corpus);   /* N2 part B stands on top of N2 part A */
   const added = new Set(N2A_NEW.map(([text]) => text));
   return { ...corpus, scanned: corpus.scanned.filter((f) => !N2A_SCANNED.includes(f)),
     entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {

@@ -82,8 +82,8 @@ let live = null;
 /* S12b R10 (D-S12B-BROWSER-DATE). The shipped page stands on the DEVICE'S LIVE DAY (S4, DECISIONS:432) and
    every check declares its own, so this one now stands every load on a FIXED day through the page's OWN
    entry point, app.js boot({ today }): DAY, the synthetic athlete's own training day (Monday 2030-02-04).
-   Sleep is reached the way an athlete reaches it on any day, ?screen=sleep and Today's own Sleep entry
-   ([data-go="sleep"]); the workout primary is used only for the gym return path below, and on this fixed
+   Sleep is reached the way an athlete reaches it on any day, ?screen=sleep and Today's Log today card (N2 Part B:
+   the card's sheet has the Sleep row that the quiet Sleep link folded into); the workout primary is used only for the gym return path below, and on this fixed
    training day it is always drawn, so that path is now walked every run and asserted rather than skipped.
    The live mount the page boots on load is let finish first (its own paint, then 400 ms with no change
    under #phone, at most 10 s), so nothing it had in flight can paint over the declared one. */
@@ -123,6 +123,23 @@ async function relaunch(viewport = VIEWPORT) {
   const opened = await launch(viewport);
   live = opened.context;
   return opened;
+}
+/* N2 "LOG TODAY" (Part B): Today's quiet Sleep link is FOLDED into the Log today card. Today is recognised by
+   that card, the sleep screen is reached through its sheet's Sleep row, and Today's own sleep line is that row's
+   state, read with the sheet open and the sheet closed again, so every assertion below reads the same record. */
+const TODAY_CARD = '#phone #card-log';
+async function sleepFromToday(page) {
+  await page.click(TODAY_CARD);
+  await page.waitForSelector('#phone [data-slot="log-sleep-go"]');
+  await page.click('#phone [data-slot="log-sleep-go"]');
+}
+async function todaySleepLine(page) {
+  await page.click(TODAY_CARD);
+  await page.waitForSelector('#phone [data-slot="log-sleep-state"]');
+  const text = await page.textContent('#phone [data-slot="log-sleep-state"]');
+  await page.click('#phone [data-slot="log-done"]');
+  await page.waitForSelector('#phone [data-slot="log-sheet"]', { state: 'detached' });
+  return text;
 }
 
 function browserProcessesForProfile() {
@@ -395,12 +412,12 @@ try {
   assert.match(sheet, /7\.5/, "the check-in did not offer the night N2 recorded: " + sheet.slice(0, 200));
   notes.push("the recovery check-in offered the recorded night on the SAME page, with no reload");
   await page.click('#phone [data-go="today"]');
-  await page.waitForSelector('#phone [data-go="sleep"]');
-  assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /7\.5 h/,
+  await page.waitForSelector(TODAY_CARD);
+  assert.match(await todaySleepLine(page), /7\.5 h/,
     "Today's own sleep line is the durable record");
 
   /* ---------- A CORRECTION REPLACES THE NIGHT, and the clock fields are GONE ---------- */
-  await page.click('#phone [data-go="sleep"]');
+  await sleepFromToday(page);
   await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])');
   await page.click('#phone [data-slot="sleep-change"]');
   await page.waitForSelector('#phone [data-action="sleep-mode-hours"]:not([hidden])');
@@ -455,8 +472,8 @@ try {
     assert.doesNotMatch(gym, /NaN|undefined/,
       "the workout screen after a sleep save: " + gym.slice(0, 200));
     await page.click("#phone .back");
-    await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
-    assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /5\.5 h/,
+    await page.waitForSelector(TODAY_CARD, { timeout: 20000 });
+    assert.match(await todaySleepLine(page), /5\.5 h/,
       "the round trip through the workout lost the corrected night");
     notes.push("Today -> workout (" + primary + ") -> Today after a same-page sleep save, "
       + "with the record intact");
@@ -466,11 +483,11 @@ try {
        the REAL host in sleep.test.mjs N2-09, which is where it can be read at all. */
     notes.push("the workout route was not reachable from Today on this device (primary action: "
       + primary + "); the gym host projection is proved in sleep.test.mjs N2-09");
-    await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
-    assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /5\.5 h/,
+    await page.waitForSelector(TODAY_CARD, { timeout: 20000 });
+    assert.match(await todaySleepLine(page), /5\.5 h/,
       "Today's own sleep line is the corrected record");
   }
-  await page.click('#phone [data-go="sleep"]');
+  await sleepFromToday(page);
   await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])');
 
   /* ---------- D2 ROUND 2, FINDING 3 - A SECOND VISIT TO THE CHECK-IN ----------
@@ -492,7 +509,7 @@ try {
   assert.equal(await page.isVisible('#phone #recovery-note'), true);
   notes.push('the visible recovery note retained typed text across a second visit');
   await page.click('#phone [data-go="today"]');
-  await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
+  await page.waitForSelector(TODAY_CARD, { timeout: 20000 });
 
   /* ---------- D2 ROUND 2, FINDING 2 - A RELAUNCH WITH THE NIGHT ALREADY STORED ----
      A fresh boot on a device that HOLDS a night: no save happens, and the workout the
@@ -504,7 +521,7 @@ try {
   assert.match(await recorded(page), /5\.5 h/, "the relaunch lost the night");
   await page.click('#phone [data-go="today"]');
   await page.waitForSelector('#phone [data-slot="primary-label"]', { timeout: 20000 });
-  assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /5\.5 h/,
+  assert.match(await todaySleepLine(page), /5\.5 h/,
     "Today after a boot with a stored night");
   const boots = ((await page.textContent('#phone [data-slot="primary-label"]')) || "").trim();
   assert.match(boots, /^(Start|Resume|Review) /, "the fixed training day offers its workout after the relaunch: " + boots);
@@ -514,13 +531,13 @@ try {
     const after = await page.textContent("#phone");
     assert.doesNotMatch(after, /NaN|undefined/, "the workout after a boot with a stored night");
     await page.click("#phone .back");
-    await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
+    await page.waitForSelector(TODAY_CARD, { timeout: 20000 });
     notes.push("a fresh boot with a night already stored: Today -> workout (" + boots + ") -> Today, truthful");
   } else {
     notes.push("after the relaunch the workout route needed " + boots + " first; the boot rebind "
       + "is proved in sleep.test.mjs N2-09");
   }
-  await page.click('#phone [data-go="sleep"]');
+  await sleepFromToday(page);
   await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])');
 
   /* ---------- A REFUSAL RECORDS NOTHING ---------- */

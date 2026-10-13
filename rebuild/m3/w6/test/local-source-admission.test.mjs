@@ -125,6 +125,24 @@ test('S3-Q-N2-STEPS-REFUSED: a steps op the producer refuses still refuses the i
  await f.append('steps-foreign',{...action,payload:{...action.payload,profile:'earned/steps-day/v0'}});
  await refused(f,['LOCAL_SOURCE_DAILY_UNRESOLVED']);
 });
+/* N2 "LOG TODAY" (Part B; Fable's Part A debt D1). A step count the IMPORTED history already holds for a day is never
+   overwritten: the device's op for that day refuses the import LOCAL_SOURCE_DAILY_UNRESOLVED, and the issue now names
+   the field (steps_day) and the day (the phone's own record's local date) so the import screen can say which day in
+   plain words. The history is the fixture's own, with a count on its last day. */
+test('S3-Q-N2-STEPS-HELD: a count the imported history holds refuses the device op by name, naming the day',async t=>{
+ const setup=fixtureSetup(),base=fixtureState('2026-09-03'),source=structuredClone(createCleanInitState({setup}));
+ for(const field of ['model','trend','reads','dailyLogs','sleep'])source[field]=structuredClone(base[field]);
+ source.sessionLog={};source.decisions=[{id:'TEST-ONLY-historical-note',text:'Invented historical decision, no new consent'}];
+ source.dailyLogs['2026-09-03']={...(source.dailyLogs['2026-09-03']||{}),steps:5000};
+ const f=await fixture(t,{databaseName:'s3-steps-held',source});
+ await f.append('steps-held',Steps.prepare({action:Steps.ACTION,input:{day:{steps:6400},effective:fixtureEffective('2026-09-03')}}));
+ const before=(await f.repository.load()).generation;
+ const result=await f.controller.prepareSource(await f.review(),{identityConfirmed:true,prefixAnswer:true});
+ assert.deepEqual((await f.repository.load()).generation,before,'Refusal leaves authentic originals unchanged');
+ assert.equal(result.ready,false);
+ assert.deepEqual(result.issues.filter(i=>i.op_id==='steps-held'),
+  [{code:'LOCAL_SOURCE_DAILY_UNRESOLVED',op_id:'steps-held',field:'steps_day',date:'2026-09-03'}]);
+});
 test('S3-Q-REVIEW: cloned reviews and caller-supplied selection evidence cannot replace identity confirmation',async t=>{
  const f=await fixture(t),review=await f.review();
  await assert.rejects(()=>f.controller.prepareSource({...review},{identityConfirmed:true}),{code:'LOCAL_SOURCE_REVIEW_UNOWNED'});

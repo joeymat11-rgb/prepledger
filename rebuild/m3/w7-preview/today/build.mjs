@@ -200,6 +200,14 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/m3/w7-preview/today/sleep-commands.cjs",
   "rebuild/m3/w7-preview/today/sleep-model.cjs",
   "rebuild/m3/w7-preview/today/sleep-host.mjs",
+  /* N2 "LOG TODAY" (PM N2 brief, Part A and Part B) - the steps producer, its projection and its durable lane. A build
+     that lost steps-model.cjs would be a page whose recorded count never reaches the engine's dailyLogs; one that lost
+     steps-commands.cjs or steps-host.mjs would be a page whose Log today sheet records steps nowhere. steps-host.mjs is
+     reached through a dynamic import (today-app.cjs opens that lane itself, because today-lanes.cjs is sealed and
+     today-entry.mjs is pinned), so naming it here is also what proves the bundler really followed it. */
+  "rebuild/m3/w7-preview/today/steps-commands.cjs",
+  "rebuild/m3/w7-preview/today/steps-model.cjs",
+  "rebuild/m3/w7-preview/today/steps-host.mjs",
   "rebuild/m4/workout/athlete-state.cjs",
   "rebuild/m3/w6/host/workout-host.mjs",
   "rebuild/m3/w6/host/engine-runtime-host.cjs",

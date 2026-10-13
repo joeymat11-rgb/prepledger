@@ -82,7 +82,10 @@ function admitStepRows(state, rows, engineFor, family) {
     /* A count the history HOLDS is a non-null one: a food day projected first (F2) may leave the row without a
        count, and that is not a step figure this op would overwrite. */
     if (MEMBERS.some((key) => held[key] != null)) {
-      issues.push({ code: "LOCAL_SOURCE_DAILY_UNRESOLVED", op_id: row.op_id });
+      /* N2 Part B (Fable's Part A debt D1): the collision NAMES ITS DAY. `field` is a member of admission's closed
+         vocabulary the Import screen keys its sentence on, and `date` is this phone's own record's local date, the
+         day the two counts share, which the screen says in plain words. */
+      issues.push({ code: "LOCAL_SOURCE_DAILY_UNRESOLVED", op_id: row.op_id, field: "steps_day", date: row.date });
       continue;
     }
     const projected = stepsProjection(next, [row], engineFor(row.date, 12));

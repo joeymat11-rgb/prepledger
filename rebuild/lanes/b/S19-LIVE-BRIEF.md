@@ -786,17 +786,141 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   N2S.2 stand on files 20c0b09 does not have. The copy lock refused the new pieces and owners by name until the corpus was re-measured.
 - At the builder seat: the today batch 677/698 (665/686 plus N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1 and the two copy-lock rows; the same 21 seat-only build failures), the fences batch 2209/2211 (2208/2210 plus FLS/6; the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 37/37, food-live-save 7/7, the coach suite 401/401 without the seat-only engine-revision-gap file, and the estimate probe 58 of 58 (its 38, plus the two blackout lines inside the food card, unclipped, at 390 and 430; the longest wraps to three lines).
 
+## N2 "Log today", Part B: the Log today card and its sheet (PM N2 brief; on 20c0b09 plus Part A's diff, rebased from f4bd98c, rebuild/c-nutri2b)
+- Part B is one card near the top of Today and the one sheet it opens, the steps lane opened by the page and wired
+  into the build, and Fable's three Part A debts (D1 to D3). No rebuild/engine file and none of the protected five; no
+  sealed file (today-readings.cjs, today-lanes.cjs and gym-settings-lane.mjs are untouched); today-entry.mjs and
+  today-bindings.mjs are untouched, so PAGE_PINS stand.
+- The card (screens.template.html #card-log, in the feed after today's workout and above the proposal, the food card
+  and Ask Coach): the food card's own look (tcard nav, the feed's dot, a chevron), a title, "Log today", and one line
+  that names the five logs and ticks each one this device holds for today: "Weight . Food . Steps . Sleep . Check in"
+  (the separator is the feed's middle dot, the tick a check mark after the name). Every tick is read from the record
+  the screen behind it reads: the adopted morning reading, the projected food day, the winning steps op, the
+  projected night and the check-in lane's own summary. On a record that did not verify the card is hidden.
+- The sheet (screens.template.html t-log): the weigh-in sheet's panel (sheet-panel, a dialog over Today, Today inert
+  under it, focus on its head, Escape and Done close it), one row per log with what this device holds for today:
+  Weight, entered here through the page's ONE weigh-in write site (submitWeighIn, so model.weighIn is still called at
+  one site; look-cui3 S12 R3 now holds the sheet to it as a third entry); Food, the projected day and "Enter food",
+  which opens the nutrition screen; Steps, today's count and the new entry; Sleep, last night's hours and "Enter
+  sleep", which opens the sleep screen; Check in, the check-in's own line and "Open recovery check-in", which opens
+  the recovery screen. The food row routes rather than takes an entry because the food writer (recordIntake) is
+  sealed in today-lanes.cjs (S10) and repaints the nutrition screen itself; a food entry inside the sheet needs a
+  sealed edit, so it is not built. On a small phone the panel is held to the screen and scrolls inside itself
+  (preview.css; measured in Chromium at 375x667 with a store: 758 px tall on the rebase (759 on f4bd98c), its head at -92 px before, on the screen
+  after).
+- The steps lane is opened by today-app.cjs (openStepsLane), lazily and failing closed, as N1's food lane was opened
+  by the page and not by boot(): today-lanes.cjs is sealed, so the lane cannot be opened there. There is no injection
+  point: a third read of the mount's options is what B.3's one-handoff rule forbids (writer fence FENCE-OPTIONS-HELD,
+  2, unchanged), so the suites hand the jsdom window a real store and the page opens its own lane. The one new write
+  is recordSteps's stepsHost.save, after steps-model.cjs's rule passes the box: refused is said as nothing recorded,
+  a save that throws as unknown, a failed read-back after an acknowledged save as recorded but not read back.
+- REQUIRED_INPUTS (build.mjs): steps-commands.cjs, steps-model.cjs and steps-host.mjs join it, after sleep-host.mjs.
+  steps-host.mjs could not be required in Part A because nothing on the page imported it; today-app.cjs now does.
+
+### The folds, and the C-UI laws that block them (PM rulings on Part B)
+- The separate weight card is NOT folded (PM: it stays where it is; the C-UI laws hold it). README section 2 ruling 5 ("The weigh-in stays the board's inline card (no
+  sheet)"), C-UI-2 LOCKED ("the weigh-in stays inline (ruling 5)") and C-UI-3 (the inline weigh-in's states T-42 to
+  T-52) hold it on Today. The sheet's Weight row is a second way in to the SAME write site, as the Start sheet
+  (openWeighIn) already is; the PM ruled that fine under ruling 5, and the inline card stays.
+- The below-Start check-in row is NOT folded (PM: it stays where it is; the C-UI laws hold it). README section 2 ruling 4 ("Today's stack is Start, Recovery, Talk") and
+  C-UI-2 LOCKED ("the stack is Start, Recovery, Talk and nothing else") hold it in the stack. The sheet's Check in
+  row opens the same recovery screen.
+- The bottom Sleep link IS folded into Log today (PM ruling). It was preview-owned (DECISIONS:167), the approved board has no sleep entry, and
+  C-UI-7 governs the sleep screen behind it, which is unchanged; no C-UI law holds the link. The sheet's Sleep row
+  says the same hours and opens the same screen.
+- The card itself is a new row on Today that the approved board does not draw, so C-UI-2 ACCEPTANCE (Today's
+  statesheet green within tolerance of the prototype) does not cover it; it is preview-owned, as Ask Coach is.
+
+### Fable's Part A debts
+- D1: when an import is refused because a device step count collides with one the imported history already holds,
+  the refusal names the day. steps-model.cjs admitStepRows's issue carries field steps_day and the phone's own
+  record's local date; source-admission.mjs passes both through (steps_day joins its closed field vocabulary); the
+  import screen, when steps_day leads, says under the code line "This phone and this file both have a step count for
+  Thursday, September 3. Nothing on this phone was changed." (import-screen.mjs dayWords: en-US weekday, month and
+  day of the local date at noon; an unreal date falls back to the code's own line). NO drop-this-day offer: the
+  existing refusal UI ends the work, retracts custody and returns to the first step, and it has no per-issue action
+  to hang one on; offering one is a new import flow, and the PM ruled none for now.
+- D2, the blackout words of record (Part A, approved under DECISIONS:980): on the food card, "Your range is measured
+  again on <date>." alone, or after a count still left, "Log food for <n> more days to measure yours. Not before
+  <date>." (today-app.cjs CALORIE_GATE again, notBefore, end), with <date> in dayLabel's words ("Sunday, February
+  10"); the coach says the same words (coach-intents.cjs gateAgain, gateNotBefore, gateEnd).
+- Fable 4a010467 (on the accepted Part B), D1: closing the sheet with Done or Escape hands focus back to the card that
+  opened it (#card-log), as the weigh-in sheet's own close does; a row that opens another screen leaves focus to that
+  screen (today-app.cjs closeLogToday; food.test.mjs N2B.8, red on the accepted today-app.cjs, where focus fell to the
+  body). D3: a comment beside openStepsLane says that painting the Log today card opens the steps lane, and the food
+  lane through nutritionState(), as a side effect of Today's first paint (one attempt per mount, failing closed).
+- D3: the register entry (replay-registry.cjs steps-commands.cjs#steps) now says that the producer's validate checks
+  only the SHAPE of local_date, and that admission checks every operation's local_time and utc_offset (the offset
+  must be the zone's own at that instant) and refuses LOCAL_SOURCE_CONTEXT_UNRESOLVED; food.test.mjs N2S.7 holds the
+  words.
+
+### New strings (approved under DECISIONS:980 (2), PM ruling on Part B) and codes
+- today-app.cjs, the card and the sheet: "Log today", "Weight", "Food", "Steps", "Check in" (with "Sleep", the sleep
+  screen's existing title), the tick " " plus a check mark and the separator " . " with the middle dot, "Done",
+  "Enter food", "Enter sleep", "Nothing logged yet.", "Steps today", "Save steps", " steps" (after the count);
+  the steps lane's lines: "Steps cannot be recorded on this device yet. Earned could not open its encrypted store
+  here, so there is nowhere to keep them.", "These steps could not be recorded on this device, and nothing was
+  recorded.", "Earned could not tell whether these steps were recorded on this device. They may have been kept and
+  they may not.", "Recorded on this device. Earned could not read today's record back just now.", "Enter today's
+  steps. Nothing was recorded.", "Steps are recorded as a whole number between 0 and 100000. Nothing was recorded."
+  The weight row reuses the board's "Your weight in pounds", "Your weight", "lb" and the inline form's Save words;
+  the check-in row reuses "Open recovery check-in". design.cjs declares the fifteen that the approved references do
+  not already carry as preview runtime copy.
+- import-screen.mjs (D1): "This phone and this file both have a step count for " and ". Nothing on this phone was
+  changed."
+- The copy lock re-measures for exactly these pieces and three owner counts in today-app.cjs ("Your weight in pounds"
+  and "Your weight" once each, a third "Escape") (CL-NUTRI2B-DELTA; corpus 25eefea4 -> 2b9c2568 on the rebased Part A;
+  on f4bd98c it was 66ade625 -> b7993d9c); CL-NUTRI2B-APPROVAL cites DECISIONS:980 (2). Codes, never shown: steps_day (a field),
+  NO_LOCAL_STORE, STEPS_LANE_UNAVAILABLE.
+
+### Re-pins, cells and evidence
+- Re-pins, to measured values: package.test.cjs H18 32 -> 35 and H18b 59 -> 62 (REQUIRED_INPUTS, read from
+  build.mjs's own text; seat-only); writer-fence.test.mjs today-app.cjs's declared seams gain "stepsHost.save" (sites
+  3 -> 4), its edges gain require:./steps-model.cjs and import:./steps-host.mjs, FENCE-MODEL-HELD 34 -> 42 (eight new
+  names, each a read or the lane's hand-in, listed at the pin; the first draft's 46 lost three typeof guards and an
+  injection point); page-bundle.test.mjs P3-B2 164 -> 165 and P3-B5 43 -> 44 (steps-host.mjs on the boot graph, the
+  builder's esbuild graph with every protected engine file held external, never read: 162 -> 163 and 161 -> 162
+  non-protected inputs against the rebased Part A's, steps-host.mjs added, none removed, the route-only set unchanged at 19);
+  food.test.mjs N2S.5 now pins the refusal's field and date; look-cui2 R3's feed slice ends at the trend row, since
+  the Sleep link's label it ended at is gone (the anchor is now asserted present); problem.test.mjs N2-15 reaches the
+  sleep screen through the card and the sheet; sleep-check.mjs (browser, seat) reads Today's sleep line from the
+  sheet's Sleep row and opens sleep through it. The register is unchanged in shape; reach.cjs's ADOPT list (a spike
+  artifact) does not name setStepDays and is not edited.
+- New cells: food.test.mjs N2B.1 to N2B.8 (the card and its ticks from the record and no Sleep link; one sheet over an
+  inert Today, Done and Escape; Save steps writes one op through the page's own lane over a real store and ticks
+  Steps, two refusals write nothing; a refused save and a thrown one; no store; the three rows open their screens and
+  the weight row refuses an empty box in the client's words; no card on an unverified record; Done and Escape hand
+  focus back to the card); look-cui2 "N2 LOG
+  TODAY" (the card in the feed above Start, preview-owned, the weigh-in card and the stack held); look-cui3 S12 R3's
+  third entry and its teeth. Seat-only: local-source-admission.test.mjs S3-Q-N2-STEPS-HELD (a count the imported
+  history holds refuses the device op with field steps_day and the day) and refusal-route.test.mjs N2B-D1 (the day in
+  words, an unreal day falls back, a date beside another leading field changes nothing; its pure half was executed at
+  the builder seat by loading only the copy and the two functions).
+- Red first, re-measured on the rebase: on the rebased Part A's bytes of today-app.cjs, screens.template.html, preview.css, design.cjs, build.mjs,
+  steps-model.cjs, import-screen.mjs and replay-registry.cjs, all twelve named cells fail (N2B.1 to N2B.7, N2S.5,
+  N2S.7, look-cui2 N2 LOG TODAY, look-cui3 S12 R3, problem.test N2-15) and pass on these; N2B-D1's pure half fails on
+  Part A's import-screen.mjs (no dayWords).
+- Measured on the way: on a store that holds no installation yet, the food, sleep and steps lanes the first Today
+  paint opens race to create it and the steps lane lost with STALE_REVISION (one attempt per mount, the food and sleep
+  lanes' rule); with the installation in place it opened 3 runs of 3. A phone's boot() opens the installation before
+  Today mounts; the suites do the same.
+- Needles: s12-look 81 -> 82 (look-cui2 N2 LOG TODAY), today-17 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 ->
+  34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), expected, observed at the PM seat (each child also runs
+  files only the seat can run); s10-copy-lock 37 -> 39 (CL-NUTRI2B-DELTA, CL-NUTRI2B-APPROVAL), measured;
+  today-split-fence 417 unchanged.
+- At the builder seat: the today batch 688/709 (677/698 plus N2B.1 to N2B.8, look-cui2 N2 LOG TODAY and the two copy-lock rows; the same 21 seat-only build failures), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 39/39, food-live-save 7/7, the coach suite 401/401 without the seat-only engine-revision-gap file, and a Chromium probe of the card and the sheet over the invented fixture athlete, with and without a store, at 390x844, 430x932 and 375x667: 90 of 90 (the card in the feed above the coach row at the feed's title size, its ticks unclipped, the workout card above Start; the sheet inside the phone, no clipped word, every control at least 44 px tall, its head on the screen and the panel scrolling at 375x667).
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 (the polish's CL-COACH-POLISH-DELTA
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
-polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell), and with the
+polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell; N2 part B's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

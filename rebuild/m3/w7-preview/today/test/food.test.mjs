@@ -1398,7 +1398,9 @@ test('N2S.5 - F11\'s rule, pure: the winner is projected, a replaced count retai
   /* A count the imported history already holds is never overwritten: the op is refused by name. */
   const held = E.writeDaily(base, DAY, { steps: 5000 });
   const refused = StepsModel.admitStepRows(held, rows, () => E, 'F11');
-  assert.deepEqual(refused.issues, [{ code: 'LOCAL_SOURCE_DAILY_UNRESOLVED', op_id: 'b' }]);
+  /* N2 Part B (Fable's Part A debt D1; red first on the Part A pin `{ code, op_id }`): the refusal now names WHICH
+     day collided, the phone's own record's local date, so the import screen can say the day in plain words. */
+  assert.deepEqual(refused.issues, [{ code: 'LOCAL_SOURCE_DAILY_UNRESOLVED', op_id: 'b', field: 'steps_day', date: DAY }]);
   assert.equal(refused.state.dailyLogs[DAY].steps, 5000, 'the history\'s figure stands');
   assert.deepEqual(refused.families, [{ family: 'F11', state: 'retained', op_id: 'a' }]);
 });
@@ -1422,10 +1424,206 @@ test('N2S.7 - the register answers for the steps producer with F11, and admissio
   assert.equal(entry.family, 'F11');
   assert.deepEqual([...entry.profiles], [StepsCommands.PROFILE]);
   assert(Registry.FAMILIES.includes('F11'));
+  /* N2 Part B (Fable's Part A debt D3): the entry says what each side checks. The producer's validate checks only the
+     SHAPE of local_date; admission checks every operation's local_time and utc_offset against the zone. */
+  assert.match(entry.rule, /validate checks only the shape of local_date/, 'the producer\'s half is stated');
+  assert.match(entry.rule, /admission checks every operation's local_time and utc_offset/, 'and admission\'s');
+  assert.match(entry.rule, /LOCAL_SOURCE_CONTEXT_UNRESOLVED/, 'with the code admission refuses under');
   const admission = readRepo('rebuild/m3/w6/local/source-admission.mjs');
   assert(admission.includes("StepsModel.admitStepRows(state,stepRows,engineFor,'F11')"), 'admission runs F11');
   assert(admission.indexOf('Steps.validate(op,') < admission.indexOf("op.class==='steps'?'LOCAL_SOURCE_DAILY_UNRESOLVED'"),
     'and collects the producer\'s own records before its catch-all');
+});
+
+/* ==========================================================================
+   N2 "LOG TODAY", PART B - THE CARD AND THE ONE SHEET. Every cell below was RED on
+   the Part A tree (no #card-log, no t-log template, no steps entry on any screen).
+   The steps lane has NO injection point (a third read of the mount's `options` is
+   what FENCE-OPTIONS-HELD forbids), so the cells that drive it hand the jsdom WINDOW
+   a real store (fake-indexeddb through faultDatabase, node's webcrypto) before the
+   mount, and the page opens its own lane through steps-host.mjs exactly as a phone
+   does. jsdom alone has no indexedDB, which is the no-store cell.
+   ========================================================================== */
+const N2B = TodayApp;
+const click = (page, el) => el.dispatchEvent(new page.dom.window.Event('click'));
+const ticked = (page, key) => page.pick('log-ticks').textContent
+  .split(N2B.LOG_JOIN).includes(N2B.LOG_ITEMS[key] + N2B.LOG_TICK);
+const cleanModel = () =>
+  createTodayModel({ today: DAY, basisState: createCleanInitState({ setup: firstRunDocument() }) });
+const stepOps = async (fault) => {
+  const host = await createStepsHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  try { return await host.all(); } finally { host.close(); }
+};
+async function storedScreen(fault, model = cleanModel()) {
+  /* The installation exists BEFORE the mount, as it does on a phone, where boot() opens it before Today mounts.
+     MEASURED: on a store with no installation at all, the food, sleep and steps lanes the first Today paint opens
+     race to create it and one loses with STALE_REVISION (the steps lane in this harness, one attempt per mount, the
+     same rule as the food and sleep lanes); with the installation in place the steps lane opened on 3 runs of 3. */
+  await stepOps(fault);
+  const dom = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' });
+  Object.defineProperty(dom.window, 'indexedDB', { value: fault.indexedDB, configurable: true });
+  Object.defineProperty(dom.window, 'crypto', { value: webcrypto, configurable: true });
+  const doc = dom.window.document;
+  const api = mountToday(doc, model, {});
+  const page = { dom, doc, model, api, pick: (slot) => doc.querySelector('#phone [data-slot="' + slot + '"]') };
+  await api.stepsReady();
+  await api.foodReady();
+  await api.sleepReady();
+  assert(api.stepsLane(), 'the page opened its own steps lane over the window\'s store: ' + api.stepsFailure());
+  return page;
+}
+
+test('N2B.1 - Today carries ONE Log today card whose ticks are read from the record, and no separate Sleep link', async () => {
+  const fault = faultDatabase();
+  const page = await storedScreen(fault);
+  const card = page.doc.querySelector('#phone #card-log');
+  assert(card && !card.hidden, 'the card is on Today');
+  assert.equal(page.doc.querySelectorAll('#phone #card-log').length, 1);
+  assert.equal(page.pick('log-title').textContent, N2B.LOG_TITLE);
+  assert.equal(page.pick('log-ticks').textContent,
+    Object.keys(N2B.LOG_ITEMS).map((key) => N2B.LOG_ITEMS[key]).join(N2B.LOG_JOIN),
+    'nothing logged on a clean day: the five names and no tick');
+  assert.equal(page.doc.querySelector('#phone [data-go="sleep"]'), null, 'the quiet Sleep link folded into the card');
+  assert.equal(page.doc.querySelector('#phone [data-slot="sleep-entry"]'), null);
+  assert(page.doc.querySelector('#phone #card-weigh'), 'the inline weigh-in card stays (ruling 5)');
+  assert(page.doc.querySelector('#phone #recovery'), 'the check-in row stays in the stack (ruling 4)');
+  page.api.dispose();
+  /* the same device once a count is recorded there: the Steps tick, read from the lane, and no other tick moves */
+  const host = await createStepsHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  assert.equal((await host.save({ steps: 8200 })).ok, true);
+  host.close();
+  const again = await storedScreen(fault);
+  assert.equal(ticked(again, 'steps'), true, 'Steps is ticked from the record');
+  for (const key of ['weight', 'food', 'sleep', 'checkin']) assert.equal(ticked(again, key), false, key + ' is not');
+  again.api.dispose();
+});
+
+test('N2B.2 - the card opens ONE sheet over an inert Today; Done and Escape close it and Today comes back', async () => {
+  const page = await storedScreen(faultDatabase());
+  click(page, page.doc.querySelector('#phone #card-log'));
+  assert.equal(page.api.logOpen(), true);
+  const sheet = page.pick('log-sheet');
+  assert(sheet, 'the sheet is painted');
+  assert.equal(sheet.getAttribute('role'), 'dialog');
+  assert.equal(sheet.getAttribute('aria-modal'), 'true');
+  assert.equal(sheet.getAttribute('aria-label'), N2B.LOG_TITLE);
+  assert.equal(page.doc.querySelectorAll('#phone [role="dialog"]').length, 1, 'one sheet');
+  for (const el of page.doc.getElementById('phone').children) if (el !== sheet) assert.equal(el.inert, true, 'Today is inert under it');
+  assert.equal(page.doc.activeElement, page.pick('log-head'), 'focus lands on the sheet\'s head');
+  for (const key of Object.keys(N2B.LOG_ITEMS))
+    assert.equal(page.pick('log-' + key + '-label').textContent, N2B.LOG_ITEMS[key], 'a row for ' + key);
+  click(page, page.pick('log-done'));
+  assert.equal(page.api.logOpen(), false);
+  assert.equal(page.pick('log-sheet'), null, 'Done closes it');
+  assert.equal(page.api.screen(), 'today');
+  for (const el of page.doc.getElementById('phone').children) assert.notEqual(el.inert, true, 'and nothing stays inert');
+  page.api.openLogToday();
+  page.pick('log-sheet').dispatchEvent(new page.dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert.equal(page.pick('log-sheet'), null, 'Escape closes it');
+  page.api.dispose();
+});
+
+test('N2B.3 - Save steps writes ONE op through the page\'s own steps lane, reads it back and ticks Steps; a refused entry writes nothing', async () => {
+  const fault = faultDatabase();
+  const page = await storedScreen(fault);
+  page.api.openLogToday();
+  assert.equal(page.pick('log-steps-state').textContent, N2B.LOG_NOTHING_YET, 'honest before anything is kept');
+  assert.equal(page.pick('log-steps-box-label').textContent, N2B.STEPS_LABEL);
+  assert.equal(page.pick('log-steps-save').textContent, N2B.STEPS_SAVE);
+  /* refused by the rule first: nothing is written */
+  page.pick('log-steps-box').value = '12.5';
+  click(page, page.pick('log-steps-save'));
+  await page.api.stepsPending();
+  assert.equal(page.pick('log-steps-error').textContent, N2B.STEPS_REFUSAL_COPY.STEPS_RANGE);
+  page.pick('log-steps-box').value = '';
+  click(page, page.pick('log-steps-save'));
+  await page.api.stepsPending();
+  assert.equal(page.pick('log-steps-error').textContent, N2B.STEPS_REFUSAL_COPY.NOTHING);
+  assert.equal((await stepOps(fault)).length, 0, 'two refusals, no op');
+  /* and a count that passes: one op, read back, painted from the record */
+  page.pick('log-steps-box').value = ' 8200 ';
+  click(page, page.pick('log-steps-save'));
+  await page.api.stepsPending();
+  const rows = await stepOps(fault);
+  assert.equal(rows.length, 1, 'one save, one op');
+  assert.deepEqual(rows[0].day, { steps: 8200 });
+  assert.equal(page.model.loggedSteps(DAY), 8200, 'the model reads the lane the page opened');
+  assert.match(page.pick('log-steps-state').textContent, /^8,?200 steps$/, 'the row says the kept count');
+  assert.equal(page.pick('log-steps-error').textContent, '');
+  click(page, page.pick('log-done'));
+  assert.equal(ticked(page, 'steps'), true, 'and Today\'s card ticks Steps');
+  page.api.dispose();
+});
+
+test('N2B.4 - a refused steps save says nothing was recorded, and a save that throws says Earned cannot tell', async () => {
+  /* refused: the store's own write fails (a quota fault), and the host answers refused */
+  const fault = faultDatabase();
+  const page = await storedScreen(fault);
+  page.api.openLogToday();
+  fault.state.armed = true;
+  fault.state.mode = 'quota';
+  page.pick('log-steps-box').value = '8200';
+  click(page, page.pick('log-steps-save'));
+  await page.api.stepsPending();
+  fault.state.armed = false;
+  const refused = page.pick('log-steps-error').textContent;
+  assert(refused.startsWith(N2B.STEPS_REFUSED), refused);
+  assert.equal(page.pick('log-steps-state').textContent, N2B.LOG_NOTHING_YET, 'nothing is shown as kept');
+  assert.equal((await stepOps(fault)).length, 0, 'and nothing was kept');
+  /* thrown: a host that throws has told the page nothing, so it says it cannot tell */
+  page.api.stepsLane().host = { save: async () => { throw Object.assign(new Error('x'), { code: 'IDB_ABORTED' }); },
+    async all() { return []; }, close() {} };
+  click(page, page.pick('log-steps-save'));
+  await page.api.stepsPending();
+  const unknown = page.pick('log-steps-error').textContent;
+  assert(unknown.startsWith(N2B.STEPS_UNKNOWN), unknown);
+  assert(!unknown.includes(N2B.STEPS_REFUSED), 'never "nothing was recorded" for a write it cannot see');
+  page.api.dispose();
+});
+
+test('N2B.5 - with no store the Steps row says so and offers no entry it cannot keep', () => {
+  const page = screenOn({ model: cleanModel() });
+  page.api.openLogToday();
+  assert.equal(page.pick('log-steps-state').textContent, N2B.STEPS_NO_STORE);
+  assert.equal(page.pick('log-steps-box'), null);
+  assert.equal(page.pick('log-steps-save'), null);
+  page.api.dispose();
+});
+
+test('N2B.6 - the Food, Sleep and Check in rows open their own existing screens, and the weight is entered through the one weigh-in site', async () => {
+  for (const [slot, screen, words] of [['log-food-go', 'nutrition', N2B.LOG_FOOD_GO],
+    ['log-sleep-go', 'sleep', N2B.LOG_SLEEP_GO], ['log-checkin-go', 'recovery', N2B.SLEEP_OPEN_CHECKIN]]) {
+    const page = screenOn({ model: cleanModel() });
+    page.api.openLogToday();
+    assert.equal(page.pick(slot).textContent, words);
+    click(page, page.pick(slot));
+    assert.equal(page.api.logOpen(), false, slot + ' closes the sheet');
+    assert.equal(page.api.screen(), screen, slot + ' opens ' + screen);
+    page.api.dispose();
+  }
+  /* the weight row: owed on a clean day, the board's field and Save, and an empty box is refused in the client's
+     own words through submitWeighIn (the static half is look-cui3's S12 R3) */
+  const page = screenOn({ model: cleanModel() });
+  page.api.openLogToday();
+  assert.equal(page.pick('log-weight-box-label').textContent, 'Your weight in pounds');
+  assert.equal(page.pick('log-weight-box').placeholder, 'Your weight');
+  assert.equal(page.pick('log-weight-unit').textContent, 'lb');
+  page.pick('log-weight-form').dispatchEvent(new page.dom.window.Event('submit', { cancelable: true }));
+  for (let i = 0; i < 5 && page.pick('log-weight-error').textContent === ''; i += 1)
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.notEqual(page.pick('log-weight-error').textContent, '', 'the refusal is said in the sheet');
+  assert.equal(page.api.logOpen(), true, 'and the sheet stays open on it');
+  page.api.dispose();
+});
+
+test('N2B.7 - on a record that did not verify there is no Log today card at all', () => {
+  const real = cleanModel();
+  const model = Object.create(real);
+  Object.defineProperty(model, 'read', { value: () => ({ ...real.read(), blocked: true,
+    blockedCopy: 'This device\u2019s record did not verify. Nothing on this screen is a value.' }) });
+  const page = screenOn({ model });
+  assert.equal(page.doc.querySelector('#phone #card-log').hidden, true, 'nothing is logged over an untrusted record');
+  page.api.dispose();
 });
 
 /* UI-PASS13 item 4 (shot 03): the Carbohydrate and Fat rows each said "Not prescribed. The engine issues no ... target."
@@ -1467,4 +1665,26 @@ test('UP13-MARKER - while the food lane opens the card says nothing, never "Not 
   const bare = screenOn();
   assert.equal(bare.doc.querySelector('#phone [data-slot="nutrition-state"]').textContent, NOT_WIRED,
     'a device with no store still says the entry cannot be wired here');
+});
+
+/* Fable 4a010467 D1 on Part B: closing the Log today sheet with Done or Escape hands focus back to the card that opened
+   it (#card-log), as the weigh-in sheet's own close does; a row that opens another screen leaves focus to that screen.
+   Red first: on the accepted Part B today-app.cjs, focus falls to the document body when the sheet closes. */
+test('N2B.8 - Done and Escape hand focus back to the Log today card', async () => {
+  const page = await storedScreen(faultDatabase());
+  const card = () => page.doc.querySelector('#phone #card-log');
+  click(page, card());
+  assert.equal(page.doc.activeElement, page.pick('log-head'), 'the sheet takes focus');
+  click(page, page.pick('log-done'));
+  assert.equal(page.pick('log-sheet'), null, 'Done closes it');
+  assert.equal(page.doc.activeElement, card(), 'and focus is back on the card');
+  click(page, card());
+  page.pick('log-sheet').dispatchEvent(new page.dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert.equal(page.pick('log-sheet'), null, 'Escape closes it');
+  assert.equal(page.doc.activeElement, card(), 'and focus is back on the card');
+  click(page, card());
+  click(page, page.pick('log-food-go'));
+  assert.equal(page.api.screen(), 'nutrition', 'a row that opens a screen goes there');
+  assert.notEqual(page.doc.activeElement, card(), 'and does not pull focus back to the card');
+  page.api.dispose();
 });
