@@ -94,14 +94,18 @@ const {normaliseName,correspondence,idCollisions}=LiftCorrespondence;
 // F7, the measure family. Pure and stateless: it is built once from the S5
 // producer's own validate() and its three profile names, holds no clock, no
 // engine and no platform, and is handed the day admission stands on per call.
+// E2a: and the producer's two once-only facts, the body-fat band and the body
+// profile, retained on the same terms (measure-replay.cjs).
 const measureFamily=MeasureReplay.createMeasureReplayFamily({commands:Measure.createMeasureCommands(),
- profiles:{waist:Measure.PROFILE,markers:Measure.MARKERS_PROFILE,trialStart:Measure.TRIAL_PROFILE}});
+ profiles:{waist:Measure.PROFILE,markers:Measure.MARKERS_PROFILE,trialStart:Measure.TRIAL_PROFILE,
+  bodyFatBand:Measure.BAND_PROFILE,bodyProfile:Measure.BODY_PROFILE}});
 // The shared class, judged by profile (RV-G4). F7 is its one member today and
 // claims exactly the three S5 measure profiles; every other member of the class
 // - the authority's own lean-source payload among them - is refused by the
 // class's name until a family for it exists.
 const bodyComposition=BodyComposition.createBodyCompositionClass({members:[{family:MeasureReplay.FAMILY,
- profiles:[Measure.PROFILE,Measure.MARKERS_PROFILE,Measure.TRIAL_PROFILE],replay:measureFamily.replay}]});
+ profiles:[Measure.PROFILE,Measure.MARKERS_PROFILE,Measure.TRIAL_PROFILE,Measure.BAND_PROFILE,Measure.BODY_PROFILE],
+ replay:measureFamily.replay}]});
 // F8, the sleep family. Pure and stateless, on the same terms as F7: built once
 // from the N2 producer's own validate() and its one profile name, holding no
 // clock, no engine and no platform.

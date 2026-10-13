@@ -373,3 +373,23 @@ test("C-UI polish 6: the coach answer's scroll room, the quiet undo card, Show f
   assert.doesNotMatch(code, /:is\(|display:\s*none|line-clamp|max-height|min-height|font-size/,
     "plain selectors; nothing hidden, clamped, capped, resized or shrunk");
 });
+
+/* POLISH 8, Fable's debt D3 (carried in E2a): the cue above Start is placed by the stack it hangs from. The pseudo-
+   element is absolutely placed 18 px above the stack's own top, which holds only because the pack makes Today's stack
+   a positioned box (app.css `.screen .ui > .stack { ... position: relative ... }`); were either moved, the chevron
+   would leave Start for the page's corner. Pinned both ways here, as the measured probe placed it (P8: cue top -18px,
+   at 375, 390 and 430). */
+test("C-UI polish 8 (D3): the scroll cue above Start is placed by the stack it hangs from", () => {
+  const css = fs.readFileSync(PREVIEW_CSS, "utf8");
+  const block = css.slice(css.indexOf("/* ===== POLISH 8 (PM"), css.indexOf("/* ===== POLISH 8: END ===== */"));
+  assert(block.length > 0, "the polish 8 block");
+  const code = block.replace(/\/\*[\s\S]*?\*\//g, "");
+  assert(code.includes(".scene-frame.screen-today > .view.ui > .body.can-scroll:not(.at-end) + .stack::before {\n"
+    + "  content: \"\"; position: absolute; left: 50%; top: -18px; width: 9px; height: 9px; margin-left: -6px;\n"),
+    "the cue hangs 18 px above the stack's top, centred, from the stack itself");
+  const pack = fs.readFileSync(PACK_CSS, "utf8");
+  const stack = pack.match(/\.screen \.ui > \.stack \{([^}]*)\}/);
+  assert(stack, "the pack's stack rule");
+  assert.match(stack[1], /position:\s*relative;/, "Today's stack is the positioned box the cue is placed from");
+  assert.doesNotMatch(code, /\.stack\s*\{[^}]*position:\s*static/, "and nothing in polish 8 un-positions it");
+});

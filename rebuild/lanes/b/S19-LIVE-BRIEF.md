@@ -1128,17 +1128,93 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   CL-P8-APPROVAL; measured).
 - At the builder seat (on 637521f): the today batch 708/729 (701/722 plus P8.1 to P8.5, CL-P8-DELTA and CL-P8-APPROVAL; the same 21 seat-only build failures), the coach suite 403/404 (the one failure the guard's refusal of rebuild/engine/index.cjs in engine-revision-gap R4, PM seat), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 45/45 (corpus 1f393735), food-live-save 7/7, s12-look 81/82 (the same seat-only C-UI-1 build failure), the import suites reached and refused by the guard by name (they read the protected engine, PM seat), and the P8 Chromium probe 51 of 51.
 
+## E2a: the body-fat band, height and sex on Measure, admitted on import (PM, the E2 scope; on 3d13efe, rebuild/c-e2a; no engine change)
+- Measure gains an About you section, after the waist entry and before the comparison, once the markers are picked.
+  It is optional and never nags: an unanswered question is asked there and nowhere else (no Today entry is added),
+  and an answer is said back with a Change control beside it ("Height: 5 ft 10 in . Change", "Sex: Male . Change",
+  "Body fat: 12-15% (your estimate) . Change"), the Log today sheet's steps line. Change asks the question again with
+  the answer held filled in and focused. The engine reads none of it (E2b); it is stored and said back on Measure.
+- Answers are changeable (the PM's ruling 1 on E2a): each save is a NEW operation, never an edit, and the latest wins,
+  as a step count does. "I don't know" is a first-class choice, stored like any band and said back as "Body fat: not
+  known"; "Not now" is stored as an answer with neither height nor sex and said back as "Height and sex: not given".
+  Neither question is asked again by itself, and both stay changeable through Change. Not now is offered only before
+  a first answer.
+- The body-fat band picker: the PM's bands, men 8-11, 12-15, 16-20, 21-25, 26 or more; women 15-19, 20-24, 25-29,
+  30-34, 35 or more; each a full-width row with one plain line, and no picture guide (drawn images come later). A
+  recorded male or female sex is offered that sex's table; with no sex recorded, or "Prefer not to say", both tables,
+  each under its heading (ruling 2). Save with nothing chosen is refused in words and writes nothing.
+- Height and sex: sex is Male, Female or Prefer not to say; height is entered in feet and inches only (ruling 3; the
+  app has no unit setting: weight in pounds, waist in inches), from 3 ft to 8 ft, one decimal of an inch at most; both
+  are optional. A height outside the range, or Save with nothing chosen, is refused in words and writes nothing.
+- The records: class body-composition-source, kind fact, written by the measure lane's one producer
+  (measure-commands.cjs), read back latest-wins from the durable record (measure-host.mjs). earned/body-fat-band/v1
+  carries exactly { low, high, source, table }: a band (high null for the open top band) with source "self-estimate"
+  and table "men" or "women", the table it was picked from, so E2b never infers a sex from a band (Fable on E2a,
+  D1); or low, high and table null with source "unknown" for "I don't know" (ruling 4). The band need only be a row
+  of the table it names: either table is accepted whatever sex the body profile records, since both are offered when
+  none is and a recorded sex can change later (Fable D3, noted beside bandOf). Anything else refuses
+  BODY_INPUT_INVALID, and the store's validate holds the payload to those five members.
+  earned/body-profile/v1 carries { sex, height }: sex male, female, prefer-not-to-say or null; height { value, unit }
+  in inches (36 to 96) or centimetres (91 to 244), one decimal at most, or null.
+- Import: F7 (measure-replay.cjs) answers for both new profiles beside the waist, the markers pick and the trial
+  start, every save RETAINED and never projected, dated by the day recorded (they are choices, as the markers pick
+  is); the admission controller names both to F7 and to the shared class (source-admission.mjs), and the register
+  names them (replay-registry.cjs). A malformed band or profile refuses LOCAL_SOURCE_MEASURE_UNRESOLVED. The import
+  route now says that refusal, and the shared class's LOCAL_SOURCE_BODY_COMPOSITION_UNRESOLVED, in plain words beside
+  the code (import-screen.mjs REFUSAL_SENTENCE), where both stood alone.
+- The look (ruling 5), preview.css E2A block, in the page's existing patterns and with no new colour, type size or
+  token: the said-back line is the sheet's steps line (the answer, the middle dot, Change as a 44 px text link); the
+  band rows are the pack's card rows, full width, 52 px or more, the radio at the left, a chosen row drawn as a pressed
+  answer; the sex answers are the sleep screen's 44 px chips; height is the sheet's underline weigh row, whose focus is
+  its underline (POLISH 8); Save is the pack's pill with its 44 px hit area; the focus ring is POLISH 7's.
+- Measure's own page, folded into E2a at the PM's ruling (both found by the first probe): (a) Measure takes the
+  content page's chassis, as the Import screen does: the 09-08 page inset (23 px, and 18 px at 350 px and narrower),
+  the safe-area top and bottom, and the protective text glow over the scene plate; (b) the comparison tables (eleven
+  columns with three markers; the trial table measured 786 px in a 390 px screen before) no longer scroll the page
+  sideways: each is its own horizontal scroller on the pack's card, its Week column pinned at the left edge, with a
+  soft glow of the text colour at the right edge while more columns lie beyond it (hidden at the last column). CSS
+  only: the rows and cells are the table's own, so the rendered table, the export and the P-MEASURE cells that read
+  them are unchanged.
+- The Chromium probe at the builder seat (the invented fixture athlete, the real jsdom route frozen with the composed
+  approved styles; 390x844, 430x932 and 375x667; four states: both questions asked, all answered, the band being
+  changed, Not now and I don't know): the whole Measure screen never scrolls the page sideways, Measure keeps the
+  content page inset, nothing reaches past the inset, the trial table scrolls inside itself with its Week column
+  pinned and the right-edge cue, no sideways scroll in About you, every control a 44 px target, nothing clipped at
+  the edge, no text overflowing its row, each said-back line and its Change on one row, the band rows full width and
+  52 px or more, the height box's focus its underline: 114 of 114.
+- Fable on E2a: D1 above (the band's table; validateBand's five members; E2A.1, E2A.4, E2A-L1, E2A-J1 and E2A-MF7
+  carry it, red on the pre-D1 producer); D2, a height is said back in the unit it was stored in, centimetres staying
+  centimetres (E2A.3 rows "Height: 178 cm" and "Height: 182.5 cm"; confirmed, heightWords already did); D3, the note
+  beside bandOf above.
+- Fable's P8 debts, carried here: D2, the sheet's weight comment now says the value and its note (today-app.cjs,
+  comment only); D3, the scroll cue's placement is pinned in look-cui2 (the cue 18 px above the stack's top, and the
+  pack's stack a positioned box), red with the cue planted position: fixed.
+- New strings (47 pieces and 5 owner counts, CL-E2A-DELTA; corpus 1f393735 -> fe891976), approved under DECISIONS:913
+  (5) until the PM records an owner line for the bands (CL-E2A-APPROVAL cites DECISIONS:913); the PM signed off the
+  wording as written, all of it.
+- New cells, red first on 3d13efe's bytes: measure model.test.mjs E2A.1 to E2A.4 (the producer, the height boxes and
+  the said-back words, F7, the class and the register; 4 of 4 red on measure-commands.cjs, measure-model.mjs,
+  measure-view.mjs, measure-replay.cjs, replay-registry.cjs and source-admission.mjs), lane.test.mjs E2A-L1 and E2A-L2
+  (one op per save, the latest wins, I don't know and Not now kept and changed; 2 of 2 red on measure-commands.cjs and
+  measure-host.mjs), journey.test.mjs E2A-J1 and E2A-J2 (the real Measure route: asked, said back with Change,
+  changed with the answer held filled in and focused, kept over a reload, Not now and I don't know never nagging and
+  still changeable, refusals in words; 2 of 2 red on the five measure product files), look-cui2 D3 (red planted). At
+  the PM seat only (the guard stops the protected engine these load): measure-family.test.mjs E2A-MF7 (both admit and
+  are retained through the real controller; a malformed band refuses by F7's name) and refusal-route.test.mjs E2A-IR1
+  (the two plain sentences); expected red on 3d13efe's bytes, not measured here.
+- At the builder seat (on 3d13efe): the today batch 711/732 (708/729 plus CL-E2A-DELTA, CL-E2A-APPROVAL and the look-cui2 D3 cell; the same 21 seat-only build failures), the coach suite 403/404 (engine-revision-gap R4, the guard's refusal of rebuild/engine/index.cjs, PM seat), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 47/47 (corpus fe891976), food-live-save 7/7, s12-look 82/83 (the same seat-only C-UI-1 build failure), measure-hermetic 15/15, today-17 733 passing with the seat's guard and build refusals, the four E2A measure cells among the passes, the E2a Chromium probe 114 of 114, and the import suites, d-replay-measure, d-replay-all and w7-import reached and refused by the guard by name (they read the protected engine, PM seat).
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 -> 41 -> 43 -> 45 (the polish's CL-COACH-POLISH-DELTA
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 -> 41 -> 43 -> 45 -> 47 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL; E1a's CL-E1-DELTA and CL-E1-APPROVAL; polish 7's CL-P7-DELTA and CL-P7-APPROVAL; polish 8's CL-P8-DELTA and CL-P8-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL; E1a's CL-E1-DELTA and CL-E1-APPROVAL; polish 7's CL-P7-DELTA and CL-P7-APPROVAL; polish 8's CL-P8-DELTA and CL-P8-APPROVAL; E2a's CL-E2A-DELTA and CL-E2A-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82 -> 83
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
-polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell; N2 part B's look-cui2 cell), and with the
+polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell; N2 part B's look-cui2 cell; polish 8's D3 look-cui2 cell, carried in E2a), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW), and with E1a 884 -> 885 (E1-NOFIG), and with polish 7 885 -> 891 (P7.1 to P7.6), and with polish 8 891 -> 896 (P8.1 to P8.5); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW), and with E1a 884 -> 885 (E1-NOFIG), and with polish 7 885 -> 891 (P7.1 to P7.6), and with polish 8 891 -> 896 (P8.1 to P8.5), and with E2a 896 -> 900 (E2A-L1, E2A-L2, E2A-J1, E2A-J2), measure-hermetic 11 -> 15 (E2A.1 to E2A.4), d-replay-measure 9 -> 10 (E2A-MF7) and w7-import 36 -> 37 (E2A-IR1); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

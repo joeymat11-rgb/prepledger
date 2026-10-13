@@ -119,3 +119,126 @@ test('P-MEASURE - a gapped window exercises every null branch', () => {
   assert.equal(week(0, { nights: [] }).sleepQualifyingNights, null);
   assert.equal(week(0, { sessionsPlanned: 0 }).trainingAdherencePct, null);
 });
+
+/* E2a (PM, the E2 scope; no engine change). The producer's two once-only facts,
+   the words Measure says them back in, the height boxes, and the import side's
+   family, class and register, all pure: no store, no DOM, no clock, no engine.
+   Every value is invented. Red first: on 3d13efe none of it exists. */
+const Commands = (await import('../measure-commands.cjs')).default;
+const MeasureReplay = (await import('../../../../m4/import/measure-replay.cjs')).default;
+const BodyComposition = (await import('../../../../m4/import/body-composition-class.cjs')).default;
+const Registry = (await import('../../../../m4/import/replay-registry.cjs')).default;
+
+test('E2A.1 - the band producer keeps the ten bands and "I don\'t know", and nothing else', () => {
+  const { prepareBand, bandOf, BAND_PROFILE, BAND_ACTION, BANDS, BAND_TABLES } = Commands;
+  assert.deepEqual({ ...BAND_TABLES }, { male: 'men', female: 'women' }, 'the table a band came from, as the payload names it');
+  assert.equal(BAND_PROFILE, 'earned/body-fat-band/v1');
+  assert.deepEqual(BANDS.male.map((b) => [...b]), [[8, 11], [12, 15], [16, 20], [21, 25], [26, null]], 'the PM\'s bands for men');
+  assert.deepEqual(BANDS.female.map((b) => [...b]), [[15, 19], [20, 24], [25, 29], [30, 34], [35, null]], 'the PM\'s bands for women');
+  for (const [table, [low, high]] of [...BANDS.male.map((b) => ['men', b]), ...BANDS.female.map((b) => ['women', b])]) {
+    const op = prepareBand({ action: BAND_ACTION, input: { band: { low, high, source: 'self-estimate', table } } });
+    assert.deepEqual(op.payload, { profile: BAND_PROFILE, low, high, source: 'self-estimate', table },
+      'the band low/high, where it came from and which table (Fable on E2a, D1)');
+    assert.deepEqual([op.class, op.kind], ['body-composition-source', 'fact']);
+  }
+  assert.deepEqual(bandOf({ low: null, high: null, source: 'unknown', table: null }), { low: null, high: null, source: 'unknown', table: null });
+  /* D3: either table is kept whatever sex is recorded; the band need only be a row of the table it names */
+  assert.equal(bandOf({ low: 15, high: 19, source: 'self-estimate', table: 'women' }).table, 'women');
+  for (const wrong of [{ low: 13, high: 15, source: 'self-estimate', table: 'men' }, { low: 26, high: 30, source: 'self-estimate', table: 'men' },
+    { low: 12, high: 15, source: 'self-estimate', table: 'women' }, { low: 15, high: 19, source: 'self-estimate', table: 'men' },
+    { low: 12, high: 15, source: 'self-estimate' }, { low: 12, high: 15, source: 'self-estimate', table: 'male' },
+    { low: 12, high: 15, source: 'self-estimate', table: null }, { low: null, high: null, source: 'unknown', table: 'men' },
+    { low: null, high: null, source: 'unknown' },
+    { low: 12, high: 15, source: 'unknown', table: 'men' }, { low: 12, high: 15, source: 'dexa', table: 'men' }, { low: 12, high: 15, table: 'men' },
+    { low: null, high: null, source: 'self-estimate', table: 'men' }, { low: 12, high: 15, source: 'self-estimate', table: 'men', point: 13 }])
+    assert.throws(() => bandOf(wrong), /BODY_INPUT_INVALID/, JSON.stringify(wrong));
+  const commands = Commands.createMeasureCommands();
+  const op = { ...commands.prepare({ action: BAND_ACTION, input: { band: { low: 26, high: null, source: 'self-estimate', table: 'men' } } }),
+    effective: { local_date: '2026-03-25' }, causal_parents: [], athlete_id: 'TEST-ONLY' };
+  assert.equal(commands.validate(op, () => null), true, 'the store accepts the envelope the producer built');
+  assert.equal(commands.validate({ ...op, payload: { ...op.payload, high: 30 } }, () => null), false, 'and refuses a band outside the table');
+  assert.equal(commands.validate({ ...op, payload: { ...op.payload, note: 'x' } }, () => null), false, 'and a member it does not know');
+  assert.equal(commands.validate({ ...op, payload: { ...op.payload, table: 'women' } }, () => null), false, 'and a band from another table than it names');
+  const { table: _gone, ...noTable } = op.payload;
+  assert.equal(commands.validate({ ...op, payload: noTable }, () => null), false, 'and a band that does not say its table (five members exactly)');
+});
+
+test('E2A.2 - the body profile producer keeps sex and height, each optional, and refuses anything else', () => {
+  const { prepareBody, bodyOf, BODY_PROFILE, BODY_ACTION } = Commands;
+  assert.equal(BODY_PROFILE, 'earned/body-profile/v1');
+  assert.deepEqual(prepareBody({ action: BODY_ACTION, input: { body: { sex: 'female', height: { value: 64.5, unit: 'in' } } } }).payload,
+    { profile: BODY_PROFILE, sex: 'female', height: { value: 64.5, unit: 'in' } });
+  for (const sex of ['male', 'female', 'prefer-not-to-say', null]) assert.equal(bodyOf({ sex, height: null }).sex, sex);
+  assert.deepEqual(bodyOf({ sex: null, height: null }), { sex: null, height: null }, '"Not now" is a record');
+  assert.deepEqual(bodyOf({ sex: null, height: { value: 178, unit: 'cm' } }).height, { value: 178, unit: 'cm' }, 'a height in centimetres is kept in its own unit');
+  for (const wrong of [{ sex: 'other', height: null }, { sex: 'male' }, { height: null },
+    { sex: 'male', height: { value: 35, unit: 'in' } }, { sex: 'male', height: { value: 97, unit: 'in' } },
+    { sex: 'male', height: { value: 70.25, unit: 'in' } }, { sex: 'male', height: { value: 70, unit: 'ft' } },
+    { sex: 'male', height: { value: 250, unit: 'cm' } }, { sex: 'male', height: 70 }, { sex: 'male', height: null, age: 40 }])
+    assert.throws(() => bodyOf(wrong), /BODY_INPUT_INVALID/, JSON.stringify(wrong));
+});
+
+test('E2A.3 - the height boxes, and the words Measure says back: "Body fat: 12-15% (your estimate)"', () => {
+  const { heightFromEntry } = MeasureModel;
+  assert.deepEqual(heightFromEntry({ feet: '5', inches: '10' }), { ok: true, height: { value: 70, unit: 'in' } });
+  assert.deepEqual(heightFromEntry({ feet: ' 5 ', inches: '' }), { ok: true, height: { value: 60, unit: 'in' } });
+  assert.deepEqual(heightFromEntry({ feet: '5', inches: '4.5' }), { ok: true, height: { value: 64.5, unit: 'in' } });
+  assert.deepEqual(heightFromEntry({ feet: '8', inches: '0' }), { ok: true, height: { value: 96, unit: 'in' } });
+  assert.deepEqual(heightFromEntry({ feet: '', inches: '' }), { ok: true, height: null }, 'no height is an answer');
+  for (const [feet, inches] of [['2', '11'], ['9', '0'], ['5', '12'], ['5', '10.25'], ['', '10'], ['five', ''], ['8', '1']])
+    assert.equal(heightFromEntry({ feet, inches }).ok, false, feet + ' ft ' + inches + ' in');
+  assert.equal(MeasureView.bandSaid({ low: 12, high: 15, source: 'self-estimate' }), 'Body fat: 12-15% (your estimate)');
+  assert.equal(MeasureView.bandSaid({ low: 35, high: null, source: 'self-estimate' }), 'Body fat: 35% or more (your estimate)');
+  assert.equal(MeasureView.bandSaid({ low: null, high: null, source: 'unknown' }), 'Body fat: not known');
+  assert.equal(MeasureView.heightWords({ value: 70, unit: 'in' }), '5 ft 10 in');
+  assert.equal(MeasureView.heightWords({ value: 64.5, unit: 'in' }), '5 ft 4.5 in');
+  assert.equal(MeasureView.heightWords({ value: 178, unit: 'cm' }), '178 cm');
+  assert.deepEqual(MeasureView.bodySaid({ sex: 'prefer-not-to-say', height: { value: 70, unit: 'in' } }),
+    ['Height: 5 ft 10 in', 'Sex: Prefer not to say']);
+  assert.deepEqual(MeasureView.bodySaid({ sex: null, height: null }), ['Height and sex: not given'],
+    '"Not now" is said back, so it can be changed');
+  assert.deepEqual(MeasureView.bodySaid({ sex: 'female', height: null }), ['Sex: Female'], 'one line per answer given');
+  /* Fable on E2a, D2: a height is said back in the unit it was stored in; centimetres stay centimetres */
+  assert.deepEqual(MeasureView.bodySaid({ sex: null, height: { value: 178, unit: 'cm' } }), ['Height: 178 cm']);
+  assert.deepEqual(MeasureView.bodySaid({ sex: 'male', height: { value: 182.5, unit: 'cm' } }), ['Height: 182.5 cm', 'Sex: Male']);
+  for (const set of ['male', 'female']) {
+    assert.equal(MeasureView.BAND_LINES[set].length, Commands.BANDS[set].length, 'one plain line per band: ' + set);
+    for (const line of MeasureView.BAND_LINES[set]) assert.match(line, /^[A-Z][^\u2013\u2014]*\.$/, 'one plain sentence: ' + line);
+  }
+});
+
+test('E2A.4 - import: F7 retains the band and the body profile, the class routes them to F7, and the register names them', () => {
+  const commands = Commands.createMeasureCommands();
+  const PROFILES = { waist: Commands.PROFILE, markers: Commands.MARKERS_PROFILE, trialStart: Commands.TRIAL_PROFILE,
+    bodyFatBand: Commands.BAND_PROFILE, bodyProfile: Commands.BODY_PROFILE };
+  const family = MeasureReplay.createMeasureReplayFamily({ commands, profiles: PROFILES });
+  const at = { readOperation: () => ({ athlete_id: 'TEST-ONLY' }), asOf: '2026-03-25' };
+  const op = (id, payload, seq) => ({ op_id: id, class: 'body-composition-source', kind: 'fact', device_seq: seq,
+    athlete_id: 'TEST-ONLY', causal_parents: [], effective: { local_date: '2026-03-24', local_time: '09:00', utc_offset: '-04:00' }, payload });
+  const rows = [op('band', { profile: Commands.BAND_PROFILE, low: 12, high: 15, source: 'self-estimate', table: 'men' }, 1),
+    op('body', { profile: Commands.BODY_PROFILE, sex: 'male', height: { value: 70, unit: 'in' } }, 2),
+    op('bad-band', { profile: Commands.BAND_PROFILE, low: 15, high: 19, source: 'self-estimate', table: 'men' }, 3),
+    op('bad-body', { profile: Commands.BODY_PROFILE, sex: 'other', height: null }, 4)];
+  const out = family.replay(rows, at);
+  assert.deepEqual(out.families.map((r) => [r.op_id, r.state, r.measure, r.dated, r.dated_member]), [
+    ['band', 'retained', 'body-fat-band', '2026-03-24', 'effective.local_date'],
+    ['body', 'retained', 'body-profile', '2026-03-24', 'effective.local_date']], 'retained, never projected, dated by the day recorded');
+  assert.deepEqual(out.issues.map((r) => [r.op_id, r.code]),
+    [['bad-band', 'LOCAL_SOURCE_MEASURE_UNRESOLVED'], ['bad-body', 'LOCAL_SOURCE_MEASURE_UNRESOLVED']], 'malformed refuses by the family\'s name');
+  /* the class routes both profiles to F7 once they are claimed; unclaimed (3d13efe's three), it refuses them in its own name */
+  const member = (profiles) => BodyComposition.createBodyCompositionClass({ members: [{ family: 'F7', profiles,
+    replay: MeasureReplay.createMeasureReplayFamily({ commands, profiles: PROFILES }).replay }] });
+  const five = Object.values(PROFILES);
+  const routed = member(five).replay(rows.slice(0, 2), at);
+  assert.deepEqual(routed.issues, [], 'a band or a body profile was refused by the class');
+  assert.equal(routed.families.length, 2);
+  const three = member(five.slice(0, 3)).replay(rows.slice(0, 2), at);
+  assert.deepEqual(three.issues.map((r) => r.code), ['LOCAL_SOURCE_BODY_COMPOSITION_UNRESOLVED', 'LOCAL_SOURCE_BODY_COMPOSITION_UNRESOLVED'],
+    'the control: unclaimed, the two would refuse the import');
+  /* the register and the admission controller name exactly the producer's five profiles */
+  const entry = Registry.ENTRIES.find((e) => e.module === 'rebuild/m3/w7-preview/measure/measure-commands.cjs');
+  assert.deepEqual([...entry.profiles].sort(), [...five].sort(), 'the register');
+  const admission = fs.readFileSync(path.join(HERE, '../../../w6/local/source-admission.mjs'), 'utf8');
+  assert.match(admission, /bodyFatBand:Measure\.BAND_PROFILE,bodyProfile:Measure\.BODY_PROFILE\}\}\);/, 'the family admission builds');
+  assert.match(admission, /profiles:\[Measure\.PROFILE,Measure\.MARKERS_PROFILE,Measure\.TRIAL_PROFILE,Measure\.BAND_PROFILE,Measure\.BODY_PROFILE\]/, 'the class admission builds');
+});

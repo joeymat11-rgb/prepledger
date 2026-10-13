@@ -140,6 +140,17 @@ export const COPY = Object.freeze({
      second half every refusal here keeps. Approved under DECISIONS:980 with the rest of the N2 words. */
   stepsDayHead: 'This phone and this file both have a step count for ',
   stepsDayTail: '. Nothing on this phone was changed.',
+  /* E2a (PM, the E2 scope; approved under DECISIONS:913 (5)). F7 now answers for
+     the body-fat band and the body profile beside the waist, the markers pick and
+     the trial start, and a measure record it cannot read refuses
+     LOCAL_SOURCE_MEASURE_UNRESOLVED; a record of the shared body-composition class
+     that no family answers for refuses LOCAL_SOURCE_BODY_COMPOSITION_UNRESOLVED.
+     Both reached him as a bare code. Each now has one sentence, with no value from
+     the file in it, and the second half every refusal here keeps. */
+  measureUnreadable: 'A measurement saved on this phone could not be read for the '
+    + 'import. Nothing on this phone was changed.',
+  bodyCompositionUnreadable: 'This phone holds a body measurement Earned cannot read '
+    + 'yet. Nothing on this phone was changed.',
   cancelled: 'Cancelled. Nothing on this phone was changed.',
   retracted: 'That file was taken back. Nothing on this phone was changed.',
   retractRefused: 'That file could not be taken back on its own. It is still listed below.',
@@ -160,7 +171,9 @@ export const RETRACT_REASON = Object.freeze({
    own history was refused read a bare LOCAL_SOURCE_PROGRAMME_UNRESOLVED. */
 export const REFUSAL_SENTENCE = Object.freeze({
   BUNDLE_AUTH_FAILED: COPY.authFailed,
-  LOCAL_SOURCE_PROGRAMME_UNRESOLVED: COPY.programmeMismatch });
+  LOCAL_SOURCE_PROGRAMME_UNRESOLVED: COPY.programmeMismatch,
+  LOCAL_SOURCE_MEASURE_UNRESOLVED: COPY.measureUnreadable,
+  LOCAL_SOURCE_BODY_COMPOSITION_UNRESOLVED: COPY.bodyCompositionUnreadable });
 
 /* P3-PORT-FIX-2 (DECISIONS:509 Q5 + Q2). THE SENTENCE IS KEYED ON THE FIELD
    WHEN ONE IS PRESENT, AND ON THE CODE OTHERWISE. One code, several reasons:

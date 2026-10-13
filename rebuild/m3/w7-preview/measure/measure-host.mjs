@@ -16,9 +16,9 @@ import { foodDaysIn } from '../today/food-host.mjs';
 import MeasureCommands from './measure-commands.cjs';
 
 const { createMeasureCommands, PROFILE, OP_CLASS, OP_KIND, MARKERS_PROFILE,
-  TRIAL_PROFILE } = MeasureCommands;
+  TRIAL_PROFILE, BAND_PROFILE, BAND_ACTION, BODY_PROFILE, BODY_ACTION } = MeasureCommands;
 
-export { PROFILE, OP_CLASS, OP_KIND, MARKERS_PROFILE, TRIAL_PROFILE };
+export { PROFILE, OP_CLASS, OP_KIND, MARKERS_PROFILE, TRIAL_PROFILE, BAND_PROFILE, BODY_PROFILE };
 /* The first-run record's own profile, as setup-commands.mjs names it. Read, not
    written: this lane never enrols anything. */
 export const SETUP_PROFILE = 'earned/first-run-setup/v1';
@@ -97,6 +97,35 @@ export function trialStartIn(generation, profile = TRIAL_PROFILE) {
   return rows.length ? rows[0].payload.start : null;
 }
 
+/* E2a: THE BODY-FAT BAND AND THE BODY PROFILE, read back the durable way. An
+   answer can be changed (the PM's ruling on E2a): each save is a NEW operation,
+   never an update, and the LATEST accepted operation of its profile, by device
+   sequence then op id, is the athlete's answer, as a step count's latest save is.
+   Each row is the payload's own members, nothing derived. */
+export function bodyFatBandIn(generation, profile = BAND_PROFILE) {
+  const rows = liveOps(generation)
+    .filter((op) => op.kind === OP_KIND && op.class === OP_CLASS
+      && op.payload && op.payload.profile === profile
+      && typeof op.payload.source === 'string')
+    .sort(bySeq);
+  if (!rows.length) return null;
+  const latest = rows[rows.length - 1];
+  const { low, high, source, table } = latest.payload;
+  return Object.freeze({ op_id: latest.op_id, low, high, source, table: table === undefined ? null : table });
+}
+export function bodyProfileIn(generation, profile = BODY_PROFILE) {
+  const rows = liveOps(generation)
+    .filter((op) => op.kind === OP_KIND && op.class === OP_CLASS
+      && op.payload && op.payload.profile === profile
+      && Object.hasOwn(op.payload, 'sex') && Object.hasOwn(op.payload, 'height'))
+    .sort(bySeq);
+  if (!rows.length) return null;
+  const latest = rows[rows.length - 1];
+  const { sex, height } = latest.payload;
+  return Object.freeze({ op_id: latest.op_id, sex,
+    height: height ? Object.freeze({ value: height.value, unit: height.unit }) : null });
+}
+
 /* THE FIRST ENROLLED RECORD'S OWN LOCAL DATE (ticket BUILD (3)). The enrolment
    record is the first-run setup fact; with none on this device yet, the
    earliest accepted operation of any kind is the first record this
@@ -163,12 +192,29 @@ export async function createMeasureHost({ day, indexedDB, crypto, era: given,
     const opened = await measureClient.reopen();
     let alive = true;
 
+    /* E2a: one write of the body-fat band or the body profile: ONE new op per save. */
+    async function writeFact(action, input, refused) {
+      if (!alive) return { ok: false, state: 3, copy: null, code: 'LOCAL_CLIENT_CLOSED', op_id: null };
+      let result;
+      try {
+        result = await measureClient.execute('workout', { action, input });
+      } catch (error) {
+        return { ok: false, state: 3, copy: null, code: (error && error.message) || refused, op_id: null };
+      }
+      if (result.acknowledged !== true) {
+        return { ok: false, state: result.state, copy: result.copy, code: result.code || refused, op_id: null };
+      }
+      return { ok: true, state: result.state, copy: result.copy, code: result.code || null, op_id: result.op_id || null };
+    }
+
     const handle = {
       repository: bindings.repository, client: measureClient, day, namespace, databaseName, lease,
       today: () => typeof era.liveDay === 'function' ? era.liveDay() : day,
       athleteId: era.athleteId, deviceId: era.deviceId,
       device: null, deviceKeyCustody: 'local-keys.mjs',
       openedRefusal: opened && opened.refusal ? { ...opened.refusal } : null,
+      /* E2a: the band table the producer accepts, for the screen to offer. */
+      bands: MeasureCommands.BANDS,
       async all() {
         if (!alive) throw new Error('LOCAL_CLIENT_CLOSED');
         return waistRowsIn((await bindings.repository.load()).generation, PROFILE);
@@ -265,6 +311,24 @@ export async function createMeasureHost({ day, indexedDB, crypto, era: given,
         if (result.acknowledged !== true) return null;
         return handle.trialStart();
       },
+      /* E2a: THE BODY-FAT BAND AND THE BODY PROFILE. Each is read from the
+         durable record, the latest save winning, and each save is ONE new op:
+         a change is a new record, never an edit of the old one (the PM's ruling
+         on E2a). "I don't know" and "Not now" are answers like any other. */
+      async bodyFatBand() {
+        if (!alive) throw new Error('LOCAL_CLIENT_CLOSED');
+        return bodyFatBandIn((await bindings.repository.load()).generation, BAND_PROFILE);
+      },
+      async bodyProfile() {
+        if (!alive) throw new Error('LOCAL_CLIENT_CLOSED');
+        return bodyProfileIn((await bindings.repository.load()).generation, BODY_PROFILE);
+      },
+      async saveBodyFatBand(band) {
+        return writeFact(BAND_ACTION, { band }, 'BODY_FAT_BAND_WRITE_REFUSED');
+      },
+      async saveBodyProfile(body) {
+        return writeFact(BODY_ACTION, { body }, 'BODY_PROFILE_WRITE_REFUSED');
+      },
       async restart() { return measureClient.reopen(); },
       face() { const current = measureClient.current(); return current && current.view ? current.view : null; },
       close() { alive = false; if (!given) era.close(); },
@@ -275,5 +339,6 @@ export async function createMeasureHost({ day, indexedDB, crypto, era: given,
 
 export default { createMeasureHost, waistRowsIn, measureMarkersIn, liveOps,
   trialStartIn, firstEnrolledDateIn, sessionSetsIn, sessionDatesIn,
+  bodyFatBandIn, bodyProfileIn,
   PROFILE, OP_CLASS, OP_KIND, MARKERS_PROFILE, TRIAL_PROFILE, SETUP_PROFILE,
-  MEASURE_SCHEMA_VERSION };
+  BAND_PROFILE, BODY_PROFILE, MEASURE_SCHEMA_VERSION };

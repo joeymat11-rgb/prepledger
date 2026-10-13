@@ -103,6 +103,34 @@ export function createMeasureScreen(deps = {}) {
     return repaint();
   }
 
+  /* E2a: the band's write path. Nothing chosen is said in words before anything
+     is written. Each save is a new record and the latest wins, so Change opens
+     the question again and a save closes it (the PM's ruling on E2a). */
+  async function saveBand(choice) {
+    if (!choice) { state.bandError = MeasureView.BAND_NONE_CHOSEN; return repaint(); }
+    const result = await lane.saveBodyFatBand(choice);
+    state.bandError = result.ok ? "" : MeasureView.SAVE_FAILED;
+    if (result.ok) state.editBand = false;
+    return repaint();
+  }
+
+  /* E2a: height and sex. "Not now" is kept as an answer with neither, so the
+     question does not nag, and it stays changeable; a height outside the boxes'
+     range, or Save with nothing chosen, is said in words and writes nothing. */
+  async function saveBody(entry) {
+    let body = { sex: null, height: null };
+    if (!entry || !entry.skip) {
+      const height = MeasureModel.heightFromEntry(entry);
+      if (!height.ok) { state.bodyError = MeasureView.HEIGHT_REFUSED; return repaint(); }
+      body = { sex: entry && entry.sex ? entry.sex : null, height: height.height };
+      if (body.sex === null && body.height === null) { state.bodyError = MeasureView.BODY_NONE_CHOSEN; return repaint(); }
+    }
+    const result = await lane.saveBodyProfile(body);
+    state.bodyError = result.ok ? "" : MeasureView.SAVE_FAILED;
+    if (result.ok) state.editBody = false;
+    return repaint();
+  }
+
   function chrome(root) {
     const heading = doc.createElement("h1");
     heading.textContent = TITLE;
@@ -161,6 +189,30 @@ export function createMeasureScreen(deps = {}) {
     MeasureView.mountWaistEntry(doc, entryHost, {
       today, error: state.error || null, onSave: (entry) => saveWaist(entry),
     });
+
+    /* E2a: ABOUT YOU, the body-fat band, height and sex. Optional and asked
+       gently: an unanswered question is asked here and nowhere else, an answer
+       is said back with Change, and Change asks it again with the answer held
+       filled in. The engine reads none of it yet (E2b). */
+    if (typeof lane.bodyFatBand === "function" && typeof lane.bodyProfile === "function") {
+      const aboutHost = doc.createElement("div");
+      root.append(aboutHost);
+      const [band, body] = await Promise.all([lane.bodyFatBand(), lane.bodyProfile()]);
+      if (!alive()) return root;
+      MeasureView.mountAboutYou(doc, aboutHost, { band, body, bands: lane.bands,
+        editBand: !!state.editBand, editBody: !!state.editBody,
+        bandError: state.bandError || null, bodyError: state.bodyError || null,
+        onBand: (choice) => saveBand(choice), onBody: (entry) => saveBody(entry),
+        onChangeBand: () => { state.editBand = true; state.bandError = ""; state.aboutFocus = "measure-band-pick"; repaint(); },
+        onChangeBody: () => { state.editBody = true; state.bodyError = ""; state.aboutFocus = "measure-body-entry"; repaint(); } });
+      /* Change hands focus to the question it opened: the answer held, or its first choice. */
+      if (state.aboutFocus) {
+        const form = aboutHost.querySelector('[data-slot="' + state.aboutFocus + '"]');
+        const target = form && (form.querySelector("input:checked") || form.querySelector("input"));
+        state.aboutFocus = null;
+        if (target) target.focus();
+      }
+    }
 
     const comparisonHost = doc.createElement("div");
     root.append(comparisonHost);

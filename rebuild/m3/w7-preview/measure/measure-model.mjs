@@ -233,7 +233,27 @@ export function computeWeek({ startDate, index, reads, waistRows, sets, markers,
   };
 }
 
+/* E2a: THE HEIGHT BOXES, feet and inches (the app's units are pounds and inches
+   throughout, so height is entered in feet and inches). Both blank is no height
+   (null), which is an answer: height is optional. Otherwise whole feet from 3 to
+   8 and inches from 0 to 11.9 (blank inches is 0), one decimal at most, within
+   the store's own 36 to 96 inches (measure-commands.cjs HEIGHT_LIMITS). Returns
+   { ok, height } or { ok: false, refusal }; nothing is rounded into range. */
+export const HEIGHT_REFUSALS = Object.freeze({ OUT_OF_RANGE: "HEIGHT_OUT_OF_RANGE" });
+export function heightFromEntry(entry) {
+  const feet = trimmed(entry && entry.feet), inches = trimmed(entry && entry.inches);
+  if (feet === "" && inches === "") return { ok: true, height: null };
+  const refused = { ok: false, refusal: HEIGHT_REFUSALS.OUT_OF_RANGE };
+  if (!/^\d$/.test(feet) || !(inches === "" || /^\d{1,2}(\.\d)?$/.test(inches))) return refused;
+  const ft = Number(feet), inch = inches === "" ? 0 : Number(inches);
+  if (ft < 3 || ft > 8 || inch >= 12) return refused;
+  const value = Math.round((ft * 12 + inch) * 10) / 10;
+  if (value < 36 || value > 96) return refused;
+  return { ok: true, height: { value, unit: "in" } };
+}
+
 export default {
+  HEIGHT_REFUSALS, heightFromEntry,
   ONE_RM_FORMULA_NAME, ONE_RM_FORMULA_TEXT,
   WAIST_MIN, WAIST_MAX, WAIST_REFUSALS, waistRefusalFor, waistFromEntry, projectWaist, loggedWaist,
   weekDates, weeklyWeightAverage, weeklyWaistValue, waistTrend4Week, estimate1RM, weeklyMarker1RM,

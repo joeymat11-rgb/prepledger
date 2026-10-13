@@ -332,6 +332,13 @@
    "lists": []
   },
   {
+   "text": " (your estimate)",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": " L ",
    "files": {
     "rebuild/slice/pwa/icons.cjs": 2
@@ -449,6 +456,13 @@
    "lists": []
   },
   {
+   "text": " cm",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": " coach classes harvested",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1
@@ -543,6 +557,13 @@
    "lists": []
   },
   {
+   "text": " ft ",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": " g protein",
    "files": {
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
@@ -554,6 +575,13 @@
    "files": {
     "rebuild/m3/w7-preview/today/checkin-app.mjs": 1,
     "rebuild/m3/w7-preview/today/today-app.cjs": 4
+   },
+   "lists": []
+  },
+  {
+   "text": " in",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
    },
    "lists": []
   },
@@ -1073,6 +1101,13 @@
    "lists": []
   },
   {
+   "text": "% or more",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "';font-style:",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1
@@ -1319,6 +1354,13 @@
    "lists": []
   },
   {
+   "text": "A measurement saved on this phone could not be read for the ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "A morning weight is recorded between ",
    "files": {
     "rebuild/m3/w7-preview/today/today-readings.cjs": 1
@@ -1496,9 +1538,37 @@
    "lists": []
   },
   {
+   "text": "About you",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Abs",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Abs and the veins on your arms clearly show.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Abs do not show, and muscle shape is still clear.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Abs show, with little fat on the hips and thighs.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
    },
    "lists": []
   },
@@ -1950,6 +2020,20 @@
    ]
   },
   {
+   "text": "Bands for men",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Bands for women",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Barbell bench press",
    "files": {
     "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
@@ -1997,6 +2081,27 @@
    "text": "Biceps",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Body fat",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Body fat: ",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Body fat: not known",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
    },
    "lists": []
   },
@@ -2323,8 +2428,23 @@
   {
    "text": "Change",
    "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1,
     "rebuild/m3/w7-preview/today/routine-model.mjs": 1,
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Change body fat",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Change height and sex",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
    },
    "lists": []
   },
@@ -2527,6 +2647,20 @@
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 2,
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Choose a range, or I don't know.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Choose an answer, or Not now.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
    },
    "lists": []
   },
@@ -3279,6 +3413,20 @@
    "lists": []
   },
   {
+   "text": "Fat around the stomach, hips, thighs and arms, and no muscle shape showing.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Fat around the waist, hips and chest, and no muscle shape showing.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Feeling ill",
    "files": {
     "rebuild/m3/w7-preview/today/checkin-model.mjs": 1,
@@ -3289,6 +3437,20 @@
     "APPROVED_COPY",
     "CHECKIN_RUNTIME_COPY"
    ]
+  },
+  {
+   "text": "Feet",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Female",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
   },
   {
    "text": "File sha256",
@@ -3677,6 +3839,41 @@
    "lists": []
   },
   {
+   "text": "Height",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Height and sex",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Height and sex: not given",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Height in feet and inches, from 3 ft to 8 ft.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Height: ",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Here’s your week.",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
@@ -3876,6 +4073,13 @@
    "lists": []
   },
   {
+   "text": "I don't know",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "I have not recorded which machine you used. There is no field for equipment anywhere in this app, so there is nowhere to keep it.",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
@@ -3957,6 +4161,13 @@
    "lists": [
     "APPROVED_COPY"
    ]
+  },
+  {
+   "text": "Inches",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
   },
   {
    "text": "Incline barbell bench press",
@@ -4433,6 +4644,13 @@
    "lists": []
   },
   {
+   "text": "Male",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Measure",
    "files": {
     "rebuild/m3/w7-preview/measure/measure-screen.mjs": 1,
@@ -4443,7 +4661,7 @@
   {
    "text": "Measure: no host element",
    "files": {
-    "rebuild/m3/w7-preview/measure/measure-view.mjs": 3
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 4
    },
    "lists": []
   },
@@ -4969,6 +5187,7 @@
   {
    "text": "Not now",
    "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1,
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
     "rebuild/m3/w7-preview/today/design.cjs": 1,
     "rebuild/m3/w7-preview/today/screens.template.html": 1,
@@ -5326,6 +5545,13 @@
    ]
   },
   {
+   "text": "Optional. Skip anything you like, and change it later.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Or let Earned build it for me",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
@@ -5415,6 +5641,13 @@
    "lists": []
   },
   {
+   "text": "Pick the range that looks most like you, or say you don't know.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Plank",
    "files": {
     "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
@@ -5436,6 +5669,13 @@
    "text": "Preacher curl",
    "files": {
     "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Prefer not to say",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
    },
    "lists": []
   },
@@ -5939,12 +6179,20 @@
   {
    "text": "Save",
    "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1,
     "rebuild/m3/w7-preview/today/design.cjs": 1,
     "rebuild/m3/w7-preview/today/today-app.cjs": 2
    },
    "lists": [
     "RUNTIME_COPY"
    ]
+  },
+  {
+   "text": "Save body fat",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
   },
   {
    "text": "Save changes",
@@ -5958,6 +6206,13 @@
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 2,
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Save height and sex",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
    },
    "lists": []
   },
@@ -6205,6 +6460,20 @@
    "lists": []
   },
   {
+   "text": "Sex",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Sex: ",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Shoulder press machine",
    "files": {
     "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
@@ -6341,6 +6610,34 @@
    "text": "Smallest jump up",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Soft at the stomach, hips and thighs, with little muscle shape showing.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Soft at the stomach, with more fat on the hips and thighs.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Soft at the waist and hips, with little muscle shape showing.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Some outline of the abs, with slight curves at the hips and thighs.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
    },
    "lists": []
   },
@@ -6748,6 +7045,13 @@
    "lists": []
   },
   {
+   "text": "That was not saved on this device. Try again.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "That was the last set.",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
@@ -6913,6 +7217,13 @@
    "text": "The offline copy did not answer. Reload once, with a connection.",
    "files": {
     "rebuild/slice/pwa/preflight.js": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "The outline of your abs shows, with little fat at the waist.",
+   "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
    },
    "lists": []
   },
@@ -7253,6 +7564,13 @@
   },
   {
    "text": "This phone has no saved setup to compare this file with. Nothing on ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This phone holds a body measurement Earned cannot read ",
    "files": {
     "rebuild/m3/w7-preview/import/import-screen.mjs": 1
    },
@@ -9859,6 +10177,13 @@
    "lists": []
   },
   {
+   "text": "import. Nothing on this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "incline bench",
    "files": {
     "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
@@ -10603,6 +10928,7 @@
   {
    "text": "small muted",
    "files": {
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": 3,
     "rebuild/m3/w7-preview/today/setup-app.mjs": 14
    },
    "lists": []
@@ -10924,6 +11250,13 @@
    "text": "workout store: ",
    "files": {
     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "yet. Nothing on this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
    },
    "lists": []
   },

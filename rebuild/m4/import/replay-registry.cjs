@@ -107,10 +107,11 @@ const ENTRIES = Object.freeze([
   Object.freeze({module: 'rebuild/m3/w7-preview/measure/measure-commands.cjs',
     class: 'body-composition-source', kinds: Object.freeze(['fact']),
     profiles: Object.freeze(['earned/waist/v1', 'earned/measure-markers/v1',
-      'earned/measure-trial-start/v1']),
+      'earned/measure-trial-start/v1', 'earned/body-fat-band/v1', 'earned/body-profile/v1']),
     disposition: 'family', family: 'F7',
-    rule: 'no evidence role: the trial start, the waist readings and the markers pick are '
-      + 'RETAINED in their own dated order and never projected, and the baseline window '
+    rule: 'no evidence role: the trial start, the waist readings, the markers pick, the body-fat band '
+      + 'and the body profile (height and sex; E2a) are RETAINED in their own dated order and never '
+      + 'projected (the engine reads neither the band nor the profile until E2b), and the baseline window '
       + 'stays the one derived from the import; malformed refuses '
       + 'LOCAL_SOURCE_MEASURE_UNRESOLVED, and a member of the shared class under a profile '
       + 'no family claims refuses LOCAL_SOURCE_BODY_COMPOSITION_UNRESOLVED'}),

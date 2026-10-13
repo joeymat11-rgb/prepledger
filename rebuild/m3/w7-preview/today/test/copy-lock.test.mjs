@@ -94,7 +94,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // value before is PRE_P7_CORPUS_SHA256, 975061da...).
 // Polish 8 (PM, ui-pass15): re-measured for exactly Why this plan?'s gated sentence and one " lb" count (CL-P8-DELTA; the
 // value before is PRE_P8_CORPUS_SHA256, ae2b1609...).
-const CORPUS_SHA256 = '1f393735e079410b4048195726bf705382b4a4a96d549e9e7bc8bc4a449a2965';
+// E2a (PM, the E2 scope): re-measured for exactly Measure's About you words and the import route's two refusal
+// sentences (CL-E2A-DELTA; the value before is PRE_E2A_CORPUS_SHA256, 1f393735...).
+const CORPUS_SHA256 = 'fe891976bc36c2b920072208a9285fde5bce728ce18ed2aa9f7c46bcbe433e5b';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -824,6 +826,7 @@ const P8_OWNERS_MOVED = Object.freeze([
 /* the PM's ruling on P8: the sentence (the PM's own wording) is approved under DECISIONS:989, the never-shown ruling */
 const P8_COPY_APPROVAL = 'DECISIONS:989';
 function beforeP8(corpus) {
+  corpus = beforeE2A(corpus);   /* E2a stands on top of polish 8 */
   const added = new Set(P8_NEW.map(([text]) => text));
   return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
     const rows = P8_OWNERS_MOVED.filter(([text, owner, , now]) => text === e.text && e.files[owner] === now);
@@ -857,6 +860,110 @@ test('CL-P8-DELTA: the corpus is the polish 7 corpus plus exactly Why this plan?
 });
 test('CL-P8-APPROVAL: the polish 8 copy delta names the ledger line that approves it', () => {
   assert.match(P8_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-P8-APPROVAL-PENDING: the polish 8 copy is not approved');
+});
+/* E2a (PM, the E2 scope; no engine change): Measure's About you section (the body-fat band picker with its one plain
+   line per band and "I don't know", height in feet and inches, sex, and the words each is said back in, "Body fat:
+   12-15% (your estimate)"), and the import route's plain sentences for the measure family's and the shared class's
+   refusals: 47 new pieces and 5 owner counts, each a piece already locked elsewhere that measure-view.mjs now
+   says too ("Change" 0 -> 1, "Measure: no host element" 3 -> 4, "Not now" 0 -> 1, "Save" 0 -> 1, "small muted" 0 -> 3). beforeE2A gives every older
+   view the corpus as polish 8 sealed it (PRE_E2A_CORPUS_SHA256), and beforeP8 starts from that view. IDEMPOTENT, as
+   every older view is. */
+const PRE_E2A_CORPUS_SHA256 = '1f393735e079410b4048195726bf705382b4a4a96d549e9e7bc8bc4a449a2965';
+const E2A_VIEW = 'rebuild/m3/w7-preview/measure/measure-view.mjs';
+const E2A_IMPORT = 'rebuild/m3/w7-preview/import/import-screen.mjs';
+const E2A_NEW = Object.freeze([
+  [' (your estimate)', { [E2A_VIEW]: 1 }, []],
+  [' cm', { [E2A_VIEW]: 1 }, []],
+  [' ft ', { [E2A_VIEW]: 1 }, []],
+  [' in', { [E2A_VIEW]: 1 }, []],
+  ['% or more', { [E2A_VIEW]: 1 }, []],
+  ['A measurement saved on this phone could not be read for the ', { [E2A_IMPORT]: 1 }, []],
+  ['About you', { [E2A_VIEW]: 1 }, []],
+  ['Abs and the veins on your arms clearly show.', { [E2A_VIEW]: 1 }, []],
+  ['Abs do not show, and muscle shape is still clear.', { [E2A_VIEW]: 1 }, []],
+  ['Abs show, with little fat on the hips and thighs.', { [E2A_VIEW]: 1 }, []],
+  ['Bands for men', { [E2A_VIEW]: 1 }, []],
+  ['Bands for women', { [E2A_VIEW]: 1 }, []],
+  ['Body fat', { [E2A_VIEW]: 1 }, []],
+  ['Body fat: ', { [E2A_VIEW]: 1 }, []],
+  ['Body fat: not known', { [E2A_VIEW]: 1 }, []],
+  ['Change body fat', { [E2A_VIEW]: 1 }, []],
+  ['Change height and sex', { [E2A_VIEW]: 1 }, []],
+  ['Choose a range, or I don\'t know.', { [E2A_VIEW]: 1 }, []],
+  ['Choose an answer, or Not now.', { [E2A_VIEW]: 1 }, []],
+  ['Fat around the stomach, hips, thighs and arms, and no muscle shape showing.', { [E2A_VIEW]: 1 }, []],
+  ['Fat around the waist, hips and chest, and no muscle shape showing.', { [E2A_VIEW]: 1 }, []],
+  ['Feet', { [E2A_VIEW]: 1 }, []],
+  ['Female', { [E2A_VIEW]: 1 }, []],
+  ['Height', { [E2A_VIEW]: 1 }, []],
+  ['Height and sex', { [E2A_VIEW]: 1 }, []],
+  ['Height and sex: not given', { [E2A_VIEW]: 1 }, []],
+  ['Height in feet and inches, from 3 ft to 8 ft.', { [E2A_VIEW]: 1 }, []],
+  ['Height: ', { [E2A_VIEW]: 1 }, []],
+  ['I don\'t know', { [E2A_VIEW]: 1 }, []],
+  ['Inches', { [E2A_VIEW]: 1 }, []],
+  ['Male', { [E2A_VIEW]: 1 }, []],
+  ['Optional. Skip anything you like, and change it later.', { [E2A_VIEW]: 1 }, []],
+  ['Pick the range that looks most like you, or say you don\'t know.', { [E2A_VIEW]: 1 }, []],
+  ['Prefer not to say', { [E2A_VIEW]: 1 }, []],
+  ['Save body fat', { [E2A_VIEW]: 1 }, []],
+  ['Save height and sex', { [E2A_VIEW]: 1 }, []],
+  ['Sex', { [E2A_VIEW]: 1 }, []],
+  ['Sex: ', { [E2A_VIEW]: 1 }, []],
+  ['Soft at the stomach, hips and thighs, with little muscle shape showing.', { [E2A_VIEW]: 1 }, []],
+  ['Soft at the stomach, with more fat on the hips and thighs.', { [E2A_VIEW]: 1 }, []],
+  ['Soft at the waist and hips, with little muscle shape showing.', { [E2A_VIEW]: 1 }, []],
+  ['Some outline of the abs, with slight curves at the hips and thighs.', { [E2A_VIEW]: 1 }, []],
+  ['That was not saved on this device. Try again.', { [E2A_VIEW]: 1 }, []],
+  ['The outline of your abs shows, with little fat at the waist.', { [E2A_VIEW]: 1 }, []],
+  ['This phone holds a body measurement Earned cannot read ', { [E2A_IMPORT]: 1 }, []],
+  ['import. Nothing on this phone was changed.', { [E2A_IMPORT]: 1 }, []],
+  ['yet. Nothing on this phone was changed.', { [E2A_IMPORT]: 1 }, []],
+]);
+const E2A_OWNERS_MOVED = Object.freeze([
+  /* [text, owner, count before, count now] */
+  ['Change', E2A_VIEW, 0, 1],
+  ['Measure: no host element', E2A_VIEW, 3, 4],
+  ['Not now', E2A_VIEW, 0, 1],
+  ['Save', E2A_VIEW, 0, 1],
+  ['small muted', E2A_VIEW, 0, 3],
+]);
+/* the PM's ruling on E2a: cite DECISIONS:913 (5), the short-plain-copy rule, until an owner line is recorded for the bands */
+const E2A_COPY_APPROVAL = 'DECISIONS:913';
+function beforeE2A(corpus) {
+  const added = new Set(E2A_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
+    const rows = E2A_OWNERS_MOVED.filter(([text, owner, , now]) => text === e.text && e.files[owner] === now);
+    if (rows.length === 0) return e;
+    const files = { ...e.files };
+    for (const [, owner, before] of rows) { if (before === 0) delete files[owner]; else files[owner] = before; }
+    return { ...e, files: sortedFiles(files) };
+  }) };
+}
+test('CL-E2A-DELTA: the corpus is the polish 8 corpus plus exactly Measure\'s About you words and the import route\'s two sentences, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of E2A_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-E2A-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text, owner, , now] of E2A_OWNERS_MOVED) {
+    const entry = byText.get(text);
+    if (!entry || entry.files[owner] !== now) failed.push('CL-E2A-DELTA OWNER ' + JSON.stringify(text) + ' ' + owner + ' is ' + JSON.stringify(entry ? entry.files[owner] : null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforeE2A(corpus)), 'utf8'));
+  if (before !== PRE_E2A_CORPUS_SHA256) failed.push('CL-E2A-DELTA PRE-E2A-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the polish 8 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-E2A-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeE2A(moved)), 'utf8')) === PRE_E2A_CORPUS_SHA256) failed.push('CL-E2A-DELTA PRE-E2A-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-E2A-DELTA');
+});
+test('CL-E2A-APPROVAL: the E2a copy delta names the ledger line that approves it', () => {
+  assert.match(E2A_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-E2A-APPROVAL-PENDING: the E2a copy is not approved');
 });
 function beforeNutri2a(corpus) {
   corpus = beforeNutri2b(corpus);   /* N2 part B stands on top of N2 part A */

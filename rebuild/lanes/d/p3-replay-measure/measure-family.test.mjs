@@ -225,3 +225,34 @@ test('P3-MF6 - the other families are untouched: F1 readings, F2 food, F4 setup 
     assert.equal(view.retained.find(op => op.op_id === 'TEST-ONLY-machine')
       .payload.machine.settings[0].value, 'four');
   });
+
+/* E2a (PM, the E2 scope; no engine change). The producer's two once-only facts,
+   the body-fat band and the body profile, through the REAL admission controller:
+   they ADMIT and are RETAINED under F7, dated by the day they were recorded, and
+   move no state; a malformed one refuses by F7's name, never by the class's and
+   never at the catch-all. Red first on 3d13efe: no family claims either profile,
+   so both refuse LOCAL_SOURCE_BODY_COMPOSITION_UNRESOLVED (and its producer has no
+   action for them). PM seat: this file loads the protected engine through the
+   s3 fixtures. Every value is invented. */
+test('E2A-MF7 - the body-fat band and the body profile ADMIT, RETAINED under F7, and a malformed one refuses by F7\'s name',
+  async t => {
+    const control = await admitted(await fixture(t, {databaseName: 'e2a-mf7-control'}));
+    const f = await fixture(t, {databaseName: 'e2a-mf7'});
+    await f.append('TEST-ONLY-measure-band', {...commands.prepare({action: Measure.BAND_ACTION,
+      input: {band: {low: 12, high: 15, source: 'self-estimate', table: 'men'}}}), effective: fixtureEffective(DAY, 9)});
+    await f.append('TEST-ONLY-measure-body', {...commands.prepare({action: Measure.BODY_ACTION,
+      input: {body: {sex: 'prefer-not-to-say', height: {value: 70, unit: 'in'}}}}), effective: fixtureEffective(DAY, 10)});
+    const view = await admitted(f);
+    assert.equal(view.ready, true, 'the band or the body profile refused the import');
+    assert.deepEqual(view.families.filter(row => row.family === FAMILY).map(row => [row.state, row.measure, row.dated, row.dated_member]),
+      [['retained', 'body-fat-band', DAY, 'effective.local_date'], ['retained', 'body-profile', DAY, 'effective.local_date']]);
+    for (const member of ['state', 'calculation', 'order_map', 'workout_facts'])
+      assert.equal(JSON.stringify(view[member]), JSON.stringify(control[member]), 'a body record moved ' + member);
+    const bad = await fixture(t, {databaseName: 'e2a-mf7-bad'});
+    await bad.append('TEST-ONLY-measure-band-bad', {class: 'body-composition-source', kind: 'fact',
+      payload: {profile: Measure.BAND_PROFILE, low: 15, high: 19, source: 'self-estimate', table: 'men'}, effective: fixtureEffective(DAY, 9)});
+    const codes = codesOf(await attempt(bad));
+    assert.ok(codes.includes(CODE), 'a band outside the table it names fell to ' + JSON.stringify(codes));
+    assert.equal(codes.includes(CLASS_CODE), false, 'refused in the class\'s name, as if no family claimed it');
+    assert.equal(codes.includes('LOCAL_SOURCE_CONTEXT_UNRESOLVED'), false, 'reached the catch-all');
+  });

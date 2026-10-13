@@ -51,6 +51,16 @@
        first ENROLLED record's date as S5 defines it - an import writes no
        operation at all, so day one cannot move.
 
+   E2a (PM, the E2 scope). The same producer writes two more facts of the class,
+   each changeable by a later save: the body-fat band (earned/body-fat-band/v1) and the body
+   profile (earned/body-profile/v1, height and sex). They are athlete records on
+   the same terms as the three above - no engine context, not session or
+   programme evidence, RETAINED and never projected (the engine reads neither
+   until E2b) - and, like the markers pick, they are choices with no date of
+   their own, so the recording day stands for each. The caller names their two
+   profiles beside the three; a family built without them answers for the three
+   alone, exactly as before.
+
    NO ENGINE, NO CLOCK, NO PLATFORM. This module reads operations and returns
    rows; the caller injects the S5 producer and the day it is standing on. */
 
@@ -60,17 +70,25 @@ const FAMILY = 'F7';
 const CODE = 'LOCAL_SOURCE_MEASURE_UNRESOLVED';
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const WAIST = 'waist', MARKERS = 'markers', TRIAL_START = 'trial-start';
+const BODY_FAT_BAND = 'body-fat-band', BODY_PROFILE = 'body-profile';
 
 function createMeasureReplayFamily({commands, profiles} = {}) {
   if (typeof commands?.validate !== 'function')
     throw new TypeError('The actual S5 measure producer is required');
-  const {waist, markers, trialStart} = profiles || {};
+  const {waist, markers, trialStart, bodyFatBand, bodyProfile} = profiles || {};
   if ([waist, markers, trialStart].some(p => typeof p !== 'string' || !p))
     throw new TypeError('The three S5 measure profiles are required');
-  if (new Set([waist, markers, trialStart]).size !== 3)
-    throw new TypeError('The three S5 measure profiles must be distinct');
+  /* E2a: the band's and the body profile's names are optional, but a name given
+     must be a name. */
+  const extra = [bodyFatBand, bodyProfile].filter(p => p !== undefined);
+  if (extra.some(p => typeof p !== 'string' || !p))
+    throw new TypeError('A measure profile is a name');
+  if (new Set([waist, markers, trialStart, ...extra]).size !== 3 + extra.length)
+    throw new TypeError('The S5 measure profiles must be distinct');
   const measureOf = profile => profile === waist ? WAIST
-    : profile === markers ? MARKERS : profile === trialStart ? TRIAL_START : null;
+    : profile === markers ? MARKERS : profile === trialStart ? TRIAL_START
+      : bodyFatBand !== undefined && profile === bodyFatBand ? BODY_FAT_BAND
+        : bodyProfile !== undefined && profile === bodyProfile ? BODY_PROFILE : null;
 
   /* (1) MEMBERSHIP, by class alone. A correction or tombstone of this class,
      or a fact under a profile this family has never been taught, is still
@@ -79,7 +97,8 @@ function createMeasureReplayFamily({commands, profiles} = {}) {
 
   /* (3) The record's OWN dated field. The markers pick has none: it is a
      choice, not an observation, so the day it was recorded on stands for it
-     and is labelled as such by `dated_member`. */
+     and is labelled as such by `dated_member`. The body-fat band and the body
+     profile (E2a) are choices too, and are dated the same way. */
   function datedOf(op, measure) {
     if (measure === WAIST) return op.payload.entry.date;
     if (measure === TRIAL_START) return op.payload.start;
@@ -131,8 +150,8 @@ function createMeasureReplayFamily({commands, profiles} = {}) {
   }
 
   return Object.freeze({owns, read, order, replay,
-    OP_CLASS, OP_KIND, FAMILY, CODE, WAIST, MARKERS, TRIAL_START});
+    OP_CLASS, OP_KIND, FAMILY, CODE, WAIST, MARKERS, TRIAL_START, BODY_FAT_BAND, BODY_PROFILE});
 }
 
 module.exports = {createMeasureReplayFamily, OP_CLASS, OP_KIND, FAMILY, CODE,
-  WAIST, MARKERS, TRIAL_START};
+  WAIST, MARKERS, TRIAL_START, BODY_FAT_BAND, BODY_PROFILE};

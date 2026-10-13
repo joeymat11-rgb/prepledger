@@ -911,3 +911,61 @@
   border-right: 1.5px solid var(--text-soft); border-bottom: 1.5px solid var(--text-soft); transform: rotate(45deg);
   pointer-events: none; }
 /* ===== POLISH 8: END ===== */
+
+/* ===== E2A (PM, the E2 scope; the PM's ruling 5 on E2a, 2026-10-13): BEGIN =====
+   Measure's About you section in the patterns the page already has: the said-back line is the Log today sheet's steps
+   line (the answer, the middle dot, Change as a 44 px text link); the band rows are the sheet's full-width card rows,
+   52 px, the radio at the left and a chosen row drawn as a pressed answer (.choice's pressed colours); the sex
+   answers are the sleep screen's 44 px chips; height is the sheet's underline weigh row, whose focus is its underline
+   (POLISH 8); Save is the pack's pill, with its 44 px hit area; the focus ring is POLISH 7's. No colour, type size
+   or token is new. */
+.view [data-slot="measure-about"] { margin-top: 24px; }
+.view [data-slot="measure-about"] > .field { margin-top: 16px; }
+.view [data-slot="measure-about"] fieldset { border: 0; margin: 12px 0 0; padding: 0; min-width: 0; }
+.view [data-slot="measure-about"] legend { padding: 0; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+.view [data-slot="measure-about-line"] { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; margin: 0; }
+.view [data-slot="measure-about-change"] { min-height: 44px; }
+.view :is([data-slot="measure-band-option"], [data-slot="measure-band-unknown"]) {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 10px; align-items: start; width: 100%;
+  box-sizing: border-box; margin: 8px 0 0; min-height: 52px; padding: 14px 16px; cursor: pointer; }
+.view :is([data-slot="measure-band-option"], [data-slot="measure-band-unknown"]) > input {
+  grid-row: 1 / span 2; width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--text); }
+.view :is([data-slot="measure-band-option"], [data-slot="measure-band-unknown"]) > :is(.title, .sub) { grid-column: 2; overflow-wrap: anywhere; }
+.view :is([data-slot="measure-band-option"], [data-slot="measure-band-unknown"]):has(> input:checked) {
+  background: var(--chip-selected); border-color: var(--line-gold); }
+.view [data-slot="measure-sex-choice"] {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; margin: 0 8px 8px 0;
+  font-size: 15px; cursor: pointer; }
+.view [data-slot="measure-sex-choice"] > input { width: 18px; height: 18px; margin: 0; accent-color: var(--text); }
+.view [data-slot="measure-sex-choice"]:has(> input:checked) { background: var(--chip-selected); border-color: var(--line-gold); color: var(--text); }
+.view [data-slot="measure-height-row"] > .field { flex: 0 1 88px; }
+.view :is([data-slot="measure-body-actions"], [data-slot="measure-band-actions"]) {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 14px; }
+.view [data-slot="measure-body-skip"] { min-height: 44px; }
+.view [data-slot="measure-about"] .error[hidden] { display: none; }
+/* MEASURE'S OWN PAGE (the PM, folding the probe's two findings into E2a). (a) Measure carries no approved template,
+   as the Import screen does not, so it takes the content page's chassis: the 09-08 page inset (Additions C .page:
+   23 px, and 18 px at 350 px and narrower, as article.page above), its safe-area top and bottom, and the protective
+   glow every word over the scene plate takes. */
+.view > #measure-screen {
+  box-sizing: border-box; min-height: 100%; padding: max(22px, calc(env(safe-area-inset-top, 0px) + 12px)) 18px
+  max(20px, calc(env(safe-area-inset-bottom, 0px) + 12px)); text-shadow: var(--text-shadow); }
+@media (min-width: 351px) { .view > #measure-screen { padding-left: 23px; padding-right: 23px; } }
+/* (b) THE COMPARISON TABLES (eleven columns with three markers, fourteen with four) never scroll the page sideways:
+   each table is its own horizontal scroller on the pack's card, its Week column pinned at the left edge on the card's
+   own colour, and a soft glow of the text colour at the right edge while more columns lie beyond it (a cover drawn
+   with the content, background-attachment local, hides it once the last column is reached). The rows and the cells are the
+   table's own, so the rendered table, the export and the cells that read them are unchanged. */
+.view #measure-screen table[data-slot$="-table"] {
+  display: block; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--line-soft); border-radius: var(--radius-card); border-collapse: separate; border-spacing: 0;
+  text-shadow: none; font-size: 13.5px; line-height: 1.35;
+  background:
+    linear-gradient(to left, var(--card) 45%, color-mix(in srgb, var(--card) 0%, transparent)) right center / 36px 100% no-repeat local,
+    radial-gradient(farthest-side at 100% 50%, color-mix(in srgb, var(--text) 45%, transparent), color-mix(in srgb, var(--text) 0%, transparent)) right center / 20px 100% no-repeat scroll,
+    var(--card); }
+.view #measure-screen table[data-slot$="-table"] :is(th, td) {
+  min-width: 92px; padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line-soft); }
+.view #measure-screen table[data-slot$="-table"] tr > :first-child {
+  position: sticky; left: 0; z-index: 1; min-width: 64px; background: var(--card); border-right: 1px solid var(--line); }
+/* ===== E2A: END ===== */

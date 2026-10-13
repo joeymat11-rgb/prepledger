@@ -1686,12 +1686,15 @@ function mountToday(doc, model, options = {}) {
     close.setAttribute("aria-label", LOG_CLOSE);
     hooks.listen(close, "click", () => closeLogToday());
 
-    /* WEIGHT: recorded, the morning card's own line; owed, the board's field and Save, through submitWeighIn. */
+    /* WEIGHT: recorded, the kept value said once (POLISH 8, below); owed, the board's field and Save, through
+       submitWeighIn. */
     const weighForm = map.get("log-weight-form");
     const weighError = map.get("log-weight-error");
     if (view.blocked || done.weight) {
-      /* POLISH 8: the row's gold tick says it is logged; the line under it is the value alone, not the morning card's
-         own "This morning" and tick a second time. */
+      /* POLISH 8: the row's gold tick says it is logged; the line under it is the value and, when the weigh-in carries
+         one, its note after the sheet's middle dot (LOG_JOIN), as the morning card says them, but not the morning card's
+         own "This morning" and tick a second time. With no morning read the morning card's own line stands (Fable on
+         P8, D2: the comment named the value alone). */
       const kept = view.morningRead ? pounds(view.morningRead.lb) + " lb" + ((view.morningRead.note || "").trim() ? LOG_JOIN + view.morningRead.note.trim() : "") : morningLine(view);
       logRow(map, "weight", view.blocked ? NOT_AVAILABLE : kept, !view.blocked && done.weight);
       weighForm.remove();

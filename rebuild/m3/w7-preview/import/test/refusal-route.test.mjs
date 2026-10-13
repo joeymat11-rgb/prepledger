@@ -544,3 +544,18 @@ test('N2B-D1 - a step-count collision names its day in plain words, and nothing 
     Screen.refusalLines('LOCAL_SOURCE_PROGRAMME_UNRESOLVED', 'athlete_label', 'athlete_label'),
     'a date beside any other leading field changes nothing');
 });
+
+/* E2a (PM, the E2 scope). F7 now answers for the body-fat band and the body profile, and a measure record it cannot
+   read refuses LOCAL_SOURCE_MEASURE_UNRESOLVED; a record of the shared body-composition class no family answers for
+   refuses LOCAL_SOURCE_BODY_COMPOSITION_UNRESOLVED. Each now reaches him with one plain sentence beside the code, no
+   value from the file in it and no AI dash. Red first on 3d13efe: both codes stood alone. PM seat. */
+test('E2A-IR1 - the measure family\'s and the shared class\'s refusals are said in plain words', () => {
+  assert.deepEqual(Screen.refusalLines('LOCAL_SOURCE_MEASURE_UNRESOLVED', ''),
+    ['LOCAL_SOURCE_MEASURE_UNRESOLVED',
+      'A measurement saved on this phone could not be read for the import. Nothing on this phone was changed.']);
+  assert.deepEqual(Screen.refusalLines('LOCAL_SOURCE_BODY_COMPOSITION_UNRESOLVED', ''),
+    ['LOCAL_SOURCE_BODY_COMPOSITION_UNRESOLVED',
+      'This phone holds a body measurement Earned cannot read yet. Nothing on this phone was changed.']);
+  const dash = new RegExp('[' + String.fromCharCode(0x2013, 0x2014) + ']');
+  for (const key of ['measureUnreadable', 'bodyCompositionUnreadable']) assert.equal(dash.test(Screen.COPY[key]), false, key);
+});
