@@ -88,6 +88,7 @@ let live = null;
    The live mount the page boots on load is let finish first (its own paint, then 400 ms with no change
    under #phone, at most 10 s), so nothing it had in flight can paint over the declared one. */
 const DAY = createRequire(import.meta.url)("./today-model.cjs").SYNTHETIC_DAY;
+const { nightWords } = createRequire(import.meta.url)("./today-app.cjs");
 const NEXT = (() => { const [y, m, d] = DAY.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10); })();   // 2030-02-05, as before
 async function stand(page) {
@@ -309,7 +310,8 @@ try {
   /* ---------- launch 1: the screen opened its own lane ---------- */
   let { context, page } = await relaunch();
   const opened = await page.textContent("#phone");
-  assert.match(opened, /Night of \d{4}-\d{2}-\d{2}/, "the night label is the NIGHT's own date");
+  /* POLISH 7 (PM, ui-pass14): the night is named in plain words ("Night of Sunday, Oct 11"), never a numeric date. */
+  assert.match(opened, /Night of (Sun|Mon|Tues|Wednes|Thurs|Fri|Satur)day, [A-Z][a-z]{2} \d{1,2}/, "the night label is the NIGHT's own date");
   /* The preview athlete arrives with an imported basis of nights, so this launch reads
      one back. It carries NO provenance, because no operation on this device made it. */
   const basisLine = await recorded(page);
@@ -381,7 +383,7 @@ try {
   /* D2 ROUND 1, FINDING 5 - the night is DATED and the quality is the check-in's. */
   const dated = await page.inputValue("#sleep-date");
   assert.match(dated, /^\d{4}-\d{2}-\d{2}$/, "the night has no date control: " + dated);
-  assert(String(await page.textContent('#phone [data-slot="sleep-night"]')).includes(dated),
+  assert(String(await page.textContent('#phone [data-slot="sleep-night"]')).includes(nightWords(dated)),
     "the label and the date control disagree");
   const quality = (await page.textContent('#phone [data-slot="sleep-quality"]')) || "";
   assert.match(quality, /^Quality/, "the quality state is not drawn: " + quality);

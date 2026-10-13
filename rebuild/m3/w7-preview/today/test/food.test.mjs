@@ -1712,3 +1712,176 @@ test('N2B.9 - on a store with no installation yet, the food, sleep and steps lan
   assert.equal(doc.querySelector('#phone [data-slot="nutrition-state"]').textContent, '', 'and Today says nothing about food');
   api.dispose();
 });
+
+/* POLISH 7 (PM, ui-pass14 shots 01a to 04b): the Log today sheet, its ticks, the sleep screen's night, the way back to
+   the sheet, the focus ring and Start's edge. Layout itself (Done on the screen at 375x667 without scrolling, the title
+   larger than the labels, the two saves one style, the steps box's width, the ring drawn, the fade clear at Start's
+   top) is measured in Chromium at the builder seat (the brief's P7 probe); these cells hold the structure, the words,
+   the behaviour and the stylesheet rules that draw them. Red first: every P7 cell fails on b99c5e6's today-app.cjs,
+   screens.template.html and preview.css. Every value is invented. */
+test('P7.1 - the sheet has a heading, a close control, ONE primary (Done, in its foot), and the steps entry is the weight row\'s shape', async () => {
+  const page = await storedScreen(faultDatabase());
+  const card = page.doc.querySelector('#phone #card-log');
+  click(page, card);
+  const sheet = page.pick('log-sheet');
+  assert.equal(page.pick('log-head').tagName, 'H2', 'the title is a heading, not a section label');
+  assert.equal(page.pick('log-head').classList.contains('section-label'), false);
+  const close = page.pick('log-close');
+  assert.equal(close.getAttribute('aria-label'), N2B.LOG_CLOSE);
+  assert.equal(N2B.LOG_CLOSE, 'Close');
+  assert.deepEqual([...sheet.querySelectorAll('.primary')], [page.pick('log-done')], 'Done is the sheet\'s one primary action');
+  assert.equal(page.pick('log-done').parentElement, page.pick('log-foot'), 'in the sheet\'s foot');
+  assert.equal(page.pick('log-foot').parentElement, sheet);
+  for (const key of ['weight', 'steps']) {
+    const save = page.pick('log-' + key + '-save');
+    assert(save.classList.contains('save') && save.closest('form.weigh-row'), key + ': box, unit and the pack\'s Save pill in one row');
+  }
+  assert.equal(page.pick('log-steps-unit').textContent, 'steps', 'the steps box names its unit');
+  const box = page.pick('log-steps-box');
+  assert.equal(box.getAttribute('inputmode'), 'numeric', 'a number pad');
+  assert.equal(box.getAttribute('pattern'), '[0-9]*');
+  assert.equal(box.classList.contains('hours'), false, 'no longer the 80 px hours box');
+  click(page, close);
+  assert.equal(page.pick('log-sheet'), null, 'the close control closes the sheet');
+  assert.equal(page.doc.activeElement, page.doc.querySelector('#phone #card-log'), 'and hands focus back to the card, as Done does');
+  page.api.dispose();
+});
+
+test('P7.2 - a kept count is said with Change, not an empty box; the ticks move while the sheet is open', async () => {
+  const fault = faultDatabase();
+  const page = await storedScreen(fault);
+  page.api.openLogToday();
+  assert.equal(page.pick('log-steps-change').hidden, true, 'nothing kept: the entry is open');
+  assert.equal(page.pick('log-steps-entry').hidden, false);
+  assert.equal(page.pick('log-steps-tick').hidden, true);
+  page.pick('log-steps-box').value = '8200';
+  click(page, page.pick('log-steps-save'));
+  await page.api.stepsPending();
+  assert.equal(page.api.logOpen(), true, 'the sheet is still open');
+  assert.equal(page.pick('log-steps-entry').hidden, true, 'the empty box is gone');
+  assert.equal(page.pick('log-steps-change').hidden, false);
+  assert.equal(page.pick('log-steps-change').textContent, N2B.STEPS_CHANGE);
+  assert.equal(N2B.STEPS_CHANGE, 'Change');
+  assert.equal(page.doc.activeElement, page.pick('log-steps-change'), 'focus stays on the row that was saved');
+  assert.equal(page.pick('log-steps-tick').hidden, false, 'the sheet\'s Steps row is ticked');
+  assert.equal(page.pick('log-steps-tick').textContent, N2B.LOG_TICK.trim());
+  assert.equal(ticked(page, 'steps'), true, 'and Today\'s card under the sheet already ticks Steps');
+  const item = page.pick('log-ticks').querySelector('[data-item="steps"]');
+  assert(item.hasAttribute('data-done') && item.querySelector('[data-tick]'), 'the done item and its tick are their own spans');
+  assert.equal(page.pick('log-ticks').querySelector('[data-item="weight"]').hasAttribute('data-done'), false);
+  /* Change opens the entry with the kept count in it, and a second save is a correction */
+  click(page, page.pick('log-steps-change'));
+  assert.equal(page.pick('log-steps-entry').hidden, false);
+  assert.equal(page.pick('log-steps-box').value, '8200', 'the entry opens with the kept count');
+  assert.equal(page.doc.activeElement, page.pick('log-steps-box'));
+  page.pick('log-steps-box').value = '9100';
+  click(page, page.pick('log-steps-save'));
+  await page.api.stepsPending();
+  assert.equal((await stepOps(fault)).length, 2, 'the correction is a second op');
+  assert.match(page.pick('log-steps-state').textContent, /^9,?100 steps$/);
+  assert.equal(page.pick('log-steps-change').hidden, false);
+  page.api.dispose();
+});
+
+test('P7.3 - back on Today from Food or Sleep reached from the sheet, the sheet opens again; from anywhere else it does not', async () => {
+  for (const [slot, screen] of [['log-food-go', 'nutrition'], ['log-sleep-go', 'sleep']]) {
+    const page = screenOn({ model: cleanModel() });
+    page.api.openLogToday();
+    click(page, page.pick(slot));
+    assert.equal(page.api.screen(), screen);
+    click(page, page.doc.querySelector('#phone [data-go="today"]'));
+    assert.equal(page.api.screen(), 'today');
+    assert.equal(page.api.logOpen(), true, 'back from ' + screen + ' reopens the sheet');
+    assert.equal(page.doc.activeElement, page.pick('log-head'));
+    click(page, page.pick('log-done'));
+    page.api.render(screen, true);
+    click(page, page.doc.querySelector('#phone [data-go="today"]'));
+    assert.equal(page.api.logOpen(), false, screen + ' reached from Today itself goes back to Today alone');
+    page.api.dispose();
+  }
+  const page = screenOn({ model: cleanModel() });
+  page.api.openLogToday();
+  click(page, page.pick('log-sleep-go'));
+  page.dom.window.document.getElementById('phone').dispatchEvent(new page.dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert.equal(page.api.logOpen(), true, 'Escape from Sleep comes back to the sheet too');
+  page.api.dispose();
+});
+
+test('P7.4 - the sleep screen names the night in plain words, in its heading and in its date box, never as a numeric date', async () => {
+  const page = await storedScreen(faultDatabase(), createTodayModel({ today: DAY }));
+  page.api.render('sleep');
+  assert.equal(page.pick('sleep-entry-form').hidden, false, 'the page opened its own sleep lane');
+  const night = page.pick('sleep-date').value;
+  assert.match(night, /^\d{4}-\d{2}-\d{2}$/, 'the box still carries the night\'s own date');
+  const words = TodayApp.nightWords(night);
+  assert.match(words, /^(Sun|Mon|Tues|Wednes|Thurs|Fri|Satur)day, [A-Z][a-z]{2} \d{1,2}$/, words);
+  assert.equal(page.pick('sleep-night').textContent, TodayApp.SLEEP_NIGHT_PREFIX + words);
+  assert.equal(page.pick('sleep-date-words').textContent, words, 'the box shows the same words');
+  assert.equal(page.pick('sleep-date-words').getAttribute('aria-hidden'), 'true', 'the box itself is still what is read');
+  for (const slot of ['sleep-night', 'sleep-date-words'])
+    assert.doesNotMatch(page.pick(slot).textContent, /\d{1,4}[-/]\d{1,2}[-/]\d{1,4}/, slot + ' carries no numeric date');
+  /* Fable on P7, D1: the words follow the box on input, before any change, so they never lag it */
+  page.pick('sleep-date').value = '2029-12-29';
+  page.pick('sleep-date').dispatchEvent(new page.dom.window.Event('input'));
+  assert.equal(page.pick('sleep-date-words').textContent, 'Saturday, Dec 29', 'the words follow the box on input');
+  page.pick('sleep-date').value = '2029-12-30';
+  page.pick('sleep-date').dispatchEvent(new page.dom.window.Event('change'));
+  assert.equal(page.pick('sleep-date-words').textContent, 'Sunday, Dec 30', 'the words follow the night chosen');
+  assert.equal(page.pick('sleep-night').textContent, TodayApp.SLEEP_NIGHT_PREFIX + 'Sunday, Dec 30');
+  page.api.dispose();
+});
+
+/* WCAG 2.x relative luminance and contrast, over the approved pack's own theme tokens. */
+const luminance = (hex) => {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contrast = (a, b) => { const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+test('P7.5 - the stylesheet: a 3:1 focus ring everywhere, gold ticks, a dimmed backdrop, a foot that stays, and Start\'s edge clear', () => {
+  const chrome = design.chromeCss();
+  const block = chrome.slice(chrome.indexOf('/* ===== POLISH 7'), chrome.indexOf('/* ===== POLISH 7: END ===== */'));
+  assert(block.length > 0, 'the polish 7 block is in the chrome');
+  assert.match(block, /\.scene-frame :is\(button, a, input, select, textarea, summary, \[role="button"\], \[role="link"\], \[tabindex\]:not\(\[tabindex="-1"\]\)\):focus-visible,\s*\.view :is\([^)]*\)\):focus-visible \{\s*outline: 2px solid var\(--text\); outline-offset: 2px; \}/,
+    'one ring, 2 px of the text colour, on every focusable control of every screen');
+  const pack = design.readApproved().map((a) => a.styles).join('\n');
+  const tokens = (head) => { const at = pack.indexOf(head); const body = pack.slice(at, pack.indexOf('}', at));
+    return Object.fromEntries([...body.matchAll(/--([\w-]+):\s*(#[0-9a-f]{6})/gi)].map((m) => [m[1], m[2]])); };
+  for (const [theme, head] of [['ink', ':root, :root[data-theme="ink"] {'], ['dawn', ':root[data-theme="dawn"] {']]) {
+    const t = tokens(head);
+    for (const ground of ['surface', 'card']) {
+      const ratio = contrast(t.text, t[ground]);
+      assert(ratio >= 3, theme + ': the ring on --' + ground + ' is ' + ratio.toFixed(2) + ':1');
+    }
+    assert(contrast(t.gold, t.card) >= 3, theme + ': the gold tick on a card is ' + contrast(t.gold, t.card).toFixed(2) + ':1');
+  }
+  assert.match(block, /\[data-slot="log-ticks"\] \[data-tick\] \{ color: var\(--gold\); font-weight: 600; \}/);
+  assert.match(block, /\[data-slot="log-ticks"\] > \[data-done\] \{ color: var\(--text\); \}/);
+  assert.match(block, /box-shadow: 0 0 0 100vmax rgba\(0, 0, 0, 0\.6\)/, 'Today is dimmed under the sheet');
+  assert.match(block, /\[data-slot="log-foot"\] \{\s*position: sticky; bottom: 0;/, 'Done\'s foot stays at the foot of the panel');
+  assert.match(block, /\.scene-frame\.screen-today > \.view\.ui > \.body\.can-scroll:not\(\.at-end\) \{ --fade-bot: calc\(100% - 22px\); --fade-bot-end: calc\(100% - 10px\); \}/,
+    'the bottom fade is clear at Start\'s top');
+  assert.match(pack, /\.screen \.ui > \.stack \{[^}]*margin-top: -22px;/, 'the 22 px the fade is measured from is still the pack\'s');
+  assert.doesNotMatch(block, /[^\x00-\x7f]/, 'ASCII');
+});
+
+/* POLISH 7, the PM's ruling on choice 2: the check-in row behaves as the Food and Sleep rows do, so back on Today from
+   the check-in reached from the sheet, the sheet opens again. Red first on b99c5e6's bytes and on the polish 7 bytes
+   before the ruling (the check-in went back to Today alone). */
+test('P7.6 - back on Today from the check-in reached from the sheet, the sheet opens again; from Today itself it does not', async () => {
+  const page = screenOn({ model: cleanModel() });
+  page.api.openLogToday();
+  click(page, page.pick('log-checkin-go'));
+  assert.equal(page.api.screen(), 'recovery');
+  assert.equal(page.api.logOpen(), false);
+  click(page, page.doc.querySelector('#phone [data-go="today"]'));
+  assert.equal(page.api.screen(), 'today');
+  assert.equal(page.api.logOpen(), true, 'back from the check-in reopens the sheet');
+  assert.equal(page.doc.activeElement, page.pick('log-head'));
+  click(page, page.pick('log-done'));
+  click(page, page.doc.querySelector('#phone #recovery'));
+  assert.equal(page.api.screen(), 'recovery', 'the check-in reached from Today\'s own row');
+  click(page, page.doc.querySelector('#phone [data-go="today"]'));
+  assert.equal(page.api.logOpen(), false, 'goes back to Today alone');
+  page.api.dispose();
+});

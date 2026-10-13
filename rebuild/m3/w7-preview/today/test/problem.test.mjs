@@ -1976,7 +1976,8 @@ test('N2-14 - with a lane and nothing recorded the entry is honest and offers bo
   page.api.render('sleep');
   assert.equal(page.pick('sleep-entry-form').hidden, false);
   assert.equal(page.pick('sleep-title').textContent, SLEEP_TITLE);
-  assert.match(page.pick('sleep-night').textContent, new RegExp(NIGHT));
+  /* POLISH 7 (PM, ui-pass14): the night is named in plain words, never as a numeric date */
+  assert.equal(page.pick('sleep-night').textContent, TodayApp.SLEEP_NIGHT_PREFIX + TodayApp.nightWords(NIGHT));
   assert.equal(page.pick('sleep-note').textContent, SLEEP_NONE, 'the honest empty state');
   assert.doesNotMatch(page.pick('sleep-note').textContent, /0 h/, 'never a zero');
   assert.equal(page.pick('sleep-mode-times').getAttribute('aria-pressed'), 'true',
@@ -2564,7 +2565,7 @@ test('N2-04 - D2 finding 5: the night is dated by choice, quality is reused, and
   assert.equal(page.pick('sleep-date').max, NIGHT, 'and a night still running cannot be chosen');
   const older = '2029-12-30';
   page.choose('sleep-date', older);
-  assert.match(page.pick('sleep-night').textContent, new RegExp(older),
+  assert.equal(page.pick('sleep-night').textContent, TodayApp.SLEEP_NIGHT_PREFIX + TodayApp.nightWords(older),
     'the label does not follow the night that was chosen');
   page.click('[data-slot="sleep-mode-hours"]');
   page.type('sleep-hours', '6.5');

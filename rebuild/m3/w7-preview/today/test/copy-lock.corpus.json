@@ -2323,7 +2323,8 @@
   {
    "text": "Change",
    "files": {
-    "rebuild/m3/w7-preview/today/routine-model.mjs": 1
+    "rebuild/m3/w7-preview/today/routine-model.mjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
   },
@@ -2562,6 +2563,13 @@
    "text": "Clean reps left",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Close",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
   },

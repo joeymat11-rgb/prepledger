@@ -59,6 +59,10 @@ const amount = (v) => (Number.isFinite(v) ? NUMBER.format(v) : null);
 const pounds = (v) => (Number.isFinite(v) ? v.toFixed(1) : null);
 const localDate = (day) => { const [y, m, d] = day.split("-").map(Number); return new Date(y, m - 1, d, 12); };
 const dayLabel = (day) => new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(localDate(day));
+/* POLISH 7 (PM, ui-pass14): a night is named in plain words, its weekday, short month and day ("Sunday, Oct 11"), never
+   as a numeric date a reader can take either way round. */
+const nightWords = (day) => (typeof day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day)
+  ? new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric" }).format(localDate(day)) : "");
 
 /* "Eat about N kcal" — N is the engine's own midpoint, shown to the nearest 100 exactly
    as the reviewed w7-preview presents it; the engine's actual band is printed underneath,
@@ -288,6 +292,9 @@ const LOG_DONE = "Done";
 const LOG_FOOD_GO = "Enter food";
 const LOG_SLEEP_GO = "Enter sleep";
 const LOG_NOTHING_YET = "Nothing logged yet.";
+/* POLISH 7 (PM, ui-pass14): the sheet's close control (its accessible name) and the steps row's way back into a kept count. */
+const LOG_CLOSE = "Close";
+const STEPS_CHANGE = "Change";
 const STEPS_LABEL = "Steps today";
 const STEPS_SAVE = "Save steps";
 const STEPS_UNIT = " steps";
@@ -1584,8 +1591,24 @@ function mountToday(doc, model, options = {}) {
   function bindLogCard(map, view) {
     const done = logToday(view);
     put(map, "log-title", LOG_TITLE);
-    map.get("log-ticks").textContent = plainOrDrop(Object.keys(LOG_ITEMS)
-      .map((key) => LOG_ITEMS[key] + (done[key] ? LOG_TICK : "")).join(LOG_JOIN), "log-ticks");
+    /* POLISH 7 (ui-pass14): a done item is drawn brighter, its tick in gold, each in a span of its own (data-done,
+       data-tick), and the line's words are exactly what they were: the item names, the tick, the separator. */
+    const ticks = map.get("log-ticks");
+    ticks.replaceChildren();
+    Object.keys(LOG_ITEMS).forEach((key, index) => {
+      if (index > 0) ticks.append(doc.createTextNode(LOG_JOIN));
+      const item = doc.createElement("span");
+      item.dataset.item = key;
+      item.textContent = plainOrDrop(LOG_ITEMS[key], "log-ticks");
+      if (done[key]) {
+        item.dataset.done = "";
+        const tick = doc.createElement("span");
+        tick.dataset.tick = "";
+        tick.textContent = plainOrDrop(LOG_TICK, "log-ticks");
+        item.append(tick);
+      }
+      ticks.append(item);
+    });
     hooks.listen(map.get("log-entry"), "click", () => openLogToday());
   }
 
@@ -1593,6 +1616,17 @@ function mountToday(doc, model, options = {}) {
      every time (a repaint of Today while it is open paints it again over the new Today), and it holds no state of its
      own but the steps note below. */
   let logOpen = null;
+  /* POLISH 7 (PM, ui-pass14). logReturn: the athlete went from the sheet to the food, the sleep or the check-in screen
+     (the check-in by the PM's ruling on P7, for consistency), so coming back to Today ("Today" at the top of that screen,
+     or Escape) opens the sheet again. stepsEditing: a kept count is shown
+     with Change, and this is true while its entry is open again. logFocus: the slot that takes focus when the sheet is
+     next painted (a save repaints Today and the sheet with it, so focus is handed to the row that was saved). */
+  /* Fable on P7, D2: all three are per-mount state, held in this mount's closure like logOpen. dispose() and the
+     midnight re-boot (a new mount over the same #phone) start from false and null, so a way back to the sheet never
+     outlives the mount that set it. */
+  let logReturn = false;
+  let stepsEditing = false;
+  let logFocus = null;
   function openLogToday() {
     if (logOpen || phone.querySelector('[role="dialog"]')) return;
     const pages = [...phone.children];
@@ -1605,10 +1639,13 @@ function mountToday(doc, model, options = {}) {
     const { pages, sheet } = logOpen;
     logOpen = null;
     stepsNote = "";
+    stepsEditing = false;
+    logFocus = null;
     if (sheet) sheet.remove();
     for (const page of pages) page.inert = false;
     if (next === "recovery") checkinOrigin = "today";
     const shown = render(next || "today", !!next);
+    logReturn = next === "nutrition" || next === "sleep" || next === "recovery";
     /* Fable 4a010467 D1: Done and Escape hand focus back to the card that opened the sheet, as the weigh-in sheet's own
        close hands it back to what opened it; a row that opens another screen leaves focus to that screen. */
     if (!next) {
@@ -1617,9 +1654,14 @@ function mountToday(doc, model, options = {}) {
     }
     return shown;
   }
-  function logRow(map, key, state) {
+  function logRow(map, key, state, done) {
     put(map, "log-" + key + "-label", LOG_ITEMS[key]);
     map.get("log-" + key + "-state").textContent = plainOrDrop(state || LOG_NOTHING_YET, "log-" + key + "-state");
+    /* POLISH 7: the row's own tick, beside its label, from the same record as Today's card. */
+    const tick = map.get("log-" + key + "-tick");
+    tick.textContent = done ? plainOrDrop(LOG_TICK.trim(), "log-" + key + "-tick") : "";
+    tick.hidden = !done;
+    if (done) map.get("log-" + key + "-row").dataset.done = "";
   }
   function paintLogSheet(focus) {
     if (!logOpen || disposed) return;
@@ -1629,16 +1671,20 @@ function mountToday(doc, model, options = {}) {
     const map = slots(sheet);
     sheet.setAttribute("aria-label", LOG_TITLE);
     put(map, "log-head", LOG_TITLE);
+    /* POLISH 7: the close control beside the title, the same close as Done and Escape. */
+    const close = map.get("log-close");
+    close.setAttribute("aria-label", LOG_CLOSE);
+    hooks.listen(close, "click", () => closeLogToday());
 
     /* WEIGHT: recorded, the morning card's own line; owed, the board's field and Save, through submitWeighIn. */
     const weighForm = map.get("log-weight-form");
     const weighError = map.get("log-weight-error");
     if (view.blocked || done.weight) {
-      logRow(map, "weight", view.blocked ? NOT_AVAILABLE : morningLine(view));
+      logRow(map, "weight", view.blocked ? NOT_AVAILABLE : morningLine(view), !view.blocked && done.weight);
       weighForm.remove();
       weighError.remove();
     } else {
-      logRow(map, "weight", null);
+      logRow(map, "weight", null, false);
       map.get("log-weight-state").hidden = true;
       put(map, "log-weight-box-label", "Your weight in pounds");
       const box = map.get("log-weight-box");
@@ -1661,44 +1707,61 @@ function mountToday(doc, model, options = {}) {
           box.focus();
           return;
         }
-        paintLogSheet(false);
+        /* POLISH 7: a kept weight repaints Today under the sheet, so the card's tick moves while the sheet is open. */
+        if (!logOpen || screen !== "today") return;
+        logFocus = "log-head";
+        render("today", false);
       });
     }
 
     /* FOOD: what the projected day holds, and the nutrition screen, whose writer is the food lane's own. */
     /* done.food is FOOD_SAVED from nutritionState(), which is only said when model.loggedFood answered a day. */
     const food = done.food ? model.loggedFood(model.today) : null;
-    logRow(map, "food", food ? intakeLine(food) : nutritionState());
+    logRow(map, "food", food ? intakeLine(food) : nutritionState(), done.food);
     map.get("log-food-go").textContent = plainOrDrop(LOG_FOOD_GO, "log-food-go");
     hooks.listen(map.get("log-food-go"), "click", () => closeLogToday("nutrition"));
 
-    /* STEPS: the winning count for today, and the one new entry. */
+    /* STEPS: the winning count for today, and the one new entry. POLISH 7: the entry is the weight's own row (the box,
+       its unit "steps", Save on the right, a number pad); a kept count is said with Change, which opens the entry again
+       with the count in it, rather than an empty box under it. */
     const stepsBox = map.get("log-steps-box");
     const stepsSave = map.get("log-steps-save");
     const stepsError = map.get("log-steps-error");
+    const stepsEntry = map.get("log-steps-entry");
+    const stepsChange = map.get("log-steps-change");
     logRow(map, "steps", done.stepsRow ? amount(done.stepsRow.day.steps) + STEPS_UNIT
-      : stepsLane ? null : stepsFailure ? STEPS_NO_STORE : FOOD_OPENING);
+      : stepsLane ? null : stepsFailure ? STEPS_NO_STORE : FOOD_OPENING, done.steps);
     if (!stepsLane) {
-      map.get("log-steps-entry").remove();
-      stepsSave.remove();
+      stepsEntry.remove();
+      stepsChange.remove();
       stepsError.remove();
     } else {
       put(map, "log-steps-box-label", STEPS_LABEL);
+      put(map, "log-steps-unit", STEPS_UNIT.trim());
       stepsSave.textContent = plainOrDrop(STEPS_SAVE, "log-steps-save");
       stepsError.textContent = stepsNote ? plainOrDrop(stepsNote, "log-steps-error") : "";
-      hooks.listen(stepsSave, "click", () => { stepsSaving = recordSteps(stepsSave, stepsBox, stepsError); });
+      const kept = !!done.stepsRow && !stepsEditing;
+      stepsEntry.hidden = kept;
+      stepsChange.hidden = !kept;
+      stepsChange.textContent = kept ? plainOrDrop(STEPS_CHANGE, "log-steps-change") : "";
+      if (done.stepsRow && stepsEditing) stepsBox.value = String(done.stepsRow.day.steps);
+      hooks.listen(stepsChange, "click", () => { stepsEditing = true; logFocus = "log-steps-box"; paintLogSheet(false); });
+      const saveSteps = () => { stepsSaving = recordSteps(stepsSave, stepsBox, stepsError); };
+      hooks.listen(stepsSave, "click", saveSteps);
+      hooks.listen(stepsEntry, "submit", (event) => { event.preventDefault(); if (!stepsSave.disabled) saveSteps(); });
     }
 
     /* SLEEP: last night's hours as the projection holds them, and the sleep screen, whose writer is the sleep lane's. */
-    logRow(map, "sleep", done.slept);
+    logRow(map, "sleep", done.slept, done.sleep);
     map.get("log-sleep-go").textContent = plainOrDrop(LOG_SLEEP_GO, "log-sleep-go");
     hooks.listen(map.get("log-sleep-go"), "click", () => closeLogToday("sleep"));
 
     /* CHECK IN: the check-in lane's own summary, and the recovery screen, whose writer is the check-in's. */
-    logRow(map, "checkin", recoveryState());
+    logRow(map, "checkin", recoveryState(), done.checkin);
     map.get("log-checkin-go").textContent = plainOrDrop(SLEEP_OPEN_CHECKIN, "log-checkin-go");
     hooks.listen(map.get("log-checkin-go"), "click", () => closeLogToday("recovery"));
 
+    /* POLISH 7: Done is the sheet's one primary action, in its foot (preview.css holds the foot on the screen). */
     map.get("log-done").textContent = plainOrDrop(LOG_DONE, "log-done");
     hooks.listen(map.get("log-done"), "click", () => closeLogToday());
     hooks.listen(sheet, "keydown", (event) => {
@@ -1707,11 +1770,12 @@ function mountToday(doc, model, options = {}) {
     if (logOpen.sheet && logOpen.sheet.isConnected) logOpen.sheet.replaceWith(sheet);
     else phone.append(sheet);
     logOpen.sheet = sheet;
-    if (focus) {
-      const head = map.get("log-head");
-      head.tabIndex = -1;
-      head.focus();
-    }
+    const head = map.get("log-head");
+    head.tabIndex = -1;
+    const target = logFocus ? map.get(logFocus) : null;
+    logFocus = null;
+    if (target && target.isConnected && !target.hidden && !target.closest("[hidden]")) target.focus();
+    else if (focus || target) head.focus();
   }
   /* THE ONE STEPS WRITE. The box's words go through steps-model.cjs's rule first: a refused entry writes nothing. The
      host answers acknowledged or refused, and a save that THROWS has told us nothing, so it is said as unknown, never as
@@ -1741,7 +1805,12 @@ function mountToday(doc, model, options = {}) {
     try { await lane.refresh(); } catch (_) { readBack = false; }
     if (token !== mountToken || disposed) return;
     stepsNote = readBack ? "" : STEPS_SAVED_UNREAD;
-    paintLogSheet(false);
+    /* POLISH 7: the kept count closes the entry again, and Today repaints under the sheet, so its Steps tick moves while
+       the sheet is open; focus goes to the row's Change (or the box, when the count could not be read back). */
+    stepsEditing = false;
+    if (!logOpen || screen !== "today") return;
+    logFocus = readBack ? "log-steps-change" : "log-steps-box";
+    render("today", false);
   }
 
   /* ---------------- entry points that are NOT wired ---------------- */
@@ -2044,7 +2113,7 @@ function mountToday(doc, model, options = {}) {
     const date = facade.sleepNightDate();
     hooks.readSleepCheckIn(date);
     put(map, "sleep-title", SLEEP_TITLE);
-    put(map, "sleep-night", SLEEP_NIGHT_PREFIX + (date || ""));
+    put(map, "sleep-night", SLEEP_NIGHT_PREFIX + nightWords(date));
     const opening = facade.sleepLane() ? null : openSleepLaneInTurn();
     if (!facade.sleepLane()) {
       /* WHAT CANNOT HAPPEN, WHY, AND WHAT TO DO - N1's D2 round-1 lesson, applied
@@ -2089,6 +2158,14 @@ function mountToday(doc, model, options = {}) {
     if (dateBox) {
       dateBox.value = date || "";
       dateBox.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
+      /* POLISH 7: the box shows the night in the same plain words as the heading, over the picker's own numeric face
+         (preview.css), so no date on this screen can be read either way round; the box is still the one control. */
+      const words = map.get("sleep-date-words");
+      const sayNight = () => { if (words) words.textContent = plainOrDrop(nightWords(dateBox.value), "sleep-date-words"); };
+      sayNight();
+      /* Fable on P7, D1: the words follow the box on every input, not only on change, so they never lag what the box
+         holds (a picker that commits on input, a typed date before the box loses focus). */
+      hooks.listen(dateBox, "input", sayNight);
       const latest = SleepModel.nightDateFor(hooks.sleepToday());
       if (latest) dateBox.max = latest;
       hooks.listen(dateBox, "change", () => {
@@ -2857,7 +2934,16 @@ function mountToday(doc, model, options = {}) {
           return facade.ready();
         } });
     }
-    if (next === "today") return renderToday(focus);
+    /* POLISH 7 (PM, ui-pass14): back on Today from the food, the sleep or the check-in screen the athlete reached from
+       the Log today sheet, the sheet opens again; anywhere else the way back is forgotten. */
+    if (next === "today") {
+      const reopen = logReturn;
+      logReturn = false;
+      const shown = renderToday(focus);
+      if (reopen && !logOpen && !disposed) openLogToday();
+      return shown;
+    }
+    if (next !== "nutrition" && next !== "sleep" && next !== "sleep-checkin" && next !== "recovery") logReturn = false;
     if (next === "why") return renderWhy(focus);
     if (next === "nutrition") return renderNutrition(focus);
     if (next === "sleep") return renderSleep(focus);
@@ -3082,6 +3168,6 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   SLEEP_ROLLOVER, SLEEP_KEEP_NIGHT, SLEEP_NIGHT_CHANGED, SLEEP_CHECKIN_CHANGED,
   SLEEP_UNCERTAIN, SLEEP_CONFIRMED_PLAIN, SLEEP_CORRECTED_PREFIX, SLEEP_READ_RETRY,
   SLEEP_KEPT,
-  LOG_TITLE, LOG_ITEMS, LOG_TICK, LOG_JOIN, LOG_DONE, LOG_FOOD_GO, LOG_SLEEP_GO, LOG_NOTHING_YET,
+  LOG_TITLE, LOG_ITEMS, LOG_TICK, LOG_JOIN, LOG_DONE, LOG_FOOD_GO, LOG_SLEEP_GO, LOG_NOTHING_YET, LOG_CLOSE, STEPS_CHANGE, nightWords,
   STEPS_LABEL, STEPS_SAVE, STEPS_UNIT, STEPS_NO_STORE, STEPS_REFUSED, STEPS_UNKNOWN, STEPS_SAVED_UNREAD, STEPS_REFUSAL_COPY,
   athleteStateFailureCopy };

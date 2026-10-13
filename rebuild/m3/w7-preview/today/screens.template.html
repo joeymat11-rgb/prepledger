@@ -176,11 +176,18 @@
      today: the weight is entered here through the page's ONE weigh-in write site (today-app.cjs submitWeighIn), the
      steps through the steps lane, and food, sleep and the check-in each open their own existing screen, whose writer
      is the existing one. Preview-owned: every word and value is bound at runtime from today-app.cjs. -->
+<!-- POLISH 7 (PM, ui-pass14): the sheet's title is a heading above its section labels, with a close control beside it;
+     each row's tick sits beside its label (log-*-tick); the steps entry is the weight's own row (box, unit, Save); and
+     Done is the sheet's one primary action, in a foot that stays on the screen while the rows scroll. No new class:
+     the look is bound by these slots in preview.css (POLISH 7). -->
 <template id="t-log">
 <div class="sheet-panel" role="dialog" aria-modal="true" data-own data-slot="log-sheet">
-  <div class="section-label" data-slot="log-head"></div>
+  <div data-slot="log-top">
+    <h2 data-slot="log-head"></h2>
+    <button type="button" data-action="log-close" data-slot="log-close"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13"/></svg></button>
+  </div>
   <section class="field" data-slot="log-weight">
-    <div class="section-label" data-slot="log-weight-label"></div>
+    <div data-slot="log-weight-row"><div class="section-label" data-slot="log-weight-label"></div><span data-slot="log-weight-tick"></span></div>
     <p class="small muted" data-slot="log-weight-state"></p>
     <form class="weigh-row" data-slot="log-weight-form" novalidate>
       <label for="log-weight-box" class="visually-hidden" data-slot="log-weight-box-label"></label>
@@ -191,31 +198,33 @@
     <p class="error" role="alert" data-slot="log-weight-error"></p>
   </section>
   <section class="field" data-slot="log-food">
-    <div class="section-label" data-slot="log-food-label"></div>
+    <div data-slot="log-food-row"><div class="section-label" data-slot="log-food-label"></div><span data-slot="log-food-tick"></span></div>
     <p class="small muted" data-slot="log-food-state"></p>
     <button class="text-link" type="button" data-slot="log-food-go"></button>
   </section>
   <section class="field" data-slot="log-steps">
-    <div class="section-label" data-slot="log-steps-label"></div>
+    <div data-slot="log-steps-row"><div class="section-label" data-slot="log-steps-label"></div><span data-slot="log-steps-tick"></span></div>
     <p class="small muted" data-slot="log-steps-state"></p>
-    <div class="field" data-slot="log-steps-entry">
-      <label for="log-steps-box" data-slot="log-steps-box-label"></label>
-      <input id="log-steps-box" class="hours" type="text" inputmode="numeric" autocomplete="off" data-slot="log-steps-box">
-    </div>
+    <button class="text-link" type="button" data-slot="log-steps-change" hidden></button>
+    <form class="weigh-row" data-slot="log-steps-entry" novalidate>
+      <label for="log-steps-box" class="visually-hidden" data-slot="log-steps-box-label"></label>
+      <div class="field" data-slot="log-steps-field"><input id="log-steps-box" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off" data-slot="log-steps-box"></div>
+      <span class="unit" data-slot="log-steps-unit"></span>
+      <button class="save" type="button" data-slot="log-steps-save"></button>
+    </form>
     <p class="error" role="alert" data-slot="log-steps-error"></p>
-    <button class="primary" type="button" data-slot="log-steps-save"></button>
   </section>
   <section class="field" data-slot="log-sleep">
-    <div class="section-label" data-slot="log-sleep-label"></div>
+    <div data-slot="log-sleep-row"><div class="section-label" data-slot="log-sleep-label"></div><span data-slot="log-sleep-tick"></span></div>
     <p class="small muted" data-slot="log-sleep-state"></p>
     <button class="text-link" type="button" data-slot="log-sleep-go"></button>
   </section>
   <section class="field" data-slot="log-checkin">
-    <div class="section-label" data-slot="log-checkin-label"></div>
+    <div data-slot="log-checkin-row"><div class="section-label" data-slot="log-checkin-label"></div><span data-slot="log-checkin-tick"></span></div>
     <p class="small muted" data-slot="log-checkin-state"></p>
     <button class="text-link" type="button" data-slot="log-checkin-go"></button>
   </section>
-  <div class="secondary-row"><button class="text-link" type="button" data-action="log-done" data-slot="log-done"></button></div>
+  <div data-slot="log-foot"><button class="primary" type="button" data-action="log-done" data-slot="log-done"></button></div>
 </div>
 </template>
 
@@ -301,6 +310,7 @@
     <div class="field" data-slot="sleep-date-field">
       <label for="sleep-date" data-slot="sleep-date-label"></label>
       <input id="sleep-date" class="hours" type="date" data-slot="sleep-date">
+      <span data-slot="sleep-date-words" aria-hidden="true"></span>
     </div>
     <p class="small muted" data-slot="sleep-rollover" hidden></p>
     <button class="text-link" type="button" data-action="sleep-keep-night" data-slot="sleep-keep-night" hidden></button>

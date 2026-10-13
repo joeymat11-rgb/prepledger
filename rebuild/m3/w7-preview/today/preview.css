@@ -820,4 +820,58 @@
 .view [data-slot="week-review-steady"] > [data-slot="week-review-more"] { gap: 0; justify-content: flex-start; }
 .view [data-slot="week-review-steady"] > [data-slot="week-review-more"][aria-expanded="true"] {
   display: flex; width: fit-content; margin: 0; }
-/* ===== POLISH 6: END ===== */
+/* ===== POLISH 6: END ===== *//* ===== POLISH 7 (PM, ui-pass14, 2026-10-13): BEGIN =====
+   1. THE LOG TODAY SHEET (shots 02, 02b, 03a). Today is dimmed under it (a backdrop drawn as the panel's own shadow, so
+      no element is added over the inert page); its title is a heading above the section labels, with a 44 px close
+      control beside it; the weight and steps entries are one row shape (box, unit, the pack's .save pill); and Done is
+      the sheet's one primary action, in a foot that stays at the foot of the panel while the rows scroll under it, so
+      it is on the screen at 375x667 without scrolling. Bound by slot: the sheet adds no class. */
+.view .sheet-panel[data-slot="log-sheet"] {
+  padding-bottom: 0;
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.6), 0 -12px 40px color-mix(in srgb, var(--text) 8%, transparent); }
+.view [data-slot="log-sheet"] > [data-slot="log-top"] { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.view [data-slot="log-sheet"] [data-slot="log-head"] { margin: 0; font-size: 24px; line-height: 1.25; font-weight: 500; color: var(--text); }
+.view [data-slot="log-sheet"] [data-slot="log-close"] {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-width: 44px;
+  margin-right: -10px; padding: 0; background: none; border: 0; border-radius: 50%; color: var(--text-soft); }
+.view [data-slot="log-sheet"] [data-slot="log-close"] svg { width: 14px; height: 14px; }
+.view [data-slot="log-sheet"] [data-slot$="-row"] { display: flex; align-items: baseline; gap: 8px; }
+.view [data-slot="log-sheet"] [data-slot$="-row"][data-done] > .section-label { color: var(--text); }
+.view [data-slot="log-sheet"] [data-slot$="-tick"] { color: var(--gold); font-weight: 600; }
+.view [data-slot="log-sheet"] [data-slot="log-steps-entry"][hidden] { display: none; }
+.view [data-slot="log-sheet"] .weigh-row > .save { flex: 0 0 auto; white-space: nowrap; }
+.view .sheet-panel[data-slot="log-sheet"] > [data-slot="log-foot"] {
+  position: sticky; bottom: 0; z-index: 1; margin: 16px -24px 0;
+  padding: 12px 24px max(20px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+  background: var(--surface); border-top: 1px solid var(--line); }
+.view [data-slot="log-foot"] > [data-slot="log-done"] {
+  display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; height: auto;
+  margin: 0; padding: 12px 20px; font-size: 17px; line-height: 1.2; }
+/* 2. TODAY'S LOG TODAY TICKS (shot 03b): a done item reads in the text colour and its tick in gold, so a done log is
+      told from an owed one at a glance; the words are unchanged (today-app.cjs bindLogCard). */
+.view [data-slot="log-ticks"] > [data-done] { color: var(--text); }
+.view [data-slot="log-ticks"] [data-tick] { color: var(--gold); font-weight: 600; }
+/* 3. A FOCUS RING ON EVERY SCREEN, ON EVERY CARD: 2 px of the text colour, 2 px off the control, over the legacy green
+      ring and the user agent's revert (section 2b above). The text colour on the darkest and lightest surfaces of both
+      themes is far past the 3:1 a focus indicator needs (WCAG 2.2 non-text contrast; measured in the P7 cell). A
+      heading the page focuses for the screen reader (tabindex -1) still draws none (section D above). */
+.scene-frame :is(button, a, input, select, textarea, summary, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])):focus-visible,
+.view :is(button, a, input, select, textarea, summary, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--text); outline-offset: 2px; }
+/* 4. THE SLEEP SCREEN'S NIGHT (shot 04a): the date box shows the night in the heading's plain words ("Sunday, Oct
+      11") over the picker's own face, which is drawn transparent, so no numeric date is on the screen to be read either
+      way round; the box is still the one control and its calendar opens as before. */
+.view [data-slot="sleep-date-field"] { display: grid; }
+.view [data-slot="sleep-date-field"] > label { grid-row: 1; }
+.view article.page [data-slot="sleep-date-field"] > input[type="date"] { grid-row: 2; grid-column: 1; color: transparent; -webkit-text-fill-color: transparent; }
+.view article.page [data-slot="sleep-date-field"] > input[type="date"]::-webkit-datetime-edit { opacity: 0; }
+.view [data-slot="sleep-date-field"] > [data-slot="sleep-date-words"] {
+  grid-row: 2; grid-column: 1; align-self: center; z-index: 1; margin-left: 13px; pointer-events: none;
+  color: var(--text); font-size: 16px; }
+/* 5. NOTHING HALF DRAWN AT START'S EDGE (shot 01a: "Why this plan?" showed its top above the Start bar). On Today the
+      body's foot runs 22 px under the stack (app.css .ui > .stack, margin-top -22px) and Start's top lies 12 px into the
+      stack, 10 px above the body's foot. The bottom fade now runs over exactly that 12 px band and is clear at Start's
+      top, so a row the scroll leaves under Start fades out above it instead of showing a sliver; a row that ends above
+      the band is drawn whole as before (COACH V1 BATCH 2), and at the end of the scroll nothing is faded. */
+.scene-frame.screen-today > .view.ui > .body.can-scroll:not(.at-end) { --fade-bot: calc(100% - 22px); --fade-bot-end: calc(100% - 10px); }
+/* ===== POLISH 7: END ===== */

@@ -90,7 +90,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // three owner counts (CL-NUTRI2B-DELTA; the value before is PRE_NUTRI2B_CORPUS_SHA256, 25eefea4...).
 // E1 (Fable fd80cb84 D1; DECISIONS:989): re-measured for exactly the withdrawn estimate words, three pieces out and two
 // owner counts down (CL-E1-DELTA; the value before is PRE_E1_CORPUS_SHA256, 2b9c2568...).
-const CORPUS_SHA256 = '975061da864b72a87fb1967d5e24ed526d5af754046a88ffe42b8bbcc640b61c';
+// Polish 7 (PM, ui-pass14): re-measured for exactly the sheet's "Close" and the steps row's "Change" (CL-P7-DELTA; the
+// value before is PRE_P7_CORPUS_SHA256, 975061da...).
+const CORPUS_SHA256 = 'ae2b1609660536eb9eae1dd7d4297e209beb2a45573c9bc70f006b2491ee7e66';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -716,6 +718,7 @@ const E1_COUNTS = Object.freeze([
 ]);
 const E1_COPY_APPROVAL = 'DECISIONS:989';
 function beforeE1(corpus) {
+  corpus = beforeP7(corpus);   /* polish 7 stands on top of E1 */
   const have = new Set(corpus.entries.map((e) => e.text));
   const back = E1_REMOVED.filter(([text]) => !have.has(text))
     .map(([text, files, lists]) => ({ text, files: sortedFiles(files), lists: [...lists] }));
@@ -747,6 +750,57 @@ test('CL-E1-DELTA: the corpus is the N2 part B corpus with exactly the estimate 
 });
 test('CL-E1-APPROVAL: the E1 copy delta names the ledger line that approves it', () => {
   assert.match(E1_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-E1-APPROVAL-PENDING: the E1 copy is not approved');
+});
+/* POLISH 7 (PM, ui-pass14): the Log today sheet's close control is named "Close" (its accessible name) and a kept step
+   count's way back into its entry says "Change". Both words are already said upstream, so neither is declared in
+   design.cjs (the N2 part B rule for "Log today", "Weight" and "Sleep"); each is locked where today-app.cjs says it: one
+   new piece ("Close") and one owner count ("Change", today-app.cjs 0 -> 1). beforeP7 gives every older view the corpus
+   as E1 sealed it (PRE_P7_CORPUS_SHA256), and beforeE1 starts from that view. IDEMPOTENT, as every older view is. */
+const PRE_P7_CORPUS_SHA256 = '975061da864b72a87fb1967d5e24ed526d5af754046a88ffe42b8bbcc640b61c';
+const P7_APP = T + '/today-app.cjs';
+const P7_NEW = Object.freeze([
+  ['Close', { [P7_APP]: 1 }, []],
+]);
+const P7_OWNERS_MOVED = Object.freeze([
+  /* [text, owner, count before, count now] */
+  ['Change', P7_APP, 0, 1],
+]);
+/* the PM's ruling on P7: both words are approved under DECISIONS:913 (5), the short-plain-copy rule */
+const P7_COPY_APPROVAL = 'DECISIONS:913';
+function beforeP7(corpus) {
+  const added = new Set(P7_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
+    const rows = P7_OWNERS_MOVED.filter(([text, owner, , now]) => text === e.text && e.files[owner] === now);
+    if (rows.length === 0) return e;
+    const files = { ...e.files };
+    for (const [, owner, before] of rows) { if (before === 0) delete files[owner]; else files[owner] = before; }
+    return { ...e, files: sortedFiles(files) };
+  }) };
+}
+test('CL-P7-DELTA: the corpus is the E1 corpus plus exactly the sheet\'s Close and the steps row\'s Change, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of P7_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-P7-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text, owner, , now] of P7_OWNERS_MOVED) {
+    const entry = byText.get(text);
+    if (!entry || entry.files[owner] !== now) failed.push('CL-P7-DELTA OWNER ' + JSON.stringify(text) + ' ' + owner + ' is ' + JSON.stringify(entry ? entry.files[owner] : null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforeP7(corpus)), 'utf8'));
+  if (before !== PRE_P7_CORPUS_SHA256) failed.push('CL-P7-DELTA PRE-P7-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the E1 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-P7-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeP7(moved)), 'utf8')) === PRE_P7_CORPUS_SHA256) failed.push('CL-P7-DELTA PRE-P7-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-P7-DELTA');
+});
+test('CL-P7-APPROVAL: the polish 7 copy delta names the ledger line that approves it', () => {
+  assert.match(P7_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-P7-APPROVAL-PENDING: the polish 7 copy is not approved');
 });
 function beforeNutri2a(corpus) {
   corpus = beforeNutri2b(corpus);   /* N2 part B stands on top of N2 part A */

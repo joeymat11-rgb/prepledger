@@ -1010,17 +1010,78 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   CL-E1-APPROVAL; measured).
 - At the builder seat: the today batch 693/714 (690/711 plus E1-NOFIG, CL-E1-DELTA and CL-E1-APPROVAL; the same 21 seat-only build failures), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the copy lock 41/41 (corpus 975061da), the writer fence 417/417, food-live-save 7/7, the coach suite 401/401 without the seat-only engine-revision-gap file, and the import suites reached and refused by the guard by name (0 of 7 files run: they read the protected engine, PM seat).
 
+## Polish 7: the Log today sheet, its ticks, the sleep night and Start's edge (PM, ui-pass14; on c8e86e6, E1a, rebuild/c-polish7b)
+- The sheet (shots 02, 02b, 03a): the weight and the steps entries are one row shape (the box, its unit and the pack's
+  .save pill; "Save steps" on one line), and the row links stay text links; Done is the sheet's one primary action
+  (.primary), in a foot that is held at the panel's foot (position sticky), so at 375x667 it is on the screen without
+  scrolling (measured: Done at 595 to 647 of 667). A 44 px close control beside the title (its accessible name "Close")
+  closes the sheet as Done and Escape do and hands focus back to the card. Today is dimmed under the sheet (the panel's
+  own shadow, 60 per cent black; no element is added over the inert page). The title is a heading (h2, 24 px) over the
+  15 px section labels. No class is added: preview.css binds the look by slot (POLISH 7).
+- Steps: the box has the unit "steps", a number pad (inputmode numeric, pattern [0-9]*) and the weight box's width (158
+  to 207 px at 375 to 430). A kept count is said ("8,432 steps") with Change, which opens the entry with the count in
+  it; a second save is a correction, a second op. A save repaints Today under the sheet, so the card's Steps tick and the
+  sheet's own row tick move while the sheet is open, and focus goes to Change (to the box when the count could not be
+  read back).
+- Ticks (shot 03b): on Today's card a done item reads in the text colour and its tick in gold, each in a span of its own
+  (data-done, data-tick); the line's words are unchanged. Each row of the sheet carries the same gold tick beside its
+  label when its log is done.
+- The focus ring: one rule, 2 px of the text colour 2 px off every focusable control on every screen, over the legacy
+  green ring and the workout screen's user-agent revert; the text colour on --surface and --card is 16.9:1 and 16.4:1
+  in ink, 15.5:1 and 15.8:1 in dawn (WCAG non-text contrast needs 3:1); the gold tick on a card is 8.6:1 and 3.5:1. A
+  heading the page focuses for the screen reader (tabindex -1) still draws none.
+- Sleep (shot 04a): the heading names the night in plain words ("Night of Sunday, Feb 3"; today-app.cjs nightWords, the
+  weekday, short month and day in en-US), and the date box shows the same words over the picker's own face, which is
+  drawn transparent, so no numeric date is on the screen to be read either way round. The box is still the one control:
+  its value, max, change and calendar are as they were. The words follow the box on every input as well as on change
+  (Fable on P7, D1), so they never lag what the box holds.
+- NAMED DEBT D-P7-BACKDROP (Fable on P7, D3, word for word): "the dimmed backdrop is the panel's box-shadow (100vmax),
+  not an element; fine for inert pages, but it will not block pointer events outside the sheet on non-inert browsers
+  (inert covers that where supported)." Recorded, not paid in this batch.
+- The way back to the sheet (logReturn), the open steps entry and the focus hand-off are per-mount state, held in the
+  mount's closure as the sheet itself is: dispose() and the midnight re-boot start from nothing (Fable on P7, D2).
+- Back to the sheet (shot 04b): from the Food, the Sleep or the check-in screen reached from the sheet (the check-in by
+  the PM's ruling on P7, for consistency), "Today" (or Escape) opens the sheet again, focus on its title; reached any
+  other way, Today alone.
+- Start's edge (shot 01a, "Why this plan?" showing its top above the loading Start bar): on Today the body's foot runs
+  22 px under the stack (app.css .ui > .stack) and Start's top lies 12 px into the stack, 10 px above the body's foot.
+  The bottom fade now runs over that 12 px band and is clear at Start's top, so a row the scroll leaves under Start
+  fades out above it instead of showing a sliver; a row that ends above the band is drawn whole as before (COACH V1
+  BATCH 2), and at the end of the scroll nothing is faded.
+- Laws moved to the new words at equal strength: problem.test.mjs's two sleep-heading assertions now hold the exact plain
+  label for the night (they matched the ISO date), and sleep-check.mjs (the browser check over the build) holds the plain
+  label and that it names the box's night. No check is loosened and no test is skipped.
+- New strings: "Close" (the close control's accessible name) and "Change" (the steps row), approved under DECISIONS:913
+  (5), the short-plain-copy rule (the PM's ruling on P7). Both are already in the approved references, so neither is
+  declared in design.cjs (the N2 part B rule); the copy lock re-measures for exactly them (CL-P7-DELTA, CL-P7-APPROVAL
+  citing DECISIONS:913; corpus 975061da -> ae2b1609).
+- New cells, red first on c8e86e6's today-app.cjs, screens.template.html and preview.css (6 of 6): food.test.mjs P7.1
+  (the heading, the close control, Done the one primary in its foot, the one entry row shape, the steps unit and pad),
+  P7.2 (Change, the correction, the ticks moving while the sheet is open), P7.3 (back to the sheet from Food and Sleep,
+  and not otherwise), P7.4 (the night in plain words, heading and box, following the box on input and the night chosen; the input row red
+  without the input listener), P7.5 (the stylesheet
+  rules and the measured contrasts), P7.6 (back to the sheet from the check-in, and not otherwise; red also on the
+  polish 7 bytes before the ruling).
+- The Chromium probe at the builder seat (the invented fixture athlete, 390x844, 430x932 and 375x667: Done on the
+  screen, Done filled, the title larger than the labels, a 44 px close, the backdrop, every control at least 44 px, the
+  two saves one style, the steps unit and width, Change after a save, the gold tick, Today ticked under the open sheet,
+  a done item brighter, the night in words over a transparent picker, the ring drawn, the fade clear at Start's top, no
+  sideways scroll): 87 of 87.
+- Needles: today-17 885 -> 891 (P7.1 to P7.6; expected, observed at the PM seat); s10-copy-lock 41 -> 43 (CL-P7-DELTA,
+  CL-P7-APPROVAL; measured).
+- At the builder seat (on c8e86e6): the today batch 701/722 (693/714 plus P7.1 to P7.6, CL-P7-DELTA and CL-P7-APPROVAL; the same 21 seat-only build failures), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 43/43 (corpus ae2b1609, unchanged by the move), food-live-save 7/7, s12-look 81/82 (the same seat-only C-UI-1 build failure), the import suites reached and refused by the guard by name (they read the protected engine, PM seat), and the P7 Chromium probe 87 of 87.
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 -> 41 (the polish's CL-COACH-POLISH-DELTA
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 -> 41 -> 43 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL; E1a's CL-E1-DELTA and CL-E1-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL; E1a's CL-E1-DELTA and CL-E1-APPROVAL; polish 7's CL-P7-DELTA and CL-P7-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
 polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell; N2 part B's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW), and with E1a 884 -> 885 (E1-NOFIG); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW), and with E1a 884 -> 885 (E1-NOFIG), and with polish 7 885 -> 891 (P7.1 to P7.6); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS
