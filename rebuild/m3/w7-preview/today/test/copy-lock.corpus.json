@@ -3385,6 +3385,13 @@
    "lists": []
   },
   {
+   "text": "Hide details",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Hide the text table",
    "files": {
     "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
@@ -5756,6 +5763,13 @@
    "lists": []
   },
   {
+   "text": "See details",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Select all and copy, then send it to Joe.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 2,
@@ -5851,6 +5865,13 @@
    "text": "Shoulders",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Show fewer",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
   },

@@ -674,10 +674,10 @@ const WEEK_LANE = Object.freeze({
       reason: "Chest press: every set at 100 lb reached the top of the range." },
     { lift: "demo-row", name: "Row", status: "refused", code: "NATIVE_LOAD_PROVISIONAL" }] }) },
 });
-test("CV1-8 the first day of a week shows last week's review on Today, its reasons behind Why?, and no other day does", async () => {
+test("CV1-8 the first day of a week shows last week's review on Today, collapsed, its reasons behind Why?, and no other day does", async () => {
   const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
   const { default: TodayModel } = await import("../today-model.cjs");
-  const { doc, api } = await weekToday(TodayModel.SYNTHETIC_DAY, WEEK_LANE);
+  const { doc, api, model } = await weekToday(TodayModel.SYNTHETIC_DAY, WEEK_LANE);
   const card = await tickUntil(() => doc.querySelector('[data-slot="week-review"]'), "the weekly review card");
   /* Polish batch (shots 01, 03): its own card in the feed, directly after the workout card and never inside it, in the
      proposal card's look (tcard proposal, the feed's dot, the head's kind as the heading "Last week"). */
@@ -688,12 +688,31 @@ test("CV1-8 the first day of a week shows last week's review on Today, its reaso
   assert(card.classList.contains("proposal"), "in the coach proposal card's look");
   assert.equal(card.firstElementChild.classList.contains("tdot"), true, "with the feed's dot");
   assert.equal(norm(card.querySelector(".head > .kind").textContent), "Last week", "headed Last week");
-  const rows = [...card.querySelectorAll(".kind, .change")].map((el) => norm(el.textContent));
-  assert.equal(rows[0], Intents.WEEK_WORDS.lastWeek);
-  assert.match(rows[1], /^Workouts done: 2 of \d+\.$/);
-  assert.ok(rows.includes("Chest press: " + Intents.WEEK_WORDS.up));
-  assert.ok(rows.includes("Row: " + Intents.WEEK_CODE_WORDS.NATIVE_LOAD_PROVISIONAL));
-  const why = card.querySelector('[data-slot="week-review-why"]');
+  /* POLISH 4 (PM, the owner's 7-lift week): collapsed on open. The heading, one summary line and "See details" on a row
+     of its own, a real button that says it is closed and what it opens; nothing else is shown. */
+  const summary = card.querySelector('[data-slot="week-review-summary"]');
+  assert.match(norm(summary.textContent), /^Workouts done: 2 of \d+\. 1 lift ready for a new weight\.$/);
+  const toggle = card.querySelector('[data-slot="week-review-toggle"]');
+  const details = doc.getElementById(toggle.getAttribute("aria-controls"));
+  assert.equal(toggle.tagName, "BUTTON");
+  assert.equal(toggle.type, "button");
+  assert.equal(toggle.textContent, "See details");
+  assert.equal(toggle.getAttribute("aria-expanded"), "false");
+  assert.equal(toggle.previousElementSibling, summary, "See details sits right under the summary");
+  assert.equal(details.parentElement, card);
+  assert.equal(details.hidden, true, "the details wait behind See details");
+  assert.deepEqual([...card.children].filter((el) => !el.hidden).map((el) => el.getAttribute("data-slot") || el.className),
+    ["tdot", "head", "week-review-summary", "week-review-toggle"], "collapsed, the card is the heading, the summary and the toggle");
+  toggle.click();
+  assert.equal(details.hidden, false);
+  assert.equal(toggle.textContent, "Hide details");
+  assert.equal(toggle.getAttribute("aria-expanded"), "true");
+  const rows = [...details.querySelectorAll(".change")].map((el) => norm(el.textContent));
+  assert.equal(rows[0], "Chest press: " + Intents.WEEK_WORDS.up, "the ready lift first");
+  assert.equal(rows[1], "Holding steady: Row.", "a lift not raised is named on the one steady line");
+  assert.equal(rows.some((row) => /no new weight|not raised/.test(row)), false, "no per-lift not-raised line");
+  if (model.read().proposal) assert.ok(rows.includes("1 suggestion waiting on Today."), "the open suggestion, counted");
+  const why = details.querySelector('[data-slot="week-review-why"]');
   const reason = doc.getElementById(why.getAttribute("aria-controls"));
   assert.equal(norm(why.previousElementSibling.textContent), "Chest press: " + Intents.WEEK_WORDS.up, "Why? follows its line");
   assert.equal(why.nextElementSibling, reason, "and opens its reason inline, right under it");
@@ -705,8 +724,18 @@ test("CV1-8 the first day of a week shows last week's review on Today, its reaso
   /* batch 2 (item 4): the offer in plain words, never the engine's reason */
   assert.equal(reason.textContent, "You reached the top of your rep range at 100 lb on Jan 30. Make 105 lb your working weight? Nothing changes unless you say yes; it then applies on a later workout.");
   assert.equal(why.getAttribute("aria-expanded"), "true");
+  toggle.click();
+  assert.equal(details.hidden, true, "Hide details closes them again");
+  assert.equal(toggle.textContent, "See details");
+  assert.equal(toggle.getAttribute("aria-expanded"), "false");
   assert.equal(card.classList.contains("tcard"), true, "the proposal card's own look");
   api.dispose();
+  /* polish 4: nothing is remembered; the next open is collapsed again */
+  const again = await weekToday(TodayModel.SYNTHETIC_DAY, WEEK_LANE);
+  const next = await tickUntil(() => again.doc.querySelector('[data-slot="week-review"]'), "the weekly review card again");
+  assert.equal(next.querySelector('[data-slot="week-review-details"]').hidden, true, "collapsed on every open");
+  assert.equal(next.querySelector('[data-slot="week-review-toggle"]').getAttribute("aria-expanded"), "false");
+  again.api.dispose();
   /* not the first day of a week: nothing */
   const later = await weekToday("2030-02-06", WEEK_LANE);
   await new Promise((r) => setTimeout(r, 50));
@@ -717,6 +746,50 @@ test("CV1-8 the first day of a week shows last week's review on Today, its reaso
   await new Promise((r) => setTimeout(r, 50));
   assert.equal(bare.doc.querySelector('[data-slot="week-review"]'), null, "no workout record, no card");
   bare.api.dispose();
+});
+
+/* CV1-10 (polish 4, the owner's shape): ten lifts last week, none ready. Collapsed the card says all held steady; open,
+   ONE steady line names the first four and "and 6 more", a real button that shows every name on that line and reads
+   "Show fewer" until it puts the short line back; the review stores nothing (no storage is touched). */
+const OWNER_LIFTS = ["Lateral machine", "Press", "Machine fly", "Pulldown", "Leg press", "Leg curl", "Calf raise", "Hip thrust",
+  "Leg extension", "Row"];
+test("CV1-10 the owner's ten lifts: one steady line on the card, its rest behind and 6 more, nothing stored", async () => {
+  const { default: TodayModel } = await import("../today-model.cjs");
+  const lane = { gym: WEEK_LANE.gym, nativeLoad: { weekLifts: async () => ({ ok: true, lifts: OWNER_LIFTS.map((name, i) => ({
+    lift: "owner-" + i, name, status: "refused", code: i % 3 ? "NATIVE_LOAD_WINDOW_NOT_TOP" : "NATIVE_LOAD_SOMETHING_UNMAPPED" })) }) } };
+  const { doc, api } = await weekToday(TodayModel.SYNTHETIC_DAY, lane);
+  const win = doc.defaultView;
+  const touched = [];
+  for (const store of ["localStorage", "sessionStorage"]) {
+    try { const s = win[store]; for (const m of ["setItem", "getItem", "removeItem"]) { const f = s[m].bind(s); s[m] = (...a) => { touched.push(store + "." + m); return f(...a); }; } } catch (_) { /* no storage in this window */ }
+  }
+  const card = await tickUntil(() => doc.querySelector('[data-slot="week-review"]'), "the weekly review card");
+  assert.match(norm(card.querySelector('[data-slot="week-review-summary"]').textContent), /^Workouts done: 2 of \d+\. All lifts held steady\.$/);
+  card.querySelector('[data-slot="week-review-toggle"]').click();
+  const details = card.querySelector('[data-slot="week-review-details"]');
+  const steady = details.querySelector('[data-slot="week-review-steady"]');
+  assert.equal(norm(steady.textContent), "Holding steady: Lateral machine, Press, Machine fly, Pulldown,");
+  assert.equal(details.querySelectorAll(".change").length - (details.textContent.includes("suggestion waiting") ? 1 : 0)
+    - (/Trend weight/.test(details.textContent) ? 1 : 0), 1, "one line for all ten lifts");
+  const more = details.querySelector('[data-slot="week-review-more"]');
+  assert.equal(more.tagName, "BUTTON");
+  assert.equal(more.type, "button");
+  assert.equal(more.previousElementSibling, steady, "and 6 more sits right under its line");
+  assert.equal(more.textContent, "and 6 more");
+  assert.equal(more.getAttribute("aria-expanded"), "false");
+  assert.equal(more.getAttribute("aria-controls"), steady.id);
+  more.click();
+  assert.equal(norm(steady.textContent), "Holding steady: " + OWNER_LIFTS.slice(0, -1).join(", ") + ", and Row.");
+  assert.equal(more.textContent, "Show fewer");
+  assert.equal(more.getAttribute("aria-expanded"), "true");
+  more.click();
+  assert.equal(norm(steady.textContent), "Holding steady: Lateral machine, Press, Machine fly, Pulldown,");
+  assert.equal(more.textContent, "and 6 more");
+  assert.equal(more.getAttribute("aria-expanded"), "false");
+  assert.equal([...card.querySelectorAll(".change")].some((row) => OWNER_LIFTS.some((name) => norm(row.textContent).startsWith(name + ": "))), false,
+    "no per-lift line");
+  assert.deepEqual(touched, [], "the review keeps no state of its own");
+  api.dispose();
 });
 
 /* CV1-9 (Coach v1 seat read, PM ruling option A). "Where's my seat set?" on the page: the Today app hands the coach the

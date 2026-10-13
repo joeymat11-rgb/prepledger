@@ -177,7 +177,11 @@ test("PC-6: the page's coach reaches no plan writer, no tools.cjs, no engine rev
 /* PC-7..PC-9 (Coach v1 piece 2, PM ruling option A: the weekly review). Over the real Today model and a synthetic
    gym card and lift read, the review ships with every number a tool result of its turn; each lift says the engine's
    offer reason behind Why?, or ONE plain sentence for its refusal or hold code, or the fallback for a code with no
-   sentence; with no workout record the tool refuses in its own words and the card has nothing to draw. */
+   sentence; with no workout record the tool refuses in its own words and the card has nothing to draw.
+   POLISH 4 (PM, the owner's 7-lift Upper/Lower week): the review is GROUPED. One summary line, the ready lifts each on
+   its own line with its Why?, a lift with news of its own on its own line, every other lift named on ONE "Holding
+   steady:" line, and the open suggestion as a count; no lift says a per-lift "not raised" sentence. PC-10 is the
+   owner's shape, ten lifts last week. */
 const WEEK_ROWS = Object.freeze([
   { lift: "a", name: "Chest press", status: "offer", kind: "earn", date: "2026-10-01", loads: [145, 145], current: [140, 140],
     reason: "Chest press: on 2026-10-01 you completed every set at 140 lb on every set. Offer: make 145 lb your working weight." },
@@ -185,13 +189,14 @@ const WEEK_ROWS = Object.freeze([
   { lift: "c", name: "Curl", status: "refused", code: "NATIVE_LOAD_SOMETHING_UNMAPPED" },
   { lift: "d", name: "Squat", status: "held", code: "disputed" },
 ]);
-const weekWorld = (day, extra = {}) => {
+const weekWorld = (day, extra = {}, rows = WEEK_ROWS) => {
   const windows = [];
   const today = TodayModel.createTodayModel({ today: day });
   return { windows, today, gym: { read: async () => ({ phase: "idle" }), weekSessions: async (from, to) => { windows.push([from, to]); return { ok: true, done: 3, dates: [] }; } },
-    week: { lifts: async () => ({ ok: true, lifts: WEEK_ROWS.map((row) => ({ ...row })) }) }, ...extra };
+    week: { lifts: async () => ({ ok: true, lifts: rows.map((row) => ({ ...row })) }) }, ...extra };
 };
-test("PC-7: the weekly review ships traced, Monday reviews the week just ended, and each lift says its own standing", async () => {
+const planned = (world) => world.today.plannedDays(world.windows[0][0], world.windows[0][1]).length;
+test("PC-7: the weekly review ships traced, Monday reviews the week just ended, and its lifts are grouped", async () => {
   const { weekStarts } = require("../page-coach.cjs");
   assert.equal(weekStarts("2026-10-12"), true, "2026-10-12 is a Monday");
   assert.equal(weekStarts("2026-10-14"), false);
@@ -205,17 +210,30 @@ test("PC-7: the weekly review ships traced, Monday reviews the week just ended, 
   assert.deepEqual(asked.charter, []);
   assert.deepEqual(monday.windows, [["2026-10-05", "2026-10-11"]], "on a Monday the window is the week just ended");
   const lines = asked.lines;
+  assert.deepEqual(lines.map((l) => l.kind), ["heading", "summary", "ready", "news", "steady", "suggestion", "trend"],
+    "one summary, the ready lift, the news, one steady line, the suggestion count, the trend; in that order");
   assert.equal(lines[0].text, Intents.WEEK_WORDS.lastWeek);
-  assert.equal(lines[1].text, "Workouts done: 3 of " + monday.today.plannedDays("2026-10-05", "2026-10-11").length + ".");
+  /* polish 4: the summary is the workouts and how many lifts are ready, on one line */
+  assert.equal(lines[1].text, "Workouts done: 3 of " + monday.today.plannedDays("2026-10-05", "2026-10-11").length + ". 1 lift ready for a new weight.");
   const said = (name) => lines.find((l) => l.text.startsWith(name + ": "));
   assert.equal(said("Chest press").text, "Chest press: " + Intents.WEEK_WORDS.up);
   /* batch 2 (item 4): the offer said plainly behind Why?, its figures the offer's own (the engine's reason is not shown) */
   assert.equal(said("Chest press").why, "You reached the top of your rep range at 140 lb on Oct 1. Make 145 lb your working weight? Nothing changes unless you say yes; it then applies on a later workout.");
-  assert.equal(said("Row").text, "Row: " + Intents.WEEK_CODE_WORDS.NATIVE_LOAD_WINDOW_NOT_TOP);
-  assert.equal(said("Row").why, null);
-  assert.equal(said("Curl").text, "Curl: " + Intents.WEEK_FALLBACK, "an unmapped code names nothing of its own");
-  assert.equal(said("Squat").text, "Squat: " + Intents.WEEK_HOLD_WORDS.disputed);
-  assert.ok(lines.some((l) => l.text.startsWith(Intents.WEEK_WORDS.suggestion)), "the open suggestion on Today is named");
+  assert.equal(said("Squat").text, "Squat: " + Intents.WEEK_HOLD_WORDS.disputed, "a paused hold keeps its own line");
+  assert.equal(said("Squat").why, null);
+  /* polish 4: no per-lift line for a lift that simply was not raised; both are named on the one steady line */
+  assert.equal(said("Row"), undefined, "no per-lift line for Row");
+  assert.equal(said("Curl"), undefined, "no per-lift line for Curl");
+  assert.equal(lines.some((l) => /no new weight|not raised/.test(l.text)), false, "no per-lift not-raised sentence");
+  assert.equal(lines.find((l) => l.kind === "steady").text, "Holding steady: Row and Curl.");
+  assert.equal(lines.find((l) => l.kind === "steady").more, undefined, "two names need no and N more");
+  /* polish 4: the open suggestion on Today is one short count, never its sentence */
+  const open = monday.today.read().proposal;
+  assert.equal(typeof open.title, "string", "the real Today model holds an open suggestion on this day");
+  assert.equal(lines.find((l) => l.kind === "suggestion").text, "1 suggestion waiting on Today.");
+  assert.equal(lines.filter((l) => /suggestion/i.test(l.text)).length, 1, "one suggestion line");
+  assert.equal(lines.some((l) => l.text.includes(open.why) || (l.why || "").includes(open.why)), false,
+    "the suggestion's own words stay on its card, in the review and behind no Why?");
   /* Polish batch: the bodyweight paragraph is one short line when the device holds a trend weight (and none without). */
   assert.ok(lines.some((l) => /^Trend weight: \d+(\.\d+)? lb\.$/.test(l.text)), "the trend line is one short line");
   assert.equal(lines.some((l) => /rate is not measured|No reading is stored/.test(l.text)), false, "no trend paragraph");
@@ -228,19 +246,27 @@ test("PC-7: the weekly review ships traced, Monday reviews the week just ended, 
   assert.equal(mid.lines[0].text, Intents.WEEK_WORDS.thisWeek);
 });
 
-test("PC-8: every refusal sentence is plain, dash free and true to a named native-load.cjs code; the hold words are the two notices", () => {
+test("PC-8: every review sentence is plain and dash free; the news codes are real native-load.cjs codes, the hold words the two notices, and read-tools groups by exactly those", () => {
   const nl = fs.readFileSync(path.join(REPO, "rebuild/engine/native-load.cjs"), "utf8");
   for (const code of Object.keys(Intents.WEEK_CODE_WORDS)) {
     assert.ok(nl.includes("refuse('" + code.replace(/^NATIVE_LOAD_/, "") + "'"), code + " is a refusal native-load.cjs really raises");
   }
   assert.deepEqual(Object.keys(Intents.WEEK_HOLD_WORDS).sort(), ["conflict", "disputed"], "today-entry.mjs noticesOf's two notice codes");
-  const all = [...Object.values(Intents.WEEK_WORDS), ...Object.values(Intents.WEEK_CODE_WORDS), ...Object.values(Intents.WEEK_HOLD_WORDS), Intents.WEEK_FALLBACK];
+  /* polish 4: the words and the grouping read the same codes (read-tools.cjs week_review tags each lift's group) */
+  const reads = fs.readFileSync(path.join(REPO, "rebuild/coach/read-tools.cjs"), "utf8");
+  assert.ok(reads.includes("const WEEK_NEWS_CODES = Object.freeze(" + JSON.stringify(Object.keys(Intents.WEEK_CODE_WORDS)).replace(/,/g, ", ") + ");"),
+    "a lift has its own line exactly for the codes that have words");
+  assert.ok(reads.includes("const WEEK_NEWS_HOLDS = Object.freeze(" + JSON.stringify(Object.keys(Intents.WEEK_HOLD_WORDS).sort()).replace(/,/g, ", ") + ");"),
+    "and for the two held notices");
+  assert.equal(Object.hasOwn(Intents, "WEEK_FALLBACK"), false, "no per-lift fallback sentence is left to say");
+  const all = [...Object.values(Intents.WEEK_WORDS), ...Object.values(Intents.WEEK_CODE_WORDS), ...Object.values(Intents.WEEK_HOLD_WORDS)];
   for (const words of all) {
     assert.equal(/[\u2013\u2014]/.test(words), false, words + " carries a dash");
     assert.equal(/\d/.test(words), false, words + " carries a figure of its own");
   }
+  /* the S14 R4 bodyweight line stays today-entry.mjs's own, word for word; the review names a bodyweight lift as steady */
   const entry = fs.readFileSync(path.join(REPO, "rebuild/m3/w7-preview/today/today-entry.mjs"), "utf8");
-  assert.ok(entry.includes('line: "' + Intents.WEEK_CODE_WORDS.NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT + '"'),
+  assert.ok(entry.includes('line: "bodyweight sets have no weight to agree to. Your sets are saved."'),
     "the bodyweight line is the approved S14 R4 line, word for word");
 });
 
@@ -251,9 +277,10 @@ test("PC-9: with no workout record the review is refused in the tool's own words
   assert.equal(asked.answered, false);
   assert.equal(/\d/.test(asked.answer), false);
   assert.deepEqual(await bare.week(), { ok: false, lines: null });
-  const noLifts = createPageCoach(weekWorld("2026-10-14", { week: null }));
-  const lines = (await noLifts.week()).lines;
-  assert.ok(lines.some((l) => l.text === Intents.WEEK_WORDS.liftsUnknown), "with no lift read it says the lifts could not be checked");
+  const unread = weekWorld("2026-10-14", { week: null });
+  const lines = (await createPageCoach(unread).week()).lines;
+  assert.equal(lines[1].text, "Workouts done: 3 of " + unread.today.plannedDays("2026-10-12", "2026-10-18").length + ". " + Intents.WEEK_WORDS.liftsUnknown,
+    "with no lift read the summary says the lifts could not be checked");
   /* Polish batch: with no trend weight on the device the review has no bodyweight line at all. */
   const unweighed = weekWorld("2026-10-14");
   const real = unweighed.today;
@@ -261,4 +288,49 @@ test("PC-9: with no workout record the review is refused in the tool's own words
   const quiet = (await createPageCoach(unweighed).week()).lines;
   assert.ok(quiet.length > 2, "the review is still drawn");
   assert.equal(quiet.some((l) => /trend|weight on this device|reading/i.test(l.text)), false, "no bodyweight line without a reading");
+});
+
+/* PC-10 (polish 4, the owner's shape): a 7-lift Upper/Lower week, ten lifts last week. The steady line names the first
+   four and "and 6 more"; every name is in its full form; the 6, the ready count and the suggestion count are each a
+   tool result of the turn (without the counts the review tags, the same answer is refused); five steady lifts are all
+   named; and the summary says how many lifts are ready, that all held steady, or that none is ready when one has news. */
+const OWNER_NAMES = ["Lateral machine", "Press", "Machine fly", "Pulldown", "Leg press", "Leg curl", "Calf raise",
+  "Hip thrust", "Leg extension", "Row"];
+const steadyRows = (names) => names.map((name, i) => ({ lift: "s" + i, name, status: "refused",
+  code: i % 2 ? "NATIVE_LOAD_SOMETHING_UNMAPPED" : "NATIVE_LOAD_WINDOW_NOT_TOP" }));
+test("PC-10: the owner's ten lifts make one steady line, its counts traced, and the summary is true in every case", async () => {
+  const Kernel = require("../tool-kernel.cjs");
+  const world = weekWorld("2026-10-12", {}, [WEEK_ROWS[0], ...steadyRows(OWNER_NAMES)]);
+  const asked = await createPageCoach(world).ask("week_review");
+  assert.equal(asked.shipped, true);
+  assert.deepEqual(asked.untraceable, []);
+  const lines = asked.lines;
+  assert.deepEqual(lines.map((l) => l.kind), ["heading", "summary", "ready", "steady", "suggestion", "trend"]);
+  assert.equal(lines[1].text, "Workouts done: 3 of " + planned(world) + ". 1 lift ready for a new weight.");
+  const steady = lines.find((l) => l.kind === "steady");
+  assert.equal(steady.text, "Holding steady: Lateral machine, Press, Machine fly, Pulldown, and 6 more.");
+  assert.equal(steady.short, "Holding steady: Lateral machine, Press, Machine fly, Pulldown,");
+  assert.equal(steady.more, "and 6 more");
+  assert.equal(steady.full, "Holding steady: " + OWNER_NAMES.slice(0, -1).join(", ") + ", and Row.");
+  assert.equal(lines.filter((l) => OWNER_NAMES.some((name) => l.text.startsWith(name + ": "))).length, 0, "no per-lift steady line");
+  assert.equal(asked.answer.split("\n").length, 6, "the Coach answer is six short lines, not one per lift");
+  /* the counts are tool results: the same answer over the turn's results without the review's counts is refused */
+  const stripped = asked.results.map((r) => (r.tool === "week_review" ? { ...r, values: { ...r.values, counts: null } } : r));
+  assert.deepEqual(Kernel.untraceable(asked.answer, stripped, asked.turn_id).sort(), ["1", "1", "6"].sort(),
+    "the ready count, the 6 and the suggestion count are each licensed only by the counts week_review tags");
+  /* five steady lifts are all named; six name four and "and 2 more" */
+  const five = (await createPageCoach(weekWorld("2026-10-12", {}, steadyRows(OWNER_NAMES.slice(0, 5)))).week()).lines;
+  assert.equal(five.find((l) => l.kind === "steady").text, "Holding steady: Lateral machine, Press, Machine fly, Pulldown, and Leg press.");
+  assert.equal(five[1].text, "Workouts done: 3 of " + planned(world) + ". " + Intents.WEEK_WORDS.allSteady, "none ready, none with news: all held steady");
+  const six = (await createPageCoach(weekWorld("2026-10-12", {}, steadyRows(OWNER_NAMES.slice(0, 6)))).week()).lines;
+  assert.equal(six.find((l) => l.kind === "steady").text, "Holding steady: Lateral machine, Press, Machine fly, Pulldown, and 2 more.");
+  /* two ready lifts; and a lift with news but none ready is not "all held steady" */
+  const two = (await createPageCoach(weekWorld("2026-10-12", {}, [WEEK_ROWS[0], { ...WEEK_ROWS[0], lift: "e", name: "Pulldown" }])).week()).lines;
+  assert.equal(two[1].text, "Workouts done: 3 of " + planned(world) + ". 2 lifts ready for a new weight.");
+  const news = (await createPageCoach(weekWorld("2026-10-12", {}, [WEEK_ROWS[3], { lift: "f", name: "Press", status: "refused", code: "NATIVE_LOAD_DEBUT_LANDED" }])).week()).lines;
+  assert.equal(news[1].text, "Workouts done: 3 of " + planned(world) + ". " + Intents.WEEK_WORDS.noneReady);
+  assert.equal(news.find((l) => l.text.startsWith("Press: ")).text, "Press: " + Intents.WEEK_CODE_WORDS.NATIVE_LOAD_DEBUT_LANDED);
+  assert.equal(news.some((l) => l.kind === "steady"), false);
+  const none = (await createPageCoach(weekWorld("2026-10-12", {}, [])).week()).lines;
+  assert.equal(none[1].text, "Workouts done: 3 of " + planned(world) + ". " + Intents.WEEK_WORDS.noLifts);
 });

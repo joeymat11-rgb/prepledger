@@ -287,16 +287,30 @@ const WAVE1_TEMPLATES = Object.freeze({
    refusal code, each true to the line of rebuild/engine/native-load.cjs that refuses it (cited); a hold says one per
    held notice (today-entry.mjs noticesOf: BASIS_REPAIR_REQUIRED is "disputed", EFFECT_CONFLICT on load_basis is
    "conflict"); any other code says WEEK_FALLBACK, which names no cause. PM-approved short plain copy (:913 (5)). A
-   lift's display name is prefixed as "Name: ", as for the notices; the name is the athlete's data, not copy. */
+   lift's display name is prefixed as "Name: ", as for the notices; the name is the athlete's data, not copy.
+   POLISH 4 (PM, the owner's 7-lift Upper/Lower week: ten "no new weight" lines and a cut-off suggestion ran the card
+   past Start). The review is GROUPED (read-tools.cjs week_review tags each lift's group and the counts it says): one
+   summary line (the workouts, then how many lifts are ready for a new weight, or that all held steady); each ready lift
+   on its own line with its Why?; a lift with news of its own (a new weight agreed or landed, or a paused hold) on its
+   own line; every other lift named on ONE "Holding steady:" line (the first four and "and N more" past five); and the
+   open suggestion as a count, never its sentence. No lift is said with a per-lift "not raised" sentence any more, so
+   only the two news codes keep their words. */
 const WEEK_WORDS = Object.freeze({
   thisWeek: "This week",
   lastWeek: "Last week",
   workouts: "Workouts done: ",
   of: " of ",
   up: "ready for a new weight.",
+  liftReady: " lift ready for a new weight.",
+  liftsReady: " lifts ready for a new weight.",
+  allSteady: "All lifts held steady.",
+  noneReady: "No lift ready for a new weight.",
   noLifts: "No lift finished a workout in this week.",
   liftsUnknown: "Your lifts could not be checked on this device.",
-  suggestion: "Suggestion waiting on Today: ",
+  steady: "Holding steady: ",
+  and: "and ",
+  more: " more",
+  suggestion: " suggestion waiting on Today.",
   trend: "Trend weight: ",
 });
 const WEEK_CODE_WORDS = Object.freeze({
@@ -304,24 +318,11 @@ const WEEK_CODE_WORDS = Object.freeze({
   NATIVE_LOAD_TARGET_QUEUED: "going up. The new weight you agreed to starts on a later workout.",
   // native-load.cjs:235 - this completion is the one that landed the agreed weight.
   NATIVE_LOAD_DEBUT_LANDED: "went up. This was your first workout at the new weight.",
-  // native-load.cjs:326 (the first session under a changed setup) and :368 (one sighting at the top of the range).
-  NATIVE_LOAD_PROVISIONAL: "not raised yet. Not enough workouts yet to judge a change.",
-  // native-load.cjs:327 - the reps did not reach the top of the rep window at this load.
-  NATIVE_LOAD_WINDOW_NOT_TOP: "not raised yet. You have not reached the top of your rep range at this weight.",
-  // native-load.cjs:359 and :367 - hot is the opener rated at 0 in reserve, or the governor's hold on the lift.
-  NATIVE_LOAD_HELD_OR_HOT: "held. Your first set was taken to failure, or this weight is on hold, so it stays where it is.",
-  // native-load.cjs:366 - no next load is on file for the lift.
-  NATIVE_LOAD_NO_NEXT_LOAD: "not raised. There is no heavier weight on file for this lift.",
-  // native-load.cjs:329 - the first set carries no effort rating the engine can read.
-  NATIVE_LOAD_EFFORT_UNRESOLVED: "not raised. The first set has no effort rating to judge from.",
-  // native-load.cjs:281 - the approved S14 R4 line (today-entry.mjs NATIVE_LOAD_BODYWEIGHT_COPY), word for word.
-  NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT: "bodyweight sets have no weight to agree to. Your sets are saved.",
 });
 const WEEK_HOLD_WORDS = Object.freeze({
   disputed: "held. A workout behind your agreed weight was corrected, so this lift is paused.",
   conflict: "held. Your working weight changed after you agreed to a new one, so this lift is paused.",
 });
-const WEEK_FALLBACK = "no new weight from its latest workout.";
 /* COACH V1 BATCH 2 (PM, item 4): an offer's Why? in plain words, from the offer's own facts (read-tools.cjs week_review:
    its kind, its day as "Oct 6", the weight it offers and the weight it was earned at, each in pounds only when every set
    carries the same). The day is said last in its clause, so the number check reads it as the tool said it. An offer
@@ -354,28 +355,49 @@ function offerWhy(lift) {
 }
 /* The review as lines: { text, why } where `why` is the offer said plainly (offerWhy above), shown behind Why?. Every number in a
    line or a why is a tool result of the turn (ask() checks the whole draft, whys included). */
+/* Polish 4: names as one list, "A", "A and B", "A, B, and C". */
+const nameList = (names) => (names.length < 3 ? names.join(" and ")
+  : names.slice(0, -1).join(", ") + ", " + WEEK_WORDS.and + names[names.length - 1]);
+/* Polish 4: each line carries its `kind` (heading, summary, ready, news, steady, suggestion, trend). The steady line,
+   when it names only the first lifts, also carries `short` (the named lifts, ending in a comma), `more` ("and 6 more",
+   the control that shows the rest on the card) and `full` (every name); its `text` is short and more as one sentence. */
 function weekLines(v) {
-  const lines = [{ text: v.which && v.which.value === "last" ? WEEK_WORDS.lastWeek : WEEK_WORDS.thisWeek, why: null, heading: true }];
-  lines.push({ text: WEEK_WORDS.workouts + d(v.done, "?") + WEEK_WORDS.of + d(v.planned, "?") + ".", why: null });
+  const lines = [{ kind: "heading", text: v.which && v.which.value === "last" ? WEEK_WORDS.lastWeek : WEEK_WORDS.thisWeek, why: null, heading: true }];
   const lifts = Array.isArray(v.lifts) ? v.lifts : [];
-  if (!(v.liftsKnown && v.liftsKnown.value === true)) lines.push({ text: WEEK_WORDS.liftsUnknown, why: null });
-  else if (!lifts.length) lines.push({ text: WEEK_WORDS.noLifts, why: null });
-  for (const lift of lifts) {
-    const status = lift.status && lift.status.value, code = lift.code && lift.code.value;
-    const said = status === "offer" ? WEEK_WORDS.up
-      : status === "held" ? (Object.hasOwn(WEEK_HOLD_WORDS, code) ? WEEK_HOLD_WORDS[code] : WEEK_FALLBACK)
-      : (Object.hasOwn(WEEK_CODE_WORDS, code) ? WEEK_CODE_WORDS[code] : WEEK_FALLBACK);
-    lines.push({ text: d(lift.name, "text") + ": " + said, why: status === "offer" ? offerWhy(lift) : null });
+  const known = !!(v.liftsKnown && v.liftsKnown.value === true);
+  const counts = v.counts || {};
+  const group = (g) => lifts.filter((lift) => lift.group && lift.group.value === g);
+  const ready = group("ready"), news = group("news"), steady = group("steady");
+  const standing = !known ? WEEK_WORDS.liftsUnknown : !lifts.length ? WEEK_WORDS.noLifts
+    : ready.length ? d(counts.ready, "lift") + (ready.length === 1 ? WEEK_WORDS.liftReady : WEEK_WORDS.liftsReady)
+    : news.length ? WEEK_WORDS.noneReady : WEEK_WORDS.allSteady;
+  lines.push({ kind: "summary", text: WEEK_WORDS.workouts + d(v.done, "?") + WEEK_WORDS.of + d(v.planned, "?") + ". " + standing, why: null });
+  for (const lift of ready) lines.push({ kind: "ready", text: d(lift.name, "text") + ": " + WEEK_WORDS.up, why: offerWhy(lift) });
+  for (const lift of news) {
+    const code = lift.code && lift.code.value;
+    const words = lift.status && lift.status.value === "held" ? WEEK_HOLD_WORDS : WEEK_CODE_WORDS;
+    if (Object.hasOwn(words, code)) lines.push({ kind: "news", text: d(lift.name, "text") + ": " + words[code], why: null });
   }
-  if (v.suggestion && has(v.suggestion.title)) {
-    lines.push({ text: WEEK_WORDS.suggestion + d(v.suggestion.title, "text") + (has(v.suggestion.lift) ? " (" + d(v.suggestion.lift, "text") + ")" : "") + ".",
-      why: has(v.suggestion.why) ? d(v.suggestion.why, "text") : null });
+  if (steady.length) {
+    const names = steady.map((lift) => d(lift.name, "text"));
+    const full = WEEK_WORDS.steady + nameList(names) + ".";
+    const past = counts.steadyMore && typeof counts.steadyMore.value === "number" ? counts.steadyMore.value : 0;
+    if (past > 0 && past < names.length) {
+      const short = WEEK_WORDS.steady + names.slice(0, names.length - past).join(", ") + ",";
+      const more = WEEK_WORDS.and + d(counts.steadyMore, "lift") + WEEK_WORDS.more;
+      lines.push({ kind: "steady", text: short + " " + more + ".", why: null, short, more, full });
+    } else lines.push({ kind: "steady", text: full, why: null });
+  }
+  /* The open suggestion on Today is counted, never said here: it is on Today, in its own card. */
+  if (v.suggestion && has(v.suggestion.title) && has(counts.suggestions) && counts.suggestions.value > 0) {
+    lines.push({ kind: "suggestion", text: d(counts.suggestions, T.unknownNoun("suggestion")) + WEEK_WORDS.suggestion, why: null });
   }
   /* The bodyweight line (polish batch): one short line when the device holds a trend weight, and none without one. */
-  if (v.trend && has(v.trend.trend)) lines.push({ text: WEEK_WORDS.trend + d(v.trend.trend, "lb") + " lb.", why: null });
+  if (v.trend && has(v.trend.trend)) lines.push({ kind: "trend", text: WEEK_WORDS.trend + d(v.trend.trend, "lb") + " lb.", why: null });
   return lines;
 }
-/* The Coach answer: the lines, without the whys (a subset of what ask() checked), one line per item. */
+/* The Coach answer: the lines, without the whys (a subset of what ask() checked), one line per item: the summary, the
+   ready lifts, any news, one "Holding steady:" line and the suggestion count (polish 4, item 4). */
 const weekAnswer = (lines) => lines.map((line) => (line.heading ? line.text + "." : line.text)).join("\n");
 
 /* ----------------------------------------------------- the plain answers -- */
@@ -601,7 +623,7 @@ const PAGE_TEMPLATES = Object.freeze({
   },
   /* The weekly review (Coach v1 piece 2): every line and every why, so the turn's check covers all of it. */
   week_review: (got) => (got.week_review && got.week_review.ok
-    ? weekLines(got.week_review.values).flatMap((line) => [line.text, line.why || ""]).filter(Boolean) : null),
+    ? weekLines(got.week_review.values).flatMap((line) => [line.text, line.why || "", line.full || ""]).filter(Boolean) : null),
 });
 
 /* One page question: the tools it reads, in order, and its template. A later tool is not called once one refuses. */
@@ -654,6 +676,6 @@ async function ask(tools, intent, { turnId, liftId = async () => null } = {}) {
 module.exports = {
   d, has, join, list, TEMPLATES, TEMPLATES_2, ALL_TEMPLATES, READ_INTENTS, FACT_INTENTS, TIER3_INTENTS, answerOne,
   WAVE1_TEMPLATES, PAGE_TEMPLATES, PAGE_INTENTS, PAGE_INTENT_IDS, ask,
-  WEEK_WORDS, WEEK_CODE_WORDS, WEEK_HOLD_WORDS, WEEK_FALLBACK, weekLines,
+  WEEK_WORDS, WEEK_CODE_WORDS, WEEK_HOLD_WORDS, weekLines,
   PLAIN, CHECKIN_CORE, PLAIN_REFUSALS, PLAIN_DISCARDED, WEEK_WHY,
 };

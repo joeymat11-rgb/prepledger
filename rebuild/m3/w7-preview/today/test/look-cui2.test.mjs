@@ -250,3 +250,20 @@ test("C-UI polish 3: the live coach compacts only itself, the settings form is d
   assert(block.includes("  min-height: var(--hit); margin-top: 8px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }"), "one rhythm for the quiet links");
   assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, ""), /:is\(/, "plain selectors, no :is() list");
 });
+
+/* POLISH 4 (PM, the owner's 7-lift Upper/Lower week; red first on 469eb7b's preview.css). Measured at the builder seat in
+   Chromium over the real booted page with a 7-exercise workout and ten lifts last week: collapsed, the workout card, the
+   weekly card and the row after it all sit above the Start bar at 390x844, and every control on the card is a 44 px row.
+   Held here in the stylesheet. */
+test("C-UI polish 4: the weekly review's See details and and N more are quiet 44 px rows of their own", () => {
+  const css = fs.readFileSync(PREVIEW_CSS, "utf8");
+  const block = css.slice(css.indexOf("/* ===== POLISH 4 (PM"), css.indexOf("/* ===== POLISH 4: END ===== */"));
+  assert(block.length > 0, "the polish 4 block");
+  assert(block.includes(".view [data-slot=\"week-review-toggle\"],\n.view [data-slot=\"week-review-more\"] { display: block; min-height: var(--hit); padding: 0; background: none; border: 0;\n  text-align: left; color: var(--text-soft); }"),
+    "each control is a block row of its own, the 44 px tap row, at secondary-text contrast, like Why?");
+  const code = block.replace(/\/\*[\s\S]*?\*\//g, "");
+  assert.deepEqual([...code.matchAll(/min-height:\s*([^;]+);/g)].map((m) => m[1].trim()), ["var(--hit)"], "no other height");
+  assert.doesNotMatch(code, /font-size|max-height|overflow|line-clamp|display:\s*none/, "no text is shrunk, clamped or hidden by the stylesheet");
+  assert.doesNotMatch(code, /:is\(/, "plain selectors, no :is() list");
+  assert(css.includes(".view [data-slot=\"week-review-why\"] { display: block; min-height: var(--hit);"), "Why? keeps its own row");
+});

@@ -365,13 +365,68 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   without the seat-only engine-revision-gap file, the 76 layout invariants, the deployed-shell probe (24 of 24), the
   foot probe (40 of 40), the coach-screen probe (46 of 46) and the quiet-link rhythm probe (6 of 6).
 
+## Coach v1, polish 4 (PM 2026-10-12, the owner's 7-lift Upper/Lower week; on 469eb7b, rebuild/c-polish4)
+- The weekly review opens COLLAPSED on every open, and remembers nothing (no storage): the "Last week" label, one summary
+  line ("Workouts done: 2 of 4. 1 lift ready for a new weight.", "2 lifts ready...", "All lifts held steady." when no
+  lift is ready and none has news of its own, "No lift ready for a new weight." when one has, or the no-lift and
+  could-not-check sentences as before) and "See details" on a row of its own; open, it reads "Hide details". The summary
+  keeps "Workouts done: N of M" because the number check reads a bare count there; "2 of 4 workouts done" would ask
+  for a unit no tool declares.
+- Open, the details are grouped: each lift ready for a new weight on its own line with its Why?, as before; a lift with
+  news of its own (a new weight agreed or just landed, native-load.cjs TARGET_QUEUED and DEBUT_LANDED, or a paused
+  hold, today-entry.mjs noticesOf) on its own line, as before; every other lift named on ONE line, "Holding steady:
+  Lateral machine, Press, Machine fly, Pulldown, and 6 more." (five or fewer are all named), where "and 6 more" is a
+  real button that shows every name on that line and reads "Show fewer" until it puts the short line back; the open
+  suggestion as one short count, "1 suggestion waiting on Today.", never its sentence; and the trend line, as before.
+  No lift says a per-lift "not raised" sentence: the six refusal sentences and the fallback ("no new weight from its
+  latest workout.") are gone from coach-intents.cjs, and only the two news codes keep their words.
+- The Coach answer to "How did my week go?" is the same grouping, one item per line: the heading, the summary, the
+  ready lifts, any news, one "Holding steady:" line, the suggestion count and the trend (six lines for PC-10's one
+  ready lift and ten held, where the same week said fifteen).
+- The number check is unchanged. read-tools.cjs week_review (still a READ, still writing nothing) tags each lift's
+  group and the three counts the review says, each in the noun it is said with: the ready count and the "and N more"
+  count in "lift", the suggestion count in its own word through the kernel's own unknownNoun, so "1 suggestion" is
+  licensed and nothing else is. Over the same turn's results without those counts, the owner's answer is refused for
+  exactly its three counts (page-coach.test.cjs PC-10).
+- Every control on the card is a real button with aria-expanded and aria-controls (See details / Hide details, and 6
+  more / Show fewer, Why?), each a 44 px row of its own at secondary-text contrast (preview.css polish 4 block, the
+  Why? rule's own shape); no type size, input or tap target moves.
+- Measured in Chromium over the real booted page (a 7-exercise Lower day on a Monday; the native-load host's own read
+  given ten lifts finished last week, one offered a new weight and nine not raised): collapsed at 390x844 the workout
+  card ends at 175 px, the weekly card at 305 px and the row after it (the weigh-in card) at 377 px, all above the Start
+  bar at 673 px; the card is 122 px, its label over three lines of body text (the two-line summary and the See details
+  row). On 469eb7b the same world drew a 611 px card ending at 794 px and the weigh-in card at 866 px, under the bar;
+  at 430x932, 305 px against 761 px (it was 755 px and 827 px).
+- New strings (PM-approved short plain copy, :913 (5)): on the card (today-app.cjs WEEK_REVIEW_WORDS, copy-locked)
+  "See details", "Hide details", "Show fewer"; in coach-intents.cjs WEEK_WORDS " lift ready for a new weight.",
+  " lifts ready for a new weight.", "All lifts held steady.", "No lift ready for a new weight.", "Holding steady: ",
+  "and ", " more", " suggestion waiting on Today." (it was "Suggestion waiting on Today: "). The copy lock
+  re-measures for exactly the three card words (CL-WEEK-POLISH4-DELTA, CL-WEEK-POLISH4-APPROVAL; corpus 5bdf2c2e ->
+  0f7f06de).
+- Pins and needles, measured: s10-copy-lock 25 -> 27 (the two copy-lock cells), s12-look 75 -> 77 (coach.test.mjs
+  CV1-10, look-cui2's polish 4 cell). No PAGE_PINS file moves (today-entry.mjs is unchanged), and the writer fence is
+  unchanged (417).
+- Red first: on 469eb7b's sources (coach-intents.cjs, read-tools.cjs, today-app.cjs, preview.css and the copy-lock
+  corpus) 9 rows fail and pass on these: page-coach.test.cjs PC-7, PC-8, PC-9 and PC-10, coach.test.mjs CV1-8 (rewritten
+  for the collapsed card, its assertions kept) and CV1-10, look-cui2's polish 4 cell, copy-lock CL-PIN and
+  CL-WEEK-POLISH4-DELTA. coach-intents.test.cjs CI-7 now lists the native-load refusal codes itself (every one the
+  review had words for), so its world still carries each of them. The week probe reads 7 of 12 on 469eb7b's sources
+  and 18 of 18 on these.
+- At the builder seat: the today batch 641/662 (the same 21 seat-only build failures), the fences batch 2208/2210
+  (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the coach suite 399/399
+  without the seat-only engine-revision-gap file, the week probe (18 of 18), the 76 layout invariants, the
+  deployed-shell probe (24 of 24), the foot probe (40 of 40), the coach-screen probe (46 of 46) and the quiet-link
+  rhythm probe (6 of 6).
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 (the polish's CL-COACH-POLISH-DELTA
-and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75
-(piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell), and with the
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 (the polish's CL-COACH-POLISH-DELTA
+and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
+CL-WEEK-POLISH4-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77
+(piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
+polish 4's CV1-10 and look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852; the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,

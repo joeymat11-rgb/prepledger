@@ -490,6 +490,9 @@ const PROPOSAL_REBUILT = "Your plan was rebuilt and this proposal no longer appl
 /* S18 (the owner, on his iPhone: "It should probably have the proposal, and a "why?" Button that you can tap to see that
    paragraph"; PM-approved word). The control that shows and hides the engine's reason on an open card. */
 const PROPOSAL_WHY = "Why?";
+/* POLISH 4 (PM, the owner's 7-lift week): the weekly review card opens collapsed; these are its controls' words
+   (PM-approved short plain copy, :913 (5)). "Show fewer" puts the "Holding steady:" line back to its first names. */
+const WEEK_REVIEW_WORDS = Object.freeze({ show: "See details", hide: "Hide details", fewer: "Show fewer" });
 const PROPOSAL_CHANGE_ANSWER = "Change my answer"; // T-40b, T-40d
 const PROPOSAL_WORDS = Object.freeze({
   sets: Object.freeze({ yes: "Yes, add it", no: "No, keep it as is", change: "Add one set this week" }), // T-40
@@ -2194,13 +2197,23 @@ function mountToday(doc, model, options = {}) {
         return { answer: plainOrDrop(result.answer, "coach-answer") || "", shipped: result.shipped,
           refused: result.answered !== true };
       },
-      /* The weekly review's lines, each through the page's no-dash boundary; a line it cannot rewrite drops the card. */
+      /* The weekly review's lines, each through the page's no-dash boundary; a line it cannot rewrite drops the card.
+         Polish 4: each line's kind, and the steady line's short, more and full words, pass the same boundary. */
       async week() {
         const got = await coach.week();
         if (!got || got.ok !== true || !Array.isArray(got.lines)) return null;
-        const lines = got.lines.map((line) => ({ text: plainOrDrop(line.text, "week-review") || "",
-          why: line.why ? plainOrDrop(line.why, "week-review-why") || "" : "", heading: line.heading === true }));
-        return lines.some((line) => !line.text) ? null : lines;
+        let dropped = false;
+        const plain = (words, slot) => {
+          if (!words) return "";
+          const said = plainOrDrop(words, slot) || "";
+          if (!said) dropped = true;
+          return said;
+        };
+        const lines = got.lines.map((line) => ({ text: plain(line.text, "week-review"),
+          why: line.why ? plainOrDrop(line.why, "week-review-why") || "" : "", heading: line.heading === true,
+          kind: typeof line.kind === "string" ? line.kind : "", short: plain(line.short, "week-review"),
+          more: plain(line.more, "week-review-more"), full: plain(line.full, "week-review") }));
+        return dropped || lines.some((line) => !line.text) ? null : lines;
       },
     };
   }
@@ -2227,6 +2240,22 @@ function mountToday(doc, model, options = {}) {
       dot.className = "tdot";
       dot.setAttribute("aria-hidden", "true");
       card.append(dot);
+      /* POLISH 4 (PM, the owner's 7-lift week ran the card past Start): COLLAPSED on every open. The card shows the
+         heading, the one summary line and "See details" on a row of its own; the details (each ready lift with its
+         Why?, any news, one "Holding steady:" line, the suggestion count, the trend) open beneath it, and "Hide details"
+         closes them. Nothing is remembered: the next open is collapsed again. Every control is a real button that says
+         whether it is open (aria-expanded) and what it opens (aria-controls). */
+      const toggle = (button, target, open, words) => {
+        button.type = "button";
+        button.className = "link";
+        button.setAttribute("aria-expanded", open ? "true" : "false");
+        button.setAttribute("aria-controls", target.id);
+        if (words) button.textContent = words[open ? 1 : 0];
+      };
+      const details = doc.createElement("div");
+      details.id = "week-review-details";
+      details.setAttribute("data-slot", "week-review-details");
+      details.hidden = true;
       lines.forEach((line, i) => {
         if (line.heading) {
           const head = doc.createElement("div");
@@ -2241,7 +2270,29 @@ function mountToday(doc, model, options = {}) {
         const row = doc.createElement("div");
         row.className = "change";
         row.textContent = line.text;
-        card.append(row);
+        if (line.kind === "summary") {
+          row.setAttribute("data-slot", "week-review-summary");
+          card.append(row);
+          return;
+        }
+        details.append(row);
+        if (line.kind === "steady" && line.more) {
+          /* "and 6 more" shows every name on the same line, and "Show fewer" puts the short line back. */
+          const words = [line.more, plainOrDrop(WEEK_REVIEW_WORDS.fewer, "week-review-more")];
+          row.id = "week-review-steady";
+          row.setAttribute("data-slot", "week-review-steady");
+          row.textContent = line.short;
+          const more = doc.createElement("button");
+          more.setAttribute("data-slot", "week-review-more");
+          toggle(more, row, false, words);
+          hooks.listen(more, "click", () => {
+            const open = more.getAttribute("aria-expanded") !== "true";
+            row.textContent = open ? line.full : line.short;
+            toggle(more, row, open, words);
+          });
+          details.append(more);
+          return;
+        }
         if (!line.why) return;
         const reason = doc.createElement("div");
         reason.className = "reason";
@@ -2260,8 +2311,20 @@ function mountToday(doc, model, options = {}) {
           reason.hidden = !show;
           why.setAttribute("aria-expanded", show ? "true" : "false");
         });
-        card.append(why, reason);
+        details.append(why, reason);
       });
+      if (details.childElementCount) {
+        const words = [plainOrDrop(WEEK_REVIEW_WORDS.show, "week-review-toggle"), plainOrDrop(WEEK_REVIEW_WORDS.hide, "week-review-toggle")];
+        const open = doc.createElement("button");
+        open.setAttribute("data-slot", "week-review-toggle");
+        toggle(open, details, false, words);
+        hooks.listen(open, "click", () => {
+          const show = details.hidden;
+          details.hidden = !show;
+          toggle(open, details, show, words);
+        });
+        card.append(open, details);
+      }
       trainCard.parentNode.insertBefore(card, trainCard.nextSibling);
     }, () => { /* the review is optional; Today stands without it */ });
   }

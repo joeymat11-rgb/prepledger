@@ -745,3 +745,11 @@
   min-height: var(--hit); margin-top: 8px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 .scene-frame > .view.ui > .body > button.day-foot[data-slot="sleep-entry"] { margin-top: 16px; }
 /* ===== POLISH 3: END ===== */
+/* ===== POLISH 4 (PM, the owner's 7-lift Upper/Lower week, 2026-10-12): BEGIN =====
+   The weekly review opens collapsed (today-app.cjs paintWeekReview): the heading, one summary line and "See details".
+   "See details" / "Hide details" and the steady line's "and 6 more" / "Show fewer" are quiet controls on rows of their
+   own, the same 44 px row as Why?, at secondary-text contrast. */
+.view [data-slot="week-review-toggle"],
+.view [data-slot="week-review-more"] { display: block; min-height: var(--hit); padding: 0; background: none; border: 0;
+  text-align: left; color: var(--text-soft); }
+/* ===== POLISH 4: END ===== */

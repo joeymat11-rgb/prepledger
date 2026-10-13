@@ -360,6 +360,19 @@ function createReadTools(world) {
   const sameLoad = (vector) => (Array.isArray(vector) && vector.length > 0
     && vector.every((v) => typeof v === "number" && Number.isFinite(v) && v > 0 && v === vector[0]) ? vector[0] : null);
   const WEEK_NO_RECORD = "No workout record is open on this device, so there is no week to review.";
+  /* POLISH 4 (PM, the owner's 7-lift Upper/Lower week: ten held lines ran the card past Start). The review is GROUPED,
+     and the groups are read here from each lift's own status and code: "ready" (an offer), "news" (a held notice, or a
+     new weight agreed or just landed: native-load.cjs TARGET_QUEUED, DEBUT_LANDED; the held notices are today-entry.mjs
+     noticesOf's two codes) or "steady" (any other: the lift was not raised this week). The counts the review says are
+     tagged here, each in the noun it is said with (a lift count in "lift"; the open suggestion, of which Today holds at
+     most one, in its own word through the kernel's unknownNoun), so the number check reads every one as a tool result
+     of the turn. The steady line names the first WEEK_STEADY_NAMED lifts and says how many more there are; five or
+     fewer are all named. */
+  const WEEK_NEWS_CODES = Object.freeze(["NATIVE_LOAD_TARGET_QUEUED", "NATIVE_LOAD_DEBUT_LANDED"]);
+  const WEEK_NEWS_HOLDS = Object.freeze(["conflict", "disputed"]);
+  const WEEK_STEADY_NAMED = 4;
+  const weekGroup = (row) => (row.status === "offer" ? "ready"
+    : (row.status === "held" ? WEEK_NEWS_HOLDS : WEEK_NEWS_CODES).includes(row.code) ? "news" : "steady");
   async function week_review(_args, turn_id) {
     if (typeof day !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(day) || !gym || typeof gym.weekSessions !== "function"
       || typeof today.plannedDays !== "function") {
@@ -376,6 +389,9 @@ function createReadTools(world) {
     const trend = await weight_trend({}, turn_id);
     const view = today.read();
     const open = view && view.proposal && typeof view.proposal.title === "string" ? view.proposal : null;
+    const groups = liftsRead && liftsRead.ok === true ? liftsRead.lifts.map(weekGroup) : [];
+    const inGroup = (g) => groups.filter((x) => x === g).length;
+    const steady = inGroup("steady");
     const values = {
       which: tagged(turn_id, "coach.week.which (Monday reviews the week just ended)", w.which, "flag", ""),
       from: tagged(turn_id, "coach.week.from", w.from, "date", w.from),
@@ -386,6 +402,7 @@ function createReadTools(world) {
       lifts: liftsRead && liftsRead.ok === true ? liftsRead.lifts.map((row, i) => Object.freeze({
         name: text(turn_id, "today-entry.weekLifts[" + i + "].name", row.name),
         status: tagged(turn_id, "today-entry.weekLifts[" + i + "].status", row.status, "code", ""),
+        group: tagged(turn_id, "coach.week.group (ready, news or steady; polish 4)", groups[i], "code", ""),
         code: tagged(turn_id, "today-entry.weekLifts[" + i + "].code (native-load.cjs refusal)", row.code || null, "code", ""),
         reason: row.status === "offer" ? text(turn_id, "native-load.cjs offer reason (today-entry.weekLifts[" + i + "])", row.reason)
           : blank(turn_id, "native-load.cjs offer reason", "text", "a refused or held lift carries no offer reason"),
@@ -407,6 +424,13 @@ function createReadTools(world) {
         why: text(turn_id, "today-model.proposal.why (engine proposal)", open.why),
       }) : null,
       trend: trend && trend.ok ? trend.values : null,
+      counts: Object.freeze({
+        ready: tagged(turn_id, "coach.week.counts.ready (lifts offered a new weight)", inGroup("ready"), "lift"),
+        steadyMore: tagged(turn_id, "coach.week.counts.steadyMore (steady lifts past the ones named)",
+          steady > WEEK_STEADY_NAMED + 1 ? steady - WEEK_STEADY_NAMED : 0, "lift"),
+        suggestions: tagged(turn_id, "today-model.proposal (the open suggestion on Today; at most one)", open ? 1 : 0,
+          unknownNoun("suggestion")),
+      }),
     };
     return assertNoLeak(ok("week_review", TIER.READ, turn_id, values));
   }

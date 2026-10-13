@@ -164,11 +164,17 @@ test("CI-6 the plain answers: the workout and each set target, one plain why per
 const ENGINE_WORDS = Object.freeze(["DEBUT", "baseline ask", "IS the line", "qualified comparable", "never none", "never zero",
   "engine", "RIR", "governor"]);
 const CODE_SHAPE = /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/;
+/* Polish 4: the review no longer has words for every refusal code (a lift not raised is named on the steady line), so
+   the native-load refusal codes the review sees are listed here, every one the weekly review had words for before. */
+const NATIVE_LOAD_REFUSALS = Object.freeze(["NATIVE_LOAD_TARGET_QUEUED", "NATIVE_LOAD_DEBUT_LANDED", "NATIVE_LOAD_PROVISIONAL",
+  "NATIVE_LOAD_WINDOW_NOT_TOP", "NATIVE_LOAD_HELD_OR_HOT", "NATIVE_LOAD_NO_NEXT_LOAD", "NATIVE_LOAD_EFFORT_UNRESOLVED",
+  "NATIVE_LOAD_BODYWEIGHT_NO_WEIGHT"]);
 test("CI-7 no engine code or engine word ever reaches a page answer", async () => {
-  const codes = new Set([...Object.values(T.CODES), ...Object.keys(I.WEEK_CODE_WORDS), "WORKOUT_PREPARATION_INVALID",
+  assert.deepEqual(Object.keys(I.WEEK_CODE_WORDS).filter((code) => !NATIVE_LOAD_REFUSALS.includes(code)), [], "every worded code is in the world");
+  const codes = new Set([...Object.values(T.CODES), ...NATIVE_LOAD_REFUSALS, "WORKOUT_PREPARATION_INVALID",
     "WORKOUT_PREPARATION_UNAVAILABLE", "PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED", "NATIVE_LOAD_SOMETHING_UNMAPPED", "COACH_ANSWER_DISCARDED"]);
   const blockedCopy = "DEBUT: find the working weight; what it gives today IS the line (WORKOUT_PREPARATION_INVALID).";
-  const lifts = [...Object.keys(I.WEEK_CODE_WORDS), "NATIVE_LOAD_SOMETHING_UNMAPPED"].map((code, i) => ({ name: "Lift " + String.fromCharCode(65 + i), status: "refused", code }))
+  const lifts = [...NATIVE_LOAD_REFUSALS, "NATIVE_LOAD_SOMETHING_UNMAPPED"].map((code, i) => ({ name: "Lift " + String.fromCharCode(65 + i), status: "refused", code }))
     .concat([{ name: "Squat", status: "held", code: "disputed" }, { name: "Row", status: "held", code: "SOMETHING_ELSE" }]);
   const weekRead = { lifts: async () => ({ ok: true, lifts }) };
   const sessions = { weekSessions: async () => ({ ok: true, done: 1, dates: [] }) };
