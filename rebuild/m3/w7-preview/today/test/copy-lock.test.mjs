@@ -96,7 +96,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // value before is PRE_P8_CORPUS_SHA256, ae2b1609...).
 // E2a (PM, the E2 scope): re-measured for exactly Measure's About you words and the import route's two refusal
 // sentences (CL-E2A-DELTA; the value before is PRE_E2A_CORPUS_SHA256, 1f393735...).
-const CORPUS_SHA256 = 'fe891976bc36c2b920072208a9285fde5bce728ce18ed2aa9f7c46bcbe433e5b';
+// E2b (the owner's ruling, DECISIONS:999): re-measured for exactly the import route's different-version sentence
+// (CL-E2B-DELTA; the value before is PRE_E2B_CORPUS_SHA256, fe891976...).
+const CORPUS_SHA256 = 'f31847eb7ee43db789ff54ab5ea37d907879ecabd3bf676b89dc0c686b9dca8d';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -931,6 +933,7 @@ const E2A_OWNERS_MOVED = Object.freeze([
 /* the PM's ruling on E2a: cite DECISIONS:913 (5), the short-plain-copy rule, until an owner line is recorded for the bands */
 const E2A_COPY_APPROVAL = 'DECISIONS:913';
 function beforeE2A(corpus) {
+  corpus = beforeE2B(corpus);   /* E2b stands on top of E2a */
   const added = new Set(E2A_NEW.map(([text]) => text));
   return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
     const rows = E2A_OWNERS_MOVED.filter(([text, owner, , now]) => text === e.text && e.files[owner] === now);
@@ -964,6 +967,45 @@ test('CL-E2A-DELTA: the corpus is the polish 8 corpus plus exactly Measure\'s Ab
 });
 test('CL-E2A-APPROVAL: the E2a copy delta names the ledger line that approves it', () => {
   assert.match(E2A_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-E2A-APPROVAL-PENDING: the E2a copy is not approved');
+});
+/* E2b (the owner's ruling, DECISIONS:999): the import route's one plain sentence for a file sealed by a different engine
+   (import-screen.mjs COPY.otherEngine, said only when the file's sealed engine block is not this phone's): 3 new pieces,
+   as the screen's literal is split, and no owner count moves. The engine's own new words (energy.cjs) are in no scanned
+   file. beforeE2B gives every older view the corpus as E2a sealed it (PRE_E2B_CORPUS_SHA256), and beforeE2A starts from
+   that view. IDEMPOTENT, as every older view is. */
+const PRE_E2B_CORPUS_SHA256 = 'fe891976bc36c2b920072208a9285fde5bce728ce18ed2aa9f7c46bcbe433e5b';
+const E2B_IMPORT = 'rebuild/m3/w7-preview/import/import-screen.mjs';
+const E2B_NEW = Object.freeze([
+  ['Nothing on this phone was changed.', { [E2B_IMPORT]: 1 }, []],
+  ['This file was made by a different version of Earned than the one on ', { [E2B_IMPORT]: 1 }, []],
+  ['this phone. Export your history again on the PC and import the new file. ', { [E2B_IMPORT]: 1 }, []],
+]);
+/* the PM's ruling on E2b: the import sentence is approved under DECISIONS:913 (5), the short-plain-copy rule */
+const E2B_COPY_APPROVAL = 'DECISIONS:913';
+function beforeE2B(corpus) {
+  const added = new Set(E2B_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)) };
+}
+test('CL-E2B-DELTA: the corpus is the E2a corpus plus exactly the import route\'s different-version sentence, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of E2B_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-E2B-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforeE2B(corpus)), 'utf8'));
+  if (before !== PRE_E2B_CORPUS_SHA256) failed.push('CL-E2B-DELTA PRE-E2B-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the E2a corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-E2B-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeE2B(moved)), 'utf8')) === PRE_E2B_CORPUS_SHA256) failed.push('CL-E2B-DELTA PRE-E2B-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-E2B-DELTA');
+});
+test('CL-E2B-APPROVAL: the E2b copy delta names the ledger line that approves it', () => {
+  assert.match(E2B_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-E2B-APPROVAL-PENDING: the E2b copy is not approved');
 });
 function beforeNutri2a(corpus) {
   corpus = beforeNutri2b(corpus);   /* N2 part B stands on top of N2 part A */

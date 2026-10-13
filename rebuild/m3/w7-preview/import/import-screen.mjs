@@ -151,6 +151,18 @@ export const COPY = Object.freeze({
     + 'import. Nothing on this phone was changed.',
   bodyCompositionUnreadable: 'This phone holds a body measurement Earned cannot read '
     + 'yet. Nothing on this phone was changed.',
+  /* E2b (PM, DECISIONS:999; the sentence approved under DECISIONS:913 (5)). E2b
+     moves an engine file, energy.cjs, so the engine tree this
+     phone checks a file against moves with it (production-mapping.cjs ENGINE
+     treeSha256), and a file the PC sealed from the tree before it refuses
+     SOURCE_ENGINE_CONTEXT_UNPROVEN at the review. That code also covers a phone
+     whose calendar or timezone cannot be proved, so this sentence is said ONLY
+     when the file's own sealed engine block differs from the one this phone
+     pins (sealedByOtherEngine below), which by itself is enough for the
+     refusal; a calendar refusal keeps the bare code. */
+  otherEngine: 'This file was made by a different version of Earned than the one on '
+    + 'this phone. Export your history again on the PC and import the new file. '
+    + 'Nothing on this phone was changed.',
   cancelled: 'Cancelled. Nothing on this phone was changed.',
   retracted: 'That file was taken back. Nothing on this phone was changed.',
   retractRefused: 'That file could not be taken back on its own. It is still listed below.',
@@ -212,8 +224,26 @@ export function dayWords(iso) {
   return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(at);
 }
 
+/* E2b (PM, DECISIONS:999). THE FILE'S SEALED ENGINE BLOCK AGAINST THE ONE THIS PHONE PINS. qualify()
+   (local-source-profile.cjs) admits only a file whose engine block encodes exactly as the production mapping's
+   four fields (production-mapping.cjs ENGINE: sha256, treeSha256, schemaV, path), so any difference here is, by
+   itself, a SOURCE_ENGINE_CONTEXT_UNPROVEN refusal. True only for a real engine block that differs; a missing
+   block says nothing (the bundle's own validation refuses that first). */
+export const ENGINE_FIELDS = Object.freeze(['path', 'schemaV', 'sha256', 'treeSha256']);
+export const OTHER_ENGINE_FIELD = 'sealed_engine';
+export function sealedByOtherEngine(engine) {
+  if (!engine || typeof engine !== 'object' || Array.isArray(engine)) return false;
+  if (Object.keys(engine).sort().join(',') !== ENGINE_FIELDS.join(',')) return true;
+  return ENGINE_FIELDS.some(key => engine[key] !== Production.ENGINE[key]);
+}
+
 export function refusalLines(code, detail, leadField, leadDate) {
   const lines = [codeLine(code, detail)];
+  /* E2b: the engine-identity refusal says to export again, and only under its own code with the screen's own field
+     (identityYes sets it from sealedByOtherEngine); a calendar refusal under the same code keeps the bare code. */
+  if (code === 'SOURCE_ENGINE_CONTEXT_UNPROVEN' && leadField === OTHER_ENGINE_FIELD) {
+    lines.push(COPY.otherEngine); return lines;
+  }
   /* N2 Part B (Fable D1): the step-count collision names its day. Only when it is the LEADING fault, by the rule
      below, and only for a real day; otherwise the code's own sentence stands, as for every other field. */
   const day = leadField === 'steps_day' ? dayWords(leadDate) : null;
@@ -487,7 +517,11 @@ export function createImportScreen(deps = {}) {
       }
       step = 'review';
     } catch (error) {
-      fail(error && error.code ? error.code : error && error.message);
+      const code = error && error.code ? error.code : error && error.message;
+      /* E2b: the engine-identity refusal carries the screen's own field, read off the file it unlocked. */
+      const other = code === 'SOURCE_ENGINE_CONTEXT_UNPROVEN' && opened && opened.payload
+        && sealedByOtherEngine(opened.payload.engine);
+      fail(code, null, other ? OTHER_ENGINE_FIELD : undefined);
       await retract(RETRACT_REASON.refused);
     }
     busy = false; await readLists(); repaint();
@@ -741,4 +775,4 @@ export function createImportScreen(deps = {}) {
 export default { createImportScreen, COPY, STEPS, IDENTITY_QUESTION, RETRACT_REASON,
   REFUSAL_SENTENCE, REFUSAL_FIELD_SENTENCE,
   refusalLines, dayWords, unlockedFacts, reviewFacts, summaryRows, retractionRows,
-  ENGINE_REVISION_LABEL };
+  ENGINE_REVISION_LABEL, ENGINE_FIELDS, OTHER_ENGINE_FIELD, sealedByOtherEngine };

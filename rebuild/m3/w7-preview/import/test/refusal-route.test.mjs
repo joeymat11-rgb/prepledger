@@ -9,8 +9,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+/* E2B-IR2 seals a bundle from the engine tree before E2b, in the OS temp folder. */
+import os from 'node:os';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, durable, STRANGER_WEEK_SETUP,
-  REPO, Entry, shellWindow, slot, tap, type, textOf, pickBundle, installTraps,
+  REPO, PORT, Entry, shellWindow, slot, tap, type, textOf, pickBundle, installTraps,
   phoneDevice, SOURCE_SESSION_DAYS } from './support.mjs';
 import { listImports, listImportRetractions } from '../../../w6/local/browser-entry.mjs';
 import { admittedLocalSourceState } from '../../today/local-source-basis.mjs';
@@ -558,4 +564,103 @@ test('E2A-IR1 - the measure family\'s and the shared class\'s refusals are said 
       'This phone holds a body measurement Earned cannot read yet. Nothing on this phone was changed.']);
   const dash = new RegExp('[' + String.fromCharCode(0x2013, 0x2014) + ']');
   for (const key of ['measureUnreadable', 'bodyCompositionUnreadable']) assert.equal(dash.test(Screen.COPY[key]), false, key);
+});
+
+/* E2b (PM, DECISIONS:999). E2b moves the engine, so production-mapping.cjs ENGINE.treeSha256 moves with it, and a file
+   the PC sealed from the tree before E2b refuses SOURCE_ENGINE_CONTEXT_UNPROVEN at the review. That code also covers a
+   phone whose calendar or timezone cannot be proved, so the sentence that says to export again is keyed on the file's
+   own sealed engine block (sealedByOtherEngine), never on the code alone. Red first on c2d6db8: the code stood alone.
+   PM seat. */
+const require_ = createRequire(import.meta.url);
+const Production = require_('../../../../m4/import/production-mapping.cjs');
+const { ENERGY_MOVES, SHAS } = require_('../../../../m4/workout/test/s19-energy-moves.cjs');
+/* The production pin E2b replaces (the S14 re-pin): what a file sealed from the tree before E2b carries. */
+const TREE_BEFORE_E2B = '155e2f1b16f78d557eb72e842882a933d618a6f31814f6246a29b4da313f0adc';
+
+test('E2B-IR1 - the engine-identity refusal says to export again, and only when the file\'s engine is not this phone\'s', () => {
+  const own = { ...Production.ENGINE };
+  assert.equal(Screen.sealedByOtherEngine(own), false, 'this phone\'s own engine block');
+  assert.equal(Screen.sealedByOtherEngine({ ...own, treeSha256: TREE_BEFORE_E2B }), true, 'the tree before E2b');
+  assert.equal(Screen.sealedByOtherEngine({ ...own, sha256: 'f'.repeat(64) }), true, 'another shim');
+  assert.equal(Screen.sealedByOtherEngine({ ...own, extra: 1 }), true, 'a fifth field: qualify() encodes all of them');
+  const { path: dropped, ...three } = own;
+  assert.equal(typeof dropped, 'string');
+  assert.equal(Screen.sealedByOtherEngine(three), true, 'a missing field');
+  for (const none of [null, undefined, 'engine', []]) assert.equal(Screen.sealedByOtherEngine(none), false, String(none));
+  assert.deepEqual(Screen.refusalLines('SOURCE_ENGINE_CONTEXT_UNPROVEN', '', Screen.OTHER_ENGINE_FIELD),
+    ['SOURCE_ENGINE_CONTEXT_UNPROVEN',
+      'This file was made by a different version of Earned than the one on this phone. Export your history again on the PC and import the new file. Nothing on this phone was changed.']);
+  /* A calendar or timezone refusal carries no field: the bare code, as before. */
+  assert.deepEqual(Screen.refusalLines('SOURCE_ENGINE_CONTEXT_UNPROVEN', '', null), ['SOURCE_ENGINE_CONTEXT_UNPROVEN']);
+  assert.deepEqual(Screen.refusalLines('SOURCE_ENGINE_CONTEXT_UNPROVEN', ''), ['SOURCE_ENGINE_CONTEXT_UNPROVEN']);
+  /* The field means nothing under any other code. */
+  assert.deepEqual(Screen.refusalLines('LOCAL_SOURCE_PROGRAMME_UNRESOLVED', '', Screen.OTHER_ENGINE_FIELD),
+    Screen.refusalLines('LOCAL_SOURCE_PROGRAMME_UNRESOLVED', '', null));
+  const dash = new RegExp('[' + String.fromCharCode(0x2013, 0x2014) + ']');
+  assert.equal(dash.test(Screen.COPY.otherEngine), false);
+});
+
+/* A real bundle sealed by port.cjs from the engine tree BEFORE E2b: the engine directory copied to the OS temp folder,
+   and each file this package moves put back to its parent bytes by undoing its declared hunks (s19-energy-moves.cjs),
+   checked against the parent sha256. Nothing in the tree is touched. */
+function sealFromTheTreeBeforeE2b() {
+  const sha = text => crypto.createHash('sha256').update(text).digest('hex');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'e2b-old-'));
+  const engineDir = path.join(dir, 'engine'), out = path.join(dir, 'out');
+  fs.mkdirSync(engineDir); fs.mkdirSync(out);
+  const source = path.join(REPO, 'rebuild', 'engine');
+  for (const name of fs.readdirSync(source).filter(n => n.endsWith('.cjs')))
+    fs.copyFileSync(path.join(source, name), path.join(engineDir, name));
+  for (const [file, hunks] of Object.entries(ENERGY_MOVES)) {
+    let body = fs.readFileSync(path.join(REPO, file), 'utf8');
+    for (const [before, after] of hunks.slice().reverse()) {
+      assert.equal(body.split(after).length, 2, 'each declared hunk undoes at exactly one site: ' + file);
+      body = body.replace(after, () => before);
+    }
+    assert.equal(sha(body), SHAS[file].parent, 'the parent bytes: ' + file);
+    fs.writeFileSync(path.join(engineDir, path.basename(file)), body);
+  }
+  const file = path.join(dir, 'invented-legacy-state.json');
+  fs.copyFileSync(path.join(SEALED.dir, 'invented-legacy-state.json'), file);
+  const shim = path.join(engineDir, 'oracle-shim.cjs');
+  const run = spawnSync(process.execPath, [PORT, '--source', file, '--out', out, '--engine', shim],
+    { cwd: REPO, encoding: 'utf8', timeout: 600000, windowsHide: true });
+  if (run.status !== 0) throw new Error('port.cjs did not seal from the tree before E2b (' + run.status + '): '
+    + String(run.stdout).slice(-600) + String(run.stderr).slice(-600));
+  const names = fs.readdirSync(out);
+  const bundleName = names.find(n => n.endsWith('.json'));
+  const passName = names.find(n => n.endsWith('-PASSPHRASE.txt'));
+  return { dir, bytes: new Uint8Array(fs.readFileSync(path.join(out, bundleName))),
+    passphrase: fs.readFileSync(path.join(out, passName), 'utf8').trim() };
+}
+
+test('E2B-IR2 - a file sealed from the engine tree before E2b refuses at the review with the plain sentence to export '
+  + 'again, is retracted, and nothing on the phone moves', async () => {
+  const old = sealFromTheTreeBeforeE2b();
+  const { era, win, doc, booted } = await device('old-tree');
+  const before = await consumers(era, booted);
+  const unlocked = await toIdentity(win, booted, old);
+  assert.equal(unlocked.step(), 'identity', JSON.stringify(unlocked.refusal()));
+  const refused = await afterTap(booted, slot(doc, 'import-identity-yes'));
+  assert.deepEqual(refused.refusal(), { code: 'SOURCE_ENGINE_CONTEXT_UNPROVEN', detail: null,
+    field: Screen.OTHER_ENGINE_FIELD }, JSON.stringify(refused.refusal()));
+  assert.equal(slot(doc, 'import-refusal').textContent,
+    Screen.refusalLines('SOURCE_ENGINE_CONTEXT_UNPROVEN', null, Screen.OTHER_ENGINE_FIELD).join(' '));
+  assert.ok(textOf(doc).includes(Screen.COPY.otherEngine), 'the sentence is not on the screen');
+  assert.equal(refused.step(), 'pick');
+  const after = await consumers(era, booted);
+  assert.deepEqual(after.imports, before.imports, 'the refused file is still staged');
+  assert.equal(after.durable.applied, false);
+  assert.equal(after.durable.basis, false);
+  assert.equal(after.durable.ops, before.durable.ops);
+  assert.equal(after.retractions.length, 1, 'the refused file was not retracted');
+  booted.rollover.stop(); booted.teardown(); era.close();
+  /* THE FILE REALLY IS THE TREE BEFORE E2b, and only that: the same shim, the old tree. */
+  const machinery = await import('../../../w6/local/browser-entry.mjs');
+  const opened = await machinery.unsealBundle(old.bytes, old.passphrase,
+    { crypto: crypto.webcrypto, allowUnqualified: true });
+  assert.equal(opened.payload.engine.treeSha256, TREE_BEFORE_E2B, 'sealed from the tree before E2b');
+  assert.equal(opened.payload.engine.sha256, Production.ENGINE.sha256, 'by the same shim');
+  assert.notEqual(Production.ENGINE.treeSha256, TREE_BEFORE_E2B, 'which this phone no longer pins');
+  assert.equal(Screen.sealedByOtherEngine(opened.payload.engine), true);
 });

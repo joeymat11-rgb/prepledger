@@ -21,6 +21,8 @@ import FoodModel from '../food-model.cjs';
 import { createStepsHost, stepDaysIn } from '../steps-host.mjs';
 import StepsCommands from '../steps-commands.cjs';
 import StepsModel from '../steps-model.cjs';
+/* E2B-APP writes the athlete's answers the way the Measure screen does, through its own host, on the same store */
+import { createMeasureHost } from '../../measure/measure-host.mjs';
 import Registry from '../../../../m4/import/replay-registry.cjs';
 import TodayApp from '../today-app.cjs';
 import TodayModel from '../today-model.cjs';
@@ -1967,4 +1969,235 @@ test('P8.4 - the stylesheet: chevron rows, no stray weight gap, the steps line, 
     'a cue above Start while the list continues under it');
   assert.doesNotMatch(block, /\.sleep\b/, 'N2-18: no .sleep class in the chrome');
   assert.doesNotMatch(block, /[^\x00-\x7f]/, 'ASCII');
+});
+
+/* DECISIONS:982 (the owner's ruling, E1's engine half, carried into E2b): energy.cjs calorieTarget skips a calorie
+   floor that is not finite instead of letting it blank the band. ENGINE-LEVEL cells, over the real engine the page
+   composes (E1, b99c5e6). Red first: on c2d6db8's energy.cjs the first cell fails (lo and hi NaN); the second is the
+   control. */
+test('UP13-FLOOR - with no lean-mass estimate the labelled estimate has two finite ends: the band off his priced maintenance', () => {
+  const clean = createCleanInitState({ setup: firstRunDocument() });
+  const model = createTodayModel({ today: DAY, basisState: clean });
+  const E = model.engine;
+  const s = E.applyRead(model.stateFromOps(), DAY, 180, { hour: 8 });
+  assert.equal(Number.isFinite(E.calorieFloor(s).floor), false, 'precondition: no lean-mass estimate, so no floor');
+  const c = E.calorieTarget(s);
+  assert.equal(c.from, 'mass-estimate');
+  assert.equal(c.gated, true);
+  assert.ok(Number.isFinite(c.lo) && Number.isFinite(c.hi), 'two finite ends: ' + JSON.stringify([c.lo, c.hi]));
+  const perLb = E.energyDensity(s).perLb;
+  const off = (lbWk) => Math.round((lbWk * perLb) / 7);
+  assert.ok(Number.isFinite(c.tdee) && Array.isArray(c.band), 'the priced maintenance and his own band');
+  assert.equal(c.hi, c.tdee - off(c.band[0]), 'the slow end of his band off the priced maintenance');
+  assert.equal(c.lo, c.tdee - off(c.band[1]), 'the fast end');
+  assert.equal(c.mid, Math.round((c.lo + c.hi) / 2));
+});
+/* The control: an athlete WITH a lean-mass estimate gets a byte-identical calorieTarget. The three sha256 values are
+   of JSON.stringify(calorieTarget(state)) MEASURED on f4bd98c's energy.cjs (E1): the fixture athlete (a measured band),
+   the same athlete with no food days (the labelled estimate, the floor binding both ends), and at a low trend. */
+test('UP13-FLOOR-CONTROL - an athlete with a lean-mass estimate gets a byte-identical calorieTarget', () => {
+  const E = createTodayModel({ today: DAY }).engine;
+  const base = createBasisState(DAY);
+  const noFood = structuredClone(base); noFood.dailyLogs = {};
+  const low = structuredClone(base); low.trend = 110;
+  const sha = (v) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
+  for (const [label, state, pinned] of [
+    ['measured', base, '6915631faf1ab6ea4c37ecedc20e1323ad61d45878330e0a21d37707807f0864'],
+    ['estimate, floor binding', noFood, 'e4a3e50df2d7c14c2c3edf3bdf5b3e81103bd9753c37b68e504394f86acbf3f3'],
+    ['low trend', low, '5c209aae304112f5731ec16cce68c1b6f8c4e7e7d56d26908ada83a289661570'],
+  ]) {
+    assert.ok(Number.isFinite(E.calorieFloor(state).floor), label + ': this athlete has a floor');
+    assert.equal(sha(E.calorieTarget(state)), pinned, label + ': byte-identical to f4bd98c');
+  }
+});
+
+/* ==========================================================================
+   E2b (the owner's ruling, DECISIONS:999) - LEAN MASS WHEN THE MODEL HAS NONE.
+   When the model holds no lean mass, calorieFloor, proteinTarget and energyAvailability take a stand-in: (a) his
+   body-fat band, lean = trend x (1 - the band's LOW %), (b) else Boer's formula from his height and a sex of male or
+   female, (c) else none, and the floor stays not a number, as before. A lean mass from a band or a formula NEVER moves
+   a calorie range, measured or estimated, and no other reader of bfEst sees it. Invented values only. Red first on
+   c2d6db8: the band and formula cells fail (no stand-in; the floor NaN).
+   ========================================================================== */
+const E2B_UNKNOWN_BAND = Object.freeze({ low: null, high: null, source: 'unknown', table: null });
+const E2B_PROFILES = Object.freeze({
+  band: { sex: null, heightCm: null, band: { low: 12, high: 15, source: 'self-estimate', table: 'men' } },
+  male: { sex: 'male', heightCm: 177.8, band: E2B_UNKNOWN_BAND },
+  female: { sex: 'female', heightCm: 165.1, band: E2B_UNKNOWN_BAND },
+  preferNot: { sex: 'prefer-not-to-say', heightCm: 177.8, band: E2B_UNKNOWN_BAND },
+  dontKnow: { sex: null, heightCm: null, band: E2B_UNKNOWN_BAND },
+  heightOnly: { sex: null, heightCm: 177.8, band: null },
+  sexOnly: { sex: 'female', heightCm: null, band: null },
+});
+const E2B_NEITHER = ['preferNot', 'dontKnow', 'heightOnly', 'sexOnly'];
+/* The two athletes with no lean mass: the just-enrolled one (one weigh-in; the labelled estimate, gated) and the
+   fixture athlete with his lean mass taken away (a MEASURED range from his own food and weigh-ins). */
+function e2bAthletes() {
+  const clean = createCleanInitState({ setup: firstRunDocument() });
+  const model = createTodayModel({ today: DAY, basisState: clean });
+  const E = model.engine;
+  const enrolled = E.applyRead(model.stateFromOps(), DAY, 180, { hour: 8 });
+  const measured = createBasisState(DAY);
+  delete measured.model.lean;
+  assert.equal(Number.isFinite(enrolled.model ? enrolled.model.lean : NaN), false, 'precondition: no lean mass (enrolled)');
+  assert.equal(E.calorieTarget(enrolled).gated, true, 'precondition: the enrolled athlete\'s range is the gated estimate');
+  assert.equal(E.calorieTarget(measured).from, 'measured', 'precondition: the other\'s range is measured');
+  return { E, enrolled, measured };
+}
+const withBody = (state, key) => ({ ...structuredClone(state), bodyProfile: structuredClone(E2B_PROFILES[key]) });
+const json = (v) => JSON.stringify(v);
+const boerLeanKg = (sex, kg, cm) => (sex === 'male' ? 0.407 * kg + 0.267 * cm - 19.2 : 0.252 * kg + 0.473 * cm - 48.3);
+
+test('E2B-BAND - a picked body-fat band prices lean mass at its LOW end, for the floor, protein and energy availability', () => {
+  const { E, enrolled, measured } = e2bAthletes();
+  for (const s0 of [enrolled, measured]) {
+    const s = withBody(s0, 'band');
+    const lean = +(s.trend * (1 - 12 / 100)).toFixed(1);
+    const fl = E.calorieFloor(s);
+    assert.ok(Number.isFinite(fl.floor), 'a finite floor: ' + fl.floor);
+    assert.equal(fl.fallback, true);
+    assert.equal(fl.leanSrc, 'band');
+    assert.equal(fl.ffmKg, +(lean / 2.2046).toFixed(1), 'lean = trend x (1 - 12%)');
+    assert.ok(fl.why.includes('estimated (from the body-fat range you picked)'), fl.why);
+    const pt = E.proteinTarget(s);
+    assert.ok(Number.isFinite(pt.g) && pt.g > 0, 'a protein target: ' + pt.g);
+    assert.equal(pt.ffmKg, fl.ffmKg, 'the same lean mass');
+    assert.deepEqual([pt.bfLo, pt.bfHi], [12, 15], 'the band\'s own range is the interval');
+    assert.equal(/current measured/.test(pt.why), false, 'never called measured: ' + pt.why);
+    assert.ok(pt.why.includes('estimated (from the body-fat range you picked)'), pt.why);
+  }
+  /* The open band's top is the labelled convention, and the low end still prices. */
+  const open = withBody(enrolled, 'band'); open.bodyProfile.band = { low: 26, high: null, source: 'self-estimate', table: 'men' };
+  const pt = E.proteinTarget(open);
+  assert.deepEqual([pt.bfLo, pt.bfHi], [26, 30], 'BF_BAND_OPEN_SPAN 4');
+  /* The table is his answer's and is never inferred: a women's band beside a recorded male sex prices from the band. */
+  const women = withBody(enrolled, 'band');
+  women.bodyProfile.sex = 'male'; women.bodyProfile.heightCm = 177.8;
+  women.bodyProfile.band = { low: 25, high: 29, source: 'self-estimate', table: 'women' };
+  const fw = E.calorieFloor(women);
+  assert.equal(fw.leanSrc, 'band', 'the band wins over height and sex');
+  assert.equal(fw.ffmKg, +(+(women.trend * 0.75).toFixed(1) / 2.2046).toFixed(1));
+  /* Energy availability: the fixture athlete has the food days it needs, and now a fat-free mass. */
+  const ea = E.energyAvailability(withBody(measured, 'band'));
+  assert.equal(ea.gated === true, false, 'energy availability answers: ' + json(ea).slice(0, 120));
+  assert.equal(ea.ffmKg, E.calorieFloor(withBody(measured, 'band')).ffmKg);
+  assert.ok(json(ea).includes('estimated from the body-fat range you picked'), 'the EA sentence names the stand-in');
+  assert.equal(json(ea).includes('from the anchored lean model'), false);
+});
+
+test('E2B-FORMULA - height and sex price lean mass by Boer\'s formula, the female coefficients for a woman', () => {
+  const { E, enrolled } = e2bAthletes();
+  for (const key of ['male', 'female']) {
+    const s = withBody(enrolled, key);
+    const kg = s.trend / 2.2046, cm = s.bodyProfile.heightCm;
+    const lean = +(boerLeanKg(key, kg, cm) * 2.2046).toFixed(1);
+    const fl = E.calorieFloor(s);
+    assert.equal(fl.leanSrc, 'estimate', key);
+    assert.equal(fl.fallback, true, key);
+    assert.equal(fl.ffmKg, +(lean / 2.2046).toFixed(1), key + ': Boer, ' + key + ' coefficients');
+    assert.ok(fl.why.includes('estimated (from your height and sex)'), fl.why);
+    const pt = E.proteinTarget(s);
+    assert.ok(Number.isFinite(pt.g) && pt.g > 0, key + ': a protein target');
+    const pct = ((s.trend - lean) / s.trend) * 100;
+    assert.deepEqual([pt.bfLo, pt.bfHi], [+(pct - 5).toFixed(1), +(pct + 5).toFixed(1)], key + ': its own wider error, 5 points');
+    assert.ok(pt.why.includes('estimated (from your height and sex)'), pt.why);
+  }
+  assert.notEqual(E.calorieFloor(withBody(enrolled, 'male')).ffmKg, E.calorieFloor(withBody(enrolled, 'female')).ffmKg,
+    'the two sexes really take different coefficients');
+});
+
+test('E2B-NEITHER - with no band and no usable height and sex, nothing is priced: today\'s behaviour, byte for byte', () => {
+  const { E, enrolled, measured } = e2bAthletes();
+  for (const s0 of [enrolled, measured]) for (const key of E2B_NEITHER) {
+    const s = withBody(s0, key);
+    assert.equal(Number.isFinite(E.calorieFloor(s).floor), false, key + ': the floor stays not a number');
+    for (const r of ['calorieFloor', 'proteinTarget', 'energyAvailability', 'calorieTarget'])
+      assert.equal(json(E[r](s)), json(E[r](s0)), key + ': ' + r + ' is exactly what it was with nothing told');
+  }
+});
+
+test('E2B-RANGE - a lean mass from a band or a formula never moves a calorie range, measured or estimated, and no other '
+  + 'reader of bfEst sees it', () => {
+  const { E, enrolled, measured } = e2bAthletes();
+  const OTHER = ['bfEst', 'etaWeeks', 'etaRange', 'dietExit', 'anchorTighten', 'partition', 'energyDensity']
+    .filter((r) => typeof E[r] === 'function');
+  assert.ok(OTHER.includes('bfEst'), 'bfEst is a public reader: ' + OTHER.join(' '));
+  const read = (r, s) => { try { return json(E[r](s)); } catch (e) { return 'THREW ' + e.message; } };
+  for (const s0 of [enrolled, measured]) for (const key of Object.keys(E2B_PROFILES)) {
+    const s = withBody(s0, key);
+    assert.equal(json(E.calorieTarget(s)), json(E.calorieTarget(s0)), key + ': the calorie range is unchanged');
+    for (const r of OTHER) assert.equal(read(r, s), read(r, s0), key + ': ' + r + ' is unchanged');
+  }
+  /* And a stand-in floor that WOULD bind does not: the just-enrolled athlete, band priced, whose stand-in floor sits
+     above both ends of his labelled estimate. energyBalanceTarget, the range the card reads, is unchanged too. */
+  const banded = withBody(enrolled, 'band');
+  const ct = E.calorieTarget(banded);
+  assert.ok(E.calorieFloor(banded).floor > ct.hi, 'precondition: the stand-in floor sits above the range: '
+    + E.calorieFloor(banded).floor + ' > ' + ct.hi);
+  assert.equal(json(ct), json(E.calorieTarget(enrolled)), 'and still the range does not move');
+  for (const s0 of [enrolled, measured]) for (const key of Object.keys(E2B_PROFILES))
+    assert.equal(read('energyBalanceTarget', withBody(s0, key)), read('energyBalanceTarget', s0), key + ': energyBalanceTarget');
+});
+
+test('E2B-LEAN - an athlete WITH a lean mass is byte-identical whatever he told Measure', () => {
+  const E = createTodayModel({ today: DAY }).engine;
+  const base = createBasisState(DAY);
+  assert.ok(Number.isFinite(base.model.lean), 'precondition: the fixture athlete has a lean mass');
+  for (const key of Object.keys(E2B_PROFILES)) {
+    const s = withBody(base, key);
+    for (const r of ['calorieFloor', 'proteinTarget', 'energyAvailability', 'calorieTarget', 'bfEst'])
+      assert.equal(json(E[r](s)), json(E[r](base)), key + ': ' + r);
+  }
+});
+
+test('E2B-PLUMB - Today\'s model puts what he told Measure on the state as one member, read only, and nothing when he told nothing', () => {
+  let facts = null;
+  const lane = { facts: () => facts };
+  const model = createTodayModel({ today: DAY, bodyFacts: lane });
+  assert.equal(model.bodyProfile(), null, 'nothing told: no member');
+  assert.equal('bodyProfile' in model.stateFromOps(), false, 'and the state is exactly what it was');
+  facts = { band: { op_id: 'op-1', low: 12, high: 15, source: 'self-estimate', table: 'men' },
+    profile: { sex: 'male', height: { value: 70, unit: 'in' } } };
+  assert.deepEqual(model.bodyProfile(), { sex: 'male', heightCm: 177.8,
+    band: { low: 12, high: 15, source: 'self-estimate', table: 'men' } }, 'inches to centimetres, one decimal; the table kept');
+  assert.deepEqual(model.stateFromOps().bodyProfile, model.bodyProfile(), 'the same member on the engine\'s state');
+  facts = { band: { op_id: 'op-2', low: null, high: null, source: 'unknown', table: null },
+    profile: { sex: 'prefer-not-to-say', height: { value: 165, unit: 'cm' } } };
+  assert.deepEqual(model.bodyProfile(), { sex: 'prefer-not-to-say', heightCm: 165, band: E2B_UNKNOWN_BAND },
+    'a height in cm stays cm; "I don\'t know" is a band with no figures');
+  facts = { band: null, profile: null };
+  assert.equal(model.bodyProfile(), null);
+  const other = createTodayModel({ today: DAY });
+  assert.equal(other.bodyFacts(), null, 'no lane: no facts');
+  assert.equal(other.setBodyFacts(lane), lane);
+});
+
+/* E2b: Today opens the measure lane READ ONLY, after the steps lane has settled (one lane at a time, as N2B.9), puts
+   what the athlete told Measure on the engine's state, and reads it again on the way back to Today from Measure, where
+   it can change. No write of the lane is reachable from Today's page code. Red first: on c2d6db8 the page has no body
+   lane. */
+test('E2B-APP - Today reads the Measure answers read only, and again on the way back from Measure', async () => {
+  const fault = faultDatabase();
+  const page = await storedScreen(fault);
+  const lane = await page.api.bodyReady();
+  assert(lane && page.api.bodyLane() === lane, 'the body lane opened over the window\'s store: ' + page.api.bodyFailure());
+  assert.equal(page.model.bodyProfile(), null, 'nothing told yet');
+  assert.equal('bodyProfile' in page.model.stateFromOps(), false, 'and the engine\'s state carries no member');
+  const host = await createMeasureHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  try {
+    assert.equal((await host.saveBodyFatBand({ low: 12, high: 15, source: 'self-estimate', table: 'men' })).ok, true);
+    assert.equal((await host.saveBodyProfile({ sex: 'male', height: { value: 70, unit: 'in' } })).ok, true);
+  } finally { host.close(); }
+  assert.equal(page.model.bodyProfile(), null, 'Today does not re-read on every paint');
+  page.api.render('measure', false);
+  page.api.render('today', false);
+  const started = Date.now();
+  while (!page.model.bodyProfile() && Date.now() - started < 10000) await new Promise((r) => setTimeout(r, 5));
+  assert.deepEqual(page.model.bodyProfile(), { sex: 'male', heightCm: 177.8,
+    band: { low: 12, high: 15, source: 'self-estimate', table: 'men' } }, 'back from Measure, the answers are read again');
+  assert.deepEqual(page.model.stateFromOps().bodyProfile, page.model.bodyProfile(), 'and they are on the engine\'s state');
+  page.api.dispose();
+  const source = codeOf(readRepo('rebuild/m3/w7-preview/today/today-app.cjs'));
+  for (const write of ['saveBodyFatBand', 'saveBodyProfile', 'writeFact', '.execute('])
+    assert.equal(source.includes(write), false, 'Today\'s page code reaches no write of the measure lane: ' + write);
 });

@@ -400,6 +400,11 @@ function createTodayModel(options = {}) {
   /* N2 "LOG TODAY" - THE STEPS LANE, injected and settable exactly as `foodDays` is, for
      the same reason (boot() cannot gain a lane). Rows only; this module stores nothing. */
   let stepDays = options.stepDays || null;
+  /* E2b (the owner's ruling, DECISIONS:999) - WHAT HE TOLD MEASURE: the body-fat band and the body profile, as THIS
+     page's measure lane read them back (today-app.cjs openBodyLane; measure-host.mjs bodyFatBandIn and
+     bodyProfileIn, the latest answer of each). Settable exactly as `stepDays` is, for the same reason (boot() cannot
+     gain a lane). Read only; this module stores nothing and the engine writes nothing back. */
+  let bodyFacts = options.bodyFacts || null;
 
   const E = engineFactory({ clock: engineClockFor(day) });
 
@@ -447,7 +452,31 @@ function createTodayModel(options = {}) {
        every replay before it runs on exactly the state N1 measured. `unavailable` stays
        the FOOD list, so every N1 reader of it is unchanged. */
     const stepped = StepsModel.stepsProjection(fed.state, storedStepDays(), E);
+    /* E2b - THE BODY FACTS GO ON LAST, as one member no replay touches (s.bodyProfile). Only energy.cjs leanFallback
+       reads it, and only when the model holds no lean mass; with nothing told on Measure the member is absent and
+       the state is exactly what it was. */
+    const body = bodyProfileOf();
+    if (body) stepped.state.bodyProfile = body;
     return { state: stepped.state, unavailable: fed.unavailable, stepsUnavailable: stepped.unavailable };
+  }
+
+  /* E2b - the engine's view of what he told Measure: sex (male, female, prefer-not-to-say or null), height in
+     centimetres (a height kept in inches is converted, one decimal), and the band with the table it was picked from,
+     so a sex is never inferred from a band. "I don't know" is carried as a band with no figures. Null when he has told
+     Measure nothing at all. */
+  function bodyProfileOf() {
+    const facts = bodyFacts && typeof bodyFacts.facts === "function" ? bodyFacts.facts() : null;
+    if (!facts || (!facts.band && !facts.profile)) return null;
+    const p = facts.profile || null, b = facts.band || null;
+    const height = p && p.height && Number.isFinite(p.height.value) ? p.height : null;
+    const heightCm = !height ? null : height.unit === "cm" ? height.value : Math.round(height.value * 2.54 * 10) / 10;
+    return {
+      sex: p && typeof p.sex === "string" ? p.sex : null,
+      heightCm,
+      band: !b ? null : b.source === "self-estimate"
+        ? { low: b.low, high: b.high, source: b.source, table: b.table }
+        : { low: null, high: null, source: "unknown", table: null },
+    };
   }
 
   /* N2 "LOG TODAY" - the durable steps ops, as THIS page's steps lane read them back. */
@@ -659,6 +688,10 @@ function createTodayModel(options = {}) {
        athlete is shown is what the workout preparation and the check-in would be
        asked; `recordedSleep` is the winning OPERATION, with its save stamp. */
     sleepNights: () => sleepNights,
+    /* E2b: the measure lane's body facts, settable after construction (today-app.cjs openBodyLane) */
+    bodyFacts: () => bodyFacts,
+    setBodyFacts(lane) { bodyFacts = lane || null; return bodyFacts; },
+    bodyProfile: () => bodyProfileOf(),
     setSleepNights(lane) { sleepNights = lane || null; return sleepNights; },
     storedSleepNights,
     loggedSleep: (date) => SleepModel.loggedNight(stateFromOps(), date),

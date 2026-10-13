@@ -1588,6 +1588,49 @@ function mountToday(doc, model, options = {}) {
       });
     return stepsOpening;
   }
+  /* E2b (the owner's ruling, DECISIONS:999) - THE BODY FACTS. What the athlete told Measure (the body-fat band, height
+     and sex) reaches the engine's lean-mass stand-in (energy.cjs leanFallback; the floor, protein and energy
+     availability only, never a calorie range). This page opens the measure lane for it the same way it opens the
+     steps lane, READ ONLY: no write is reachable from here (the lane's saves are the Measure screen's own), the lane
+     opens only after the steps lane's own opening has settled (ONE LANE AT A TIME), one attempt per mount, failing
+     closed; with no store the engine simply has no stand-in, which is today's behaviour. The answers are read again
+     on the way back to Today from Measure, where they can change. */
+  let bodyLane = null;
+  let bodyOpening = null;
+  let bodyFailure = null;
+  async function bodyFactsOf(host) {
+    return { band: await host.bodyFatBand(), profile: await host.bodyProfile() };
+  }
+  function bodyLaneOver(host, facts) {
+    let cache = facts;
+    return { host, facts: () => cache, async refresh() { cache = await bodyFactsOf(host); return cache; } };
+  }
+  function openBodyLane() {
+    if (bodyLane || bodyOpening || bodyFailure) return bodyOpening;
+    const view = doc.defaultView || null;
+    const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
+    const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
+    if (!idb || !web || !web.subtle) { bodyFailure = "NO_LOCAL_STORE"; return null; }
+    const before = [openStepsLane()].filter(Boolean);
+    bodyOpening = Promise.allSettled(before)
+      .then(() => import("../measure/measure-host.mjs"))
+      .then((module) => module.createMeasureHost({ day: model.today, indexedDB: idb, crypto: web }))
+      .then(async (host) => {
+        if (disposed) { host.close(); return null; }
+        bodyLane = bodyLaneOver(host, await bodyFactsOf(host));
+        model.setBodyFacts(bodyLane);
+        /* Today repaints only when he has told Measure something: with nothing told the engine's state is exactly
+           what was painted, and a repaint would only disturb a sheet he may be typing in. */
+        if (screen === "today" && model.bodyProfile()) render("today", false);
+        return bodyLane;
+      })
+      .catch((error) => {
+        bodyLane = null;
+        bodyFailure = (error && (error.code || error.message)) || "BODY_LANE_UNAVAILABLE";
+        return null;
+      });
+    return bodyOpening;
+  }
   /* What this device holds for TODAY, one flag per log, each read from the durable record the screen behind it reads:
      the adopted morning reading, the projected food day, the winning steps op, the projected night (sleepState) and
      the check-in lane's own summary. Opening the food and sleep lanes here is what Today's own lines did before. */
@@ -1595,6 +1638,7 @@ function mountToday(doc, model, options = {}) {
     const food = nutritionState();
     const slept = sleepState();
     const stepsRow = stepsLane ? model.recordedSteps(model.today) : (openStepsLane(), null);
+    if (!bodyLane) openBodyLane();   /* E2b: the body facts, read only, once the steps lane has settled */
     return { weight: view.hasReadToday === true, food: food === FOOD_SAVED, steps: !!stepsRow,
       sleep: slept !== "", checkin: recoveryState() === CHECKIN_RECORDED_TODAY, slept, stepsRow };
   }
@@ -2908,6 +2952,10 @@ function mountToday(doc, model, options = {}) {
     if (next !== screen) {
       mountToken += 1;
       if (next === "sleep") hooks.forgetCheckInRead();
+      /* E2b: back on Today from Measure, where the answers can change, they are read again and Today repaints */
+      if (next === "today" && screen === "measure" && bodyLane) {
+        bodyLane.refresh().then(() => { if (!disposed && screen === "today") render("today", false); }, () => null);
+      }
     }
     screen = next;
     if (next === "setup") {
@@ -3121,6 +3169,7 @@ function mountToday(doc, model, options = {}) {
        opens and wait for the lane honestly. */
     openLogToday: () => openLogToday(), logOpen: () => !!logOpen,
     stepsReady: () => stepsOpening, stepsLane: () => stepsLane, stepsPending: () => stepsSaving, stepsFailure: () => stepsFailure,
+    bodyReady: () => bodyOpening, bodyLane: () => bodyLane, bodyFailure: () => bodyFailure,
     sleepCheckInReady: () => screen === "sleep-checkin" ? facade.sleepCheckInViewPending() : facade.sleepCheckInPending(),
     checkInKitReady: () => facade.checkInKitLoading(), sleepLane: () => facade.sleepLane(),
     /* D2 round 1 - what the fixed screen now holds, so a cell can assert the
@@ -3156,6 +3205,8 @@ function mountToday(doc, model, options = {}) {
       if (typeof phone.removeEventListener === "function") hooks.unlisten(phone, "keydown", onPhoneKeydown);
       /* N2 "LOG TODAY" (Part B): the steps lane this mount opened for itself is released with it. */
       if (stepsOwned && stepsLane && stepsLane.host && typeof stepsLane.host.close === "function") stepsLane.host.close();
+      /* E2b: and so is the measure lane it opened to read the body facts */
+      if (bodyLane && bodyLane.host && typeof bodyLane.host.close === "function") bodyLane.host.close();
       return true;
     },
     disposed: () => disposed };

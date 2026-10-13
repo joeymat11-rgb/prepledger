@@ -627,11 +627,17 @@ const RELEASED_FILES = [
        day; no store, no engine of its own, the same class as food-model.cjs and sleep-model.cjs beside it).
        import:./steps-host.mjs is the steps lane itself, opened lazily by openStepsLane exactly as the food and sleep
        lanes are opened, failing closed with no store; its ONE write is the declared seam "stepsHost.save" above, by
-       site and by count. today-lanes.cjs is SEALED (S10), so the lane could not be opened there. */
+       site and by count. today-lanes.cjs is SEALED (S10), so the lane could not be opened there.
+       E2b RE-MEASURE (the owner's ruling, DECISIONS:999): one edge, measured with this cell's own lexer and in its
+       order. import:../measure/measure-host.mjs is the measure lane, opened lazily by openBodyLane after the steps lane
+       has settled, failing closed with no store, and READ ONLY: Today calls its two reads (bodyFatBand, bodyProfile)
+       and close(), and none of its writes (the Measure screen's own); the PUT scan finds no new write site, so the
+       declared seams are unchanged (food.test E2B-APP pins that no measure write is named in today-app.cjs). */
     edges: ['require:./today-model.cjs', 'require:./plain-copy.cjs', 'require:./coach-app.mjs',
       'require:../../../coach/page-coach.cjs', 'require:./problem-report.cjs',
       'require:./food-model.cjs', 'require:./sleep-model.cjs', 'require:./steps-model.cjs', 'require:./today-lanes.cjs',
-      'import:../measure/measure-screen.mjs', 'import:../import/import-screen.mjs', 'import:./steps-host.mjs'],
+      'import:../measure/measure-screen.mjs', 'import:../import/import-screen.mjs', 'import:./steps-host.mjs',
+      'import:../measure/measure-host.mjs'],
     syntax: { bracket: [], templateCall: [], shadow: [], arguments: [], destructure: [
       '} = createTodayLanes (',
     ] },
@@ -1775,8 +1781,13 @@ test("RED E.5 row 12: an unfrozen facade in today-lanes.cjs FAILS", () => {
    day), model.recordedSteps once (the card's Steps tick), model.read() once (the sheet's view), model.OUT_OF_RANGE
    once (the sheet's weight field flagged exactly as the inline form flags it), model.loggedFood once (the sheet's
    Food row). The sheet's weight goes through submitWeighIn, so model.weighIn is still reached at ONE site (look-cui3
-   S12 R3, now with the sheet as its third entry). */
-const TODAY_APP_MODEL_SITES = 42;
+   S12 R3, now with the sheet as its third entry).
+   E2b RE-MEASURE (the owner's ruling, DECISIONS:999): 45, measured (42 before). The three added names, each a read or
+   a lane hand-in and none a writer reach, all in openBodyLane: model.today once (the measure lane's day, as the steps
+   lane's), model.setBodyFacts once (the lane this mount opened, the same shape as setStepDays) and model.bodyProfile
+   once (Today repaints on the lane's opening only when he has told Measure something). model.weighIn is still
+   reached at ONE site. */
+const TODAY_APP_MODEL_SITES = 45;
 const TODAY_APP_OPTIONS_SITES = 2;
 
 test("FENCE-MODEL-HELD: the released today-app.cjs names `model` exactly as many times as this round measured", () => {

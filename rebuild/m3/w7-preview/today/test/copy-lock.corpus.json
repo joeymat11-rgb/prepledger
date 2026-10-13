@@ -5328,6 +5328,13 @@
    ]
   },
   {
+   "text": "Nothing on this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Nothing scheduled today, so there is nothing to start.",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -7472,6 +7479,13 @@
    "lists": [
     "RUNTIME_COPY"
    ]
+  },
+  {
+   "text": "This file was made by a different version of Earned than the one on ",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
   },
   {
    "text": "This file was saved under a different name than the one you ",
@@ -11104,6 +11118,13 @@
   },
   {
    "text": "this phone was changed.",
+   "files": {
+    "rebuild/m3/w7-preview/import/import-screen.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "this phone. Export your history again on the PC and import the new file. ",
    "files": {
     "rebuild/m3/w7-preview/import/import-screen.mjs": 1
    },

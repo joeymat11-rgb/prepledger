@@ -4101,9 +4101,11 @@ test('N2-D3 - the coach\'s gate line and Today\'s are ONE line, world by world, 
    athlete with his food days and weigh-ins trimmed: the engine's floor binds, and the engine holds a finite gated band
    it could have said TODAY, so only the never-shown rule keeps its figures off the screen; an imported record can carry
    a lean-mass anchor) and WITHOUT one (a just-enrolled athlete with one weigh-in), no kcal figure appears on the food
-   card, the Energy row, the status line or the coach (every page question). Without lean mass the engine's band has no
-   finite end until the floor fix (DECISIONS:982), which is E2b's, so that row holds the band as the engine gives it
-   today and no "NaN" on any surface either; E2b turns it to the finite band.
+   card, the Energy row, the status line or the coach (every page question). Without lean mass the engine's band had no
+   finite end until the floor fix (DECISIONS:982), which is E2b's; RE-POINTED BY E2b (DECISIONS:999), as this note said it
+   would be: that row's band is now finite (the floor skipped), so its figures are swept like the others. E2b adds the
+   fourth row: no lean mass, but a body-fat band told on Measure, so calorieFloor prices a stand-in floor; the range and
+   every surface are exactly the third row's, and no figure is said.
    Every value is invented. Red first: on 75217c6 the card, the Energy row and the coach say the band's figures and the
    status line says "an estimate". */
 test('E1-NOFIG - a gated athlete, with and without lean mass, sees no kcal figure on the card, the Energy row, the status line or the coach', async () => {
@@ -4114,14 +4116,22 @@ test('E1-NOFIG - a gated athlete, with and without lean mass, sees no kcal figur
   const noLean = clean.engine.applyRead(clean.stateFromOps(), DAY, 180, { hour: 8 });
   const fmt = (n) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
   const KCAL = /\d[\d,]*\s*(kcal|calories)\b/i;
-  for (const [label, state, lean] of [['with lean mass, one figure', withLean, true], ['with lean mass, a band', heavy, true], ['without lean mass', noLean, false]]) {
-    const model = createTodayModel({ today: DAY, basisState: state });
+  /* E2b: what a band told on Measure looks like to Today's model (today-model.cjs bodyFacts; the measure host's reads) */
+  const BAND_TOLD = { band: { op_id: 'op-e2b-nofig', low: 12, high: 15, source: 'self-estimate', table: 'men' },
+    profile: { sex: 'male', height: { value: 70, unit: 'in' } } };
+  const rows = [['with lean mass, one figure', withLean, true, null], ['with lean mass, a band', heavy, true, null],
+    ['without lean mass', noLean, false, null], ['without lean mass, a band told on Measure', noLean, false, BAND_TOLD]];
+  let bareTarget = null;
+  for (const [label, state, lean, facts] of rows) {
+    const model = createTodayModel({ today: DAY, basisState: state, ...(facts ? { bodyFacts: { facts: () => facts } } : {}) });
     const E = model.engine;
-    assert.equal(Number.isFinite(E.calorieFloor(model.stateFromOps()).floor), lean, label + ': fixture: lean mass ' + lean);
+    assert.equal(Number.isFinite(E.calorieFloor(model.stateFromOps()).floor), lean || !!facts,
+      label + ': fixture: lean mass ' + lean + (facts ? ', a stand-in floor from the band' : ''));
     const target = model.read().calorieTarget;
     assert.equal(target.gated, true, label + ': gated');
-    if (lean) assert.ok(Number.isFinite(target.lo) && Number.isFinite(target.hi), label + ': the engine holds a finite band: ' + JSON.stringify([target.lo, target.hi]));
-    else assert.ok(!Number.isFinite(target.lo) && !Number.isFinite(target.hi), label + ': no finite end until E2b (DECISIONS:982): ' + JSON.stringify([target.lo, target.hi]));
+    assert.ok(Number.isFinite(target.lo) && Number.isFinite(target.hi), label + ': the engine holds a finite band: ' + JSON.stringify([target.lo, target.hi]));
+    if (!lean && !facts) bareTarget = target;
+    if (facts) assert.equal(JSON.stringify(target), JSON.stringify(bareTarget), label + ': the range is exactly the row without the band');
     const figures = [...new Set([fmt(target.lo), fmt(target.hi), String(target.lo), String(target.hi)])];
     const doc = new JSDOM(shell()).window.document;
     const api = mountToday(doc, model, {});
@@ -4228,4 +4238,49 @@ test('P8.5 - a measured band keeps the engine\'s own why on Why this plan? and i
   assert.equal(got.answer.startsWith(target.why), true, 'the coach says the engine\'s why: ' + got.answer);
   const floor = await reader.openTurn('p8-5-floor').call.why_this_instruction({ topic: 'floor' });
   assert.equal(floor.values.body.display, model.engine.calorieFloor(model.stateFromOps()).why, 'and the floor\'s own sentence');
+});
+
+/* UI-PASS13 item 1 (shots 02, 02b, 03b), as amended by E1 (Fable fd80cb84 D1; DECISIONS:989). The engine floor fix
+   (DECISIONS:982) stays: with no lean-mass estimate the engine's band has two finite ends again, which the measured
+   range needs. But the gated estimate is never shown: a just-enrolled athlete who has weighed in sees T-19's "A calorie
+   range is not available yet." on the food card with what will measure his range under it, T-19's status line, and
+   T-19's words on the Energy row, and no figure of the estimate anywhere. This cell runs the page's own path end to
+   end: boot over a real store, the in-page first run, one weigh-in. Red first: on 75217c6 the card says "Estimate: ...". */
+test('UP13-ESTIMATE - a just-enrolled athlete who has weighed in sees what will measure his range, never the gated estimate, on the card, the status line and the Energy row', async () => {
+  const fault = faultDatabase();
+  const dom = new JSDOM(shell());
+  const doc = dom.window.document;
+  const booted = await boot({ document: doc, today: P0B_DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  booted.api.render('setup');
+  const model = booted.setup.setup;
+  model.setName('Joe-test');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const press = model.addExercise('U');
+  model.setExerciseField(press.key, 'n', 'Joe-test Bench Press');
+  model.chooseMg(press.key, 'chest');
+  model.setExerciseField(press.key, 'first', '20');
+  model.goto(6);
+  booted.api.render('setup');
+  doc.querySelector('#phone [data-slot="primary"]').click();
+  await landedOnToday(booted.api, 'the in-page first run');
+  await booted.api.ready;
+  assert.equal((await booted.model.weighIn(180)).ok, true, 'one weigh-in is recorded');
+  const target = booted.model.read().calorieTarget;
+  assert.equal(target.from, 'mass-estimate', 'the engine is pricing its labelled estimate');
+  assert.equal(target.gated, true, 'and it is gated');
+  assert.ok(Number.isFinite(target.lo) && Number.isFinite(target.hi), 'its band has two finite ends (DECISIONS:982): ' + JSON.stringify([target.lo, target.hi]));
+  booted.api.render('today', false);
+  const slot = (name) => doc.querySelector('#phone [data-slot="' + name + '"]');
+  const fmt = (n) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
+  assert.equal(slot('eat-title').textContent, 'A calorie range is not available yet.', 'the food card says T-19, never the estimate');
+  assert.equal(slot('kcal-note').hidden, false, 'and says what will measure his range');
+  assert.match(slot('kcal-note').textContent, /to measure yours\.$/, slot('kcal-note').textContent);
+  assert.match(slot('status-line').textContent, /Your calorie range is not available yet\.$/, 'the status line says T-19\'s words: ' + slot('status-line').textContent);
+  const phone = doc.getElementById('phone').textContent;
+  for (const figure of new Set([fmt(target.lo), fmt(target.hi)])) assert.equal(phone.includes(figure + ' kcal') || phone.includes(figure + ' to'), false, 'no estimate figure: ' + figure);
+  booted.api.render('nutrition');
+  const energy = doc.querySelector('#phone .macro-row').textContent;
+  assert(energy.includes('A calorie range is not available yet.'), 'and the Energy row says T-19 too: ' + energy);
+  assert.doesNotMatch(energy, /\d[\d,]* (kcal|to)/, 'with no figure: ' + energy);
+  booted.hosts.close();
 });

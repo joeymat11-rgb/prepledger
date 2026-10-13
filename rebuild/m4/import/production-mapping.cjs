@@ -71,7 +71,16 @@ const ENGINE = Object.freeze({
      hashed from this tree, the protected five by their sealed per-file sha256 from rebuild/lanes/b/tooling/receipts/S11.json
      (never opened), proven unmoved by Git blob id since the S11 seal. Calibrated first: the same procedure over the S11 seal
      7c79ef1 gives bc45ca73 above exactly. The two measurements agree; P3-M1 confirms it at the PM seat. */
-  treeSha256: '155e2f1b16f78d557eb72e842882a933d618a6f31814f6246a29b4da313f0adc',
+  /* E2b re-pin (M2-S19-LIVE; the owner's rulings DECISIONS:982 and :999, GATE-SUPERSESSION DECISIONS:989): ONE engine
+     file moves, energy.cjs, by its seventeen declared hunks (rebuild/m4/workout/test/s19-energy-moves.cjs; 4dd7195e ->
+     39757cee; constants.cjs is not moved, the PM's ruling on E2b). Value computed OFF-SEAT by the same join
+     (port.cjs:222-226) over the 19 names: the 14 unprotected files hashed from this tree, the protected five by their
+     sealed per-file sha256 from rebuild/lanes/b/tooling/receipts/S11.json (never opened), proven unmoved by Git blob id
+     since the S11 seal 7c79ef1. Calibrated first: the same procedure over c2d6db8 gives the S14 value 155e2f1b exactly,
+     and over 7c79ef1 gives bc45ca73. A bundle sealed from the tree before E2b carries 155e2f1b and now refuses
+     SOURCE_ENGINE_CONTEXT_UNPROVEN at the review, which the import route says in plain words (refusal-route.test.mjs
+     E2B-IR2). P3-M1 confirms the value at the PM seat. */
+  treeSha256: '5664120d4f1cc9f3b9e3fed38e5b85cf7958d68e7bee3026867b851cc8f2333b',
   schemaV: 60,
   path: 'rebuild/engine/oracle-shim.cjs' });
 

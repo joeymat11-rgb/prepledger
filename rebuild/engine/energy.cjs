@@ -80,7 +80,65 @@ function skinfoldTrend(s) {
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:2932-2947.
-function bfEst(s, trend = s.trend, atISO = isoOf(todayStart())) {
+/* E2b (the owner's ruling, DECISIONS:999): LEAN MASS WHEN THE MODEL HAS NONE. A just-enrolled athlete has no
+   lean-mass anchor (no DEXA, no coach's eye), so s.model.lean is not a number and every reader of it read NaN. When
+   the page carries what he told Measure (today-model.cjs puts it on the state as s.bodyProfile; nothing in the engine
+   writes it), three readers, and only these three, ask bfEst for a stand-in by passing LEAN_FALLBACK: calorieFloor,
+   proteinTarget and energyAvailability. Every other reader of bfEst (the anchor band, the diet exit, the partition,
+   the ETA, the header) is unchanged and still reads the model alone. In order:
+   (a) a body-fat band he picked: lean = trend x (1 - the band's LOW %). For the floor and for protein the low end is
+       the conservative end: more lean mass, so a higher floor and more protein. The band's own range is the
+       interval; its table ("men" or "women") is his answer's, never inferred from the band;
+   (b) else height and a sex of male or female: Boer's published lean-body-mass formula (Boer 1984; LEAN_BOER, the
+       female coefficients for a woman), source "estimate", with its own wider error, ANCHOR_ERR_FORMULA points;
+   (c) else nothing: the stand-in is refused and the readers read the model as before (NaN), so the floor stays not
+       a number and calorieTarget skips it, which is today's behaviour.
+   A stand-in carries `fallback: true` and its `src` ("band" or "estimate"). calorieTarget asks calorieFloor for no
+   stand-in, so a calorie range, measured or estimated, never sees one. */
+/* The stand-in's three values, private to this module (the PM's ruling on E2b: constants.cjs is not moved).
+   LEAN_BOER is Boer's published lean-body-mass formula (Boer P, 1984), kilograms from kilograms and centimetres,
+   with its male and its female coefficients: lean kg = kg x weight kg + cm x height cm + c. ANCHOR_ERR_FORMULA is the
+   stand-in's own error in body-fat points and BF_BAND_OPEN_SPAN the top of an open body-fat band (26% or more, 35%
+   or more) above its low end: both PM CONVENTIONS under DECISIONS:999, the first wider than the coach's eye (3.5)
+   because a formula knows nothing of his build, the second the table's own four-point rows; only the band's low end
+   ever prices lean mass. */
+const LEAN_BOER = Object.freeze({
+  male: Object.freeze({ kg: 0.407, cm: 0.267, c: -19.2 }),
+  female: Object.freeze({ kg: 0.252, cm: 0.473, c: -48.3 }),
+});
+const ANCHOR_ERR_FORMULA = 5.0;
+const BF_BAND_OPEN_SPAN = 4;
+const LEAN_FALLBACK = Object.freeze({ fallback: true });
+function leanFallback(s, trend) {
+  const body = s && s.bodyProfile;
+  if (!body || !(trend > 0)) return null;
+  const band = body.band;
+  if (band && band.source === "self-estimate" && Number.isFinite(band.low) && (band.table === "men" || band.table === "women")) {
+    const top = Number.isFinite(band.high) ? band.high : band.low + BF_BAND_OPEN_SPAN;
+    const lean = trend * (1 - band.low / 100);
+    return { pct: +band.low.toFixed(1), lean: +lean.toFixed(1), lo: band.low, hi: top, wks: 0, anchorErr: null, src: "band",
+      table: band.table, drip: dripOf(s), fallback: true,
+      why: `From the body-fat range you picked on Measure, ${band.low} to ${top}%, read at its low end, ${band.low}%, the end that gives the larger lean mass. It is your own estimate, not a measurement, and it is used only for your calorie floor, your protein target and your energy availability.` };
+  }
+  const k = body.sex === "male" || body.sex === "female" ? LEAN_BOER[body.sex] : null;
+  const cm = body.heightCm;
+  if (k && Number.isFinite(cm) && cm > 0) {
+    const kg = trend / 2.2046;
+    const leanKg = k.kg * kg + k.cm * cm + k.c;
+    if (!(leanKg > 0) || !(leanKg < kg)) return null;
+    const lean = leanKg * 2.2046;
+    const pct = ((trend - lean) / trend) * 100;
+    return { pct: +pct.toFixed(1), lean: +lean.toFixed(1), lo: +(pct - ANCHOR_ERR_FORMULA).toFixed(1), hi: +(pct + ANCHOR_ERR_FORMULA).toFixed(1),
+      wks: 0, anchorErr: ANCHOR_ERR_FORMULA, src: "estimate", sex: body.sex, drip: dripOf(s), fallback: true,
+      why: `Estimated from your height, your weight and your sex with a published lean-mass formula (Boer), plus or minus ${ANCHOR_ERR_FORMULA} points. Nothing measured it, and it is used only for your calorie floor, your protein target and your energy availability.` };
+  }
+  return null;
+}
+function bfEst(s, trend = s.trend, atISO = isoOf(todayStart()), opts = null) {
+  if (opts && opts.fallback === true && !Number.isFinite(s && s.model ? s.model.lean : NaN)) {
+    const stand = leanFallback(s, trend);
+    if (stand) return stand;
+  }
   const wks = Math.max(0, weeksBetween(s.model.anchorISO, atISO));
   const drip = dripOf(s);
   const lean = s.model.lean + drip * wks;
@@ -115,7 +173,7 @@ function anchorTighten(s) {
 
 // Copied from frozen src/app.jsx @ fe516c1:2977-3001.
 function proteinTarget(s) {
-  const bf = bfEst(s);
+  const bf = bfEst(s, s.trend, isoOf(todayStart()), LEAN_FALLBACK);   /* E2b: the stand-in when the model has no lean mass */
   const ffmKg = bf.lean / 2.2046;
   /* N5/B1 (nutrition round) — THE DYNAMIC EVIDENCE TARGET. The 12.2% body-fat switch
      is REMOVED: a sample-quartile boundary with subgroup intervals overlapping zero —
@@ -136,7 +194,7 @@ function proteinTarget(s) {
     g, lo: g, hi: Math.max(g, Math.round(gHi / 5) * 5), floor, perKg: PROTEIN_FLOOR_G_PER_KG,
     gLo, gHi, inLeanSubgroup: false, straddles: false,
     ffmKg: +ffmKg.toFixed(1), bf: bf.pct, bfLo: bf.lo, bfHi: bf.hi,
-    why: `${g} g today — ${PROTEIN_FLOOR_G_PER_KG} g per kg of your current measured ${(+ffmKg.toFixed(1))} kg lean mass (${gLo}–${gHi} g across the estimate's own ${bf.lo}–${bf.hi}% spread). It moves when the estimate moves, in either direction — the TARGET is always the evidence number, never a pinned constant; eating above it is preference, and legal. Protein is a FLOOR, not a bullseye — over it is never a miss. It does not rise on training days: the one study that compared day types found requirement HIGHER on REST days`,
+    why: `${g} g today — ${PROTEIN_FLOOR_G_PER_KG} g per kg of your current ${bf.fallback === true ? (bf.src === "band" ? "estimated (from the body-fat range you picked)" : "estimated (from your height and sex)") : "measured"} ${(+ffmKg.toFixed(1))} kg lean mass (${gLo}–${gHi} g across the estimate's own ${bf.lo}–${bf.hi}% spread). It moves when the estimate moves, in either direction — the TARGET is always the evidence number, never a pinned constant; eating above it is preference, and legal. Protein is a FLOOR, not a bullseye — over it is never a miss. It does not rise on training days: the one study that compared day types found requirement HIGHER on REST days`,
   };
 }
 
@@ -490,17 +548,20 @@ function observedTDEE(s, opts) {
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:3902-3914.
-function calorieFloor(s) {
-  const bf = bfEst(s);
+function calorieFloor(s, leanOpt = LEAN_FALLBACK) {
+  /* E2b: the stand-in when the model has no lean mass; calorieTarget passes null, so a calorie range never sees one */
+  const bf = bfEst(s, s.trend, isoOf(todayStart()), leanOpt);
   const ffmKg = bf.lean / 2.2046;
-  const ea = energyAvailability(s);
+  const ea = energyAvailability(s, leanOpt);
   const eee = ea && !ea.gated ? ea.trainKcal : Math.round((EA_KCAL_PER_SESSION * 4) / 7);
   const raw = EA_SPARING * ffmKg + eee;
   const floor = Math.round(raw / 50) * 50;
   const soft = Math.round(((EA_SPARING + 5) * ffmKg + eee) / 50) * 50;
   return {
     floor, soft, ffmKg: +ffmKg.toFixed(1), eee: Math.round(eee),
-    why: `${floor} is ${EA_SPARING} kcal per kg of your ${(+ffmKg.toFixed(1))} kg lean mass plus the ~${Math.round(eee)} a day your training costs — the IOC's own energy-availability formula, run backwards. No position stand anywhere states an absolute calorie floor for an athlete; all four I checked express it per kg of lean mass, which is why this one moves with you instead of sitting at a round number. Treat the 25 as a convention rather than a measurement: it comes from three single-subject case reports, and the IOC declines to set a threshold at all.`,
+    /* E2b: a floor priced from a stand-in says so, and only then, so a lean-mass athlete's floor is byte-identical */
+    ...(bf.fallback === true ? { fallback: true, leanSrc: bf.src } : {}),
+    why: `${floor} is ${EA_SPARING} kcal per kg of your ${bf.fallback === true ? (bf.src === "band" ? "estimated (from the body-fat range you picked) " : "estimated (from your height and sex) ") : ""}${(+ffmKg.toFixed(1))} kg lean mass plus the ~${Math.round(eee)} a day your training costs — the IOC's own energy-availability formula, run backwards. No position stand anywhere states an absolute calorie floor for an athlete; all four I checked express it per kg of lean mass, which is why this one moves with you instead of sitting at a round number. Treat the 25 as a convention rather than a measurement: it comes from three single-subject case reports, and the IOC declines to set a threshold at all.`,
   };
 }
 
@@ -684,8 +745,15 @@ function energyBalanceTarget(s, opts) { return opts ? energyBalanceTargetUncache
 function calorieTarget(s) {
   const td = observedTDEE(s);
   const band = cutRateBand(s).band;   // v6.2.1 — the Auto-Pilot mode now drives the calorie band (was fixed s.rate.band)
-  const fl = calorieFloor(s);
+  /* E2b (the owner's ruling, DECISIONS:999): a calorie range is never priced from a lean mass nobody measured (his
+     body-fat band, or the height-and-sex formula), so this floor is asked for with no stand-in. With a lean mass
+     the floor is exactly what it was; without one it is not a number, and the helper below skips it. */
+  const fl = calorieFloor(s, null);
   const floor = fl.floor;
+  /* DECISIONS:982 (the owner's ruling): a floor that is not a number (no lean-mass estimate yet, so calorieFloor has
+     nothing to price it from) is SKIPPED rather than allowed to blank the band. Math.max(NaN, x) is NaN, which left a
+     just-enrolled athlete's labelled estimate with no lo and hi. A finite floor binds exactly as before. */
+  const atFloor = (x) => (Number.isFinite(floor) ? Math.max(floor, x) : x);
   if (!td) {
     /* R4 — THE THIN-DATA FALLBACK, REPLACED BEFORE s.phase WAS DELETED, NOT AFTER.
 
@@ -704,8 +772,8 @@ function calorieTarget(s) {
       why: "No bodyweight on file yet, so there is nothing to price a target from. Log a weigh-in and this fills in immediately." };
     const estG = Math.round(MAINT_KCAL_PER_LB * bwG);
     const kcalForG = (lbWk) => Math.round((lbWk * energyDensity(s).perLb) / 7);
-    const hiG = Math.max(floor, estG - kcalForG(band[0]));
-    const loG = Math.max(floor, estG - kcalForG(band[1]));
+    const hiG = atFloor(estG - kcalForG(band[0]));
+    const loG = atFloor(estG - kcalForG(band[1]));
     return { gated: true, from: "mass-estimate", lo: loG, hi: hiG, mid: Math.round((loG + hiG) / 2),
       tdee: estG, floor, band,
       /* R10 abstention rule: say what it is waiting for, not just that it is waiting. */
@@ -732,16 +800,16 @@ function calorieTarget(s) {
      guard). Today they are identical and the eat band is byte-identical; the promoted
      branch is driven by fixture. */
   const tdEff = (td.tdeePrimary != null ? td.tdeePrimary : td.tdee);
-  const baseHi = Math.max(floor, tdEff - kcalFor(band[0]));
-  const baseLo = Math.max(floor, tdEff - kcalFor(band[1]));
+  const baseHi = atFloor(tdEff - kcalFor(band[0]));
+  const baseLo = atFloor(tdEff - kcalFor(band[1]));
   /* v7.3.1 — an APPROVED Auto-Pilot steer is a tracked, reversible offset ADDED to the engine-owned
      base band (never mutating it): a tighten lowers it, an ease raises it, floored the same way, and it
      reconciles away at the next weigh-in (activeAdjustment). Zero offset when none is active, so every
      pre-existing band assertion is byte-identical. */
   const aaCal = activeAdjustment(s);
   const adjK = aaCal.via === "cal" ? (aaCal.calDelta || 0) : 0;
-  const hi = Math.max(floor, baseHi + adjK);
-  const lo = Math.max(floor, baseLo + adjK);
+  const hi = atFloor(baseHi + adjK);
+  const lo = atFloor(baseLo + adjK);
   const ph = PHASES[s.phase];
   const phaseLo = ph ? ph.band[0] : null, phaseHi = ph ? ph.band[1] : null;
   const drift = phaseHi != null ? Math.round((lo + hi) / 2 - (phaseLo + phaseHi) / 2) : 0;
@@ -783,7 +851,7 @@ function calorieTarget(s) {
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:4416-4478.
-function energyAvailability(s) {
+function energyAvailability(s, leanOpt = LEAN_FALLBACK) {
   const cutoff = isoOf(new Date(todayStart().getTime() - 21 * DAY));
   const rows = Object.entries(s.dailyLogs || {}).filter(([d, v]) => d >= cutoff && v && v.cal != null);
   if (rows.length < 8) return { gated: true, have: rows.length, need: 8 };
@@ -791,7 +859,7 @@ function energyAvailability(s) {
   const intake = cals.reduce((a, b) => a + b, 0) / cals.length;
   const stepRows = rows.filter(([, v]) => v.steps != null).map(([, v]) => v.steps);
   const steps = stepRows.length ? stepRows.reduce((a, b) => a + b, 0) / stepRows.length : null;
-  const bf = bfEst(s);
+  const bf = bfEst(s, s.trend, isoOf(todayStart()), leanOpt);   /* E2b: the stand-in when the model has no lean mass */
   const ffmKg = bf.lean / 2.2046;
   const bwKg = s.trend / 2.2046;
   if (!(ffmKg > 0)) return { gated: true, have: rows.length, need: 8 };
@@ -840,7 +908,7 @@ function energyAvailability(s) {
       `Intake ${Math.round(intake)} kcal/day averaged over ${rows.length} logged days.`,
       `Training costs about ${Math.round(trainKcal)} kcal/day at ${(+perWk.toFixed(1))} sessions a week${logged < scheduled ? ` (the programme's ${scheduled}, not the ${(+logged.toFixed(1))} in the log — in-app logging started part way through, and under-charging training would flatter this number)` : ""} — an estimate, not a measurement.`,
       steps == null ? "No step data in the window." : `Walking ${Math.round(steps).toLocaleString()} steps/day costs roughly ${Math.round(walkKcal)} kcal/day above a sedentary baseline.`,
-      `Fat-free mass ${(+ffmKg.toFixed(1))} kg, from the anchored lean model.`,
+      `Fat-free mass ${(+ffmKg.toFixed(1))} kg, ${bf.fallback === true ? (bf.src === "band" ? "estimated from the body-fat range you picked" : "estimated from your height and sex") : "from the anchored lean model"}.`,
       `Counting structured training only — ${eaTrain} — is the convention the IOC's 2023 formula uses and the only one comparable to the 25 line, so it is the one banded above. Counting deliberate walking as training gives ${eaAll}; that is a true reading of everything you burn in a day but there is no published threshold built that way. Espinar 2026 measured the same swap in free-living athletes and it moved EA from ~32 to ~20 with nothing changing physiologically.`,
       `The 25 itself is extrapolated, not measured. Fagerberg 2018 proposes it from semi-starvation work and bodybuilder case reports and says plainly that no controlled male threshold study exists; the IOC 2023 declines a universal cut-off and gives males roughly 9-25. Treat it as a direction, and watch resting pulse, morning temperature and whether the lifts hold — those are measurements.`,
     ],
