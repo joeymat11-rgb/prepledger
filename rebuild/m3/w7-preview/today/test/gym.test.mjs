@@ -1713,3 +1713,45 @@ test('P5-D1 a load the plan did not set is never said as planned: the debut seco
     assert.deepEqual(shown.opened, [SET_WHY.firstAt + load + ' lb.'], 'control: Why? says the planned load');
   } finally { control.close(); }
 });
+
+/* POLISH 6 (PM, item 5; ui-pass12 shot 04: "Find a working load x Record the reps performed" wrapped awkwardly at 390
+   under the numerals of a debut set). The plain line above already says it ("First time: find your weight."), so when
+   the engine leaves the load to be found (gym-model.mjs prescription.loadOpen) and the plain line says so, the cells'
+   own line is not drawn; the empty boxes and Log ask for the rest. A configuration the box cannot be filled from (a
+   hold with no earlier real load) keeps its line. Red first: on 4ba1ce5 the cells' line is drawn on both debut sets. */
+async function p6Plan(model) {
+  const doc = s14Dom();
+  await mountGym(doc, doc.getElementById('phone'), { model, onBack: () => {}, onChanged: () => {} });
+  const plan = doc.querySelector('[data-slot="plan"]');
+  return { line: doc.querySelector('[data-slot="reason"]').textContent, hidden: plan.hidden,
+    said: [...plan.children].map(c => c.textContent).join(' ') };
+}
+test('P6-DEBUT a debut set draws no cells line under the numerals: the plain line already says find your weight', async () => {
+  const { SET_PLAIN } = await import('../gym-app.mjs');
+  const kit = await device({ engineState: debutState() });
+  try {
+    assert((await kit.model.start()).ok);
+    const one = await kit.model.read();
+    assert.equal(one.prescription.loadOpen, true, 'fixture: the debut leaves the load to be found');
+    assert.match(String(one.prescription.line), /^Find a working load \u00d7 /, 'fixture: the cells say so in their own words');
+    const first = await p6Plan(kit.model);
+    assert.deepEqual([first.line, first.hidden], [SET_PLAIN.first, true], 'set 1: the plain line says it, the cells line is not drawn ' + JSON.stringify(first));
+    assert((await kit.model.logSet({ startId: one.startId, slot: one.set.slot, lift: one.set.lift, load: '25', reps: '10', effort: CHOSEN })).ok);
+    kit.model.forget();
+    const two = await kit.model.read();
+    assert.deepEqual([two.phase, two.set.lift, two.entry.load, two.entry.reps], ['active', one.set.lift, 25, null], 'fixture: set 2 opens at the load just logged');
+    const second = await p6Plan(kit.model);
+    assert.deepEqual([second.line, second.hidden], [SET_PLAIN.first, true], 'set 2: the same ' + JSON.stringify(second));
+  } finally { kit.gymHost.close(); }
+  /* control: a hold card with no earlier real load keeps its line (S13-R1-LEGACY's world) */
+  const state = s14Text(createTodayModel({}).stateFromOps(), 'hold');
+  for (const day of Object.values(state.sessionLog || {})) for (const entry of day.entries || []) if (state.exercises.some(ex => ex.id === entry.id && ex.day === 'U')) entry.w = null;
+  const hold = await device({ engineState: state });
+  try {
+    assert.equal((await hold.model.start()).ok, true);
+    const view = await hold.model.read();
+    assert.deepEqual([view.phase, view.prescription.loadOpen, view.entry.load], ['active', false, null], 'control: a hold, specified as a configuration');
+    const shown = await p6Plan(hold.model);
+    assert.deepEqual([shown.hidden, shown.said.startsWith('hold')], [false, true], 'control: the hold keeps its line ' + JSON.stringify(shown));
+  } finally { hold.gymHost.close(); }
+});

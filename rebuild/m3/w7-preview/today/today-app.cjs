@@ -362,6 +362,7 @@ const STATUS_BLOCKED = "This device’s record did not verify. Nothing on this s
 const STATUS_STAMP = " · ";
 const STATUS_ONE_CHANGE = " today. One change to review."; // C-UI-3: T-40 (the prototype's face default)
 const STATUS_ONE_ANSWER = " today. One answer recorded."; // C-UI-3: T-40b
+const STATUS_OPENING = "Your record is opening. Nothing here is measured yet."; // T-03 (POLISH 6, item 1)
 function statusSessionName(workout) {
   if (!workout || workout.today !== true || typeof workout.title !== "string") return null;
   const name = workout.title.split(STATUS_STAMP)[0].trim();
@@ -376,7 +377,10 @@ function statusSessionName(workout) {
    - F4: a pending-adoption Today (today-model.cjs sets exerciseCount null) says T-12's
      "Nothing scheduled today, so there is nothing to start." rather than T-03's "Your
      record is opening. Nothing here is measured yet."; the view does not expose
-     pendingAdoption, and the line agrees with the app's own workout line for that state. */
+     pendingAdoption, and the line agrees with the app's own workout line for that state.
+     POLISH 6 (PM, item 1) closes F4 on the page: renderToday now knows the pending adoption (`opening`: an enrolled
+     device whose adoption has not settled, its model still the pre-adoption one) and says T-03's words in place of
+     this line; statusLine itself, which cannot see the adoption, is unchanged. */
 /* `session` is the durable session facade.session() answers (its phase), `sample` is
    true while Today paints the preview's sample athlete before setup (T-02). `card` is the
    proposal card's state as C-UI-3 drew it ("open", "recorded", "declined"), or undefined. */
@@ -699,14 +703,18 @@ function mountToday(doc, model, options = {}) {
      Every paint takes the CURRENT token; a save that resolves after the athlete has
      navigated holds a stale one and applies nothing - no render, no navigation. */
   let mountToken = 0;
-  /* POLISH 5 (PM, item 4) - THE BOOT ANSWER, HELD AS LOADING. `bootSession` is the workout summary this mount
-     was handed (the entry's own first dry preparation, read before adoption). While an enrolled device's adoption
-     has not settled, a refusal that is still that same answer is drawn as loading (renderToday); the first
-     repaint after the adoption settles draws whatever the card then holds. Nothing here reads or writes a lane. */
-  const bootSession = facade.session();
+  /* POLISH 5 (PM, item 4) - THE BOOT ANSWER, HELD AS LOADING. While an enrolled device's adoption has not settled,
+     the workout is drawn as loading (renderToday); the first repaint after the adoption settles draws whatever the
+     card then holds. Nothing here reads or writes a lane.
+     POLISH 6 (PM, item 1; ui-pass12: "Start UPPER BODY . TODAY" on a Lower day for up to 1.45 s) - THE WHOLE DAY'S
+     WORKOUT IS HELD, not only a refusal the gym card read before adoption. In that window the Today model can still
+     stand on the record the page opened before his own state was adopted (today-model.cjs holds exerciseCount null,
+     and its title is not his day), so no word of the workout is drawn as his until the adoption settles: Start shows
+     the loading state and cannot be tapped, the card's line says the loading state, and while the model is still the
+     pre-adoption one the card draws no title and the status line says the board's T-03 words. */
   let loadingShown = false;
-  function workoutStillLoading(drawn) {
-    if (facade.adoptionSettled() || !drawn || drawn !== bootSession || drawn.phase !== "blocked") return false;
+  function workoutStillLoading() {
+    if (facade.adoptionSettled()) return false;
     const setupEntry = facade.setup();
     const enrolment = setupEntry && typeof setupEntry.summary === "function" ? setupEntry.summary() : null;
     return !!(enrolment && enrolment.enrolled === true);
@@ -1131,7 +1139,13 @@ function mountToday(doc, model, options = {}) {
     }
     if (!Number.isFinite(view.proteinTarget.g)) map.get("protein-line").hidden = true;
 
+    /* POLISH 6 (item 1): while the adoption settles the workout is loading; while the model is still the pre-adoption
+       one (exerciseCount held null) its title is not his day, so the card draws none. */
+    const loadingWorkout = workoutStillLoading();
+    if (loadingWorkout) loadingShown = true;
+    const opening = loadingWorkout && view.workout.exerciseCount === null;
     put(map, "workout-title", view.workout.title);
+    if (opening) { map.get("workout-title").textContent = ""; map.get("workout-title").hidden = true; }
     /* S15 ROUND 5 POLISH, item 5 (PM UI pass, shots 11/12): the day says whether it is a training day, so
        preview.css can put today's workout first on a training day and keep the order on a rest day. A
        data attribute only: no word, slot or card moves in the document. */
@@ -1150,8 +1164,6 @@ function mountToday(doc, model, options = {}) {
        history whose order mapping only his adopted basis carries. Until the adoption settles, that boot answer is
        drawn as the card's loading state, with Start held; a refusal read after it is drawn as before. */
     const rawSession = facade.session();
-    const loadingWorkout = workoutStillLoading(rawSession);
-    if (loadingWorkout) loadingShown = true;
     const today = loadingWorkout ? null : rawSession;
     const refused = today && today.phase === "blocked" ? (today.code || null) : null;
     /* A session abandoned on an EARLIER day blocks every later day in the accepted
@@ -1164,7 +1176,7 @@ function mountToday(doc, model, options = {}) {
       : today && today.phase === "finished" ? WORKOUT_RECORDED_TODAY
       : stranded ? UNFINISHED_WORKOUT + " · " + stranded.day
       : refused ? WORKOUT_CANNOT_OPEN + " · " + refused : null;
-    put(map, "workout-count", view.workout.exerciseCount === null
+    put(map, "workout-count", opening ? WORKOUT_LOADING : view.workout.exerciseCount === null
       ? (view.workout.unavailableReason ? "Today's exercises are not available: " + view.workout.unavailableReason : "No session is scheduled today.")
       : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises")
         + " · " + (sessionState || "Your set targets are ready"));
@@ -1198,7 +1210,9 @@ function mountToday(doc, model, options = {}) {
     /* C-UI-3: the proposal card first, so the status line can say what the card shows (T-40). */
     const face = bindProposal(map, view);
     paintWeekReview(map, view.today, token);   /* Coach v1 piece 2: the weekly review card */
-    map.get("status-line").textContent = plainOrDrop(statusLine(view, today, sample, face ? face.state : undefined), "status-line");
+    /* POLISH 6 (item 1): while the model is still the pre-adoption one the line says the board's T-03 words. */
+    map.get("status-line").textContent = plainOrDrop(opening ? STATUS_OPENING
+      : statusLine(view, today, sample, face ? face.state : undefined), "status-line");
     problemControl(map);
     put(map, "morning", morningLine(view));
     bindWeighIn(map, owed); // C-UI-3: the inline weigh-in, only while this morning's weight is owed
@@ -1227,7 +1241,9 @@ function mountToday(doc, model, options = {}) {
     const restDay = noSessionToday(view.workout) && !resuming && !stranded && !finished;
     const weighFirst = restDay && owed;
     const nothingToStart = restDay && !owed;
-    const action = resuming ? resumeLabel(view.workout)
+    /* POLISH 6 (item 1): until the day's workout is settled Start names no workout: it shows the loading state and is held. */
+    const action = loadingWorkout ? WORKOUT_LOADING
+      : resuming ? resumeLabel(view.workout)
       : stranded ? CLOSE_UNFINISHED_WORKOUT
       : finished ? REVIEW_WORKOUT
       /* P0-C item (b), kept for the rest day: the label names the sheet the click opens; the
@@ -1249,9 +1265,9 @@ function mountToday(doc, model, options = {}) {
       }
       return weighFirst ? openWeighIn() : render("workout", true);
     });
-    if (nothingToStart) { primary.disabled = true; primary.hidden = true; }
+    if (loadingWorkout) primary.disabled = true;   /* POLISH 5 item 4, POLISH 6 item 1: held while loading */
+    else if (nothingToStart) { primary.disabled = true; primary.hidden = true; }
     else if (!weighFirst && view.workout.exerciseCount === null) primary.disabled = true;
-    else if (!weighFirst && loadingWorkout) primary.disabled = true;   /* POLISH 5, item 4: held while loading */
 
     /* P-MEASURE (round 2, closing finding 2 - "nothing renders"): the ONE way
        Today reaches the comparison view. No approved tile exists for this

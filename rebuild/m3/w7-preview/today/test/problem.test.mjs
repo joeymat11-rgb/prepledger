@@ -889,8 +889,11 @@ test('P0B.8 - an enrolled installation paints no fixture figure before adoption;
      "next best action" text) are fixture-derived too; gate both. */
   assert.equal(firstView.workout.exerciseCount, null, 'no fixture exercise count before adoption resolves');
   assert.deepEqual(firstView.marchingOrder, {}, 'no fixture marching order before adoption resolves');
-  assert.equal(firstFrame.includes('No session is scheduled today.'), true,
-    'the same honest fallback an athlete with no session at all already sees');
+  /* POLISH 6 (PM, item 1): this frame's line said "No session is scheduled today." (the fallback an athlete with no
+     session at all sees), which on a training day is not true of his day; until the adoption settles the line says
+     the loading state, and the card names no day (P6-BOOT). */
+  assert.equal(firstFrame.includes('Your set targets are loading'), true, 'the loading state, while his state is adopted');
+  assert.equal(firstFrame.includes('No session is scheduled today.'), false, 'not a claim about his day that may be false');
   const fixtureCount = fixtureView.workout.exerciseCount;
   assert(Number.isFinite(fixtureCount) && fixtureCount > 0, 'the fixture really carries a count to hide');
   assert.equal(firstFrame.includes(fixtureCount + ' exercise'), false,
@@ -1005,6 +1008,65 @@ test('P5-BOOT - a refusal read before adoption is drawn as loading with Start he
   summary = Object.freeze({ phase: 'blocked', sets: 0, code: CODE, copy: null, unfinished: null });
   api.render('today', false);
   assert.equal(line().includes(CODE), true, 'a refusal after adoption keeps its code: ' + line());
+  hosts.close();
+});
+
+/* POLISH 6 (PM, item 1; ui-pass12: the Start bar read "Start UPPER BODY . TODAY" on a Lower day for up to 1.45 s at
+   boot). While an enrolled device's adoption has not settled, the Today model can still stand on the record the page
+   opened before his own state was adopted (exerciseCount held null, a title that is not his day). No word of the workout
+   is drawn as his in that window: Start shows the loading state and cannot be tapped, the card draws no title and says
+   the loading state, and the status line says the board's T-03 words; once his state is adopted the card and line are
+   his while Start still waits for the gym card; once the adoption settles Start is his workout and live. Red first: on
+   4ba1ce5's today-app.cjs the bar says "Start " and the pre-adoption title. */
+test('P6-BOOT - until the day\'s workout is settled, Start shows the loading state, is held, and no pre-adoption title is drawn', async () => {
+  const LOADING = 'Your set targets are loading';
+  const T03 = 'Your record is opening. Nothing here is measured yet.';
+  const kit = await p0bEnrolledDevice();
+  const hosts = await openTodayHosts({ indexedDB: kit.fault.indexedDB, crypto: webcrypto, day: P0B_DAY });
+  const realSetup = await createSetupEntry({ today: P0B_DAY }, { hosts });
+  assert.equal(realSetup.summary().enrolled, true);
+  let releaseState, releaseRebase;
+  const stateGate = new Promise((resolve) => { releaseState = resolve; });
+  const rebaseGate = new Promise((resolve) => { releaseRebase = resolve; });
+  const delayedSetup = { ...realSetup, athleteState: () => stateGate.then(() => realSetup.athleteState()) };
+  let summary = Object.freeze({ phase: 'ready', sets: 0, code: null, copy: null, unfinished: null });
+  const workout = { summary: () => summary, setOnRefresh() {}, open() { return null; },
+    refresh: async () => summary,
+    gym: { rebase: () => rebaseGate.then(() => true), holdForAdoption() {}, read: async () => summary } };
+  const model = createTodayModel({ today: P0B_DAY });
+  const dom = new JSDOM(shell());
+  const doc = dom.window.document;
+  const api = mountToday(doc, model, { workout, setup: delayedSetup });
+  const slot = (name) => doc.querySelector('[data-slot="' + name + '"]');
+  const bar = () => ({ label: slot('primary-label').textContent, disabled: slot('primary').disabled });
+  /* 1. the model is still the pre-adoption one */
+  const before = model.read().workout;
+  assert.equal(before.exerciseCount, null, 'fixture: the model has not adopted his state yet');
+  api.render('today', false);
+  assert.deepEqual(bar(), { label: LOADING, disabled: true }, 'Start shows the loading state and is held: ' + JSON.stringify(bar()));
+  assert.equal(slot('primary-label').textContent.startsWith('Start '), false, 'Start names no workout');
+  assert.deepEqual([slot('workout-title').hidden, slot('workout-title').textContent], [true, ''], 'the card draws no title');
+  assert.equal(slot('workout-count').textContent, LOADING, 'the card says the loading state, and no count or schedule');
+  assert.equal(slot('status-line').textContent, T03, 'the status line says the board\'s T-03 words');
+  if (typeof before.title === 'string' && before.title) {
+    assert.equal(doc.getElementById('phone').textContent.includes(before.title), false, 'the pre-adoption title is drawn nowhere');
+  }
+  /* 2. his state is adopted; the gym card is still being rebased */
+  releaseState();
+  for (let i = 0; i < 400 && model.read().workout.exerciseCount === null; i += 1) await new Promise((r) => setTimeout(r, 2));
+  assert.notEqual(model.read().workout.exerciseCount, null, 'his own state is adopted');
+  api.render('today', false);
+  assert.deepEqual(bar(), { label: LOADING, disabled: true }, 'Start still waits for the gym card: ' + JSON.stringify(bar()));
+  assert.equal(slot('workout-title').hidden, false, 'his own title is drawn');
+  assert.equal(slot('workout-title').textContent, model.read().workout.title);
+  assert.match(slot('workout-count').textContent, /^\d+ exercises? \u00b7 Your set targets are loading$/);
+  assert.notEqual(slot('status-line').textContent, T03, 'the status line is his day\'s');
+  /* 3. the adoption settles: Start is his workout, and live */
+  releaseRebase();
+  await api.ready;
+  for (let i = 0; i < 50 && bar().label === LOADING; i += 1) await new Promise((r) => setTimeout(r, 2));
+  assert.deepEqual(bar(), { label: 'Start ' + model.read().workout.title, disabled: false }, 'Start is his workout: ' + JSON.stringify(bar()));
+  api.dispose();
   hosts.close();
 });
 

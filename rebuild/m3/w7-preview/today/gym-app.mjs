@@ -574,7 +574,13 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, onCo
       right.textContent = plainOrDrop(planCells[1], 'plan');
       plan.append(left, times, right);
     } else plan.textContent = plainOrDrop(planLine || '', 'plan');
-    plan.hidden = !planLine || (view.entry.load !== null && view.entry.reps !== null);
+    /* POLISH 6 (PM, item 5; ui-pass12 shot 04: "Find a working load x Record the reps performed" wrapped at 390): when
+       the engine leaves the load to be found and the plain line above already says so ("First time: find your
+       weight.", or "Choose your weight for this set."), the cells' own words would only say it again, so the line is
+       not drawn; the empty boxes and Log ask for the rest. A configuration (a hold, a bodyweight marker) keeps it. */
+    const saysFind = plainLine === SET_PLAIN.first || plainLine === SET_PLAIN.choose;
+    plan.hidden = !planLine || (view.entry.load !== null && view.entry.reps !== null)
+      || (view.prescription.loadOpen === true && saysFind);
     /* W-18 (DECISIONS:820 (2), (4)): with no load step on file the board's hint says so
        under the numerals; there are no +/- steps, so the box always takes typed entry. */
     map.get('step-hint').hidden = view.entry.step !== null;

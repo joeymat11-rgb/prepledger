@@ -523,17 +523,68 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   invariants, the deployed-shell probe (24 of 24), the foot probe (44 of 44, the trend line among its rows), the
   coach-screen probe (46 of 46) and the quiet-link rhythm probe (6 of 6).
 
+## Coach v1, polish 6 (PM 2026-10-13, ui-pass12; on 4ba1ce5, rebuild/c-polish6)
+- Start at boot (item 1). ROOT CAUSE: on an enrolled device Today paints before his own state is adopted, and in
+  that window the Today model still stands on the record the page opened with (today-model.cjs holds exerciseCount
+  null, and its next-workout title is not his day); polish 5 held only a REFUSAL read in that window, so the bar was
+  drawn "Start " + that title. Measured in the builder-seat boot probe (a real enrolled installation, Lower on
+  Monday): on 4ba1ce5 the first frame's bar, card title and status line named the Upper day ("No session is scheduled
+  today." on the card, T-12's line on the status row), 1 wrong-day frame; now 0. Until the adoption settles
+  (today-lanes.cjs facade adoptionSettled, read as polish 5 reads it) Start shows the loading state ("Your set targets
+  are loading", the card line's own words) and is held; while the model is still the pre-adoption one the card draws
+  no title, its line says the loading state, and the status line says the board's own T-03 words ("Your record is
+  opening. Nothing here is measured yet.", which closes the recorded departure F4 on the page; statusLine itself is
+  unchanged); once his state is adopted the card and line are his while Start still waits for the gym card; once the
+  adoption settles Start is his workout and live (problem.test.mjs P6-BOOT). P0B.8's first-frame assertion moves with
+  it: it held that frame's line to "No session is scheduled today." (a claim about his day that may be false); it now
+  holds the loading state there and the absence of that sentence, its count and figure checks unchanged.
+- The coach answer (item 2). askLive's "nearest" scroll put the card's foot on the body's edge, inside the 20 px
+  bottom fade over its 22 px inset, so the source line was masked at 390 and 430 (coach-scroll probe on 4ba1ce5: 19 of
+  24, every 390 answer and the 430 plan answer inside the band). The card now keeps that band as scroll room
+  (scroll-margin-bottom: the fade over the inset; scroll-margin-top: the scrolled top fade's band), so the scroll stops
+  above the band or at the end of the scroll, where nothing is faded: 30 of 30 at 390 and 430, a six-line answer
+  included, the source line drawn and whole each time.
+- Undo cards (item 3). "Not now" on an undo card takes polish 5's quiet look, so the card has no primary: both
+  buttons are unfilled, the pack's line, the secondary text, the same 44 px row; a new weight's card keeps its pair as
+  it was (undo probe over the real region: 2 of 8 on 4ba1ce5, 8 of 8 now).
+- "Show fewer" (item 4). The inline control took the pack .link's flex gap and spread (12 px plus the chevron's 7 px:
+  26 px from words to chevron against Hide details' 14 px); it now has no gap, and once open it is a 44 px row of its
+  own under the names, at the line's start, at every width (week-more probe: 1 of 6 on 4ba1ce5, 6 of 6 now; at 430
+  "Show fewer" sat on the names' last line before).
+- The debut hint (item 5). When the engine leaves the load to be found (gym-model.mjs prescription.loadOpen: the load
+  cell is not specified, a debut's "Find a working load") and the plain line already says so ("First time: find your
+  weight." or "Choose your weight for this set."), the cells' own line under the numerals is not drawn; the empty boxes
+  and Log ask for the rest. A configuration (a hold, a bodyweight marker) is specified, and keeps its line
+  (gym.test.mjs P6-DEBUT: debut sets 1 and 2, and a hold with no earlier real load as the control).
+- New strings: one, the board's own T-03 line (app/states-today.js T-03; the C-UI-2 status-line words, DECISIONS:820
+  (2)), owned by today-app.cjs's status-line block and declared in design.cjs RUNTIME_COPY beside Today's other
+  borrowed board status words (Fable D1, 6d2d4c34); no other word is new (the bar's loading state is polish 5's line).
+  The copy lock re-measures for exactly that piece (CL-POLISH6-DELTA, CL-POLISH6-APPROVAL; corpus e63812ae ->
+  a4374f49).
+- Pins and needles, measured: s10-copy-lock 29 -> 31 (CL-POLISH6-DELTA, CL-POLISH6-APPROVAL), s12-look 80 -> 81
+  (look-cui2's polish 6 cell), today-17 856 -> 858 expected (problem.test P6-BOOT, gym.test P6-DEBUT; observed at the
+  PM seat); the writer fence is unchanged (417); PAGE_PINS unchanged (today-entry.mjs is not touched).
+- Red first: on 4ba1ce5's sources (today-app.cjs, gym-app.mjs, gym-model.mjs, preview.css, the copy-lock corpus)
+  6 rows fail and pass on these: problem.test.mjs P6-BOOT and P0B.8 (as moved), gym.test.mjs P6-DEBUT, look-cui2's
+  polish 6 cell, copy-lock CL-PIN and CL-POLISH6-DELTA; and the four probes above read 1 wrong-day frame, 19 of 24,
+  2 of 8 and 1 of 6 on them.
+- At the builder seat: the today batch 655/676 (the same 21 seat-only build failures), the fences batch 2208/2210
+  (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 31/31, the boot
+  probe (0 wrong-day frames), the coach-scroll probe (30 of 30), the undo probe (8 of 8), the week-more probe (6 of 6),
+  the week probe (42 of 42), the 76 layout invariants, the deployed-shell probe (24 of 24), the foot probe (44 of 44),
+  the coach-screen probe (46 of 46) and the quiet-link rhythm probe (6 of 6).
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 (the polish's CL-COACH-POLISH-DELTA
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
-polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell), and with the
+polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

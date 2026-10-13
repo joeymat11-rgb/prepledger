@@ -797,3 +797,22 @@
   background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 92%, transparent) 0,
     color-mix(in srgb, var(--surface) 72%, transparent) 45%, color-mix(in srgb, var(--surface) 28%, transparent) 78%, transparent 100%); }
 /* ===== POLISH 5: END ===== */
+/* ===== POLISH 6 (PM, ui-pass12, 2026-10-13): BEGIN =====
+   2. A COACH ANSWER COMES WHOLLY INTO VIEW (coach-app.mjs askLive scrolls it to the nearest edge), its source line
+      included, clear of the fades: the card keeps the bottom fade band (20 px) over the body's inset as scroll room
+      under it, and the scrolled top fade's band over it, so "nearest" stops above the band, or at the end of the
+      scroll, where nothing is faded. */
+.scene-frame.screen-coach > .view.ui #coach-answer {
+  scroll-margin-bottom: calc(20px + var(--fade-bot-inset, 22px));
+  scroll-margin-top: calc(max(47px, env(safe-area-inset-top, 0px)) + 32px); }
+/* 3. AN UNDO CARD HAS NO PRIMARY: "Not now" is as quiet as "Undo" (polish 5's quiet button), so neither reads as the
+      action the card is for. A new weight's card keeps its pair as it was. */
+[data-native-load="offer"][data-kind="compensate"] > button[data-native-load="decline"] {
+  background: none; border: 1px solid var(--line); color: var(--text-soft); }
+/* 4. "SHOW FEWER" IS A ROW OF ITS OWN, ITS CHEVRON CLOSE: the inline control takes the chevron at the words, as "Hide
+      details" has it (no flex gap or spread), and once open it leaves the line for a 44 px row of its own under the
+      names, at the line's start, at every width. */
+.view [data-slot="week-review-steady"] > [data-slot="week-review-more"] { gap: 0; justify-content: flex-start; }
+.view [data-slot="week-review-steady"] > [data-slot="week-review-more"][aria-expanded="true"] {
+  display: flex; width: fit-content; margin: 0; }
+/* ===== POLISH 6: END ===== */

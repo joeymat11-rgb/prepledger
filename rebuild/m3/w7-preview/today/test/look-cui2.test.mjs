@@ -295,3 +295,29 @@ test("C-UI polish 5: the set screen's room under the last row, the quiet Undo, t
     "no other height");
   assert.doesNotMatch(code, /:is\(|display:\s*none|line-clamp|max-height/, "plain selectors; nothing hidden, clamped or capped");
 });
+
+/* POLISH 6 (PM, ui-pass12; red first on 4ba1ce5's preview.css). Measured at the builder seat in Chromium: a coach answer
+   comes wholly into view, its source line included, clear of the bottom fade, at 390 and 430 (coach-scroll probe); an
+   undo card's two buttons look alike and neither has a fill, while a new weight's card keeps its pair (undo probe); the
+   "Show fewer" chevron sits as close to its words as "Hide details" has it, and the open control is a row of its own
+   under the names at every width (week-more probe). Held here in the stylesheet. */
+test("C-UI polish 6: the coach answer's scroll room, the quiet undo card, Show fewer on its own row", () => {
+  const css = fs.readFileSync(PREVIEW_CSS, "utf8");
+  const block = css.slice(css.indexOf("/* ===== POLISH 6 (PM"), css.indexOf("/* ===== POLISH 6: END ===== */"));
+  assert(block.length > 0, "the polish 6 block");
+  const code = block.replace(/\/\*[\s\S]*?\*\//g, "");
+  assert(code.includes(".scene-frame.screen-coach > .view.ui #coach-answer {\n  scroll-margin-bottom: calc(20px + var(--fade-bot-inset, 22px));\n"
+    + "  scroll-margin-top: calc(max(47px, env(safe-area-inset-top, 0px)) + 32px); }"),
+    "the answer keeps the bottom fade band over the body's inset, and the scrolled top fade's band, as scroll room");
+  assert(code.includes("[data-native-load=\"offer\"][data-kind=\"compensate\"] > button[data-native-load=\"decline\"] {\n"
+    + "  background: none; border: 1px solid var(--line); color: var(--text-soft); }"),
+    "an undo card's Not now is as quiet as its Undo");
+  assert(css.includes("[data-native-load=\"offer\"][data-kind=\"compensate\"] > button[data-native-load=\"yes\"] {\n"
+    + "  background: none; border: 1px solid var(--line); color: var(--text-soft); }"), "polish 5's quiet Undo stands");
+  assert(code.includes(".view [data-slot=\"week-review-steady\"] > [data-slot=\"week-review-more\"] { gap: 0; justify-content: flex-start; }"),
+    "the chevron at the words");
+  assert(code.includes(".view [data-slot=\"week-review-steady\"] > [data-slot=\"week-review-more\"][aria-expanded=\"true\"] {\n"
+    + "  display: flex; width: fit-content; margin: 0; }"), "the open control on a row of its own");
+  assert.doesNotMatch(code, /:is\(|display:\s*none|line-clamp|max-height|min-height|font-size/,
+    "plain selectors; nothing hidden, clamped, capped, resized or shrunk");
+});

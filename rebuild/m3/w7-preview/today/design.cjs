@@ -230,6 +230,9 @@ const RUNTIME_COPY = Object.freeze([
   "Yes, add it", "No, keep it as is", "Add one set this week", "Yes, take the break", "No, keep cutting",
   "Yes, use them", "No, keep the plan’s steps", "Use the machine’s own steps",
   " today. One change to review.", " today. One answer recorded.", "Saving",
+  /* POLISH 6 (PM, item 1; Fable D1): the status line while an enrolled device's record is still opening, the
+     prototype's own T-03 words (app/states-today.js T-03), C-UI-2's status-line words (DECISIONS:820 (2)). */
+  "Your record is opening. Nothing here is measured yet.",
 ]);
 /* A3 — the approved question wording the CHECK-IN composes at runtime, beside a
    stored answer, when it reads today's recorded check-in back. Same rule as A1's and

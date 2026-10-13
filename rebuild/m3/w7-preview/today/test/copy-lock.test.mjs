@@ -78,7 +78,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // "Hide details" and "Show fewer" (CL-WEEK-POLISH4-DELTA; the value before is PRE_POLISH4_CORPUS_SHA256, 5bdf2c2e...).
 // Polish 5 (the owner's 7-lift world): re-measured for exactly the polish 5 pieces, owners and mounted states
 // (CL-POLISH5-DELTA; the value before is PRE_POLISH5_CORPUS_SHA256, 0f7f06de...), including Fable's D1 pieces.
-const CORPUS_SHA256 = 'e63812aec64410a31dd34f87ead5e48a24aa74c45592e8c972a749df28378cd2';
+// Polish 6 (ui-pass12): re-measured for exactly one more piece, the board's T-03 status line (CL-POLISH6-DELTA; the value
+// before is PRE_POLISH6_CORPUS_SHA256, e63812ae...).
+const CORPUS_SHA256 = 'a4374f49ba1d6fc625be85bfa9c9a753e821edd7f1aef5822f705b52cb09f60c';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -594,6 +596,41 @@ const POLISH_COPY_APPROVAL = 'DECISIONS:913';
 const PRE_SEAT_CORPUS_SHA256 = '218da3dc82a04fca3d958679b7896093cc77a36497e15bdc4b2b5980223bedde';
 const SEAT_NEW = Object.freeze([["Where's my seat set?", CV1_LIVE, []]]);
 const SEAT_COPY_APPROVAL = 'DECISIONS:913';
+/* Polish 6 (PM, ui-pass12, item 1): exactly one more piece, the board's own T-03 status line (app/states-today.js T-03,
+   the C-UI-2 status-line words, DECISIONS:820 (2)), owned by today-app.cjs's status-line block and said while an
+   enrolled device's adoption has not settled, and declared in design.cjs RUNTIME_COPY (Fable D1). beforePolish6 gives every older view the corpus as polish 5 sealed it
+   (PRE_POLISH6_CORPUS_SHA256), and beforePolish5 starts from that view. */
+const PRE_POLISH6_CORPUS_SHA256 = 'e63812aec64410a31dd34f87ead5e48a24aa74c45592e8c972a749df28378cd2';
+const POLISH6_NEW = Object.freeze([
+  /* Fable D1 (6d2d4c34): declared in design.cjs RUNTIME_COPY beside Today's other borrowed board status words */
+  ['Your record is opening. Nothing here is measured yet.', { [T + '/design.cjs']: 1, [T + '/today-app.cjs']: 1 }, ['RUNTIME_COPY']],
+]);
+const POLISH6_COPY_APPROVAL = 'DECISIONS:820';
+function beforePolish6(corpus) {
+  const added = new Set(POLISH6_NEW.map(([text]) => text));
+  return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)) };
+}
+test('CL-POLISH6-DELTA: the corpus is the polish 5 corpus plus exactly the T-03 status line, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of POLISH6_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-POLISH6-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforePolish6(corpus)), 'utf8'));
+  if (before !== PRE_POLISH6_CORPUS_SHA256) failed.push('CL-POLISH6-DELTA PRE-POLISH6-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the polish 5 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-POLISH6-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforePolish6(moved)), 'utf8')) === PRE_POLISH6_CORPUS_SHA256) failed.push('CL-POLISH6-DELTA PRE-POLISH6-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-POLISH6-DELTA');
+});
+test('CL-POLISH6-APPROVAL: the polish 6 copy delta names the ledger line that approves it', () => {
+  assert.match(POLISH6_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-POLISH6-APPROVAL-PENDING: the polish 6 copy is not approved');
+});
 /* Polish 5 (PM, the owner's 7-lift world, ui-pass11): the set screen's plain line (gym-app.mjs SET_PLAIN), the offer
    verb "Use " (today-entry.mjs; "Undo" gains it as a second owner), the workout line's loading state (today-app.cjs), the
    coach's plain source line (coach-app.mjs and design.cjs COACH_LIVE_APPROVED), and "Why this plan?" on its own row
@@ -639,6 +676,7 @@ const POLISH5_CHANGED = Object.freeze([
 const POLISH5_STATE_SWAP = Object.freeze(['First time: find your weight.', 'Synthetic reason']);
 const POLISH5_COPY_APPROVAL = 'DECISIONS:913';
 function beforePolish5(corpus) {
+  corpus = beforePolish6(corpus);   /* polish 6 stands on top of polish 5 */
   const added = new Set(POLISH5_NEW.map(([text]) => text));
   /* idempotent, as the older views are read through it more than once (CL-S15-DELTA's s14View) */
   const back = POLISH5_REMOVED.filter(([text]) => !corpus.entries.some((e) => e.text === text))

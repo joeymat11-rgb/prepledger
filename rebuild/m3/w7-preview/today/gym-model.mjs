@@ -438,7 +438,10 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
         /* POLISH 5 D1 (Fable, f2427b73): true only when the engine specified this set's load as a number. The entry
            below can hold a load nobody planned (the S14 R1 last real load, the S15 prefill), and the set screen
            (gym-app.mjs plainSetLine/plainSetWhy) must not say such a load as planned. */
-        loadSpecified: !!(load && Number.isFinite(load.value)) },
+        loadSpecified: !!(load && Number.isFinite(load.value)),
+        /* POLISH 6 (PM, item 5): true when the engine leaves the load to be found (the load cell is not specified at
+           all: a debut's "Find a working load"); a configuration (a hold, a bodyweight marker) is specified and is not. */
+        loadOpen: !!(cell(active.load) && cell(active.load).state !== 'specified') },
       entry: { load: load && Number.isFinite(load.value) ? load.value
         : (lastRealLoad(load, active.lift_lineage_id, position) ?? loggedThisSession(load, activeLift, active)),
         reps: reps && Number.isSafeInteger(reps.value) ? reps.value : null,

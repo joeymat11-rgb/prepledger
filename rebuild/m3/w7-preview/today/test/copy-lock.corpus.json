@@ -8630,6 +8630,16 @@
    "lists": []
   },
   {
+   "text": "Your record is opening. Nothing here is measured yet.",
+   "files": {
+    "rebuild/m3/w7-preview/today/design.cjs": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": [
+    "RUNTIME_COPY"
+   ]
+  },
+  {
    "text": "Your routine cannot be changed on this device right now. Nothing was changed. (CODE)",
    "files": {
     "rebuild/m3/w7-preview/today/routine-model.mjs": 1
