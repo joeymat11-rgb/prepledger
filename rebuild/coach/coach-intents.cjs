@@ -428,11 +428,8 @@ const PLAIN = Object.freeze({
   calories: "Eat between ",
   caloriesAnd: " and ",
   caloriesTail: " calories.",
-  /* NUTRI 1 (owner ruling 2026-10-13, "Labelled estimate"): the engine's labelled estimate, marked as one, and what
-     will make it measured, in the words Today's food card says it (today-app.cjs CALORIE_GATE). Approved under
-     DECISIONS:980, which supersedes C-12 for the gated state. */
-  caloriesEstimate: "Estimate: eat between ",
-  caloriesEstimateOne: "Estimate: eat about ",   /* both ends one figure (PM ruling on N1); approved under DECISIONS:980 */
+  /* NUTRI 1: what will make his range measured, in the words Today's food card says it (today-app.cjs CALORIE_GATE),
+     approved under DECISIONS:980. E1 (Fable fd80cb84 D1; the PM's ruling at DECISIONS:989, which reverses DECISIONS:980's estimate for the gated state): no estimate figure is said. */
   gateFood: "Log food for ",
   gateWeigh: "Weigh in ",
   gateAndWeigh: " and weigh in ",
@@ -446,6 +443,9 @@ const PLAIN = Object.freeze({
   gateAgain: "Your range is measured again on ",
   gateNotBefore: " Not before ",
   gateEnd: ".",
+  /* E1 (Fable 7143a722 D1): gated with no gate line to say, the coach says T-19's sentence, Today's food card's own words
+     (today-app.cjs calorieBand), so a gated band is never met with silence or a figure */
+  noRange: "A calorie range is not available yet.",
   protein: "Protein: at least ",
   proteinTail: " grams.",
   /* "Why this weight?" */
@@ -593,13 +593,13 @@ const PAGE_TEMPLATES = Object.freeze({
     if (!s || !s.ok) return null;
     const lines = planned(s.values) ? [PLAIN.today + sessionTitle(s.values) + ".", ...s.values.lifts.map(targetLine)] : [PLAIN.noWorkout];
     const v = t && t.ok ? t.values : {};
-    if (has(v.kcalLo) && has(v.kcalHi)) {
-      /* NUTRI 1: the engine's labelled estimate is said as one, then what will make it measured */
-      const estimate = flag(v.kcalEstimate);
-      if (estimate && v.kcalLo.display === v.kcalHi.display) lines.push(PLAIN.caloriesEstimateOne + d(v.kcalLo, "kcal") + PLAIN.caloriesTail);
-      else lines.push((estimate ? PLAIN.caloriesEstimate : PLAIN.calories) + d(v.kcalLo, "kcal") + PLAIN.caloriesAnd + d(v.kcalHi, "kcal") + PLAIN.caloriesTail);
-      const gate = estimate ? gateLine(v) : null;
-      if (gate) lines.push(gate);
+    if (flag(v.kcalGated)) {
+      /* E1 (Fable fd80cb84 D1; the PM's ruling at DECISIONS:989, which reverses DECISIONS:980's estimate for the gated state): while the band is gated no calorie figure is
+         said, only what will measure his range (the line Today's food card says under its title) */
+      const gate = gateLine(v);
+      lines.push(gate || PLAIN.noRange);
+    } else if (has(v.kcalLo) && has(v.kcalHi)) {
+      lines.push(PLAIN.calories + d(v.kcalLo, "kcal") + PLAIN.caloriesAnd + d(v.kcalHi, "kcal") + PLAIN.caloriesTail);
     }
     if (has(v.proteinG)) lines.push(PLAIN.protein + d(v.proteinG, "g") + PLAIN.proteinTail);
     return lines;

@@ -640,7 +640,7 @@
   {
    "text": " kcal",
    "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 4
+    "rebuild/m3/w7-preview/today/today-app.cjs": 2
    },
    "lists": []
   },
@@ -939,7 +939,7 @@
   {
    "text": " to ",
    "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 2,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1,
     "rebuild/m3/w7-preview/today/today-model.cjs": 2
    },
    "lists": []
@@ -990,13 +990,6 @@
    "lists": [
     "RUNTIME_COPY"
    ]
-  },
-  {
-   "text": " today. Your calorie range is an estimate for now.",
-   "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1
-   },
-   "lists": []
   },
   {
    "text": " today. Your calorie range is not available yet.",
@@ -3229,20 +3222,6 @@
    "text": "Estimate how many more you could have done at the end of the set. If you can’t tell, choose Unsure.",
    "files": {
     "rebuild/m3/w7-preview/today/gym-app.mjs": 1
-   },
-   "lists": []
-  },
-  {
-   "text": "Estimate: ",
-   "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1
-   },
-   "lists": []
-  },
-  {
-   "text": "Estimate: about ",
-   "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
   },

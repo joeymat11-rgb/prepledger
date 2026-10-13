@@ -49,13 +49,16 @@ function createReadTools(world) {
     const cal = view.calorieTarget, pro = view.proteinTarget;
     const values = {
       day: tagged(turn_id, "today-model.read.today", view.today, "date", view.today),
-      kcalLo: num(turn_id, "energy.calorieTarget.lo", cal?.lo, "kcal"),
-      kcalHi: num(turn_id, "energy.calorieTarget.hi", cal?.hi, "kcal"),
-      /* NUTRI 1 (owner ruling 2026-10-13, "Labelled estimate"): whether that band is the engine's own labelled
-         estimate (gated, from "mass-estimate"), and what will make it measured, in the counts today-model.cjs
-         calorieGateOf reads off the engine's own gate inputs: days with calories logged ("day") and weigh-ins, said
-         as "times" (the kernel's unknownNoun, singular for one). */
-      kcalEstimate: tagged(turn_id, "energy.calorieTarget.from", !!(cal && cal.gated === true && cal.from === "mass-estimate"), "flag", ""),
+      /* E1 (Fable fd80cb84 D1; the PM's ruling at DECISIONS:989, which reverses DECISIONS:980's estimate for the gated state): a gated band's figures never reach
+         the coach. While the engine's band is gated its two ends are blanks, so no calorie figure of it is a result of
+         the turn at all; the flag says it is gated, and the counts say what will measure his range. */
+      kcalLo: cal && cal.gated === true ? blank(turn_id, "energy.calorieTarget.lo", "kcal", "the band is gated, and a gated band is never shown")
+        : num(turn_id, "energy.calorieTarget.lo", cal?.lo, "kcal"),
+      kcalHi: cal && cal.gated === true ? blank(turn_id, "energy.calorieTarget.hi", "kcal", "the band is gated, and a gated band is never shown")
+        : num(turn_id, "energy.calorieTarget.hi", cal?.hi, "kcal"),
+      /* NUTRI 1: what will make it measured, in the counts today-model.cjs calorieGateOf reads off the engine's own
+         gate inputs: days with calories logged ("day") and weigh-ins, said as "times" (the kernel's unknownNoun). */
+      kcalGated: tagged(turn_id, "energy.calorieTarget.gated", !!(cal && cal.gated === true), "flag", ""),
       foodDaysLeft: num(turn_id, "today-model.calorieGate.foodLeft", view.calorieGate ? view.calorieGate.foodLeft : null, "day"),
       weighInsLeft: num(turn_id, "today-model.calorieGate.weighLeft", view.calorieGate ? view.calorieGate.weighLeft : null,
         K.unknownNoun(view.calorieGate && view.calorieGate.weighLeft === 1 ? "time" : "times")),
@@ -262,7 +265,12 @@ function createReadTools(world) {
       values.matched = tagged(turn_id, "energy.observedTDEE.matched", !!tdee.matched, "flag", "");
       values.impossible = tagged(turn_id, "energy.observedTDEE.impossible", !!tdee.impossible, "flag", "");
     } else if (topic === "floor") {
-      values.body = text(turn_id, "energy.calorieFloor.why", E.calorieFloor(s).why);
+      /* DECISIONS:982: with no lean-mass estimate the floor is not a number and its own sentence says "NaN"; that
+         sentence never reaches the coach, which carries a blank instead (E1a; the engine's own floor fix, energy.cjs,
+         is E2b's). */
+      const fl = E.calorieFloor(s);
+      values.body = Number.isFinite(fl.floor) ? text(turn_id, "energy.calorieFloor.why", fl.why)
+        : blank(turn_id, "energy.calorieFloor.why", "text", "no lean-mass estimate yet, so no floor is measured");
     } else if (topic === "status") {
       const face = E.statusFace(s);
       values.body = text(turn_id, "today.statusFace.cause", face.cause);

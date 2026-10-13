@@ -200,14 +200,15 @@ test("C-UI-3 T-40: the status line says the prototype's words while a proposal i
   const gface = live(gctx.view.proposal || null, gctx.view.proposalStored || {}, null, plainOrDrop);
   rows.push(["F4 pending adoption: the fixture's card and its count are hidden, T-12's line", gctx.view, null, false,
     gface ? gface.state : undefined, "Nothing scheduled today, so there is nothing to start."]);
-  /* DECISIONS:980 (the owner's ruling, "Labelled estimate"): while the band is the engine's own labelled estimate the
-     line says the ruling's words, which supersede T-19's for that state only; an open proposal still stands ahead of
-     it, and its T-40 lines are unchanged. */
+  /* DECISIONS:989 (E1, Fable fd80cb84 D1; reverses DECISIONS:980's estimate for the gated state): the engine's gated
+     estimate band is never shown, so with no proposal the line says T-19's words again; an open proposal still stands
+     ahead of it, and its T-40 lines are unchanged. */
   const estimate = { calorieTarget: { gated: true, from: "mass-estimate", lo: 1886, hi: 2011 } };
-  rows.push(["DECISIONS:980 the estimate, no proposal: the ruling's words", view(0, estimate), null, false, undefined,
-    "Upper body today. Your calorie range is an estimate for now.", "DECISIONS:980"]);
-  rows.push(["DECISIONS:980 the estimate beside an open card: T-40's line still", view(1, estimate), null, false, "open", "Upper body today. One change to review."]);
-  rows.push(["DECISIONS:980 the estimate beside a declined card: T-40d's line still", view(1, estimate), null, false, "declined", "Upper body today. Nothing to decide."]);
+  rows.push(["DECISIONS:989 the gated estimate, no proposal: T-19's words", view(0, estimate), null, false, undefined,
+    "Upper body today. Your calorie range is not available yet."]);
+  rows.push(["DECISIONS:989 the gated estimate beside an open card: T-40's line still", view(1, estimate), null, false, "open", "Upper body today. One change to review."]);
+  rows.push(["DECISIONS:989 the gated estimate beside a declined card: T-40d's line still", view(1, estimate), null, false, "declined", "Upper body today. Nothing to decide."]);
+  assert.equal(read(APP).includes("STATUS_CALORIE_ESTIMATE"), false, "DECISIONS:989: no estimate status line is declared");
   for (const [label, v, session, sample, card, want, ruling] of rows) {
     assert.equal(statusLine(v, session, sample, card), want, label);
     if (want && !ruling) assert(PROTO.includes("'" + want + "'"), label + ": the prototype draws exactly these words");

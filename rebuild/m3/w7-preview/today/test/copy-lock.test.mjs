@@ -88,7 +88,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // (CL-NUTRI2A-DELTA; the value before is PRE_NUTRI2A_CORPUS_SHA256, f95b7915...).
 // N2 "Log today", Part B: re-measured for exactly the Log today card and sheet's words, the import screen's day words and
 // three owner counts (CL-NUTRI2B-DELTA; the value before is PRE_NUTRI2B_CORPUS_SHA256, 25eefea4...).
-const CORPUS_SHA256 = '2b9c25683f1e3d1a880de5f30d73f8e5d9ae61921e25203f282163949af206be';
+// E1 (Fable fd80cb84 D1; DECISIONS:989): re-measured for exactly the withdrawn estimate words, three pieces out and two
+// owner counts down (CL-E1-DELTA; the value before is PRE_E1_CORPUS_SHA256, 2b9c2568...).
+const CORPUS_SHA256 = '975061da864b72a87fb1967d5e24ed526d5af754046a88ffe42b8bbcc640b61c';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -660,6 +662,7 @@ const N2B_OWNERS_MOVED = Object.freeze([
 ]);
 const NUTRI2B_COPY_APPROVAL = 'DECISIONS:980';
 function beforeNutri2b(corpus) {
+  corpus = beforeE1(corpus);   /* E1 stands on top of N2 part B */
   const added = new Set(N2B_NEW.map(([text]) => text));
   return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
     const rows = N2B_OWNERS_MOVED.filter(([text]) => text === e.text);
@@ -693,6 +696,57 @@ test('CL-NUTRI2B-DELTA: the corpus is the N2 part A corpus plus exactly the Log 
 });
 test('CL-NUTRI2B-APPROVAL: the N2 part B copy delta names the ledger line that approves it', () => {
   assert.match(NUTRI2B_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-NUTRI2B-APPROVAL-PENDING: the N2 part B copy is not approved');
+});
+/* E1 (Fable fd80cb84 D1; the PM's ruling at DECISIONS:989, which reverses DECISIONS:980's estimate for the gated state):
+   the engine's gated estimate band is never shown, so N1's estimate title, its one-figure form and its status line are
+   withdrawn from today-app.cjs, and calorieEstimate's own " to " and two " kcal" go with them. No piece is added.
+   beforeE1 gives every older view the corpus as N2 part B sealed it (PRE_E1_CORPUS_SHA256), and beforeNutri2b starts
+   from that view. IDEMPOTENT, as every older view is: a withdrawn piece is put back only where it is not there. */
+const PRE_E1_CORPUS_SHA256 = '2b9c25683f1e3d1a880de5f30d73f8e5d9ae61921e25203f282163949af206be';
+const E1_APP = T + '/today-app.cjs';
+const E1_REMOVED = Object.freeze([
+  [' today. Your calorie range is an estimate for now.', { [E1_APP]: 1 }, []],
+  ['Estimate: ', { [E1_APP]: 1 }, []],
+  ['Estimate: about ', { [E1_APP]: 1 }, []],
+]);
+const E1_COUNTS = Object.freeze([
+  /* [text, owner, count before, count now] */
+  [' kcal', E1_APP, 4, 2],
+  [' to ', E1_APP, 2, 1],
+]);
+const E1_COPY_APPROVAL = 'DECISIONS:989';
+function beforeE1(corpus) {
+  const have = new Set(corpus.entries.map((e) => e.text));
+  const back = E1_REMOVED.filter(([text]) => !have.has(text))
+    .map(([text, files, lists]) => ({ text, files: sortedFiles(files), lists: [...lists] }));
+  const entries = corpus.entries.map((e) => {
+    const row = E1_COUNTS.find(([text]) => text === e.text);
+    if (!row || e.files[row[1]] !== row[3]) return e;
+    return { ...e, files: sortedFiles({ ...e.files, [row[1]]: row[2] }) };
+  });
+  return { ...corpus, entries: [...entries, ...back].sort((a, b) => (a.text < b.text ? -1 : a.text > b.text ? 1 : 0)) };
+}
+test('CL-E1-DELTA: the corpus is the N2 part B corpus with exactly the estimate words withdrawn, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text] of E1_REMOVED) if (byText.has(text)) failed.push('CL-E1-DELTA REMOVED ' + JSON.stringify(text) + ' is still locked');
+  for (const [text, owner, , now] of E1_COUNTS) {
+    const entry = byText.get(text);
+    if (!entry || entry.files[owner] !== now) failed.push('CL-E1-DELTA OWNER ' + JSON.stringify(text) + ' ' + owner + ' is ' + JSON.stringify(entry ? entry.files[owner] : null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforeE1(corpus)), 'utf8'));
+  if (before !== PRE_E1_CORPUS_SHA256) failed.push('CL-E1-DELTA PRE-E1-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the N2 part B corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-E1-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeE1(moved)), 'utf8')) === PRE_E1_CORPUS_SHA256) failed.push('CL-E1-DELTA PRE-E1-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-E1-DELTA');
+});
+test('CL-E1-APPROVAL: the E1 copy delta names the ledger line that approves it', () => {
+  assert.match(E1_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-E1-APPROVAL-PENDING: the E1 copy is not approved');
 });
 function beforeNutri2a(corpus) {
   corpus = beforeNutri2b(corpus);   /* N2 part B stands on top of N2 part A */
@@ -811,7 +865,9 @@ function beforeNutri1(corpus) {
   }) };
 }
 test('CL-NUTRI1-DELTA: the corpus is the polish 6 corpus plus exactly the estimate band and its gate line, both directions', () => {
-  const { corpus } = loaded();
+  /* E1 (DECISIONS:989) withdrew three of these pieces and two of these counts: they are checked here as nutri 1 left
+     them (beforeE1, E1's layer only), and CL-E1-DELTA holds exactly their withdrawal in the corpus as it stands. */
+  const corpus = beforeE1(loaded().corpus);
   const byText = new Map(corpus.entries.map((e) => [e.text, e]));
   const failed = [];
   for (const [text, files, lists] of NUTRI1_NEW) {
