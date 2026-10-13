@@ -381,12 +381,13 @@ test("PC-11: the lifts are said in plan order, today's first, and the first week
   assert.match(settled.lines[1].text, /All lifts held steady\.$/, "with history before the week, held steady is true");
 });
 
-/* PC-12 (NUTRI 1, owner ruling 2026-10-13, "Labelled estimate"): while the engine's band is gated it may be the engine's
-   own labelled estimate (energy.cjs calorieTarget, from "mass-estimate"); "What am I hitting today?" then says it as an
-   estimate and says what will make it measured, in the counts today-model.cjs calorieGateOf reads off the engine's own
-   gate inputs. Every number is a tool result of the turn: the counts are licensed only by the tags today_plan adds. A
-   measured band is said as before. Red first: on aa81776 the estimate is said as "Eat between ...", unmarked. */
-test("PC-12: What am I hitting today? says the engine's labelled estimate as one, and what will measure it, every number traced", async () => {
+/* PC-12 (NUTRI 1), as amended by E1 (Fable fd80cb84 D1; DECISIONS:989, which reverses DECISIONS:980's estimate for the
+   gated state): while the engine's band is gated, "What am I hitting today?" says no calorie figure at all, only what
+   will make his range measured, in the counts today-model.cjs calorieGateOf reads off the engine's own gate inputs.
+   Every number is a tool result of the turn: the counts are licensed only by the tags today_plan adds, and the band's
+   two ends are blanks in the turn, so no figure of it could be said. A measured band is said as before. Red first:
+   on 75217c6 the gated band is said as "Estimate: eat ..." with its figures. */
+test("PC-12: What am I hitting today? says no calorie figure while the band is gated, only what will measure it, every number traced", async () => {
   const Kernel = require("../tool-kernel.cjs");
   const DAY = TodayModel.SYNTHETIC_DAY;
   const base = TodayModel.createBasisState(DAY);
@@ -395,7 +396,7 @@ test("PC-12: What am I hitting today? says the engine's labelled estimate as one
     const state = structuredClone(base);
     for (const d of days.slice(0, days.length - keepFood)) delete state.dailyLogs[d];
     state.reads = state.reads.slice(-keepReads);
-    if (trend) state.trend = trend;   /* a heavier invented weight gives the estimate a band with width */
+    if (trend) state.trend = trend;   /* a heavier invented weight gives the engine's band width */
     return TodayModel.createTodayModel({ today: DAY, basisState: state });
   };
   for (const [keepFood, keepReads, gate, trend] of [[5, 9, "Log food for 3 more days and weigh in 1 more time to measure yours."],
@@ -403,17 +404,18 @@ test("PC-12: What am I hitting today? says the engine's labelled estimate as one
     [5, 9, "Log food for 3 more days and weigh in 1 more time to measure yours.", 230]]) {
     const today = world(keepFood, keepReads, trend);
     const cal = today.read().calorieTarget;
-    assert.deepEqual([cal.gated, cal.from], [true, "mass-estimate"], "fixture: the engine's labelled estimate");
+    assert.deepEqual([cal.gated, cal.from], [true, "mass-estimate"], "fixture: the engine's gated estimate");
+    assert.ok(Number.isFinite(cal.lo) && Number.isFinite(cal.hi), "fixture: the engine holds figures it could have said");
     const asked = await createPageCoach({ today }).ask("today_plan");
     assert.equal(asked.shipped, true, asked.answer);
     assert.deepEqual(asked.untraceable, [], "every number is a tool result of the turn");
     const lines = asked.answer.split("\n");
-    /* both ends one figure (the engine's floor binding both): "about" (PM ruling on N1); else the band */
-    const said = cal.lo === cal.hi ? "Estimate: eat about " + cal.lo + " calories." : "Estimate: eat between " + cal.lo + " and " + cal.hi + " calories.";
-    assert.equal(trend ? cal.lo !== cal.hi : cal.lo === cal.hi, true, "fixture: both forms are asked");
-    assert(lines.includes(said), "the estimate, marked: " + asked.answer);
     assert(lines.includes(gate), "what will measure it: " + asked.answer);
-    assert.equal(lines.some((line) => line.startsWith("Eat between ")), false, "never said as the measured band");
+    assert.doesNotMatch(asked.answer, /calories|kcal|Estimate/, "no calorie figure and no estimate: " + asked.answer);
+    for (const n of new Set([cal.lo, cal.hi])) assert.equal(asked.answer.includes(String(n)), false, "the band's figure " + n + " is not said");
+    const plan = asked.results.find((r) => r.tool === "today_plan");
+    assert.equal(Kernel.isNum ? Kernel.isNum(plan.values.kcalLo) : typeof plan.values.kcalLo.value === "number", false, "the band's low end is a blank in the turn");
+    assert.equal(Kernel.isNum ? Kernel.isNum(plan.values.kcalHi) : typeof plan.values.kcalHi.value === "number", false, "and its high end");
     /* the counts are tool results: without today_plan's two count tags they are refused */
     const stripped = asked.results.map((r) => (r.tool === "today_plan"
       ? { ...r, values: { ...r.values, foodDaysLeft: null, weighInsLeft: null } } : r));

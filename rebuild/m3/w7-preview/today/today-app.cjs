@@ -73,22 +73,14 @@ function calorieBand(calorieTarget) {
   if (!Number.isFinite(calorieTarget.lo) || !Number.isFinite(calorieTarget.hi)) return NOT_AVAILABLE;
   return "Today's target " + amount(calorieTarget.lo) + " to " + amount(calorieTarget.hi) + " kcal";
 }
-/* NUTRI 1 (owner ruling 2026-10-13, "Labelled estimate"). While the engine's band is gated it may still be the
-   engine's own labelled estimate (energy.cjs calorieTarget, from "mass-estimate": his measured bodyweight at a
-   labelled convention, his own band taken off it). That band is shown, marked "Estimate" in words, its figures the
-   engine's own lo and hi; any other gated band (no bodyweight yet, a record still opening) says nothing new. A measured
-   band reads exactly as before (calorieBand). An estimate whose two ends are one figure (the engine's calorie floor
-   binding both) is said as one figure, "Estimate: about 1,700 kcal" (PM ruling on N1). Approved under DECISIONS:980
-   (the owner's ruling, which supersedes N05, T-19's title and status-line words and C-12 for the gated state). */
-const CALORIE_ESTIMATE = "Estimate: ";
-const CALORIE_ESTIMATE_ONE = "Estimate: about ";
-function calorieEstimate(calorieTarget) {
-  if (!calorieTarget || calorieTarget.gated !== true || calorieTarget.from !== "mass-estimate") return null;
-  if (!Number.isFinite(calorieTarget.lo) || !Number.isFinite(calorieTarget.hi)) return null;
-  if (amount(calorieTarget.lo) === amount(calorieTarget.hi)) return CALORIE_ESTIMATE_ONE + amount(calorieTarget.lo) + " kcal";
-  return CALORIE_ESTIMATE + amount(calorieTarget.lo) + " to " + amount(calorieTarget.hi) + " kcal";
-}
-/* What will make it measured, in the counts today-model.cjs calorieGateOf reads off the engine's own gate inputs
+/* E1 (Fable fd80cb84 D1; the PM's ruling at DECISIONS:989, which reverses DECISIONS:980's estimate for the gated state): THE GATED ESTIMATE IS NEVER SHOWN. The engine's
+   mass-estimate band (energy.cjs calorieTarget while gated) is unrealistically low for a lean, active athlete, and
+   eating to it would cost muscle, so no screen says its figures: the food card's title is T-19's "A calorie range is
+   not available yet." (calorieBand), the Energy row says the same, the status line says T-19's words, and the coach
+   says no calorie figure while the band is gated. What stays is what tells him what to do: the line under the title
+   (calorieGateLine: what will measure his range, and in a blackout the day it is measured again). A measured band reads
+   exactly as before. N1's estimate title, its one-figure form and its status words are withdrawn. */
+/* What will make his range measured, in the counts today-model.cjs calorieGateOf reads off the engine's own gate inputs
    (days with calories logged, weigh-ins), so the line moves as he logs. Null when nothing he logs shortens the wait.
    N2 (Fable's N1 debt D1): in a blackout (calorieGateOf's `blackoutUntil`) the line says the day the range is measured
    again, in the date's own words (dayLabel), after any count still left: "Your range is measured again on Sunday,
@@ -416,8 +408,8 @@ function setupNoteNeeded(enrolled, athleteLabel, state) {
    line for says nothing. <session> is the engine's own session name: the part of its
    next-workout title before the day stamp ("UPPER BODY · TODAY"), only when that
    session is today, in the sentence case the prototype writes it in. No word here is
-   the page's own; one line is the owner's ruling's rather than the prototype's (STATUS_CALORIE_ESTIMATE,
-   DECISIONS:980, which supersedes T-19's words while the band is the engine's labelled estimate). Self-contained
+   the page's own (E1 (Fable fd80cb84 D1; the PM's ruling at DECISIONS:989, which reverses DECISIONS:980's estimate for the gated state): the gated band says T-19's words again; N1's
+   estimate line is withdrawn). Self-contained
    on purpose (no require, no outer name), so a static cell can evaluate this block alone. */
 const STATUS_NOTHING_TO_DECIDE = " today. Nothing to decide."; // owner's pattern; T-32, T-40c
 const STATUS_SAMPLE = " today. Sample data."; // T-02
@@ -434,9 +426,6 @@ const STATUS_STAMP = " · ";
 const STATUS_ONE_CHANGE = " today. One change to review."; // C-UI-3: T-40 (the prototype's face default)
 const STATUS_ONE_ANSWER = " today. One answer recorded."; // C-UI-3: T-40b
 const STATUS_OPENING = "Your record is opening. Nothing here is measured yet."; // T-03 (POLISH 6, item 1)
-/* DECISIONS:980 (the owner's ruling, "Labelled estimate"; supersedes T-19's status-line words for the gated state):
-   while the band is the engine's own labelled estimate the line says so. Not the prototype's words: the ruling's. */
-const STATUS_CALORIE_ESTIMATE = " today. Your calorie range is an estimate for now."; // DECISIONS:980
 function statusSessionName(workout) {
   if (!workout || workout.today !== true || typeof workout.title !== "string") return null;
   const name = workout.title.split(STATUS_STAMP)[0].trim();
@@ -510,11 +499,6 @@ function statusLine(view, session, sample, card) {
   }
   if (!name || plan.exerciseCount === null) return STATUS_NOTHING_SCHEDULED;
   if (sample) return name + STATUS_SAMPLE;
-  /* DECISIONS:980: the engine's labelled estimate (the condition today-app.cjs calorieEstimate draws the card on) */
-  const band = view.calorieTarget;
-  if (band && band.gated === true && band.from === "mass-estimate" && Number.isFinite(band.lo) && Number.isFinite(band.hi)) {
-    return name + STATUS_CALORIE_ESTIMATE;
-  }
   if (view.calorieTarget && view.calorieTarget.gated) return name + STATUS_NO_CALORIE_RANGE;
   return name + STATUS_NOTHING_TO_DECIDE;
 }
@@ -1215,11 +1199,11 @@ function mountToday(doc, model, options = {}) {
        its empty state, said once in the band line's own words, and the band line is not drawn
        twice; with no protein target its line is not drawn. No new words. */
     if (kcal === null) {
-      /* NUTRI 1: a gated band that is the engine's own labelled estimate is the card's title, marked Estimate, and
-         the line under it says what will make it measured (calorieGateLine); any other gated band is T-19 as before. */
-      const estimate = calorieEstimate(view.calorieTarget);
-      map.get("eat-title").textContent = plainOrDrop(estimate || calorieBand(view.calorieTarget), "eat-title");
-      const gateLine = estimate ? calorieGateLine(view.calorieGate) : null;
+      /* E1 (Fable fd80cb84 D1; the PM's ruling at DECISIONS:989, which reverses DECISIONS:980's estimate for the gated state): a gated band's title is T-19's, never the engine's
+         estimate; the line under it says what will measure his range (calorieGate is only drawn for the band the
+         engine prices off his bodyweight, so it is the line N1 said there, without the figures above it). */
+      map.get("eat-title").textContent = plainOrDrop(calorieBand(view.calorieTarget), "eat-title");
+      const gateLine = view.calorieTarget && view.calorieTarget.gated === true ? calorieGateLine(view.calorieGate) : null;
       if (gateLine) map.get("kcal-note").textContent = plainOrDrop(gateLine, "kcal-note");
       map.get("kcal-note").hidden = !gateLine;
     }
@@ -1778,8 +1762,8 @@ function mountToday(doc, model, options = {}) {
     const map = slots(root);
     const host = map.get("macros");
     const rows = view.blocked ? [] : [
-      /* NUTRI 1: the engine's labelled estimate, said the same way as on Today's card, while the band is gated */
-      ["Energy", calorieHeadline(view.calorieTarget), "kcal", calorieEstimate(view.calorieTarget) || calorieBand(view.calorieTarget)],
+      /* E1 (Fable fd80cb84 D1; the PM's ruling at DECISIONS:989, which reverses DECISIONS:980's estimate for the gated state): a gated band is never shown here either */
+      ["Energy", calorieHeadline(view.calorieTarget), "kcal", calorieBand(view.calorieTarget)],
       ["Protein", Number.isFinite(view.proteinTarget.g) ? amount(view.proteinTarget.g) : null, "g",
         "Your daily protein target."],
       /* UI-PASS13 item 4 (shot 03): each row said "Not prescribed. The engine issues no ... target." and the screen's
@@ -3073,7 +3057,7 @@ function mountToday(doc, model, options = {}) {
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
    tests without touching a document. */
 module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, morningLine, trendLine, dayLabel,
-  calorieEstimate, calorieGateLine, CALORIE_ESTIMATE, CALORIE_GATE,
+  calorieGateLine, CALORIE_GATE,
   ARROW, NOT_AVAILABLE, NOT_WIRED, HEADLINE_BASE, HEADLINE_FLOOR, HEADLINE_GUARD,
   WORKOUT_IN_PROGRESS, WORKOUT_RECORDED_TODAY, REVIEW_WORKOUT,
   WORKOUT_CANNOT_OPEN, WHY_WORKOUT_CANNOT_OPEN, NO_LOCAL_STORE,

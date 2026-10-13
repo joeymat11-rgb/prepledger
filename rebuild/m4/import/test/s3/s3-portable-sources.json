@@ -91,7 +91,7 @@
     },
     {
       "path": "rebuild/engine/energy.cjs",
-      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc"
+      "sha256": "049054478f1205d2b035b09459113bcd8898044c3340cc687104f3b3c95ab96a"
     },
     {
       "path": "rebuild/engine/entered-load.cjs",
@@ -838,5 +838,14 @@
     "npm": "10.9.8",
     "pnpm": "9.15.9"
   },
-  "toolLocationGrant": "4f75048027a035988f17a45162e2e852db076fd9:rebuild/lanes/astra/TOOL-RUNTIME-LOCATIONS.md"
+  "toolLocationGrant": "4f75048027a035988f17a45162e2e852db076fd9:rebuild/lanes/astra/TOOL-RUNTIME-LOCATIONS.md",
+  "repins": [
+    {
+      "path": "rebuild/engine/energy.cjs",
+      "from": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "to": "049054478f1205d2b035b09459113bcd8898044c3340cc687104f3b3c95ab96a",
+      "ruling": "DECISIONS:982",
+      "why": "the owner authorised energy.cjs calorieTarget to skip a calorie floor that is not finite (no lean-mass estimate yet) instead of letting it blank the band; the new bytes are measured on disk; no other source, mutation target or edge moves"
+    }
+  ]
 }

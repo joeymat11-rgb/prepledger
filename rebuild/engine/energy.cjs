@@ -686,6 +686,10 @@ function calorieTarget(s) {
   const band = cutRateBand(s).band;   // v6.2.1 — the Auto-Pilot mode now drives the calorie band (was fixed s.rate.band)
   const fl = calorieFloor(s);
   const floor = fl.floor;
+  /* DECISIONS:982 (the owner's ruling): a floor that is not a number (no lean-mass estimate yet, so calorieFloor has
+     nothing to price it from) is SKIPPED rather than allowed to blank the band. Math.max(NaN, x) is NaN, which left a
+     just-enrolled athlete's labelled estimate with no lo and hi. A finite floor binds exactly as before. */
+  const atFloor = (x) => (Number.isFinite(floor) ? Math.max(floor, x) : x);
   if (!td) {
     /* R4 — THE THIN-DATA FALLBACK, REPLACED BEFORE s.phase WAS DELETED, NOT AFTER.
 
@@ -704,8 +708,8 @@ function calorieTarget(s) {
       why: "No bodyweight on file yet, so there is nothing to price a target from. Log a weigh-in and this fills in immediately." };
     const estG = Math.round(MAINT_KCAL_PER_LB * bwG);
     const kcalForG = (lbWk) => Math.round((lbWk * energyDensity(s).perLb) / 7);
-    const hiG = Math.max(floor, estG - kcalForG(band[0]));
-    const loG = Math.max(floor, estG - kcalForG(band[1]));
+    const hiG = atFloor(estG - kcalForG(band[0]));
+    const loG = atFloor(estG - kcalForG(band[1]));
     return { gated: true, from: "mass-estimate", lo: loG, hi: hiG, mid: Math.round((loG + hiG) / 2),
       tdee: estG, floor, band,
       /* R10 abstention rule: say what it is waiting for, not just that it is waiting. */
@@ -732,16 +736,16 @@ function calorieTarget(s) {
      guard). Today they are identical and the eat band is byte-identical; the promoted
      branch is driven by fixture. */
   const tdEff = (td.tdeePrimary != null ? td.tdeePrimary : td.tdee);
-  const baseHi = Math.max(floor, tdEff - kcalFor(band[0]));
-  const baseLo = Math.max(floor, tdEff - kcalFor(band[1]));
+  const baseHi = atFloor(tdEff - kcalFor(band[0]));
+  const baseLo = atFloor(tdEff - kcalFor(band[1]));
   /* v7.3.1 — an APPROVED Auto-Pilot steer is a tracked, reversible offset ADDED to the engine-owned
      base band (never mutating it): a tighten lowers it, an ease raises it, floored the same way, and it
      reconciles away at the next weigh-in (activeAdjustment). Zero offset when none is active, so every
      pre-existing band assertion is byte-identical. */
   const aaCal = activeAdjustment(s);
   const adjK = aaCal.via === "cal" ? (aaCal.calDelta || 0) : 0;
-  const hi = Math.max(floor, baseHi + adjK);
-  const lo = Math.max(floor, baseLo + adjK);
+  const hi = atFloor(baseHi + adjK);
+  const lo = atFloor(baseLo + adjK);
   const ph = PHASES[s.phase];
   const phaseLo = ph ? ph.band[0] : null, phaseHi = ph ? ph.band[1] : null;
   const drift = phaseHi != null ? Math.round((lo + hi) / 2 - (phaseLo + phaseHi) / 2) : 0;

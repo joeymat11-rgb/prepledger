@@ -39,6 +39,7 @@ import SleepModel from '../sleep-model.cjs';
 import Ops from '../../../../client/ops.cjs';
 import { sleepNightFor, dayBefore } from '../checkin-model.mjs';
 import PageCoach from '../../../../coach/page-coach.cjs';
+import Intents from '../../../../coach/coach-intents.cjs';
 
 const readAsset = (name) => fs.readFile(path.join(DIST, name), 'utf8');
 
@@ -3989,11 +3990,12 @@ test('N1-GATE - the counts are the engine gate inputs, exactly: adding what is l
   assert.equal(calorieGateOf(E, base, { gated: true }), null, 'a gated band that is not the labelled estimate has none either');
 });
 
-/* N1-CARD: the food card, while the band is gated, says the engine's labelled estimate, marked Estimate, its figures
-   the engine's own lo and hi, and on the line under it what will make it measured, moving as the counts move; a
-   measured band reads exactly as before; the nutrition screen says the same estimate. Red first: on aa81776 the card
-   says "A calorie range is not available yet." whatever the engine holds. */
-test('N1-CARD - the food card shows the engine estimate, marked Estimate, and what will measure it; a measured band reads as before', () => {
+/* N1-CARD, as amended by E1 (Fable fd80cb84 D1; DECISIONS:989, which reverses DECISIONS:980's estimate for the gated
+   state): while the band is gated the food card's title is T-19's "A calorie range is not available yet.", never the
+   engine's estimate, and the line under it still says what will make his range measured, moving as the counts move;
+   the nutrition screen's Energy row says T-19's words too; a measured band reads exactly as before. Red first: on
+   75217c6 the card's title is "Estimate: ..." over the engine's own figures. */
+test('N1-CARD - while gated the food card says no range is available and what will measure it, never an estimate figure; a measured band reads as before', () => {
   const base = TodayModel.createBasisState(DAY);
   const fmt = (n) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
   const card = (state) => {
@@ -4012,29 +4014,23 @@ test('N1-CARD - the food card shows the engine estimate, marked Estimate, and wh
   for (const [keepFood, keepReads, line] of [[0, 28, 'Log food for 8 more days to measure yours.'], [5, 28, 'Log food for 3 more days to measure yours.'],
     [7, 28, 'Log food for 1 more day to measure yours.'], [0, 6, 'Log food for 8 more days and weigh in 4 more times to measure yours.'],
     [7, 9, 'Log food for 1 more day and weigh in 1 more time to measure yours.'], [8, 9, 'Weigh in 1 more time to measure yours.']]) {
-    /* both the fixture's own weight (its two ends one figure, the engine's floor binding both: "about", PM ruling on N1)
-       and a heavier one (a band with width) */
+    /* both the fixture's own weight (the engine's two ends one figure) and a heavier one (a band with width) */
     for (const trend of [base.trend, 230]) {
       const state = n1Trim(base, keepFood, keepReads);
       state.trend = trend;
       const got = card(state);
       assert.deepEqual([got.target.gated, got.target.from], [true, 'mass-estimate'], 'fixture');
-      const said = fmt(got.target.lo) === fmt(got.target.hi) ? 'Estimate: about ' + fmt(got.target.lo) + ' kcal'
-        : 'Estimate: ' + fmt(got.target.lo) + ' to ' + fmt(got.target.hi) + ' kcal';
-      assert.equal(got.title, said, trend + ': the engine\'s own band, marked Estimate');
+      assert.ok(Number.isFinite(got.target.lo) && Number.isFinite(got.target.hi), 'fixture: the engine holds figures to hide');
+      assert.equal(got.title, 'A calorie range is not available yet.', trend + ': the title is T-19, never the estimate');
       assert.equal(got.note, line, keepFood + '/' + keepReads + ': what will make it measured');
-      assert.equal(got.phone.includes('A calorie range is not available yet.'), false, 'the card no longer says no range');
-      /* the status line (look-cui2 C-UI-2 R3 and look-cui3 hold its DECISIONS:980 words state by state; on this
-         preview mount the fixture's open card stands ahead of it, T-40) never says there is no range beside an estimate */
-      assert.doesNotMatch(got.status, /not available yet/, 'the status line does not contradict the card: ' + got.status);
-      assert(got.energy && got.energy.includes(said), 'the nutrition screen says the same: ' + got.energy);
+      for (const figure of new Set([fmt(got.target.lo), fmt(got.target.hi)]))
+        assert.equal(got.phone.includes(figure + ' kcal') || got.phone.includes(figure + ' to'), false, 'no estimate figure on Today: ' + figure);
+      assert.doesNotMatch(got.phone, /Estimate/, 'and no estimate at all');
+      assert.doesNotMatch(got.status, /estimate/, 'the status line says no estimate: ' + got.status);
+      assert(got.energy && got.energy.includes('A calorie range is not available yet.'), 'the Energy row says T-19 too: ' + got.energy);
+      assert.doesNotMatch(got.energy, /\d[\d,]* (kcal|to)/, 'and no figure: ' + got.energy);
     }
   }
-  /* the two forms really are both drawn: the fixture's weight is one figure, the heavier one a band */
-  const one = n1Trim(base, 0, 28), wide = n1Trim(base, 0, 28);
-  wide.trend = 230;
-  assert.match(card(one).title, /^Estimate: about [\d,]+ kcal$/, 'one figure');
-  assert.match(card(wide).title, /^Estimate: [\d,]+ to [\d,]+ kcal$/, 'a band');
   const measured = card(base);
   assert.equal(measured.target.gated, false);
   assert.match(measured.title, /^Eat about /, 'measured: the headline as before');
@@ -4097,4 +4093,107 @@ test('N2-D3 - the coach\'s gate line and Today\'s are ONE line, world by world, 
     if (cardGate) drawn += 1;
   }
   assert.equal(drawn, worlds.length * 2 - 1, 'every world but the measured one draws a line, so the equality is not empty');
+});
+
+/* UI-PASS13 item 1 (shots 02, 02b, 03b), as amended by E1 (Fable fd80cb84 D1; DECISIONS:989). The engine floor fix
+   (DECISIONS:982) stays: with no lean-mass estimate the engine's band has two finite ends again, which the measured
+   range needs. But the gated estimate is never shown: a just-enrolled athlete who has weighed in sees T-19's "A calorie
+   range is not available yet." on the food card with what will measure his range under it, T-19's status line, and
+   T-19's words on the Energy row, and no figure of the estimate anywhere. This cell runs the page's own path end to
+   end: boot over a real store, the in-page first run, one weigh-in. Red first: on 75217c6 the card says "Estimate: ...". */
+test('UP13-ESTIMATE - a just-enrolled athlete who has weighed in sees what will measure his range, never the gated estimate, on the card, the status line and the Energy row', async () => {
+  const fault = faultDatabase();
+  const dom = new JSDOM(shell());
+  const doc = dom.window.document;
+  const booted = await boot({ document: doc, today: P0B_DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  booted.api.render('setup');
+  const model = booted.setup.setup;
+  model.setName('Joe-test');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const press = model.addExercise('U');
+  model.setExerciseField(press.key, 'n', 'Joe-test Bench Press');
+  model.chooseMg(press.key, 'chest');
+  model.setExerciseField(press.key, 'first', '20');
+  model.goto(6);
+  booted.api.render('setup');
+  doc.querySelector('#phone [data-slot="primary"]').click();
+  await landedOnToday(booted.api, 'the in-page first run');
+  await booted.api.ready;
+  assert.equal((await booted.model.weighIn(180)).ok, true, 'one weigh-in is recorded');
+  const target = booted.model.read().calorieTarget;
+  assert.equal(target.from, 'mass-estimate', 'the engine is pricing its labelled estimate');
+  assert.equal(target.gated, true, 'and it is gated');
+  assert.ok(Number.isFinite(target.lo) && Number.isFinite(target.hi), 'its band has two finite ends (DECISIONS:982): ' + JSON.stringify([target.lo, target.hi]));
+  booted.api.render('today', false);
+  const slot = (name) => doc.querySelector('#phone [data-slot="' + name + '"]');
+  const fmt = (n) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
+  assert.equal(slot('eat-title').textContent, 'A calorie range is not available yet.', 'the food card says T-19, never the estimate');
+  assert.equal(slot('kcal-note').hidden, false, 'and says what will measure his range');
+  assert.match(slot('kcal-note').textContent, /to measure yours\.$/, slot('kcal-note').textContent);
+  assert.match(slot('status-line').textContent, /Your calorie range is not available yet\.$/, 'the status line says T-19\'s words: ' + slot('status-line').textContent);
+  const phone = doc.getElementById('phone').textContent;
+  for (const figure of new Set([fmt(target.lo), fmt(target.hi)])) assert.equal(phone.includes(figure + ' kcal') || phone.includes(figure + ' to'), false, 'no estimate figure: ' + figure);
+  booted.api.render('nutrition');
+  const energy = doc.querySelector('#phone .macro-row').textContent;
+  assert(energy.includes('A calorie range is not available yet.'), 'and the Energy row says T-19 too: ' + energy);
+  assert.doesNotMatch(energy, /\d[\d,]* (kcal|to)/, 'with no figure: ' + energy);
+  booted.hosts.close();
+});
+
+/* E1-NOFIG (E1, Fable fd80cb84 D1; DECISIONS:989): for a gated athlete WITH a lean-mass estimate (the fixture's
+   athlete with his food days and weigh-ins trimmed: the engine's floor binds) and WITHOUT one (a just-enrolled athlete
+   with one weigh-in: the floor is skipped, DECISIONS:982), no kcal figure appears on the food card, the Energy row, the
+   status line or the coach (every page question), while the engine holds a finite gated band it could have said.
+   Every value is invented. Red first: on 75217c6 the card, the Energy row and the coach say the band's figures and the
+   status line says "an estimate". */
+test('E1-NOFIG - a gated athlete, with and without lean mass, sees no kcal figure on the card, the Energy row, the status line or the coach', async () => {
+  const base = TodayModel.createBasisState(DAY);
+  const withLean = n1Trim(base, 0, 28);
+  const heavy = n1Trim(base, 5, 9); heavy.trend = 230;
+  const clean = createTodayModel({ today: DAY, basisState: createCleanInitState({ setup: sleepFirstRunDocument() }) });
+  const noLean = clean.engine.applyRead(clean.stateFromOps(), DAY, 180, { hour: 8 });
+  const fmt = (n) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
+  const KCAL = /\d[\d,]*\s*(kcal|calories)\b/i;
+  for (const [label, state, lean] of [['with lean mass, one figure', withLean, true], ['with lean mass, a band', heavy, true], ['without lean mass', noLean, false]]) {
+    const model = createTodayModel({ today: DAY, basisState: state });
+    const E = model.engine;
+    assert.equal(Number.isFinite(E.calorieFloor(model.stateFromOps()).floor), lean, label + ': fixture: lean mass ' + lean);
+    const target = model.read().calorieTarget;
+    assert.equal(target.gated, true, label + ': gated');
+    assert.ok(Number.isFinite(target.lo) && Number.isFinite(target.hi), label + ': the engine holds a finite band: ' + JSON.stringify([target.lo, target.hi]));
+    const figures = [...new Set([fmt(target.lo), fmt(target.hi), String(target.lo), String(target.hi)])];
+    const doc = new JSDOM(shell()).window.document;
+    const api = mountToday(doc, model, {});
+    const slot = (name) => doc.querySelector('[data-slot="' + name + '"]');
+    const surfaces = { card: slot('eat-title').textContent + ' | ' + (slot('kcal-note').hidden ? '' : slot('kcal-note').textContent),
+      status: slot('status-line').textContent };
+    api.render('nutrition', false);
+    surfaces.energy = [...doc.querySelectorAll('.macro-row')].map((row) => row.textContent).find((t) => t.startsWith('Energy')) || '';
+    api.dispose();
+    const coach = PageCoach.createPageCoach({ today: model });
+    const answers = [];
+    for (const intent of Intents.PAGE_INTENT_IDS) { const got = await coach.ask(intent); answers.push(intent + ': ' + (got.answer || '')); }
+    surfaces.coach = answers.join('\n');
+    assert.equal(surfaces.card.startsWith('A calorie range is not available yet.'), true, label + ': the card says T-19: ' + surfaces.card);
+    for (const [where, words] of Object.entries(surfaces)) {
+      assert.doesNotMatch(words, KCAL, label + ': no kcal figure on the ' + where + ': ' + words);
+      assert.doesNotMatch(words, /[Ee]stimate/, label + ': no estimate on the ' + where);
+      for (const n of figures) assert.equal(new RegExp('(^|[^\\d,])' + n.replace(/,/g, ',') + '($|[^\\d,])').test(words), false,
+        label + ': the band\'s figure ' + n + ' is not on the ' + where + ': ' + words);
+    }
+  }
+  /* Fable 7143a722 D1: gated with NO gate line to say (no bodyweight yet, so the engine prices no estimate and
+     calorieGateOf has nothing to count), the coach says T-19's sentence, Today's card's own words, and no figure. */
+  const bare = createTodayModel({ today: DAY, basisState: clean.stateFromOps() });
+  const bt = bare.read().calorieTarget;
+  assert.equal(bt.gated, true, 'no bodyweight: gated');
+  assert.equal(bare.read().calorieGate, null, 'and no gate line applies');
+  const said = (await PageCoach.createPageCoach({ today: bare }).ask('today_plan')).answer.split('\n');
+  assert(said.includes('A calorie range is not available yet.'), 'the coach says T-19\'s sentence: ' + said.join(' | '));
+  assert.equal(said.some((line) => /to measure yours|measured again/.test(line)), false, 'and no gate line');
+  assert.doesNotMatch(said.join('\n'), KCAL, 'and no kcal figure');
+  const bdoc = new JSDOM(shell()).window.document;
+  const bapi = mountToday(bdoc, bare, {});
+  assert.equal(bdoc.querySelector('[data-slot="eat-title"]').textContent, 'A calorie range is not available yet.', 'which is what Today\'s card says');
+  bapi.dispose();
 });

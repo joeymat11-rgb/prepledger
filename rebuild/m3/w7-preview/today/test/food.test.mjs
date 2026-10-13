@@ -1712,3 +1712,42 @@ test('N2B.9 - on a store with no installation yet, the food, sleep and steps lan
   assert.equal(doc.querySelector('#phone [data-slot="nutrition-state"]').textContent, '', 'and Today says nothing about food');
   api.dispose();
 });
+
+/* DECISIONS:982 (the owner's ruling, folded into the ui-pass13 fix-forward): energy.cjs calorieTarget skips a calorie
+   floor that is not finite instead of letting it blank the band. ENGINE-LEVEL cells, over the real engine the page
+   composes. Red first: on f4bd98c's energy.cjs the first cell fails (lo and hi NaN); the second is the control. */
+test('UP13-FLOOR - with no lean-mass estimate the labelled estimate has two finite ends: the band off his priced maintenance', () => {
+  const clean = createCleanInitState({ setup: firstRunDocument() });
+  const model = createTodayModel({ today: DAY, basisState: clean });
+  const E = model.engine;
+  const s = E.applyRead(model.stateFromOps(), DAY, 180, { hour: 8 });
+  assert.equal(Number.isFinite(E.calorieFloor(s).floor), false, 'precondition: no lean-mass estimate, so no floor');
+  const c = E.calorieTarget(s);
+  assert.equal(c.from, 'mass-estimate');
+  assert.equal(c.gated, true);
+  assert.ok(Number.isFinite(c.lo) && Number.isFinite(c.hi), 'two finite ends: ' + JSON.stringify([c.lo, c.hi]));
+  const perLb = E.energyDensity(s).perLb;
+  const off = (lbWk) => Math.round((lbWk * perLb) / 7);
+  assert.ok(Number.isFinite(c.tdee) && Array.isArray(c.band), 'the priced maintenance and his own band');
+  assert.equal(c.hi, c.tdee - off(c.band[0]), 'the slow end of his band off the priced maintenance');
+  assert.equal(c.lo, c.tdee - off(c.band[1]), 'the fast end');
+  assert.equal(c.mid, Math.round((c.lo + c.hi) / 2));
+});
+/* The control: an athlete WITH a lean-mass estimate gets a byte-identical calorieTarget. The three sha256 values are
+   of JSON.stringify(calorieTarget(state)) MEASURED on f4bd98c's energy.cjs: the fixture athlete (a measured band), the
+   same athlete with no food days (the labelled estimate, the floor binding both ends), and at a low trend. */
+test('UP13-FLOOR-CONTROL - an athlete with a lean-mass estimate gets a byte-identical calorieTarget', () => {
+  const E = createTodayModel({ today: DAY }).engine;
+  const base = createBasisState(DAY);
+  const noFood = structuredClone(base); noFood.dailyLogs = {};
+  const low = structuredClone(base); low.trend = 110;
+  const sha = (v) => createHash('sha256').update(JSON.stringify(v)).digest('hex');
+  for (const [label, state, pinned] of [
+    ['measured', base, '6915631faf1ab6ea4c37ecedc20e1323ad61d45878330e0a21d37707807f0864'],
+    ['estimate, floor binding', noFood, 'e4a3e50df2d7c14c2c3edf3bdf5b3e81103bd9753c37b68e504394f86acbf3f3'],
+    ['low trend', low, '5c209aae304112f5731ec16cce68c1b6f8c4e7e7d56d26908ada83a289661570'],
+  ]) {
+    assert.ok(Number.isFinite(E.calorieFloor(state).floor), label + ': this athlete has a floor');
+    assert.equal(sha(E.calorieTarget(state)), pinned, label + ': byte-identical to f4bd98c');
+  }
+});

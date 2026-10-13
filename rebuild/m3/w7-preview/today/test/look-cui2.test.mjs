@@ -221,19 +221,21 @@ test("C-UI-2 R3: the status line says the prototype's words for each state, and 
        C-UI-3 binds T-40). */
     ["open proposal after the session is logged", day({ nowModel: { decisionsN: 1 } }), { phase: "finished" }, false, ""],
     ["open proposal on a rest day", day({ workout: { title: "LOWER BODY" + DOT + "TOMORROW", today: false, exerciseCount: 4, unavailableReason: null }, nowModel: { decisionsN: 1 } }), null, false, ""],
-    /* DECISIONS:980 (the owner's ruling, "Labelled estimate"): while the band is the engine's own labelled estimate
-       (gated, from "mass-estimate", both ends figures) the line says the ruling's words, which supersede T-19's for
-       that state only; a gated band that is not that estimate still says T-19's. */
-    ["DECISIONS:980 the engine's labelled estimate", day({ calorieTarget: { gated: true, from: "mass-estimate", lo: 1886, hi: 2011 } }), null, false,
-      "Upper body today. Your calorie range is an estimate for now.", "DECISIONS:980"],
-    ["DECISIONS:980 one figure is still the estimate", day({ calorieTarget: { gated: true, from: "mass-estimate", lo: 1700, hi: 1700 } }), null, false,
-      "Upper body today. Your calorie range is an estimate for now.", "DECISIONS:980"],
+    /* DECISIONS:989 (E1, Fable fd80cb84 D1; reverses DECISIONS:980's estimate for the gated state): the engine's gated
+       estimate band is never shown, so the line over it says the prototype's T-19 words again, whatever its figures. */
+    ["DECISIONS:989 the engine's gated estimate: T-19's words", day({ calorieTarget: { gated: true, from: "mass-estimate", lo: 1886, hi: 2011 } }), null, false,
+      "Upper body today. Your calorie range is not available yet."],
+    ["DECISIONS:989 one figure: T-19's words", day({ calorieTarget: { gated: true, from: "mass-estimate", lo: 1700, hi: 1700 } }), null, false,
+      "Upper body today. Your calorie range is not available yet."],
     ["T-19 a gated band with no estimate figures", day({ calorieTarget: { gated: true, from: "mass-estimate", lo: null, hi: null } }), null, false,
       "Upper body today. Your calorie range is not available yet."],
     ["T-19 no bodyweight yet", day({ calorieTarget: { gated: true, from: "none", lo: null, hi: null } }), null, false, "Upper body today. Your calorie range is not available yet."],
     ["T-02 sample over an estimate: the sample line", day({ calorieTarget: { gated: true, from: "mass-estimate", lo: 1886, hi: 2011 } }), null, true, "Upper body today. Sample data."],
   ];
   const app = fs.readFileSync(APP, "utf8");
+  /* DECISIONS:989: the estimate's status line is withdrawn, not merely unused */
+  assert.equal(app.includes("STATUS_CALORIE_ESTIMATE"), false, "DECISIONS:989: no estimate status line is declared");
+  assert.equal(app.includes("is an estimate for now"), false, "DECISIONS:989: and its words are gone");
   for (const [label, view, session, sample, want, ruling] of rows) {
     const got = statusLine(view, session, sample);
     assert.equal(got, want, label);

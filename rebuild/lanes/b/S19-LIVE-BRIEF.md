@@ -4,7 +4,8 @@ Package: M2-S19-LIVE, an UNSEALED `--ci` child of the SEALED M2-S14-HOLD (artifa
 rebuild/m4/spec/acceptance-s14-hold.json, receipt DECISIONS:932), the S12/S13/S15/S16/S17/S18 shape, on the
 branch rebuild/c-live. It carries every byte M2-S18-OPENED declared, the CI and deploy change below, two
 small product nits from UI check 6 and Coach v1 (the owner's "No-AI coach first", amended in place). It moves
-no rebuild/engine byte, declares no D-id and no gate supersession; no seal, receipt or VERDICT; the coach
+one rebuild/engine file, energy.cjs (E1, the owner's ruling DECISIONS:982), and declares one gate supersession,
+GATE-SUPERSESSION M2-S19-LIVE (DECISIONS:989; E1 below); it declares no D-id; no seal, receipt or VERDICT; the coach
 ENGINE_REVISION stays M2-S14-HOLD's.
 
 ## Why a new id, and why it is the last one for a while (PM ruling, 2026-10-12)
@@ -949,22 +950,116 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   (D-GSS-NEUTRAL-REPAINT, which uses the Why? toggle as its neutral repaint, is unchanged and green). No wait was
   added to any test and no test was loosened; P5-D1, its 20 turns and every assertion are as they were.
 - New cell: gym.test.mjs P5-D1-NOW, with the repaint's read held, Why? is open inside its own click and closed
-  inside the next, and each click still asks for its repaint (one read each). Red first on 75217c6's gym-app.mjs
-  (the words are absent until the read answers), green here.
+  inside the next, and each click still asks for its repaint (one read each). Red first: 0 of 10 on 75217c6, 10 of
+  10 with the fix (on 75217c6's gym-app.mjs the words are absent until the read answers).
 - Needles: today-17 883 -> 884 (P5-D1-NOW; expected, observed at the PM seat).
-- At the builder seat: the today batch 690/711 (689/710 plus P5-D1-NOW; the same 21 seat-only build failures; D-GSS-NEUTRAL-REPAINT and the copy lock green in it), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 39/39 (corpus unchanged), food-live-save 7/7, s12-look 81/82 (the same seat-only C-UI-1 build failure); P5-D1 20 of 20 and P5-D1-NOW 20 of 20 green, each run as its own process, and P5-D1-NOW 0 of 10 on 75217c6's gym-app.mjs.
+- At the builder seat: the today batch 690/711 (689/710 plus P5-D1-NOW; the same 21 seat-only build failures; D-GSS-NEUTRAL-REPAINT and the copy lock green in it), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 39/39 (corpus unchanged), food-live-save 7/7, s12-look 81/82 (the same seat-only C-UI-1 build failure); P5-D1 20 of 20 and P5-D1-NOW 20 of 20 green, each run as its own process; P5-D1-NOW red first 0 of 10 on 75217c6, 10 of 10 with the fix.
+
+## E1: the engine floor, and the gated estimate is never shown (owner ruling DECISIONS:982; PM ruling and GATE-SUPERSESSION M2-S19-LIVE, DECISIONS:989; on c223d47, rebuild/c-engine1)
+- The engine change, the one rebuild/engine file this package moves (none of the protected five; no sealed file):
+  energy.cjs calorieTarget skips a calorie floor that is not a finite number, the owner's ruling at DECISIONS:982.
+  With no lean-mass estimate yet, calorieFloor(s).floor is NaN, and Math.max(NaN, x) blanked the band's lo and hi,
+  the measured range's as well as the estimate's. A helper, atFloor(x) = Number.isFinite(floor) ? Math.max(floor, x)
+  : x, takes the floor's place at its six sites (hiG, loG, baseHi, baseLo, hi, lo); a finite floor binds exactly as
+  before. Seven declared hunks, written out as literals in rebuild/m4/workout/test/s19-energy-moves.cjs; energy.cjs
+  4dd7195e -> 04905447. food.test.mjs UP13-FLOOR: with no lean-mass estimate the band has two finite ends.
+  UP13-FLOOR-CONTROL: an athlete with a lean-mass estimate gets a byte-identical calorieTarget (three worlds, their
+  sha256 measured at f4bd98c and unchanged here).
+- THE GATED ESTIMATE IS NEVER SHOWN (Fable fd80cb84 D1 and the owner conversation; the PM's ruling, recorded at
+  DECISIONS:989 in the same line as the supersession clause, reverses DECISIONS:980's estimate for the gated state).
+  The engine's mass-estimate band is unrealistically low for a lean, active athlete, and eating to it would cost
+  muscle. So no screen says its figures:
+  - the food card's title while gated is T-19's "A calorie range is not available yet." again (calorieBand); the line
+    under it still says what will measure his range, "Log food for N more days and weigh in M more times to measure
+    yours.", and in a blackout the day it is measured again (calorieGateLine, unchanged);
+  - the Energy row says T-19's words too; the status line says T-19's prototype words again ("<session> today. Your
+    calorie range is not available yet."); N1's estimate title, its one-figure form and its status line are withdrawn
+    from today-app.cjs (CALORIE_ESTIMATE, CALORIE_ESTIMATE_ONE, calorieEstimate, STATUS_CALORIE_ESTIMATE);
+  - the coach: read-tools.cjs today_plan gives a gated band's two ends as blanks ("the band is gated, and a gated band
+    is never shown"), so no figure of it is a result of the turn at all, and flags it gated (kcalGated, in place of
+    N1's kcalEstimate); "What am I hitting today?" (coach-intents.cjs plan) then says only the gate line, the same line
+    Today's card says, with no calorie figure, and where no gate line applies (no bodyweight yet) T-19's sentence, "A
+    calorie range is not available yet.", Today's card's own words (Fable 7143a722 D1, a row of E1-NOFIG); N1's
+    "Estimate: eat between " and "Estimate: eat about " are withdrawn.
+  A measured range shows exactly as before, everywhere. A realistic starter estimate (step-aware, a muscle-safe pace,
+  a sensible minimum) is a later package; nothing of it is built here.
+- The laws: look-cui2 C-UI-2 R3 and look-cui3 T-40's DECISIONS:980 rows for the estimate's status line revert to
+  asserting the prototype's T-19 words, cited DECISIONS:989, and each cell also holds that STATUS_CALORIE_ESTIMATE and
+  its words are gone; the gate-line rows stand.
+- The coach's floor topic (read-tools.cjs why_this_instruction "floor"): with no finite floor it carries a blank, "no
+  lean-mass estimate yet, so no floor is measured", instead of the floor's own sentence, which says "NaN"; that reason
+  is new copy, approved under DECISIONS:982.
+- New strings, for approval: the coach blank reason "the band is gated, and a gated band is never shown" (a tool
+  blank's reason, as the floor's is). The copy lock re-measures for exactly the withdrawn pieces: "Estimate: ",
+  "Estimate: about " and " today. Your calorie range is an estimate for now." out, today-app.cjs's " kcal" 4 -> 2 and
+  " to " 2 -> 1 (CL-E1-DELTA and CL-E1-APPROVAL citing DECISIONS:989, a layer on top of N2 part B; corpus 2b9c2568 ->
+  975061da). CL-NUTRI1-DELTA checks its own pieces as nutri 1 left them (beforeE1, E1's layer only), since E1 withdrew
+  three of them.
+- Pins of energy.cjs's bytes, each measured and each citing DECISIONS:982: rebuild/m4/import/test/s3/
+  s3-portable-sources.json's energy entry 4dd7195e -> 04905447, with a top-level "repins" row naming the path, the
+  two shas, the ruling and why (the harness reads only profile and sources); S19.json's energy.cjs carried ->
+  edited. The step-efficacy acceptance stays historical (PM ruling): its helper's ENERGY_SHA is not re-pinned and the
+  sealed acceptance is not rewritten; on the new bytes the stepEfficacy section is byte-identical (section sha256
+  prefix e1f257ce6ba5dfab, 1895 bytes) and all six mutants still find exactly one site.
+- The gate supersession (DECISIONS:153, the S14 shape). S14's children 30, 31 and 35 hold native-load.cjs as the
+  only engine byte that may move, so they cannot stand. S19 retires the five byte-identity carriers again under its
+  own token line, GATE-SUPERSESSION M2-S19-LIVE (RULED at DECISIONS:989 under the owner's ruling at :982; the clause
+  alone in its own clause: "GATE-SUPERSESSION M2-S19-LIVE source-carriers,inherited-carriers,defect-witnesses,
+  writers-differential,second-gate"): coverage.superseded names the five, each row with its why and its own evidence
+  (redFirst its own child; the census the runner's live-triggered line; a0-journeys, today-17 and
+  s19-engine-files-differential the three differentials), and rulingLineSha256 is the :989 line's own sha256,
+  c4fb0a62c2559d713f4caabf9c2e86ea673f9cce12e5b99c5528f9bf999543ea (548 bytes; the runner locates the line by it).
+  - Child 30, s19-sup-source-carriers (rebuild/m4/workout/test/s19-supersede-source-carriers.test.cjs): every S14
+    assertion kept, pointed at S19's parent S14: SUP-1 exactly energy.cjs moves from the S14 post, by its declared
+    hunks only, nothing added, every other named file carried at the parent's pin, and S14's native-load proof
+    replayed (the S11 post plus exactly S14's six hunks, carried here at the S14 post); SUP-P two RED plants (a third
+    moving engine file; an undeclared line inside energy.cjs), in memory, nothing written; SUP-2 the carrier's own
+    verifier refuses (now six leavers: the five that left before S14 and energy.cjs, which leaves here by its hunks);
+    SUP-3 the original gate migrate-source refuses; SUP-4 the pinned list and S14's own retirement on the record.
+  - Child 31, s19-sup-inherited-carriers (s19-supersede-inherited-carriers.test.cjs): SUP-5 priorModule's rule
+    (energy.cjs is no carried module of the list, so the refusal is S14's); SUP-6 every other prior engine module at
+    the S14 post, energy.cjs the S14 post plus its hunks, S14's native-load proof, the mutation control; SUP-P the two
+    plants; SUP-7 the inherited capabilities still reached.
+  - Child 35, s19-engine-files-differential (s19-engine-files-differential.cjs), as built: 27 tracked engine files
+    outside the product byte-identical to the S14 parent, the two named files that have moved since the S11 seal each
+    by its declared hunks only (energy.cjs, 7 against the S14 post; native-load.cjs, 6 against the S11 post, carried
+    here), 19 named carried, none added, and three RED plants (a third named file, a third file outside the product,
+    an undeclared line inside energy.cjs).
+  - Children 32, 33 and 34 (s14-sup-defect-witnesses, -writers-differential, -second-gate) stand as they are: the PM
+    seat ran them on the engine patch, 9 of 9, so no public record moves.
+- Cells. Amended under DECISIONS:989, each now holding the gated estimate unseen: problem.test.mjs N1-CARD (T-19's
+  title, the gate line under it moving with the counts, no estimate figure on Today, the Energy row T-19; measured as
+  before), UP13-ESTIMATE (the page's own path: boot, first run, one weigh-in: the engine's band finite, DECISIONS:982,
+  yet T-19 on the card with the gate line, T-19's status line, T-19 on the Energy row, no figure anywhere),
+  page-coach.test.cjs PC-12 (the gate line only, no calorie figure, the band's ends blanks in the turn, the counts
+  licensed by their own tags; measured as before). New: problem.test.mjs E1-NOFIG, for a gated athlete with lean mass
+  (one figure and a band) and without (one weigh-in, the floor skipped), no kcal figure and no estimate on the food
+  card, the Energy row, the status line or any page question of the coach, while the engine holds a finite band.
+- Red first: on 75217c6's today-app.cjs, read-tools.cjs and coach-intents.cjs, N1-CARD, UP13-ESTIMATE, E1-NOFIG,
+  PC-12 and the two status-line law cells fail and pass on these; on 75217c6's energy.cjs UP13-FLOOR fails
+  (UP13-FLOOR-CONTROL passes on both, by design); s19-sup SUP-1 ("exactly energy.cjs moves") and SUP-6 ("the parent
+  plus exactly its declared hunks") fail there, and every plant is refused here. Seven engine-adjacent suites at the
+  builder seat (rebuild/m3/w5 and w6 current-head, w6 prepared-workout, m4/import engine-pins-unprotected and
+  engine-provider, the S3 harness, native-carriers-profile) fail the same 28 seat-only tests with and without the
+  engine change: none moves.
+- Needles: today-17 884 -> 888 (UP13-FLOOR, UP13-FLOOR-CONTROL, UP13-ESTIMATE, E1-NOFIG; expected, observed at the PM
+  seat); s10-copy-lock 39 -> 41 (CL-E1-DELTA, CL-E1-APPROVAL; measured); children 30 # pass 5, 31 # pass 4 and 35 its
+  line, each expected, observed at the PM seat (each reads every tracked engine file, the protected five among them;
+  the builder seat ran their non-protected halves only, with the five held unread).
+- At the builder seat: the today batch 696/717 (690/711 plus UP13-FLOOR, UP13-FLOOR-CONTROL, UP13-ESTIMATE, E1-NOFIG and the two copy-lock rows; the same 21 seat-only build failures), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the copy lock 41/41 (corpus 975061da), the writer fence 417/417, food-live-save 7/7, the coach suite 401/401 without the seat-only engine-revision-gap file, and children 30, 31 and 35's non-protected halves with the five held unread (s19-sup SUP-1, SUP-P and SUP-4, and SUP-6's identity through SUP-P; s19-engine-files-differential's line and its three plants).
 
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
-rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 (the polish's CL-COACH-POLISH-DELTA
+rebuild/engine file but energy.cjs (E1, DECISIONS:982) and none of the protected five; no child or argv but E1's three
+replacements (children 30, 31 and 35, under GATE-SUPERSESSION M2-S19-LIVE, DECISIONS:989); needles move only to measured values,
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 -> 41 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL; E1's CL-E1-DELTA and CL-E1-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
 polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell; N2 part B's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW), and with E1 884 -> 888 (UP13-FLOOR, UP13-FLOOR-CONTROL, UP13-ESTIMATE, E1-NOFIG); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS
