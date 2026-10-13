@@ -305,6 +305,8 @@ const WEEK_WORDS = Object.freeze({
   liftsReady: " lifts ready for a new weight.",
   allSteady: "All lifts held steady.",
   noneReady: "No lift ready for a new weight.",
+  /* polish 5: the first weeks (read-tools.cjs firstWeeks), in place of "All lifts held steady." */
+  noneReadyYet: "No lift ready for a new weight yet.",
   noLifts: "No lift finished a workout in this week.",
   liftsUnknown: "Your lifts could not be checked on this device.",
   steady: "Holding steady: ",
@@ -355,12 +357,14 @@ function offerWhy(lift) {
 }
 /* The review as lines: { text, why } where `why` is the offer said plainly (offerWhy above), shown behind Why?. Every number in a
    line or a why is a tool result of the turn (ask() checks the whole draft, whys included). */
-/* Polish 4: names as one list, "A", "A and B", "A, B, and C". */
-const nameList = (names) => (names.length < 3 ? names.join(" and ")
-  : names.slice(0, -1).join(", ") + ", " + WEEK_WORDS.and + names[names.length - 1]);
+/* Polish 4: names as one list; polish 5 (item 6): with no comma before "and", "A", "A and B", "A, B and C", the way
+   the short line reads into "and 7 more". */
+const nameList = (names) => (names.length < 2 ? names.join("")
+  : names.slice(0, -1).join(", ") + " " + WEEK_WORDS.and + names[names.length - 1]);
 /* Polish 4: each line carries its `kind` (heading, summary, ready, news, steady, suggestion, trend). The steady line,
-   when it names only the first lifts, also carries `short` (the named lifts, ending in a comma), `more` ("and 6 more",
-   the control that shows the rest on the card) and `full` (every name); its `text` is short and more as one sentence. */
+   when it names only the first lifts, also carries `short` (the named lifts; polish 5: no comma left hanging), `more`
+   ("and 7 more", the control that shows the rest on the card, read as the line's own continuation) and `full` (every
+   name); its `text` is short and more as one sentence. */
 function weekLines(v) {
   const lines = [{ kind: "heading", text: v.which && v.which.value === "last" ? WEEK_WORDS.lastWeek : WEEK_WORDS.thisWeek, why: null, heading: true }];
   const lifts = Array.isArray(v.lifts) ? v.lifts : [];
@@ -370,6 +374,7 @@ function weekLines(v) {
   const ready = group("ready"), news = group("news"), steady = group("steady");
   const standing = !known ? WEEK_WORDS.liftsUnknown : !lifts.length ? WEEK_WORDS.noLifts
     : ready.length ? d(counts.ready, "lift") + (ready.length === 1 ? WEEK_WORDS.liftReady : WEEK_WORDS.liftsReady)
+    : flag(v.firstWeeks) ? WEEK_WORDS.noneReadyYet
     : news.length ? WEEK_WORDS.noneReady : WEEK_WORDS.allSteady;
   lines.push({ kind: "summary", text: WEEK_WORDS.workouts + d(v.done, "?") + WEEK_WORDS.of + d(v.planned, "?") + ". " + standing, why: null });
   for (const lift of ready) lines.push({ kind: "ready", text: d(lift.name, "text") + ": " + WEEK_WORDS.up, why: offerWhy(lift) });
@@ -383,7 +388,7 @@ function weekLines(v) {
     const full = WEEK_WORDS.steady + nameList(names) + ".";
     const past = counts.steadyMore && typeof counts.steadyMore.value === "number" ? counts.steadyMore.value : 0;
     if (past > 0 && past < names.length) {
-      const short = WEEK_WORDS.steady + names.slice(0, names.length - past).join(", ") + ",";
+      const short = WEEK_WORDS.steady + names.slice(0, names.length - past).join(", ");
       const more = WEEK_WORDS.and + d(counts.steadyMore, "lift") + WEEK_WORDS.more;
       lines.push({ kind: "steady", text: short + " " + more + ".", why: null, short, more, full });
     } else lines.push({ kind: "steady", text: full, why: null });

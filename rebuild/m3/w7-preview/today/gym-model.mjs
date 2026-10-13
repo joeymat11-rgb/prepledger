@@ -434,7 +434,11 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
       prescription: { line: prescriptionLine(active), effort: effortInstruction(active),
         effortCell: cell(active.effort) ? cell(active.effort).display : null,
         reason: reason && reason.state === 'specified' ? reason.display.split('\n').filter(Boolean) : [],
-        setup: setup && setup.state === 'specified' ? setup.display : null },
+        setup: setup && setup.state === 'specified' ? setup.display : null,
+        /* POLISH 5 D1 (Fable, f2427b73): true only when the engine specified this set's load as a number. The entry
+           below can hold a load nobody planned (the S14 R1 last real load, the S15 prefill), and the set screen
+           (gym-app.mjs plainSetLine/plainSetWhy) must not say such a load as planned. */
+        loadSpecified: !!(load && Number.isFinite(load.value)) },
       entry: { load: load && Number.isFinite(load.value) ? load.value
         : (lastRealLoad(load, active.lift_lineage_id, position) ?? loggedThisSession(load, activeLift, active)),
         reps: reps && Number.isSafeInteger(reps.value) ? reps.value : null,

@@ -94,6 +94,7 @@
     "Earned · Today",
     "Earned: Today",
     "Example numbers, not your data",
+    "First time: find your weight.",
     "How are you feeling today?",
     "Log set 1",
     "Machine settings",
@@ -108,7 +109,6 @@
     "Synthetic effort",
     "Synthetic lift",
     "Synthetic plan",
-    "Synthetic reason",
     "Synthetic workout",
     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
     "Today’s set",
@@ -138,6 +138,7 @@
     "Earned · Today",
     "Earned: Today",
     "Example numbers, not your data",
+    "First time: find your weight.",
     "How are you feeling today?",
     "Log set 1",
     "Machine settings",
@@ -155,7 +156,6 @@
     "Synthetic effort",
     "Synthetic lift",
     "Synthetic plan",
-    "Synthetic reason",
     "Synthetic workout",
     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
     "Today’s set",
@@ -187,6 +187,7 @@
     "Earned · Today",
     "Earned: Today",
     "Example numbers, not your data",
+    "First time: find your weight.",
     "How are you feeling today?",
     "Log set 1",
     "Machine settings",
@@ -204,7 +205,6 @@
     "Synthetic effort",
     "Synthetic lift",
     "Synthetic plan",
-    "Synthetic reason",
     "Synthetic workout",
     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
     "Today’s set",
@@ -236,6 +236,7 @@
     "Earned · Today",
     "Earned: Today",
     "Example numbers, not your data",
+    "First time: find your weight.",
     "How are you feeling today?",
     "Log set 1",
     "Machine settings",
@@ -254,7 +255,6 @@
     "Synthetic effort",
     "Synthetic lift",
     "Synthetic plan",
-    "Synthetic reason",
     "Synthetic workout",
     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
     "Today’s set",
@@ -283,6 +283,7 @@
     "Earned · Today",
     "Earned: Today",
     "Example numbers, not your data",
+    "First time: find your weight.",
     "How are you feeling today?",
     "Log set 1",
     "Machine settings",
@@ -297,7 +298,6 @@
     "Synthetic effort",
     "Synthetic lift",
     "Synthetic plan",
-    "Synthetic reason",
     "Synthetic workout",
     "The morning weigh-in and the gym card are wired, each over its own durable store on this device. The nutrition detail, recovery check-in and coach are entry points only and say so on screen.",
     "Today’s set",
@@ -332,6 +332,13 @@
    "text": " L ",
    "files": {
     "rebuild/slice/pwa/icons.cjs": 2
+   },
+   "lists": []
+  },
+  {
+   "text": " The box starts at ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
    },
    "lists": []
   },
@@ -491,6 +498,13 @@
    "lists": []
   },
   {
+   "text": " fewer reps.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": " files of this build are stored on this device. Everything the launch needs is here.",
    "files": {
     "rebuild/slice/pwa/preflight.js": 1
@@ -621,6 +635,34 @@
    "lists": []
   },
   {
+   "text": " lb for ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " lb from ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " lb from your recent sets; change it to what you lift.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " lb last time.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": " lb × ",
    "files": {
     "rebuild/m3/w7-preview/today/gym-model.mjs": 2
@@ -631,6 +673,13 @@
    "text": " lb, to one decimal place. Nothing was recorded.",
    "files": {
     "rebuild/m3/w7-preview/today/today-readings.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " lb.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 5
    },
    "lists": []
   },
@@ -673,6 +722,13 @@
    "text": " matched ",
    "files": {
     "rebuild/slice/pwa/shell.cjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": " more reps.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
    },
    "lists": []
   },
@@ -750,6 +806,13 @@
    "lists": [
     "RUNTIME_COPY"
    ]
+  },
+  {
+   "text": " reps from last time.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
   },
   {
    "text": " reps · ",
@@ -909,13 +972,6 @@
    "lists": []
   },
   {
-   "text": " · Why this plan?",
-   "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1
-   },
-   "lists": []
-  },
-  {
    "text": "\" carries a dash",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 2
@@ -1000,6 +1056,13 @@
    "lists": []
   },
   {
+   "text": ", and today repeats it.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": ", estimated 1RM",
    "files": {
     "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
@@ -1039,6 +1102,55 @@
    "files": {
     "rebuild/m3/w7-preview/today/today-app.cjs": 1,
     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ". Today keeps ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ". Today keeps the weight and asks for ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ". Today keeps the weight and asks for one more rep.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ". Today keeps the weight with ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ". Today keeps the weight with one rep fewer.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ". Today moves the weight down to ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": ". Today moves the weight up to ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
    },
    "lists": []
   },
@@ -2364,6 +2476,13 @@
    "lists": []
   },
   {
+   "text": "Choose your weight for this set.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Clean reps left",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
@@ -2569,6 +2688,27 @@
     "APPROVED_COPY",
     "CHECKIN_RUNTIME_COPY"
    ]
+  },
+  {
+   "text": "Down ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Down one rep from last time.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Down to ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
   },
   {
    "text": "Dumbbell bench press",
@@ -3060,6 +3200,20 @@
    "lists": []
   },
   {
+   "text": "First time: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "First time: find your weight.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Food logging adherence",
    "files": {
     "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
@@ -3126,13 +3280,6 @@
    "lists": []
   },
   {
-   "text": "From this device’s encrypted local store.",
-   "files": {
-    "rebuild/m3/w7-preview/today/coach-app.mjs": 1
-   },
-   "lists": []
-  },
-  {
    "text": "From this device’s encrypted local store. Example numbers.",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
@@ -3150,6 +3297,14 @@
    "text": "From your check-in on Wed, Sep 16. You were asked how your energy was, and you said 3 of 5. The plan keeps today’s session as it is.",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "From your data on this phone.",
+   "files": {
+    "rebuild/m3/w7-preview/today/coach-app.mjs": 1,
+    "rebuild/m3/w7-preview/today/design.cjs": 1
    },
    "lists": []
   },
@@ -3815,6 +3970,13 @@
    "text": "Last time on this machine at this seat: 105 lb × 8 reps on Sep 9. Nothing else on file is comparable.",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Last time you did ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
    },
    "lists": []
   },
@@ -5583,6 +5745,20 @@
    "lists": []
   },
   {
+   "text": "Same as last time: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Same weight as last time: ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Sample data. Set up your week to start your own.",
    "files": {
     "rebuild/m3/w7-preview/today/today-app.cjs": 1
@@ -6597,6 +6773,20 @@
    "lists": []
   },
   {
+   "text": "There is no earlier set of this lift on this device, so today starts at the planned ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "There is no earlier set of this lift on this device. Choose a weight that stays steady for every set; what you log becomes your starting point.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "There is no live coach in this build.",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 2
@@ -6774,6 +6964,13 @@
    "text": "This is about the machine, not about you. Look at the stack or the plates and tell us what it can make.",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "This is the weight your recent sets support.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
    },
    "lists": []
   },
@@ -7292,7 +7489,8 @@
   {
    "text": "Undo",
    "files": {
-    "rebuild/m3/w7-preview/today/screens.template.html": 1
+    "rebuild/m3/w7-preview/today/screens.template.html": 1,
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
    },
    "lists": []
   },
@@ -7357,6 +7555,27 @@
    "lists": []
   },
   {
+   "text": "Up ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Up one rep from last time.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Up to ",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Upper back",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
@@ -7374,6 +7593,13 @@
    "text": "Upright row",
    "files": {
     "rebuild/m3/w7-preview/today/exercise-catalogue.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Use ",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-entry.mjs": 1
    },
    "lists": []
   },
@@ -7847,7 +8073,8 @@
    "text": "Why this plan?",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/screens.template.html": 1
+    "rebuild/m3/w7-preview/today/screens.template.html": 1,
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": [
     "RUNTIME_COPY"
@@ -8352,6 +8579,13 @@
    "lists": []
   },
   {
+   "text": "Your plan does not set a weight for this set.",
+   "files": {
+    "rebuild/m3/w7-preview/today/gym-app.mjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Your plan for today",
    "files": {
     "rebuild/m3/w7-preview/today/design.cjs": 1,
@@ -8420,6 +8654,13 @@
    "text": "Your saved workout changed since this offer. Check again for a current one.",
    "files": {
     "rebuild/m3/w7-preview/today/today-entry.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Your set targets are loading",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
   },

@@ -190,6 +190,17 @@ const offerHeading = offer => {
   const weight = oneLoadOf(offer);
   return weight === null ? ": set your working weight" : NATIVE_LOAD_ADOPT_HEADING.before + weight + NATIVE_LOAD_ADOPT_HEADING.after;
 };
+/* POLISH 5 (PM, item 3; the owner's "Check next weight" list, where a new weight and an undo carried the same Yes): each
+   offer's Yes says what it does. A new weight that is one weight for every set says "Use 40 lb" (its own load, as the
+   heading says it); the undo of an agreed weight says "Undo" and is drawn as the quieter button (preview.css, polish 5:
+   the offer card's data-kind is "compensate"); an offer whose sets differ keeps the approved "Yes". The button is the
+   same button (data-native-load "yes"), and the choice it records is unchanged. PM-approved short plain copy (:913 (5)). */
+export const NATIVE_LOAD_VERB = Object.freeze({ use: "Use ", undo: "Undo" });
+const offerYes = offer => {
+  if (offer.kind === "compensate") return NATIVE_LOAD_VERB.undo;
+  const weight = oneLoadOf(offer);
+  return weight === null ? NATIVE_LOAD_COPY.yes : NATIVE_LOAD_VERB.use + weight;
+};
 /* PROPOSED - NEW COPY, NOT APPROVED. Every string below needs Joe's approval before
    release (round 4, D9 undo control and D-B2-1 disputed label; spec R7/R8 :153, :156,
    :157). Nothing else in this file's copy changed. A lift's display name is prefixed to
@@ -336,7 +347,7 @@ function createNativeLoadController({ openHost, lifts: liftNames = () => new Map
         why.setAttribute("aria-expanded", show ? "true" : "false");
       });
       card.append(list, why, reason);
-      const yes = make("button", { type: "button", "data-native-load": "yes", class: "btn" }, NATIVE_LOAD_COPY.yes);
+      const yes = make("button", { type: "button", "data-native-load": "yes", class: "btn" }, offerYes(offer));
       yes.addEventListener("click", () => { api.accept(offer.proposalId); });
       const no = make("button", { type: "button", "data-native-load": "decline", class: "btn" }, NATIVE_LOAD_COPY.decline);
       no.addEventListener("click", () => { api.decline(offer.proposalId); });

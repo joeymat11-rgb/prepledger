@@ -753,3 +753,47 @@
 .view [data-slot="week-review-more"] { display: block; min-height: var(--hit); padding: 0; background: none; border: 0;
   text-align: left; color: var(--text-soft); }
 /* ===== POLISH 4: END ===== */
+/* ===== POLISH 5 (PM, the owner's 7-lift world, ui-pass11, 2026-10-12): BEGIN =====
+   2. THE SET SCREEN'S LAST ROW CLEARS THE RIR PANEL (shot 04 at 390: "How are you feeling today?" cut by the panel).
+      The scroll area keeps room under its last row for the bottom fade band (20 px) above its inset (20 px) and 16 px
+      clear beside it, so at the end of the scroll the last row ends above the fade and above the panel. Both mounts,
+      the plain one and S11's native-load one, resolve it alike (S12 C-2). */
+.scene-frame.screen-workout .ui > [data-native-load="gym"] > .body,
+.scene-frame.screen-workout .ui > .body { padding-bottom: 56px; }
+/* 3. "CHECK NEXT WEIGHT": an undo offer's button (today-entry.mjs, "Undo") is the quieter one, beside a new weight's
+      "Use 40 lb": no fill, the pack's line, the secondary text colour. Same size and tap row. */
+[data-native-load="offer"][data-kind="compensate"] > button[data-native-load="yes"] {
+  background: none; border: 1px solid var(--line); color: var(--text-soft); }
+/* 5. THE WEEKLY CARD'S PLACE, HELD (today-app.cjs weekPlaceholder): the collapsed card's own shape while the review is
+      read, its heading, two lines and the toggle's row, so nothing below it moves when it lands. The two lines are an
+      empty line the pack would not draw, so it is drawn here (display: block) at its height. */
+.scene-frame > .view.ui [data-slot="week-review"] [data-slot="week-review-pending"] { display: block; min-height: 2lh; }
+.scene-frame > .view.ui [data-slot="week-review"] [data-slot="week-review-room"] { min-height: var(--hit); }
+/* 6. THE WEEKLY CARD'S CONTROLS LOOK TAPPABLE: "See details" / "Hide details" and "and 7 more" / "Show fewer" in the
+      secondary accent (the pack's --gold), each with a small chevron that turns when it opens. "and 7 more" continues
+      its own line inline, in the line's own type, and keeps the 44 px tap row without opening the line (its extra
+      height is taken back by its margins). */
+.view [data-slot="week-review-toggle"],
+.view [data-slot="week-review-more"] { color: var(--gold); }
+.view [data-slot="week-review-toggle"]::after,
+.view [data-slot="week-review-more"]::after {
+  content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 7px; vertical-align: 2px;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+.view [data-slot="week-review-toggle"][aria-expanded="true"]::after,
+.view [data-slot="week-review-more"][aria-expanded="true"]::after { transform: rotate(-135deg); vertical-align: -1px; }
+.view [data-slot="week-review-steady"] > [data-slot="week-review-more"] {
+  display: inline-flex; align-items: center; min-height: var(--hit); margin: calc((1lh - var(--hit)) / 2) 0;
+  vertical-align: middle; font: inherit; }
+/*    the tap row reaches 12 px under its line, so the line keeps that room inside the card */
+.view [data-slot="week-review-steady"] { padding-bottom: 12px; }
+/* 8. THE WEIGHT TREND IS A LINE, NOT A CONTROL: its own row in the quiet links' rhythm (the 44 px row and 8 px above
+      it), in their secondary text colour; "Why this plan?" is the one control on the row under it. */
+.scene-frame > .view.ui > .body > div.day-foot {
+  display: flex; align-items: center; min-height: var(--hit); margin-top: 8px; margin-bottom: 0; padding: 0;
+  color: var(--text-soft); font-size: 13.5px; position: relative; isolation: isolate; }
+/*    and it takes the quiet links' own protective cloud over the art (batch 2, item 3), so it reads at their contrast. */
+:root[data-fade="full"] .scene-frame > .view.ui > .body > div.day-foot::before {
+  content: ""; position: absolute; left: -26px; right: -26px; top: -10px; bottom: -10px; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 92%, transparent) 0,
+    color-mix(in srgb, var(--surface) 72%, transparent) 45%, color-mix(in srgb, var(--surface) 28%, transparent) 78%, transparent 100%); }
+/* ===== POLISH 5: END ===== */

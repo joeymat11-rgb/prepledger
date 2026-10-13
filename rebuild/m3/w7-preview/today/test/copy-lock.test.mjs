@@ -76,7 +76,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // the value before is PRE_SEAT_CORPUS_SHA256, 218da3dc...).
 // Polish 4 (the weekly review opens collapsed): re-measured for exactly three more pieces, the card's controls "See details",
 // "Hide details" and "Show fewer" (CL-WEEK-POLISH4-DELTA; the value before is PRE_POLISH4_CORPUS_SHA256, 5bdf2c2e...).
-const CORPUS_SHA256 = '0f7f06de22c15e9cdf7e811e336f4171720f8d7e6c230447b470b250e979c295';
+// Polish 5 (the owner's 7-lift world): re-measured for exactly the polish 5 pieces, owners and mounted states
+// (CL-POLISH5-DELTA; the value before is PRE_POLISH5_CORPUS_SHA256, 0f7f06de...), including Fable's D1 pieces.
+const CORPUS_SHA256 = 'e63812aec64410a31dd34f87ead5e48a24aa74c45592e8c972a749df28378cd2';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -592,6 +594,92 @@ const POLISH_COPY_APPROVAL = 'DECISIONS:913';
 const PRE_SEAT_CORPUS_SHA256 = '218da3dc82a04fca3d958679b7896093cc77a36497e15bdc4b2b5980223bedde';
 const SEAT_NEW = Object.freeze([["Where's my seat set?", CV1_LIVE, []]]);
 const SEAT_COPY_APPROVAL = 'DECISIONS:913';
+/* Polish 5 (PM, the owner's 7-lift world, ui-pass11): the set screen's plain line (gym-app.mjs SET_PLAIN), the offer
+   verb "Use " (today-entry.mjs; "Undo" gains it as a second owner), the workout line's loading state (today-app.cjs), the
+   coach's plain source line (coach-app.mjs and design.cjs COACH_LIVE_APPROVED), and "Why this plan?" on its own row
+   (today-app.cjs gains it as an owner; " \u00b7 Why this plan?" leaves); the pack's "From this device\u2019s encrypted local
+   store." leaves the live coach. The five mounted gym states draw the plain line where they drew the fixture's reason,
+   which is no longer drawn at all (the ruling: Why? opens the plain rewrite, gym-app.mjs SET_WHY). beforePolish5 gives
+   every older view the corpus as polish 4 sealed it (PRE_POLISH5_CORPUS_SHA256), and beforePolish4 starts from that
+   view. Short plain copy, PM-approved under :913 (5). */
+const PRE_POLISH5_CORPUS_SHA256 = '0f7f06de22c15e9cdf7e811e336f4171720f8d7e6c230447b470b250e979c295';
+const P5_GYM = { [T + '/gym-app.mjs']: 1 };
+const POLISH5_NEW = Object.freeze([
+  [' lb for ', P5_GYM, []], [' lb from ', P5_GYM, []], [' lb last time.', P5_GYM, []],
+  /* the ruling's plain Why? (gym-app.mjs SET_WHY) ends four of its sentences with " lb." too */
+  [' lb.', { [T + '/gym-app.mjs']: 5 }, []],
+  [' fewer reps.', P5_GYM, []], [' more reps.', P5_GYM, []], [', and today repeats it.', P5_GYM, []], ['. Today keeps ', P5_GYM, []],
+  ['. Today keeps the weight and asks for ', P5_GYM, []], ['. Today keeps the weight and asks for one more rep.', P5_GYM, []],
+  ['. Today keeps the weight with ', P5_GYM, []], ['. Today keeps the weight with one rep fewer.', P5_GYM, []],
+  ['. Today moves the weight down to ', P5_GYM, []], ['. Today moves the weight up to ', P5_GYM, []], ['Last time you did ', P5_GYM, []],
+  ['There is no earlier set of this lift on this device, so today starts at the planned ', P5_GYM, []],
+  ['There is no earlier set of this lift on this device. Choose a weight that stays steady for every set; what you log becomes your starting point.', P5_GYM, []],
+  ['This is the weight your recent sets support.', P5_GYM, []],
+  /* D1 (Fable, f2427b73): a load the plan did not set is said as the athlete's own, never as planned */
+  ['Choose your weight for this set.', P5_GYM, []], ['Your plan does not set a weight for this set.', P5_GYM, []],
+  [' The box starts at ', P5_GYM, []], [' lb from your recent sets; change it to what you lift.', P5_GYM, []],
+  [' reps from last time.', P5_GYM, []], ['Down ', P5_GYM, []], ['Down one rep from last time.', P5_GYM, []],
+  ['Down to ', P5_GYM, []], ['First time: ', P5_GYM, []], ['First time: find your weight.', P5_GYM, []],
+  ['Same as last time: ', P5_GYM, []], ['Same weight as last time: ', P5_GYM, []], ['Up ', P5_GYM, []],
+  ['Up one rep from last time.', P5_GYM, []], ['Up to ', P5_GYM, []],
+  ['Use ', { [T + '/today-entry.mjs']: 1 }, []],
+  ['Your set targets are loading', { [T + '/today-app.cjs']: 1 }, []],
+  ['From your data on this phone.', { [CV1_APP]: 1, [CV1_DESIGN]: 1 }, []],
+]);
+const POLISH5_REMOVED = Object.freeze([
+  [' \u00b7 Why this plan?', { [T + '/today-app.cjs']: 1 }, []],
+  ['From this device\u2019s encrypted local store.', { [CV1_APP]: 1 }, []],
+]);
+const POLISH5_CHANGED = Object.freeze([
+  ['Undo', { [T + '/screens.template.html']: 1 }, { [T + '/screens.template.html']: 1, [T + '/today-entry.mjs']: 1 }, []],
+  ['Why this plan?', { [CV1_DESIGN]: 1, [T + '/screens.template.html']: 1 },
+    { [CV1_DESIGN]: 1, [T + '/screens.template.html']: 1, [T + '/today-app.cjs']: 1 }, ['RUNTIME_COPY']],
+]);
+/* the mounted gym states: the plain line in, the fixture's reason (now behind Why?) out, in every one of the five */
+const POLISH5_STATE_SWAP = Object.freeze(['First time: find your weight.', 'Synthetic reason']);
+const POLISH5_COPY_APPROVAL = 'DECISIONS:913';
+function beforePolish5(corpus) {
+  const added = new Set(POLISH5_NEW.map(([text]) => text));
+  /* idempotent, as the older views are read through it more than once (CL-S15-DELTA's s14View) */
+  const back = POLISH5_REMOVED.filter(([text]) => !corpus.entries.some((e) => e.text === text))
+    .map(([text, files, lists]) => ({ text, files: sortedFiles(files), lists }));
+  const [now, was] = POLISH5_STATE_SWAP;
+  const states = Object.fromEntries(Object.entries(corpus.states).map(([id, s]) =>
+    [id, { ...s, texts: s.texts.includes(now) ? s.texts.filter((t) => t !== now).concat([was]).sort() : s.texts }]));
+  return { ...corpus, states, entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
+    const row = POLISH5_CHANGED.find(([text]) => text === e.text);
+    return row ? { ...e, files: sortedFiles(row[1]) } : e;
+  }).concat(back).sort(byTextOrder) };
+}
+test('CL-POLISH5-DELTA: the corpus is the polish 4 corpus plus exactly the polish 5 pieces, owners and states, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const [text, files, lists] of POLISH5_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-POLISH5-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text] of POLISH5_REMOVED) if (byText.has(text)) failed.push('CL-POLISH5-DELTA REMOVED-STILL-THERE ' + JSON.stringify(text));
+  for (const [text, , now, lists] of POLISH5_CHANGED) {
+    const want = { text, files: sortedFiles(now), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-POLISH5-DELTA CHANGED ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [id, s] of Object.entries(corpus.states)) {
+    if (!s.texts.includes(POLISH5_STATE_SWAP[0]) || s.texts.includes(POLISH5_STATE_SWAP[1])) failed.push('CL-POLISH5-DELTA STATE ' + id);
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforePolish5(corpus)), 'utf8'));
+  if (before !== PRE_POLISH5_CORPUS_SHA256) failed.push('CL-POLISH5-DELTA PRE-POLISH5-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the polish 4 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-POLISH5-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforePolish5(moved)), 'utf8')) === PRE_POLISH5_CORPUS_SHA256) failed.push('CL-POLISH5-DELTA PRE-POLISH5-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-POLISH5-DELTA');
+});
+test('CL-POLISH5-APPROVAL: the polish 5 copy delta names the ledger line that approves it', () => {
+  assert.match(POLISH5_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-POLISH5-APPROVAL-PENDING: the polish 5 copy is not approved');
+});
 /* Polish 4 (PM, the owner's 7-lift week): exactly three more pieces, the weekly review card's controls, owned by
    today-app.cjs paintWeekReview (WEEK_REVIEW_WORDS) and declared in no list. beforePolish4 gives every older view the
    corpus as the seat read sealed it (PRE_POLISH4_CORPUS_SHA256), and beforeSeat starts from that view. Short plain copy,
@@ -603,7 +691,8 @@ const POLISH4_NEW = Object.freeze([
   ['Show fewer', { [T + '/today-app.cjs']: 1 }, []],
 ]);
 const POLISH4_COPY_APPROVAL = 'DECISIONS:913';
-function beforePolish4(corpus) {
+function beforePolish4(sealed) {
+  const corpus = beforePolish5(sealed);
   const added = new Set(POLISH4_NEW.map(([text]) => text));
   return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)) };
 }

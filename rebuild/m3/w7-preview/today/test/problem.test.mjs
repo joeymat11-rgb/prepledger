@@ -960,6 +960,77 @@ test('P0B.10 - athleteState() rejects: Start stays refused, never the fixture ho
   hosts.close();
 });
 
+/* POLISH 5 (PM, item 4; ui-pass11: "Today's workout cannot open . PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED" for 2.5 to
+   4.9 s after load, then the workout opened). ROOT CAUSE: on an enrolled device the workout lane's first dry preparation
+   runs at boot over the host opened BEFORE his own state is adopted; adoption (today-lanes.cjs adoptAthleteState) adopts
+   the basis, then rebases the gym host and refreshes, and any repaint in between drew that boot answer. Here the boot
+   answer is the refusal his imported history meets without the order mapping only his adopted basis carries. The card
+   now draws that boot answer as loading, Start held, until the adoption settles; a refusal read after it is drawn as
+   before (review B1), with its code. Red first: on df7ad22's today-app.cjs the in-between repaint prints the code. */
+test('P5-BOOT - a refusal read before adoption is drawn as loading with Start held, never with its code', async () => {
+  const kit = await p0bEnrolledDevice();
+  const hosts = await openTodayHosts({ indexedDB: kit.fault.indexedDB, crypto: webcrypto, day: P0B_DAY });
+  const realSetup = await createSetupEntry({ today: P0B_DAY }, { hosts });
+  assert.equal(realSetup.summary().enrolled, true);
+  let releaseState, releaseRebase;
+  const stateGate = new Promise((resolve) => { releaseState = resolve; });
+  const rebaseGate = new Promise((resolve) => { releaseRebase = resolve; });
+  const delayedSetup = { ...realSetup, athleteState: () => stateGate.then(() => realSetup.athleteState()) };
+  const CODE = 'PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED';
+  let summary = Object.freeze({ phase: 'blocked', sets: 0, code: CODE, copy: null, unfinished: null });
+  const workout = { summary: () => summary, setOnRefresh() {}, open() { return null; },
+    refresh: async () => { summary = Object.freeze({ phase: 'ready', sets: 0, code: null, copy: null, unfinished: null }); return summary; },
+    gym: { rebase: () => rebaseGate.then(() => true), holdForAdoption() {}, read: async () => summary } };
+  const model = createTodayModel({ today: P0B_DAY });
+  const dom = new JSDOM(shell());
+  const doc = dom.window.document;
+  const api = mountToday(doc, model, { workout, setup: delayedSetup });
+  const line = () => doc.querySelector('[data-slot="workout-count"]').textContent;
+  const phone = () => doc.getElementById('phone').textContent;
+  releaseState();
+  for (let i = 0; i < 400 && model.read().workout.exerciseCount === null; i += 1) await new Promise((r) => setTimeout(r, 2));
+  assert.notEqual(model.read().workout.exerciseCount, null, 'his own state is adopted; the gym host is still being rebased');
+  api.render('today', false);   /* the repaint another lane makes in that window */
+  assert.match(line(), /^\d+ exercises? \u00b7 Your set targets are loading$/, 'the boot answer is drawn as loading: ' + line());
+  assert.equal(phone().includes(CODE), false, 'no code on the screen');
+  assert.equal(phone().includes(TodayApp.WORKOUT_CANNOT_OPEN), false, 'and no cannot-open line');
+  assert.equal(doc.querySelector('[data-slot="primary"]').disabled, true, 'Start is held while loading');
+  assert.equal(doc.querySelector('[data-slot="primary-label"]').textContent.includes(TodayApp.WHY_WORKOUT_CANNOT_OPEN), false);
+  releaseRebase();
+  await api.ready;
+  for (let i = 0; i < 50 && !/ready$/.test(line()); i += 1) await new Promise((r) => setTimeout(r, 2));
+  assert.match(line(), /Your set targets are ready$/, 'once adopted and refreshed, the card is ready: ' + line());
+  assert.equal(doc.querySelector('[data-slot="primary"]').disabled, false, 'and Start is live');
+  /* a refusal read AFTER adoption is today's answer, drawn as before, with its code (review B1) */
+  summary = Object.freeze({ phase: 'blocked', sets: 0, code: CODE, copy: null, unfinished: null });
+  api.render('today', false);
+  assert.equal(line().includes(CODE), true, 'a refusal after adoption keeps its code: ' + line());
+  hosts.close();
+});
+
+/* POLISH 5 (PM, item 8; ui-pass11 shot 06: "Weight trend Not available yet . Why this plan?" was one control doing two
+   things). The trend is a line of its own and "Why this plan?" the one control on the row under it, in the quiet
+   links' rhythm. Red first: on df7ad22 the trend is inside the Why this plan? button. */
+test('P5-TREND - the weight trend is its own line, and Why this plan? is the one control under it', () => {
+  const dom = new JSDOM(shell());
+  const doc = dom.window.document;
+  const api = mountToday(doc, createTodayModel({ today: DAY }), {});
+  const trend = doc.querySelector('[data-slot="trend"]');
+  const row = trend.parentElement;
+  assert.equal(row.tagName, 'DIV', 'the trend is a line, not a control');
+  assert.equal(row.getAttribute('data-slot'), 'trend-row');
+  assert.equal(row.closest('button'), null, 'and sits in no button');
+  assert.match(trend.textContent, /^Weight trend (\d+(\.\d+)? lb|Not available yet)$/, 'its own words, and nothing of the link: ' + trend.textContent);
+  const why = doc.querySelector('[data-go="why"]');
+  assert.equal(why.tagName, 'BUTTON');
+  assert.equal(why.textContent, 'Why this plan?', 'the control says only what it opens');
+  assert.equal(why.contains(trend), false);
+  assert.equal(row.nextElementSibling, why, 'on the row right under the trend');
+  why.click();
+  assert.equal(api.screen(), 'why', 'and it still opens Why this plan');
+  api.dispose();
+});
+
 test('P0B.11 - both new adoption-safety strings are complete, dash-free sentences', () => {
   const sample = TodayApp.athleteStateFailureCopy(new Error('SETUP_STATE_BOOM'));
   for (const sentence of [ADOPTION_PENDING, sample]) {

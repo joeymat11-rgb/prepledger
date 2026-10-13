@@ -19,7 +19,7 @@
    writer-enumeration P3-EN3). */
 const { createReadTools } = require("./read-tools.cjs");
 const { createWave1Tools } = require("./wave1-tools.cjs");
-const { ask } = require("./coach-intents.cjs");
+const { ask, WEEK_WORDS } = require("./coach-intents.cjs");
 
 /* READ-ONLY WRAPPERS (Fable D1). The tools are handed NOT the page's models but frozen wrappers carrying only the
    read methods the page's READ intents call (tools.cjs today_plan, weight_trend, current_set,
@@ -93,4 +93,8 @@ function weekStarts(iso) {
   return new Date(Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)))).getUTCDay() === 1;
 }
 
-module.exports = { createPageCoach, readOnlyWorld, READS, weekStarts };
+/* POLISH 5 (PM, item 5): the review card's heading on the first day of a week, so Today can hold the card's place in
+   its own words while the review is read. */
+const WEEK_HEADING = WEEK_WORDS.lastWeek;
+
+module.exports = { createPageCoach, readOnlyWorld, READS, weekStarts, WEEK_HEADING };

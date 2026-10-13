@@ -208,7 +208,8 @@ test("PC-7: the weekly review ships traced, Monday reviews the week just ended, 
   assert.equal(asked.answered, true);
   assert.deepEqual(asked.untraceable, [], "every number in the review, whys included, is a tool result of its turn");
   assert.deepEqual(asked.charter, []);
-  assert.deepEqual(monday.windows, [["2026-10-05", "2026-10-11"]], "on a Monday the window is the week just ended");
+  assert.deepEqual(monday.windows, [["2026-10-05", "2026-10-11"], ["0000-01-01", "2026-10-04"]],
+    "on a Monday the window is the week just ended (polish 5: and the history before it, for the first weeks)");
   const lines = asked.lines;
   assert.deepEqual(lines.map((l) => l.kind), ["heading", "summary", "ready", "news", "steady", "suggestion", "trend"],
     "one summary, the ready lift, the news, one steady line, the suggestion count, the trend; in that order");
@@ -241,7 +242,7 @@ test("PC-7: the weekly review ships traced, Monday reviews the week just ended, 
   assert.deepEqual(asked.answer.split("\n"), lines.map((l) => (l.heading ? l.text + "." : l.text)), "one line per item");
   const midweek = weekWorld("2026-10-14");
   const mid = await createPageCoach(midweek).week();
-  assert.deepEqual(midweek.windows, [["2026-10-12", "2026-10-14"]], "midweek the window is this week so far");
+  assert.deepEqual(midweek.windows, [["2026-10-12", "2026-10-14"], ["0000-01-01", "2026-10-11"]], "midweek the window is this week so far");
   assert.equal(mid.ok, true);
   assert.equal(mid.lines[0].text, Intents.WEEK_WORDS.thisWeek);
 });
@@ -308,10 +309,10 @@ test("PC-10: the owner's ten lifts make one steady line, its counts traced, and 
   assert.deepEqual(lines.map((l) => l.kind), ["heading", "summary", "ready", "steady", "suggestion", "trend"]);
   assert.equal(lines[1].text, "Workouts done: 3 of " + planned(world) + ". 1 lift ready for a new weight.");
   const steady = lines.find((l) => l.kind === "steady");
-  assert.equal(steady.text, "Holding steady: Lateral machine, Press, Machine fly, Pulldown, and 6 more.");
-  assert.equal(steady.short, "Holding steady: Lateral machine, Press, Machine fly, Pulldown,");
+  assert.equal(steady.text, "Holding steady: Lateral machine, Press, Machine fly, Pulldown and 6 more.", "polish 5: no comma before and 6 more");
+  assert.equal(steady.short, "Holding steady: Lateral machine, Press, Machine fly, Pulldown", "polish 5: no comma left hanging");
   assert.equal(steady.more, "and 6 more");
-  assert.equal(steady.full, "Holding steady: " + OWNER_NAMES.slice(0, -1).join(", ") + ", and Row.");
+  assert.equal(steady.full, "Holding steady: " + OWNER_NAMES.slice(0, -1).join(", ") + " and Row.");
   assert.equal(lines.filter((l) => OWNER_NAMES.some((name) => l.text.startsWith(name + ": "))).length, 0, "no per-lift steady line");
   assert.equal(asked.answer.split("\n").length, 6, "the Coach answer is six short lines, not one per lift");
   /* the counts are tool results: the same answer over the turn's results without the review's counts is refused */
@@ -320,10 +321,10 @@ test("PC-10: the owner's ten lifts make one steady line, its counts traced, and 
     "the ready count, the 6 and the suggestion count are each licensed only by the counts week_review tags");
   /* five steady lifts are all named; six name four and "and 2 more" */
   const five = (await createPageCoach(weekWorld("2026-10-12", {}, steadyRows(OWNER_NAMES.slice(0, 5)))).week()).lines;
-  assert.equal(five.find((l) => l.kind === "steady").text, "Holding steady: Lateral machine, Press, Machine fly, Pulldown, and Leg press.");
+  assert.equal(five.find((l) => l.kind === "steady").text, "Holding steady: Lateral machine, Press, Machine fly, Pulldown and Leg press.");
   assert.equal(five[1].text, "Workouts done: 3 of " + planned(world) + ". " + Intents.WEEK_WORDS.allSteady, "none ready, none with news: all held steady");
   const six = (await createPageCoach(weekWorld("2026-10-12", {}, steadyRows(OWNER_NAMES.slice(0, 6)))).week()).lines;
-  assert.equal(six.find((l) => l.kind === "steady").text, "Holding steady: Lateral machine, Press, Machine fly, Pulldown, and 2 more.");
+  assert.equal(six.find((l) => l.kind === "steady").text, "Holding steady: Lateral machine, Press, Machine fly, Pulldown and 2 more.");
   /* two ready lifts; and a lift with news but none ready is not "all held steady" */
   const two = (await createPageCoach(weekWorld("2026-10-12", {}, [WEEK_ROWS[0], { ...WEEK_ROWS[0], lift: "e", name: "Pulldown" }])).week()).lines;
   assert.equal(two[1].text, "Workouts done: 3 of " + planned(world) + ". 2 lifts ready for a new weight.");
@@ -333,4 +334,43 @@ test("PC-10: the owner's ten lifts make one steady line, its counts traced, and 
   assert.equal(news.some((l) => l.kind === "steady"), false);
   const none = (await createPageCoach(weekWorld("2026-10-12", {}, [])).week()).lines;
   assert.equal(none[1].text, "Workouts done: 3 of " + planned(world) + ". " + Intents.WEEK_WORDS.noLifts);
+});
+
+/* PC-11 (polish 5, item 6): the lifts in PLAN ORDER, today's day first (today's session in the engine's order, then the
+   rest in the order the plan holds them), and the first weeks: with fewer than two workouts before the week reviewed,
+   no lift is ready YET (never "All lifts held steady."), whatever the lifts say. */
+test("PC-11: the lifts are said in plan order, today's first, and the first weeks say not ready yet", async () => {
+  const base = weekWorld("2026-10-12");
+  const session = base.today.sessionPlan();
+  const plan = base.today.stateFromOps().exercises.map((ex) => ex.id);
+  assert.equal(session.available, true, "a session is planned on 2026-10-12");
+  const todays = session.exercises.map((ex) => ex.id);
+  const others = plan.filter((id) => !todays.includes(id));
+  assert(todays.length >= 2 && others.length >= 1, "the plan has lifts today and on other days");
+  const nameOf = (id) => "Lift " + String.fromCharCode(65 + plan.indexOf(id));
+  const rows = [...others.slice().reverse(), ...todays.slice().reverse()].slice(0, 5)
+    .map((id) => ({ lift: id, name: nameOf(id), status: "refused", code: "NATIVE_LOAD_WINDOW_NOT_TOP" }));
+  const shown = rows.map((row) => row.lift);
+  const want = [...todays, ...others].filter((id) => shown.includes(id)).map(nameOf);
+  const asked = await createPageCoach(weekWorld("2026-10-12", {}, rows)).ask("week_review");
+  assert.equal(asked.shipped, true);
+  assert.deepEqual(asked.untraceable, []);
+  const steady = asked.lines.find((l) => l.kind === "steady");
+  const list = want.length < 2 ? want.join("") : want.slice(0, -1).join(", ") + " and " + want[want.length - 1];
+  assert.equal(steady.text, "Holding steady: " + list + ".", "today's lifts first, then the plan's order");
+  /* the first weeks */
+  const early = (rowsOf) => {
+    const world = weekWorld("2026-10-12", {}, rowsOf);
+    world.gym = { ...world.gym, weekSessions: async (from, to) => { world.windows.push([from, to]); return { ok: true, done: from === "0000-01-01" ? 1 : 3, dates: [] }; } };
+    return world;
+  };
+  for (const rowsOf of [rows, [WEEK_ROWS[3]]]) {
+    const got = await createPageCoach(early(rowsOf)).ask("week_review");
+    assert.equal(got.shipped, true);
+    assert.match(got.lines[1].text, /^Workouts done: 3 of \d+\. No lift ready for a new weight yet\.$/, "not ready YET");
+  }
+  const ready = await createPageCoach(early([WEEK_ROWS[0]])).ask("week_review");
+  assert.match(ready.lines[1].text, /1 lift ready for a new weight\.$/, "a ready lift is still said as ready");
+  const settled = await createPageCoach(weekWorld("2026-10-12", {}, rows)).ask("week_review");
+  assert.match(settled.lines[1].text, /All lifts held steady\.$/, "with history before the week, held steady is true");
 });

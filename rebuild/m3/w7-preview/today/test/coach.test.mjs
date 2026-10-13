@@ -28,7 +28,7 @@ import os from "node:os";
 import path from "node:path";
 import { JSDOM } from "jsdom";
 import design from "../design.cjs";
-import { openCoach, installCoachStates, COACH_STATES, COACH_COPY, levelFromSamples, smoothLevel }
+import { openCoach, installCoachStates, COACH_STATES, COACH_COPY, COACH_LIVE_COPY, levelFromSamples, smoothLevel }
   from "../coach-app.mjs";
 
 const PACK = path.join(design.ROOT, "rebuild/m1/approved-2026-09-18");
@@ -525,12 +525,21 @@ test("CV1-2 a tapped question is answered from this device's records, and every 
   const { doc, phone, api, model } = await liveCoach();
   doc.querySelector('[data-go="coach"]').click();
   await new Promise((r) => setTimeout(r, 0));
+  /* polish 5 (item 9): jsdom lays nothing out, so the scroll is recorded where the page asks for it */
+  const scrolled = [];
+  doc.defaultView.HTMLElement.prototype.scrollIntoView = function (options) { scrolled.push([this.id, options && options.block]); };
   for (const intent of ["today_plan", "weight_trend"]) {
+    scrolled.length = 0;
     const card = await tap(phone, intent);
+    assert.deepEqual(scrolled, [["coach-answer", "nearest"]], intent + ": the answer is brought into view");
     assert.equal(card.classList.contains("is-refusal"), false, intent + " is answered");
     const shown = phone.querySelector("#coach-answer-text").textContent;
     assert(/\d/.test(shown), intent + " carries the device's own figures: " + shown);
-    assert.equal(card.querySelector(".from").textContent, COACH_COPY.fromStore, "and says where they came from");
+    assert.equal(card.querySelector(".from").textContent, COACH_LIVE_COPY.fromYourData, "and says where they came from");
+    /* polish 5 (items 9, 10): in plain words, and the answer takes focus (so it is the next thing read) */
+    assert.equal(card.querySelector(".from").textContent, "From your data on this phone.");
+    assert.equal(doc.activeElement, card, intent + ": the answer has focus");
+    assert.equal(card.tabIndex, -1, "focusable by script only");
     /* the same question asked of the same tools over the same model, outside the page: the same sentence, and a
        clean traceability verdict for the turn that produced it */
     const world = { today: model };
@@ -560,7 +569,7 @@ test("CV1-3 a question no lane on this device can answer says why in plain words
   /* "Why this weight?" reads today's session from the Today model: one plain line per exercise, with the source line. */
   const card = await tap(phone, "why_weight");
   assert.equal(card.classList.contains("is-refusal"), false, "why this weight is answered");
-  assert.equal(card.querySelector(".from").textContent, COACH_COPY.fromStore);
+  assert.equal(card.querySelector(".from").textContent, COACH_LIVE_COPY.fromYourData);
   const lines = phone.querySelector("#coach-answer-text").textContent.split("\n");
   /* batch 2 (item 2): lifts that share a reason share a line, so every exercise is named once, in order */
   assert.deepEqual(lines.flatMap((line) => line.split(":")[0].split(", ")), model.sessionPlan().exercises.map((ex) => ex.name), "every exercise, named once");
@@ -678,7 +687,21 @@ test("CV1-8 the first day of a week shows last week's review on Today, collapsed
   const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
   const { default: TodayModel } = await import("../today-model.cjs");
   const { doc, api, model } = await weekToday(TodayModel.SYNTHETIC_DAY, WEEK_LANE);
-  const card = await tickUntil(() => doc.querySelector('[data-slot="week-review"]'), "the weekly review card");
+  /* POLISH 5 (item 5): the card's place is held on the first paint, by a quiet placeholder of the collapsed card's
+     shape (its heading, two lines, the toggle's row), and the review lands in that same card, so nothing below moves */
+  const held = doc.querySelector('[data-slot="week-review"]');
+  assert(held, "the first paint already holds the card's place");
+  assert.equal(held.getAttribute("aria-busy"), "true");
+  assert.equal(norm(held.querySelector(".head > .kind").textContent), "Last week");
+  assert.equal(held.querySelector('[data-slot="week-review-pending"]').getAttribute("aria-hidden"), "true");
+  assert.equal(held.querySelector('[data-slot="week-review-room"]').getAttribute("aria-hidden"), "true");
+  assert.equal(held.querySelector("button"), null, "no control before the review is read");
+  assert.equal(held.previousElementSibling, doc.getElementById("card-train"), "in the card's own place");
+  const landed = (d) => { const c = d.querySelector('[data-slot="week-review"]'); return c && c.querySelector('[data-slot="week-review-summary"]') ? c : null; };
+  const card = await tickUntil(() => landed(doc), "the weekly review card");
+  assert.equal(card, held, "the review lands in the same card, in place");
+  assert.equal(card.hasAttribute("aria-busy"), false);
+  assert.equal(card.querySelector('[data-slot="week-review-pending"]'), null, "and the placeholder is gone");
   /* Polish batch (shots 01, 03): its own card in the feed, directly after the workout card and never inside it, in the
      proposal card's look (tcard proposal, the feed's dot, the head's kind as the heading "Last week"). */
   const train = doc.getElementById("card-train");
@@ -732,7 +755,7 @@ test("CV1-8 the first day of a week shows last week's review on Today, collapsed
   api.dispose();
   /* polish 4: nothing is remembered; the next open is collapsed again */
   const again = await weekToday(TodayModel.SYNTHETIC_DAY, WEEK_LANE);
-  const next = await tickUntil(() => again.doc.querySelector('[data-slot="week-review"]'), "the weekly review card again");
+  const next = await tickUntil(() => landed(again.doc), "the weekly review card again");
   assert.equal(next.querySelector('[data-slot="week-review-details"]').hidden, true, "collapsed on every open");
   assert.equal(next.querySelector('[data-slot="week-review-toggle"]').getAttribute("aria-expanded"), "false");
   again.api.dispose();
@@ -750,45 +773,81 @@ test("CV1-8 the first day of a week shows last week's review on Today, collapsed
 
 /* CV1-10 (polish 4, the owner's shape): ten lifts last week, none ready. Collapsed the card says all held steady; open,
    ONE steady line names the first four and "and 6 more", a real button that shows every name on that line and reads
-   "Show fewer" until it puts the short line back; the review stores nothing (no storage is touched). */
+   "Show fewer" until it puts the short line back; the review stores nothing (no storage is touched).
+   POLISH 5 (item 6): "and 6 more" continues its own line, inline, with no comma left hanging; a device whose history
+   before the week holds fewer than two workouts says no lift is ready YET. */
 const OWNER_LIFTS = ["Lateral machine", "Press", "Machine fly", "Pulldown", "Leg press", "Leg curl", "Calf raise", "Hip thrust",
   "Leg extension", "Row"];
+const ownerLane = (done) => ({ gym: { read: async () => ({ phase: "ready" }), weekSessions: async () => ({ ok: true, done, dates: [] }) },
+  nativeLoad: { weekLifts: async () => ({ ok: true, lifts: OWNER_LIFTS.map((name, i) => ({
+    lift: "owner-" + i, name, status: "refused", code: i % 3 ? "NATIVE_LOAD_WINDOW_NOT_TOP" : "NATIVE_LOAD_SOMETHING_UNMAPPED" })) }) } });
+const landedIn = (d) => { const c = d.querySelector('[data-slot="week-review"]'); return c && c.querySelector('[data-slot="week-review-summary"]') ? c : null; };
 test("CV1-10 the owner's ten lifts: one steady line on the card, its rest behind and 6 more, nothing stored", async () => {
   const { default: TodayModel } = await import("../today-model.cjs");
-  const lane = { gym: WEEK_LANE.gym, nativeLoad: { weekLifts: async () => ({ ok: true, lifts: OWNER_LIFTS.map((name, i) => ({
-    lift: "owner-" + i, name, status: "refused", code: i % 3 ? "NATIVE_LOAD_WINDOW_NOT_TOP" : "NATIVE_LOAD_SOMETHING_UNMAPPED" })) }) } };
-  const { doc, api } = await weekToday(TodayModel.SYNTHETIC_DAY, lane);
+  const { doc, api } = await weekToday(TodayModel.SYNTHETIC_DAY, ownerLane(2));
   const win = doc.defaultView;
   const touched = [];
   for (const store of ["localStorage", "sessionStorage"]) {
     try { const s = win[store]; for (const m of ["setItem", "getItem", "removeItem"]) { const f = s[m].bind(s); s[m] = (...a) => { touched.push(store + "." + m); return f(...a); }; } } catch (_) { /* no storage in this window */ }
   }
-  const card = await tickUntil(() => doc.querySelector('[data-slot="week-review"]'), "the weekly review card");
+  const card = await tickUntil(() => landedIn(doc), "the weekly review card");
   assert.match(norm(card.querySelector('[data-slot="week-review-summary"]').textContent), /^Workouts done: 2 of \d+\. All lifts held steady\.$/);
   card.querySelector('[data-slot="week-review-toggle"]').click();
   const details = card.querySelector('[data-slot="week-review-details"]');
   const steady = details.querySelector('[data-slot="week-review-steady"]');
-  assert.equal(norm(steady.textContent), "Holding steady: Lateral machine, Press, Machine fly, Pulldown,");
+  const names = steady.querySelector('[data-slot="week-review-names"]');
+  assert.equal(norm(steady.textContent), "Holding steady: Lateral machine, Press, Machine fly, Pulldown and 6 more",
+    "one line, no comma left hanging before and 6 more, and the control ends it (no full stop after its chevron)");
   assert.equal(details.querySelectorAll(".change").length - (details.textContent.includes("suggestion waiting") ? 1 : 0)
     - (/Trend weight/.test(details.textContent) ? 1 : 0), 1, "one line for all ten lifts");
   const more = details.querySelector('[data-slot="week-review-more"]');
   assert.equal(more.tagName, "BUTTON");
   assert.equal(more.type, "button");
-  assert.equal(more.previousElementSibling, steady, "and 6 more sits right under its line");
+  assert.equal(more.parentElement, steady, "and 6 more continues its own line, inline");
+  assert.equal(more.previousElementSibling, names, "right after the names");
   assert.equal(more.textContent, "and 6 more");
   assert.equal(more.getAttribute("aria-expanded"), "false");
   assert.equal(more.getAttribute("aria-controls"), steady.id);
   more.click();
-  assert.equal(norm(steady.textContent), "Holding steady: " + OWNER_LIFTS.slice(0, -1).join(", ") + ", and Row.");
+  assert.equal(norm(names.textContent), "Holding steady: " + OWNER_LIFTS.slice(0, -1).join(", ") + " and Row.");
+  assert.equal(norm(steady.textContent), norm(names.textContent) + " Show fewer");
   assert.equal(more.textContent, "Show fewer");
   assert.equal(more.getAttribute("aria-expanded"), "true");
   more.click();
-  assert.equal(norm(steady.textContent), "Holding steady: Lateral machine, Press, Machine fly, Pulldown,");
+  assert.equal(norm(steady.textContent), "Holding steady: Lateral machine, Press, Machine fly, Pulldown and 6 more");
   assert.equal(more.textContent, "and 6 more");
   assert.equal(more.getAttribute("aria-expanded"), "false");
   assert.equal([...card.querySelectorAll(".change")].some((row) => OWNER_LIFTS.some((name) => norm(row.textContent).startsWith(name + ": "))), false,
     "no per-lift line");
   assert.deepEqual(touched, [], "the review keeps no state of its own");
+  api.dispose();
+  /* polish 5 (item 6): the first weeks, fewer than two workouts before the week reviewed: no lift is ready YET */
+  const early = await weekToday(TodayModel.SYNTHETIC_DAY, ownerLane(1));
+  const first = await tickUntil(() => landedIn(early.doc), "the first-week card");
+  assert.match(norm(first.querySelector('[data-slot="week-review-summary"]').textContent), /^Workouts done: 1 of \d+\. No lift ready for a new weight yet\.$/);
+  early.api.dispose();
+});
+
+/* CV1-11 (polish 5, item 5: the card arrived about 9 s late, because every boot repaint dropped the review in flight and
+   began its reads again). A repaint of Today that changes neither the day nor the workout summary reuses the read the
+   first paint began, and once it has landed a repaint draws the card at once, with no placeholder and no new read. */
+test("CV1-11 the review is read once per workout summary: repaints reuse it, and a landed review repaints in place", async () => {
+  const { default: TodayModel } = await import("../today-model.cjs");
+  let reads = 0;
+  const summary = Object.freeze({ phase: "ready", sets: 0, code: null, copy: null, unfinished: null });
+  const lane = { summary: () => summary, gym: WEEK_LANE.gym,
+    nativeLoad: { weekLifts: async (...a) => { reads += 1; return WEEK_LANE.nativeLoad.weekLifts(...a); } } };
+  const { doc, api } = await weekToday(TodayModel.SYNTHETIC_DAY, lane);
+  api.render("today", false);
+  api.render("today", false);
+  await tickUntil(() => landedIn(doc), "the weekly review card");
+  assert.equal(reads, 1, "three paints, one read");
+  api.render("today", false);
+  const again = doc.querySelector('[data-slot="week-review"]');
+  assert(again && again.querySelector('[data-slot="week-review-summary"]'), "a repaint draws the landed review at once");
+  assert.equal(again.hasAttribute("aria-busy"), false, "with no placeholder");
+  await new Promise((r) => setTimeout(r, 30));
+  assert.equal(reads, 1, "and reads nothing again");
   api.dispose();
 });
 
@@ -808,7 +867,7 @@ test("CV1-9 where's my seat set reads the saved settings through the workout lan
   await new Promise((r) => setTimeout(r, 0));
   const card = await tap(phone, "machine_seat");
   assert.equal(card.classList.contains("is-refusal"), false, "answered");
-  assert.equal(card.querySelector(".from").textContent, COACH_COPY.fromStore);
+  assert.equal(card.querySelector(".from").textContent, COACH_LIVE_COPY.fromYourData);
   const names = model.sessionPlan().exercises.map((ex) => ex.name);
   assert.deepEqual(phone.querySelector("#coach-answer-text").textContent.split("\n"),
     [names[0] + ": seat 4; back pad 2.", ...names.slice(1).map((name) => "No machine settings saved for " + name + " yet.")]);

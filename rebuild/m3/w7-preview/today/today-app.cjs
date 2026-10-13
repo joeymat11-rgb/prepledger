@@ -85,8 +85,12 @@ function morningLine(view) {
 }
 function trendLine(view) {
   const weight = view.nowModel && view.nowModel.headed ? view.nowModel.headed.weight : null;
-  return "Weight trend " + (Number.isFinite(weight) ? pounds(weight) + " lb" : NOT_AVAILABLE) + " · Why this plan?";
+  return "Weight trend " + (Number.isFinite(weight) ? pounds(weight) + " lb" : NOT_AVAILABLE);
 }
+/* POLISH 5 (PM, item 8): "Weight trend <value>, stamp, Why this plan?" was one control doing two things. The trend is now
+   a line of its own (trendLine above, the same words before the stamp) and "Why this plan?", the approved words
+   (design.cjs), is the one control on the row under it. */
+const WHY_THIS_PLAN = "Why this plan?";
 
 /* The honesty rule (review D-2): an entry point this slice has not wired says so on
    Today's face, in the approved design's own secondary text, so the athlete never taps to
@@ -432,6 +436,9 @@ function statusLine(view, session, sample, card) {
   return name + STATUS_NOTHING_TO_DECIDE;
 }
 /* C-UI-2 STATUS LINE END */
+/* POLISH 5 (PM, item 4): the workout line while the gym card's boot answer is still the pre-adoption one
+   (renderToday); it pairs with "Your set targets are ready". PM-approved short plain copy (:913 (5)). */
+const WORKOUT_LOADING = "Your set targets are loading";
 
 /* C-UI-3 PROPOSAL CARD BEGIN (pack README C-UI-3; the board's app/app.html #card-proposal;
    proposal() and T-40 to T-40g in app/states-today.js; DECISIONS:817, :820 (2)). ONE card
@@ -692,6 +699,18 @@ function mountToday(doc, model, options = {}) {
      Every paint takes the CURRENT token; a save that resolves after the athlete has
      navigated holds a stale one and applies nothing - no render, no navigation. */
   let mountToken = 0;
+  /* POLISH 5 (PM, item 4) - THE BOOT ANSWER, HELD AS LOADING. `bootSession` is the workout summary this mount
+     was handed (the entry's own first dry preparation, read before adoption). While an enrolled device's adoption
+     has not settled, a refusal that is still that same answer is drawn as loading (renderToday); the first
+     repaint after the adoption settles draws whatever the card then holds. Nothing here reads or writes a lane. */
+  const bootSession = facade.session();
+  let loadingShown = false;
+  function workoutStillLoading(drawn) {
+    if (facade.adoptionSettled() || !drawn || drawn !== bootSession || drawn.phase !== "blocked") return false;
+    const setupEntry = facade.setup();
+    const enrolment = setupEntry && typeof setupEntry.summary === "function" ? setupEntry.summary() : null;
+    return !!(enrolment && enrolment.enrolled === true);
+  }
   /* S4 REAL DAY r3 (review round 2, finding 1) - THIS MOUNT'S OWN LIFE. Set by
      dispose() at the bottom of this function, which today-entry.mjs's midnight
      re-boot calls BEFORE the new mount paints. A disposed mount is inert: its
@@ -1067,6 +1086,7 @@ function mountToday(doc, model, options = {}) {
       for (const name of ["eat-title", "workout-title", "morning", "primary-label"]) put(map, name, null);
       for (const name of ["protein-line", "kcal-note", "workout-count"]) map.get(name).hidden = true;
       map.get("trend").parentNode.hidden = true;
+      map.get("why-plan").parentNode.hidden = true;   /* POLISH 5, item 8: the two rows that were one link */
       put(map, "sleep-entry-label", SLEEP_TITLE);
       put(map, "nutrition-state", NOT_WIRED);
       /* S12b R7 (Fable REVIEW-S12B-R6 section 7): under a headline that already says nothing is shown,
@@ -1123,14 +1143,24 @@ function mountToday(doc, model, options = {}) {
        "ready" and "Start" for a workout the layer will refuse to prepare. A refusal
        is shown in plain words with the layer's own code, exactly once, and is never
        described as a fault of this device. */
-    const today = facade.session();
+    /* POLISH 5 (PM, item 4): a refusal read off the PRE-ADOPTION host is not today's answer. On an enrolled device
+       the gym card's first dry preparation runs at boot over the host the page opened before his own state was
+       adopted (today-lanes.cjs adoptAthleteState rebases it, then refreshes), so for that window it can answer a
+       refusal his own state does not have: PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED, when his record holds imported
+       history whose order mapping only his adopted basis carries. Until the adoption settles, that boot answer is
+       drawn as the card's loading state, with Start held; a refusal read after it is drawn as before. */
+    const rawSession = facade.session();
+    const loadingWorkout = workoutStillLoading(rawSession);
+    if (loadingWorkout) loadingShown = true;
+    const today = loadingWorkout ? null : rawSession;
     const refused = today && today.phase === "blocked" ? (today.code || null) : null;
     /* A session abandoned on an EARLIER day blocks every later day in the accepted
        client. It is not a dead end: the layer's own `early` close retires it, so
        Today names it and offers that close rather than printing a code the athlete
        can do nothing about (review round 2, point 3). */
     const stranded = today && today.phase === "unfinished" ? today.unfinished : null;
-    const sessionState = today && today.phase === "active" ? WORKOUT_IN_PROGRESS
+    const sessionState = loadingWorkout ? WORKOUT_LOADING
+      : today && today.phase === "active" ? WORKOUT_IN_PROGRESS
       : today && today.phase === "finished" ? WORKOUT_RECORDED_TODAY
       : stranded ? UNFINISHED_WORKOUT + " · " + stranded.day
       : refused ? WORKOUT_CANNOT_OPEN + " · " + refused : null;
@@ -1173,6 +1203,7 @@ function mountToday(doc, model, options = {}) {
     put(map, "morning", morningLine(view));
     bindWeighIn(map, owed); // C-UI-3: the inline weigh-in, only while this morning's weight is owed
     put(map, "trend", trendLine(view));
+    put(map, "why-plan", WHY_THIS_PLAN);   /* POLISH 5, item 8: its own row */
 
     const primary = map.get("primary");
     /* The resume action the approved direction requires: while a workout is in
@@ -1220,6 +1251,7 @@ function mountToday(doc, model, options = {}) {
     });
     if (nothingToStart) { primary.disabled = true; primary.hidden = true; }
     else if (!weighFirst && view.workout.exerciseCount === null) primary.disabled = true;
+    else if (!weighFirst && loadingWorkout) primary.disabled = true;   /* POLISH 5, item 4: held while loading */
 
     /* P-MEASURE (round 2, closing finding 2 - "nothing renders"): the ONE way
        Today reaches the comparison view. No approved tile exists for this
@@ -2226,106 +2258,156 @@ function mountToday(doc, model, options = {}) {
      device holds a trend weight, one short trend line. It is drawn only when the coach's turn shipped (every number a
      tool result) and the workout lane is open; otherwise Today is unchanged. It reads and writes nothing of its own.
      The same review is always one tap away on the Coach screen. */
+  /* POLISH 5 (PM, item 5; the owner's Monday: the card arrived about 9 s after the page and pushed it down about
+     120 px). WHY IT WAS SLOW: every repaint of Today (each lane that opens or refreshes during boot repaints it, the
+     adoption's own workout refresh among them) replaced the workout card the review was waiting to sit beside, so the
+     review that was in flight was dropped (its card was no longer connected) and a NEW coach turn began its reads from
+     the start: the native-load host's projection and one engine check per lift finished last week, queued behind the
+     workout lane's other native-load work. Only the read begun by the LAST boot repaint ever landed. NOW the review is
+     read once per day and workout summary (weekReviewOf: a repaint that changes neither reuses the same read, and a
+     settled read is drawn in the same paint, with no wait), and until it lands the card's space is held by a quiet
+     placeholder of the collapsed card's shape (the heading, two lines, the toggle's row), so nothing below it moves.
+     A review that cannot be drawn removes its placeholder. */
+  let weekMemo = null;
+  function weekReviewOf(day) {
+    const heldSummary = facade.session();
+    if (weekMemo && weekMemo.day === day && weekMemo.summary === heldSummary) return weekMemo;
+    const memo = { day, summary: heldSummary, lines: undefined, promise: null };
+    memo.promise = coachHandle().week().then((lines) => { memo.lines = lines || null; return memo.lines; },
+      () => { memo.lines = null; return null; });
+    weekMemo = memo;
+    return memo;
+  }
+  function weekCard() {
+    const card = doc.createElement("div");
+    card.className = "tcard proposal";
+    card.setAttribute("data-slot", "week-review");
+    const dot = doc.createElement("span");
+    dot.className = "tdot";
+    dot.setAttribute("aria-hidden", "true");
+    card.append(dot);
+    return card;
+  }
+  function weekHead(text) {
+    const head = doc.createElement("div");
+    head.className = "head";
+    const kind = doc.createElement("div");
+    kind.className = "kind";
+    kind.textContent = text;
+    head.append(kind);
+    return head;
+  }
+  /* The placeholder: the collapsed card's own shape, its heading and nothing else said (aria-busy). */
+  function weekPlaceholder(card) {
+    card.setAttribute("aria-busy", "true");
+    const line = doc.createElement("div");
+    line.className = "change";
+    line.setAttribute("data-slot", "week-review-pending");
+    line.setAttribute("aria-hidden", "true");
+    const room = doc.createElement("div");
+    room.setAttribute("data-slot", "week-review-room");
+    room.setAttribute("aria-hidden", "true");
+    card.append(weekHead(plainOrDrop(PageCoach.WEEK_HEADING, "week-review") || ""), line, room);
+  }
+  function fillWeekCard(card, lines) {
+    card.removeAttribute("aria-busy");
+    card.replaceChildren(card.firstElementChild);
+    /* POLISH 4 (PM, the owner's 7-lift week ran the card past Start): COLLAPSED on every open. The card shows the
+       heading, the one summary line and "See details" on a row of its own; the details (each ready lift with its
+       Why?, any news, one "Holding steady:" line, the suggestion count, the trend) open beneath it, and "Hide details"
+       closes them. Nothing is remembered: the next open is collapsed again. Every control is a real button that says
+       whether it is open (aria-expanded) and what it opens (aria-controls). */
+    const toggle = (button, target, open, words) => {
+      button.type = "button";
+      button.className = "link";
+      button.setAttribute("aria-expanded", open ? "true" : "false");
+      button.setAttribute("aria-controls", target.id);
+      if (words) button.textContent = words[open ? 1 : 0];
+    };
+    const details = doc.createElement("div");
+    details.id = "week-review-details";
+    details.setAttribute("data-slot", "week-review-details");
+    details.hidden = true;
+    lines.forEach((line, i) => {
+      if (line.heading) { card.append(weekHead(line.text)); return; }
+      const row = doc.createElement("div");
+      row.className = "change";
+      row.textContent = line.text;
+      if (line.kind === "summary") {
+        row.setAttribute("data-slot", "week-review-summary");
+        card.append(row);
+        return;
+      }
+      details.append(row);
+      if (line.kind === "steady" && line.more) {
+        /* POLISH 5 (item 6): "and 7 more" continues the line it belongs to, inline, with no comma left hanging; it
+           shows every name on that line and reads "Show fewer" until it puts the short line back. */
+        const words = [line.more, plainOrDrop(WEEK_REVIEW_WORDS.fewer, "week-review-more")];
+        row.id = "week-review-steady";
+        row.setAttribute("data-slot", "week-review-steady");
+        const names = doc.createElement("span");
+        names.setAttribute("data-slot", "week-review-names");
+        const more = doc.createElement("button");
+        more.setAttribute("data-slot", "week-review-more");
+        /* the control ends the line, with its chevron, so no full stop is drawn after it on the card */
+        const draw = (open) => {
+          names.textContent = (open ? line.full : line.short) + " ";
+          toggle(more, row, open, words);
+        };
+        row.replaceChildren(names, more);
+        draw(false);
+        hooks.listen(more, "click", () => draw(more.getAttribute("aria-expanded") !== "true"));
+        return;
+      }
+      if (!line.why) return;
+      const reason = doc.createElement("div");
+      reason.className = "reason";
+      reason.id = "week-review-reason-" + i;
+      reason.textContent = line.why;
+      reason.hidden = true;
+      const why = doc.createElement("button");
+      why.type = "button";
+      why.className = "link";
+      why.setAttribute("data-slot", "week-review-why");
+      why.setAttribute("aria-expanded", "false");
+      why.setAttribute("aria-controls", reason.id);
+      why.textContent = plainOrDrop(PROPOSAL_WHY, "week-review-why");
+      hooks.listen(why, "click", () => {
+        const show = reason.hidden;
+        reason.hidden = !show;
+        why.setAttribute("aria-expanded", show ? "true" : "false");
+      });
+      details.append(why, reason);
+    });
+    if (details.childElementCount) {
+      const words = [plainOrDrop(WEEK_REVIEW_WORDS.show, "week-review-toggle"), plainOrDrop(WEEK_REVIEW_WORDS.hide, "week-review-toggle")];
+      const open = doc.createElement("button");
+      open.setAttribute("data-slot", "week-review-toggle");
+      toggle(open, details, false, words);
+      hooks.listen(open, "click", () => {
+        const show = details.hidden;
+        details.hidden = !show;
+        toggle(open, details, show, words);
+      });
+      card.append(open, details);
+    }
+  }
   function paintWeekReview(map, day, token) {
     if (!PageCoach.weekStarts(day) || !facade.workout()) return;
     const count = map.get("workout-count");
     const trainCard = count && typeof count.closest === "function" ? count.closest(".tcard") : null;
-    if (!trainCard) return;
-    coachHandle().week().then((lines) => {
-      if (token !== mountToken || !lines || !trainCard.isConnected || !trainCard.parentNode) return;
-      const card = doc.createElement("div");
-      card.className = "tcard proposal";
-      card.setAttribute("data-slot", "week-review");
-      const dot = doc.createElement("span");
-      dot.className = "tdot";
-      dot.setAttribute("aria-hidden", "true");
-      card.append(dot);
-      /* POLISH 4 (PM, the owner's 7-lift week ran the card past Start): COLLAPSED on every open. The card shows the
-         heading, the one summary line and "See details" on a row of its own; the details (each ready lift with its
-         Why?, any news, one "Holding steady:" line, the suggestion count, the trend) open beneath it, and "Hide details"
-         closes them. Nothing is remembered: the next open is collapsed again. Every control is a real button that says
-         whether it is open (aria-expanded) and what it opens (aria-controls). */
-      const toggle = (button, target, open, words) => {
-        button.type = "button";
-        button.className = "link";
-        button.setAttribute("aria-expanded", open ? "true" : "false");
-        button.setAttribute("aria-controls", target.id);
-        if (words) button.textContent = words[open ? 1 : 0];
-      };
-      const details = doc.createElement("div");
-      details.id = "week-review-details";
-      details.setAttribute("data-slot", "week-review-details");
-      details.hidden = true;
-      lines.forEach((line, i) => {
-        if (line.heading) {
-          const head = doc.createElement("div");
-          head.className = "head";
-          const kind = doc.createElement("div");
-          kind.className = "kind";
-          kind.textContent = line.text;
-          head.append(kind);
-          card.append(head);
-          return;
-        }
-        const row = doc.createElement("div");
-        row.className = "change";
-        row.textContent = line.text;
-        if (line.kind === "summary") {
-          row.setAttribute("data-slot", "week-review-summary");
-          card.append(row);
-          return;
-        }
-        details.append(row);
-        if (line.kind === "steady" && line.more) {
-          /* "and 6 more" shows every name on the same line, and "Show fewer" puts the short line back. */
-          const words = [line.more, plainOrDrop(WEEK_REVIEW_WORDS.fewer, "week-review-more")];
-          row.id = "week-review-steady";
-          row.setAttribute("data-slot", "week-review-steady");
-          row.textContent = line.short;
-          const more = doc.createElement("button");
-          more.setAttribute("data-slot", "week-review-more");
-          toggle(more, row, false, words);
-          hooks.listen(more, "click", () => {
-            const open = more.getAttribute("aria-expanded") !== "true";
-            row.textContent = open ? line.full : line.short;
-            toggle(more, row, open, words);
-          });
-          details.append(more);
-          return;
-        }
-        if (!line.why) return;
-        const reason = doc.createElement("div");
-        reason.className = "reason";
-        reason.id = "week-review-reason-" + i;
-        reason.textContent = line.why;
-        reason.hidden = true;
-        const why = doc.createElement("button");
-        why.type = "button";
-        why.className = "link";
-        why.setAttribute("data-slot", "week-review-why");
-        why.setAttribute("aria-expanded", "false");
-        why.setAttribute("aria-controls", reason.id);
-        why.textContent = plainOrDrop(PROPOSAL_WHY, "week-review-why");
-        hooks.listen(why, "click", () => {
-          const show = reason.hidden;
-          reason.hidden = !show;
-          why.setAttribute("aria-expanded", show ? "true" : "false");
-        });
-        details.append(why, reason);
-      });
-      if (details.childElementCount) {
-        const words = [plainOrDrop(WEEK_REVIEW_WORDS.show, "week-review-toggle"), plainOrDrop(WEEK_REVIEW_WORDS.hide, "week-review-toggle")];
-        const open = doc.createElement("button");
-        open.setAttribute("data-slot", "week-review-toggle");
-        toggle(open, details, false, words);
-        hooks.listen(open, "click", () => {
-          const show = details.hidden;
-          details.hidden = !show;
-          toggle(open, details, show, words);
-        });
-        card.append(open, details);
-      }
-      trainCard.parentNode.insertBefore(card, trainCard.nextSibling);
+    if (!trainCard || !trainCard.parentNode) return;
+    const memo = weekReviewOf(day);
+    if (memo.lines === null) return;
+    const card = weekCard();
+    if (memo.lines) fillWeekCard(card, memo.lines);
+    else weekPlaceholder(card);
+    trainCard.parentNode.insertBefore(card, trainCard.nextSibling);
+    if (memo.lines !== undefined) return;
+    memo.promise.then((lines) => {
+      if (token !== mountToken || !card.isConnected) return;
+      if (!lines) { card.remove(); return; }
+      fillWeekCard(card, lines);
     }, () => { /* the review is optional; Today stands without it */ });
   }
   function closeCoach() {
@@ -2554,6 +2636,12 @@ function mountToday(doc, model, options = {}) {
      in-page transition, so a caller awaiting api.ready sees that settle too,
      with no reload. */
   hooks.bootSettleAdoption();
+  /* POLISH 5 (PM, item 4): once the adoption settles, a card that was drawn as loading is drawn again from what
+     it then holds (a refusal read after adoption is shown as before). Only Today, and only when it showed loading. */
+  const settleLoading = () => {
+    if (loadingShown && !disposed && screen === "today") render("today", false);
+  };
+  Promise.resolve(facade.ready()).then(settleLoading, settleLoading);
 
   return { render, read: () => model.read(), openWeighIn, screen: () => screen,
     /* P3-IMPORT-UI-2 - the Import route's own handle and the one flag the two

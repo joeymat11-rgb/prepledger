@@ -2510,3 +2510,35 @@ test('S15P-10 reopening a closed workout shows its unanswered offers without a t
   assert.equal((await responsesOf(again)).length, 0, 'showing it wrote nothing');
   reopened.entry.gymHost.close(); again.close();
 });
+
+/* POLISH 5 (PM, item 3; the owner's "Check next weight" list, where a "make X your working weight" offer and an "undo the
+   agreed weight" offer carried the same Yes, so an undo was one slip away). Each offer's button says what it does: the
+   adoption's "Use 45 lb" (its own one weight), the undo's "Undo"; the undo card is the quieter one (preview.css keys it
+   on the card's data-kind). The buttons are the same buttons and record exactly what they did. Red first: on df7ad22's
+   today-entry.mjs both read "Yes". */
+test('P5-NL-VERBS: a new weight says Use 45 lb, an undo says Undo and is the quieter button, and each still records its own choice', async () => {
+  const fault = faultDatabase(), era = await reopenAt(fault, D1);
+  hostGate(era);
+  const base = withPress(D1, { w: 40 }), { entry } = await dayEntryWith(era, D1, base);
+  assert.equal((await train(entry, 12, '1', { loadFor: { 'demo-press': 45 } })).finished.ok, true);
+  const doc = await r30Open(entry);
+  await r30Check(entry, doc);
+  const adopt = r30Card(doc, 'demo-press', 'adopt-observed');
+  assert.equal(q(adopt, '[data-native-load="yes"]').textContent.trim(), 'Use 45 lb', 'the adoption says its own weight');
+  assert.equal(q(adopt, '[data-native-load="yes"]').textContent.trim(), TodayEntry.NATIVE_LOAD_VERB.use + '45 lb');
+  assert.equal(q(adopt, '[data-native-load="decline"]').textContent.trim(), TodayEntry.NATIVE_LOAD_COPY.decline);
+  await r30Agree(era, entry, adopt, 'P5 adoption: ');
+  await r30Check(entry, doc);
+  const undo = r30Card(doc, 'demo-press', 'compensate');
+  const button = q(undo, '[data-native-load="yes"]');
+  assert.equal(button.textContent.trim(), 'Undo', 'the undo says Undo');
+  assert.equal(button.textContent.trim(), TodayEntry.NATIVE_LOAD_VERB.undo);
+  assert.notEqual(button.textContent.trim(), q(adopt, '[data-native-load="yes"]').textContent.trim(), 'never the same words as a new weight');
+  await r30Agree(era, entry, undo, 'P5 undo: ');
+  assert.equal((await r30Press(era, D1, base)).press.w, 40, 'Undo still restores w 40');
+  /* the quieter look is the stylesheet's, keyed on the card's own kind */
+  const css = (await import('node:fs')).readFileSync(new URL('../preview.css', import.meta.url), 'utf8');
+  assert.ok(css.includes('[data-native-load="offer"][data-kind="compensate"] > button[data-native-load="yes"] {\n  background: none; border: 1px solid var(--line); color: var(--text-soft); }'),
+    'the undo button is drawn quieter: no fill, the line, the secondary text colour');
+  entry.gymHost.close(); era.close();
+});

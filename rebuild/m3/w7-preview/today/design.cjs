@@ -1066,6 +1066,8 @@ const COACH_LIVE_APPROVED = Object.freeze([
   /* Coach v1 seat read (PM ruling option A): the seventh question. */
   "Where's my seat set?",
   "Typed and spoken questions come later. Tap a question above.",
+  /* Polish 5 (PM, item 10): where an answer comes from, in plain words. */
+  "From your data on this phone.",
 ]);
 function coachLiveVocabulary(root = ROOT) {
   const source = fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", COACH_SOURCE), "utf8");

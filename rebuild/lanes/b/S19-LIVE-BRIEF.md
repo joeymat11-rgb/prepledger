@@ -418,16 +418,122 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   deployed-shell probe (24 of 24), the foot probe (40 of 40), the coach-screen probe (46 of 46) and the quiet-link
   rhythm probe (6 of 6).
 
+## Coach v1, polish 5 (PM 2026-10-12, the owner's 7-lift world, ui-pass11; on df7ad22, rebuild/c-polish5)
+- The set screen (item 1). Under the lift name is ONE short plain line from the set's own figures and the "Last time"
+  line the gym model composes for that position (gym-app.mjs plainSetLine, mapped the way the coach's PLAIN table maps
+  tool values): "Same as last time: 95 lb for 10.", "Up one rep from last time.", "Up 2 reps from last time.",
+  "Down one rep from last time.", "Up to 100 lb from 95 lb last time.", "Down to 90 lb from 95 lb last time.", "Same
+  weight as last time: 95 lb.", "First time: find your weight.", "First time: 40 lb for 12."; a set it cannot say
+  plainly draws no line rather than a guess. PM RULING: Why? (now aria-expanded) opens a plain rewrite of the same
+  figures, never the engine's reason text (gym-app.mjs plainSetWhy: "Last time you did 95 lb for 10, and today repeats
+  it.", "... Today keeps the weight and asks for one more rep.", "... Today moves the weight up to 100 lb.", the first
+  time's own two sentences), and a set those figures do not describe says "This is the weight your recent sets
+  support."; the engine's prescription reason is drawn nowhere on this screen. W-13's reveal is the active set
+  screen's alone: the saved-set screen draws no reason line and no Why? at all.
+  workout-look.test.mjs W-07 fails if any run of three words of an engine reason, or any code string, reaches the set
+  screen, Why? opened or not (and the copy itself carries none: "Choose a weight that stays steady" where the engine
+  says "pick a load you can control"). FABLE D1: a figure is said as planned only when the engine specified the load:
+  gym-model.mjs activeView gains one field, prescription.loadSpecified, and gym-app.mjs passes it to plainSetLine and
+  plainSetWhy. A load in the box that nobody planned (the S15 prefill, a debut lift's set 2 at the load just logged; the
+  S14 R1 hold card at the last real load) is said as his own: the line is "First time: find your weight." with no
+  earlier set and "Choose your weight for this set." with one, and Why? says "Your plan does not set a weight for this
+  set. The box starts at 25 lb from your recent sets; change it to what you lift." (gym.test.mjs P5-D1 on the real
+  stack, the debut set 1 and set 2, the hold card and a planned control; W-07's table). None of this is a sealed file:
+  gym-app.mjs is released, gym-model.mjs is not sealed (one added field). On df7ad22 the same screen led with the
+  engine's "DEBUT: find the working weight: ..." (builder-seat world) and "chase 10,10,9: ..." (the owner's).
+- The RIR panel (item 2). The set screen keeps 56 px under its last row (the 20 px bottom fade, its 20 px inset and
+  16 px clear), on both mounts alike, so at the end of the scroll "How are you feeling today?" ends above the fade and
+  the panel: 536 px against a fade from 552 px at 390x844 (572 px, inside the fade, on df7ad22).
+- "Check next weight" (item 3). Each offer's Yes says what it does: "Use 45 lb" for a new weight that is one weight
+  for every set, "Undo" for the undo of an agreed weight, the approved "Yes" for an offer whose sets differ; the undo is
+  the quieter button (no fill, the pack's line, the secondary text colour). Same button, same click, same record
+  (native-load-panel.test.mjs P5-NL-VERBS). today-entry.mjs is not sealed (the writer fence's sealed files are
+  today-readings.cjs, gym-settings-lane.mjs and today-lanes.cjs); PAGE_PINS re-pins it 57782256 -> 4c6b553a.
+- The transient "cannot open" (item 4). ROOT CAUSE: on an enrolled device the workout lane's first dry preparation runs
+  at boot over the host the page opened BEFORE his own state is adopted. Adoption (today-lanes.cjs adoptAthleteState)
+  adopts the basis, then rebases the gym host and refreshes; every repaint of Today in that window drew the boot answer.
+  For an athlete whose record holds imported history, that answer is PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED
+  (performed.cjs:180, :183): the pre-adoption basis has no order mapping for the imported order, which only his adopted
+  basis carries; after the rebase the same preparation succeeds (2.5 s to 4.9 s in the PM's timing). Today now draws
+  that boot answer as loading ("7 exercises . Your set targets are loading", Start held) until the adoption settles
+  (today-lanes.cjs facade adoptionSettled), then repaints; a refusal read after adoption is drawn as before, with its
+  code, as review B1 requires (problem.test.mjs P5-BOOT). Whether a persistent refusal should still print its code is
+  the PM's call; nothing here changes it.
+- The weekly card (item 5). WHY IT WAS SLOW: every repaint of Today replaced the workout card the review was waiting to
+  sit beside, so the review in flight was dropped and a new coach turn began its reads again (the native-load host's
+  projection and one engine check per lift finished last week, queued behind the lane's other native-load work); only
+  the read begun by the last boot repaint landed. Measured in the builder-seat week probe: 4 reads begun on df7ad22's
+  sources, 2 now (one per workout summary: the boot one, and the one after the native-load reconcile). NOW the review
+  is read once per day and workout summary and a landed review repaints in place at once (coach.test.mjs CV1-11), and
+  until it lands a quiet placeholder of the collapsed card's own shape (its heading, two lines, the toggle's row,
+  aria-busy) holds the place: 122 px held and 122 px landed, the next card at 313 px before and after (week probe, 390
+  and 430). A review that cannot be drawn removes its placeholder.
+- The weekly details (item 6). "and 5 more" continues its line inline, with no comma before it and no full stop after
+  its chevron (week probe, a Lower Monday: "Holding steady: Leg curl, Calf raise, Hip thrust, Lateral machine and 5
+  more"), still a 44 px tap row wholly inside the card; names are listed with no comma before "and". The toggles are the
+  accent (--gold) with a small chevron that turns when they open. The lifts are in plan order, today's first
+  (read-tools.cjs planOrder: today's session in the engine's order, then the plan's; the probe's three Lower lifts lead
+  its Upper one). A device with fewer than two workouts before the week reviewed says "No lift ready for a new weight
+  yet." where it said "All lifts held steady." (read-tools.cjs firstWeeks, page-coach.test.cjs PC-11).
+- The sentence under Ask Coach (item 7) is NOT removed: it is the C-UI-2 status line, the prototype's own words for
+  each Today state (pack README C-UI-2, DECISIONS:820 (2); here T-19 " today. Your calorie range is not available
+  yet."), held by look-cui2.test.mjs C-UI-2 R3 ("the status line says the prototype's words for each state") and
+  look-cui3.test.mjs C-UI-3 T-40. Removing it needs a ruling on those.
+- "Weight trend ... Why this plan?" (item 8) is two rows: the trend is a line of its own (a div, the quiet links' 44 px
+  row and 8 px rhythm and their protective cloud), and "Why this plan?" (the approved words) is the one control on the
+  row under it (problem.test.mjs P5-TREND; the rhythm probe reads seven rows 52 px apart).
+- The Coach (items 9, 10). A tapped question's answer is brought into view (scrollIntoView, nearest) and takes focus
+  (tabindex -1); its source line says "From your data on this phone." (design.cjs COACH_LIVE_APPROVED), and the pack's
+  "From this device's encrypted local store." leaves the live coach.
+- New strings (PM-approved short plain copy, :913 (5)): gym-app.mjs SET_PLAIN ("First time: find your weight.", "First
+  time: ", "Same as last time: ", " lb for ", "Same weight as last time: ", " lb.", "Up one rep from last time.", "Down
+  one rep from last time.", "Up ", "Down ", " reps from last time.", "Up to ", "Down to ", " lb from ", " lb last
+  time."), and SET_WHY for Why? ("There is no earlier set of this lift on this device. Choose a weight that stays steady
+  for every set; what you log becomes your starting point.", "There is no earlier set of this lift on this device, so
+  today starts at the planned ", "Last time you did ", ", and today repeats it.", ". Today keeps ", ". Today keeps the
+  weight and asks for one more rep.", ". Today keeps the weight and asks for ", " more reps.", ". Today keeps the weight
+  with one rep fewer.", ". Today keeps the weight with ", " fewer reps.", ". Today moves the weight up to ", ". Today
+  moves the weight down to ", "This is the weight your recent sets support.", and for D1 "Choose your weight for this
+  set.", "Your plan does not set a weight for this set.", " The box starts at ", " lb from your recent sets; change it
+  to what you lift."); today-entry.mjs NATIVE_LOAD_VERB ("Use ", "Undo"); today-app.cjs "Your set targets are loading" and "Why this
+  plan?" (already approved, now also its own row); coach-app.mjs "From your data on this phone."; coach-intents.cjs
+  "No lift ready for a new weight yet." (not copy-locked). The copy lock re-measures for exactly these, the two pieces
+  that leave and the five mounted gym states (the plain line in, the fixture reason drawn nowhere) (CL-POLISH5-DELTA,
+  CL-POLISH5-APPROVAL; corpus 0f7f06de -> e63812ae).
+- Pins and needles, measured: s10-copy-lock 27 -> 29, s12-look 77 -> 80 (coach.test.mjs CV1-11, look-cui2's polish 5
+  cell, workout-look's polish 5 W-07 cell), today-17 852 -> 856 expected (native-load-panel P5-NL-VERBS, problem.test
+  P5-BOOT and P5-TREND, gym.test P5-D1; observed at the PM seat); PAGE_PINS today-entry.mjs 57782256 -> 4c6b553a; the writer fence is
+  unchanged (417; the new code in today-app.cjs names none of today-lanes.cjs's factory bindings, and reads the
+  adoption's settling through the facade's own adoptionSettled()).
+- Not run here (seat-only): view.test.mjs (edited statically for the trend row: three assertions now read
+  "Weight trend <n> lb"), copy.test.mjs (loads a protected engine file), page-bundle, writer-enumeration, package.test,
+  scene C-UI-1, browser-check, engine-revision-gap.
+- Red first: on df7ad22's sources (coach-intents.cjs, read-tools.cjs, page-coach.cjs, gym-app.mjs, today-app.cjs,
+  today-entry.mjs, preview.css, screens.template.html, coach-app.mjs, design.cjs, the copy-lock corpus) 17 rows fail and
+  pass on these: page-coach.test.cjs PC-7, PC-10 and PC-11; coach.test.mjs CV1-2, CV1-3, CV1-8, CV1-9, CV1-10 and CV1-11;
+  workout-look's polish 5 W-07 cell; look-cui2's polish 5 cell; copy-lock CL-PIN and CL-POLISH5-DELTA; native-load-panel
+  P5-NL-VERBS; problem.test.mjs P5-BOOT and P5-TREND; and N2-08 (the PAGE_PINS today-entry.mjs pin). Fable D1's
+  gym.test.mjs P5-D1 fails on df7ad22's gym-app.mjs and gym-model.mjs and on the polish 5 bytes before D1 (set 2 of a
+  debut lift drew no "find your weight" line; Why? said "the planned 25 lb"), and passes on these. The week probe
+  reads 22 of 30 on df7ad22's sources (the engine's DEBUT line under the lift name, the last row inside the fade, no
+  held place, and N more off its line) and 42 of 42 on these.
+- At the builder seat: the today batch 650/671 (the same 21 seat-only build failures), the fences batch 2208/2210
+  (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the coach suite 400/400
+  without the seat-only engine-revision-gap file, the copy lock 29/29, the week probe (42 of 42), the 76 layout
+  invariants, the deployed-shell probe (24 of 24), the foot probe (44 of 44, the trend line among its rows), the
+  coach-screen probe (46 of 46) and the quiet-link rhythm probe (6 of 6).
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 (the polish's CL-COACH-POLISH-DELTA
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
-polish 4's CV1-10 and look-cui2 cell), and with the
-seat read today-split-fence 404 -> 417 and today-17 850 -> 852; the
+polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell), and with the
+seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
+P5-TREND, P5-D1); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

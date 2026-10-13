@@ -107,7 +107,9 @@
          screen at all, so both this entry's label and the screen behind it are
          preview-owned and declared in design.cjs; the template carries no literal. -->
   <button class="link on-scene day-foot" type="button" data-go="sleep" data-own data-slot="sleep-entry"><span data-slot="sleep-entry-label"></span> <span class="muted" data-own data-slot="sleep-state"></span></button>
-  <button class="link on-scene day-foot" type="button" data-go="why"><span data-slot="trend"></span></button>
+  <!-- POLISH 5 (PM, item 8): the weight trend is a line of its own, and Why this plan? the one control on the next row. -->
+  <div class="on-scene day-foot" data-slot="trend-row"><span data-slot="trend"></span></div>
+  <button class="link on-scene day-foot" type="button" data-go="why"><span data-slot="why-plan"></span></button>
     <!-- A4 · the first-run tile. Shown ONLY while this installation carries no
          first-run operation; once the setup op is in the generation the tile is
          hidden and the route refuses, so setup can never run twice (S13). Its

@@ -49,7 +49,6 @@ export const COACH_COPY = Object.freeze({
   /* Coach v1: words of the pack the live screen reuses (each is in the pinned references as written). */
   todayPlan: 'What am I hitting today?',
   youAsked: 'You asked: ',
-  fromStore: 'From this device’s encrypted local store.',
   cannotAnswer: 'I cannot answer that from what the app holds.',
 });
 
@@ -230,6 +229,9 @@ export const COACH_LIVE_COPY = Object.freeze({
   weekReview: 'How did my week go?',
   seat: 'Where\'s my seat set?',
   typedLater: 'Typed and spoken questions come later. Tap a question above.',
+  /* polish 5 (PM, item 10): where an answer comes from, in plain words (it was the pack's "From this device's
+     encrypted local store."). */
+  fromYourData: 'From your data on this phone.',
 });
 /* COACH-LIVE-COPY-END */
 
@@ -653,8 +655,13 @@ export function openCoach({ doc, phone, back = () => {}, focus = false, state, l
       if (!(result && typeof result.answer === "string" && result.answer)) {
         refusal({ said, text: COACH_COPY.cannotAnswer, tail: COACH_COPY.nothingChanged });
       } else if (result.refused) refusal({ said, text: result.answer });   /* the tool said why, in its own words */
-      else answer({ said, text: result.answer, from: COACH_COPY.fromStore });
+      else answer({ said, text: result.answer, from: COACH_LIVE_COPY.fromYourData });
       prompts.hidden = false;   /* the questions stay to hand: the next one is one tap away */
+      /* POLISH 5 (PM, item 9): the answer is brought into view and takes focus, so a tap below the fold shows what it
+         asked and a screen reader reads it next (the card is focusable by script only, tabindex -1). */
+      card.tabIndex = -1;
+      if (typeof card.scrollIntoView === "function") { try { card.scrollIntoView({ block: "nearest" }); } catch (_) { /* a convenience */ } }
+      try { card.focus({ preventScroll: true }); } catch (_) { /* focus is a convenience */ }
       settleLater();
     };
     let pending;

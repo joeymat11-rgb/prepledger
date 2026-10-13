@@ -371,6 +371,24 @@ function createReadTools(world) {
   const WEEK_NEWS_CODES = Object.freeze(["NATIVE_LOAD_TARGET_QUEUED", "NATIVE_LOAD_DEBUT_LANDED"]);
   const WEEK_NEWS_HOLDS = Object.freeze(["conflict", "disputed"]);
   const WEEK_STEADY_NAMED = 4;
+  function planOrder(rows) {
+    let todays = [], plan = [];
+    try {
+      const session = typeof today.sessionPlan === "function" ? today.sessionPlan() : null;
+      todays = session && session.available === true && Array.isArray(session.exercises) ? session.exercises.map((ex) => ex.id) : [];
+    } catch (_) { todays = []; }
+    try {
+      const state = typeof today.stateFromOps === "function" ? today.stateFromOps() : null;
+      plan = state && Array.isArray(state.exercises) ? state.exercises.map((ex) => ex && ex.id) : [];
+    } catch (_) { plan = []; }
+    const rank = (row) => {
+      const t = todays.indexOf(row.lift);
+      if (t >= 0) return t;
+      const p = plan.indexOf(row.lift);
+      return p >= 0 ? todays.length + p : todays.length + plan.length;
+    };
+    return rows.map((row, i) => ({ row, i, r: rank(row) })).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.row);
+  }
   const weekGroup = (row) => (row.status === "offer" ? "ready"
     : (row.status === "held" ? WEEK_NEWS_HOLDS : WEEK_NEWS_CODES).includes(row.code) ? "news" : "steady");
   async function week_review(_args, turn_id) {
@@ -385,7 +403,16 @@ function createReadTools(world) {
         WEEK_NO_RECORD, "gym-model.mjs weekSessions");
     }
     const planned = today.plannedDays(w.from, w.planEnd);
-    const liftsRead = week && typeof week.lifts === "function" ? await week.lifts(w.from, w.to) : null;
+    const read = week && typeof week.lifts === "function" ? await week.lifts(w.from, w.to) : null;
+    /* POLISH 5 (PM, item 6): the lifts in PLAN ORDER, today's day first: today's session in the engine's own order
+       (today-model.cjs sessionPlan), then every other lift in the order the plan holds them (stateFromOps). A lift
+       neither names keeps the order the read gave it, after them. Nothing is dropped or added. */
+    const liftsRead = read && read.ok === true && Array.isArray(read.lifts) ? { ...read, lifts: planOrder(read.lifts) } : read;
+    /* POLISH 5 (PM, item 6): the first weeks. Fewer than two closed workouts on this device before the week reviewed
+       is too little history for any lift to be judged, so the summary says no lift is ready YET rather than that every
+       lift held steady. The same read as `done`, over everything before the window. */
+    const before = await gym.weekSessions("0000-01-01", shiftDay(w.from, -1));
+    const early = !!(before && before.ok === true && typeof before.done === "number" && before.done < 2);
     const trend = await weight_trend({}, turn_id);
     const view = today.read();
     const open = view && view.proposal && typeof view.proposal.title === "string" ? view.proposal : null;
@@ -399,6 +426,7 @@ function createReadTools(world) {
       done: tagged(turn_id, "gym-model.weekSessions.done (closed sessions in the window)", sessions.done, "?"),
       planned: tagged(turn_id, "today-model.plannedDays (engine sessionMembership)", Array.isArray(planned) ? planned.length : 0, "?"),
       liftsKnown: tagged(turn_id, "today-entry.weekLifts.ok", !!(liftsRead && liftsRead.ok === true), "flag", ""),
+      firstWeeks: tagged(turn_id, "gym-model.weekSessions.done before the window (fewer than two; polish 5)", early, "flag", ""),
       lifts: liftsRead && liftsRead.ok === true ? liftsRead.lifts.map((row, i) => Object.freeze({
         name: text(turn_id, "today-entry.weekLifts[" + i + "].name", row.name),
         status: tagged(turn_id, "today-entry.weekLifts[" + i + "].status", row.status, "code", ""),

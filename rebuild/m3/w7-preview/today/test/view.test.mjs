@@ -189,7 +189,7 @@ test("a weigh-in through the sheet rebinds every engine-derived value on Today",
   const state = reference.applyRead(createBasisState(DAY), DAY, 179.4, { hour: 8 });
   assert.match(slot(doc, "morning").textContent, /^This morning ✓ 179\.4 lb/);
   assert.equal(slot(doc, "trend").textContent,
-    "Weight trend " + reference.nowModel(state).headed.weight.toFixed(1) + " lb · Why this plan?");
+    "Weight trend " + reference.nowModel(state).headed.weight.toFixed(1) + " lb");
   assert.equal(slot(doc, "instruction").textContent, plainCopy(engineHeadline(reference, state)));   /* S12 SC-9 */
   assert.match(slot(doc, "primary-label").textContent, /^Start /);
   assert.equal(model.read().hasReadToday, true);
@@ -232,7 +232,7 @@ test("morningLine and trendLine carry no words of their own beyond the approved 
   assert.equal(morningLine({ morningRead: { lb: 190, note } }), "This morning ✓ 190.0 lb · " + note);
   assert.equal(morningLine({ morningRead: { lb: 190, note: "" } }), "This morning ✓ 190.0 lb");
   assert.equal(morningLine({ morningRead: null }), "This morning: not logged yet");
-  assert.equal(trendLine({ nowModel: { headed: { weight: 180.1 } } }), "Weight trend 180.1 lb · Why this plan?");
+  assert.equal(trendLine({ nowModel: { headed: { weight: 180.1 } } }), "Weight trend 180.1 lb");   /* polish 5 (item 8): Why this plan? is its own row */
   assert.match(trendLine({ nowModel: { headed: { weight: null } } }), /Not available yet/);
 });
 
@@ -585,7 +585,7 @@ test("every figure on Today equals the reference engine's own value, slot by slo
     assert.equal(slot(doc, "kcal-note").textContent, calorieBand(calories), label);
     assert.equal(slot(doc, "protein").textContent, money.format(protein.g), label);
     assert.equal(slot(doc, "trend").textContent,
-      "Weight trend " + reference.nowModel(state).headed.weight.toFixed(1) + " lb · Why this plan?", label);
+      "Weight trend " + reference.nowModel(state).headed.weight.toFixed(1) + " lb", label);
     assert.equal(slot(doc, "instruction").textContent, engineHeadline(reference, state), label);   /* S12 SC-9 */
     assert.equal(slot(doc, "workout-count").textContent,
       reference.genSession(state, DAY, null).ex.length + " exercises · Your set targets are ready", label);

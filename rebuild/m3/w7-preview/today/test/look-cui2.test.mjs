@@ -267,3 +267,31 @@ test("C-UI polish 4: the weekly review's See details and and N more are quiet 44
   assert.doesNotMatch(code, /:is\(/, "plain selectors, no :is() list");
   assert(css.includes(".view [data-slot=\"week-review-why\"] { display: block; min-height: var(--hit);"), "Why? keeps its own row");
 });
+
+/* POLISH 5 (PM, the owner's 7-lift world, ui-pass11; red first on df7ad22's preview.css). Measured at the builder seat in
+   Chromium (week probe): the set screen's last row clears the RIR panel and its fade at the end of the scroll; the weekly
+   card's place is held by a placeholder of the same height until the review lands; its controls are the gold accent
+   with a chevron, "and N more" inline and still a 44 px tap row; the weight trend is a 44 px line in the quiet links'
+   rhythm. Held here in the stylesheet. */
+test("C-UI polish 5: the set screen's room under the last row, the quiet Undo, the held weekly place, tappable toggles, the trend line", () => {
+  const css = fs.readFileSync(PREVIEW_CSS, "utf8");
+  const block = css.slice(css.indexOf("/* ===== POLISH 5 (PM"), css.indexOf("/* ===== POLISH 5: END ===== */"));
+  assert(block.length > 0, "the polish 5 block");
+  const code = block.replace(/\/\*[\s\S]*?\*\//g, "");
+  assert(code.includes(".scene-frame.screen-workout .ui > [data-native-load=\"gym\"] > .body,\n.scene-frame.screen-workout .ui > .body { padding-bottom: 56px; }"),
+    "room under the last row: the fade band (20 px), its inset (20 px) and 16 px clear, on both mounts alike");
+  assert(code.includes("[data-native-load=\"offer\"][data-kind=\"compensate\"] > button[data-native-load=\"yes\"] {\n  background: none; border: 1px solid var(--line); color: var(--text-soft); }"),
+    "the undo is the quieter button");
+  assert(code.includes("[data-slot=\"week-review-pending\"] { display: block; min-height: 2lh; }") && code.includes("[data-slot=\"week-review-room\"] { min-height: var(--hit); }"),
+    "the held place is the collapsed card's two lines and its toggle row");
+  assert(code.includes(".view [data-slot=\"week-review-toggle\"],\n.view [data-slot=\"week-review-more\"] { color: var(--gold); }"), "the toggles in the accent");
+  assert(code.includes("border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg);"), "with a chevron");
+  assert(code.includes("[aria-expanded=\"true\"]::after { transform: rotate(-135deg);"), "that turns when it opens");
+  assert(code.includes("display: inline-flex; align-items: center; min-height: var(--hit); margin: calc((1lh - var(--hit)) / 2) 0;"),
+    "and N more inline, still a 44 px tap row, its extra height taken back so the line does not open");
+  assert(code.includes(".scene-frame > .view.ui > .body > div.day-foot {\n  display: flex; align-items: center; min-height: var(--hit); margin-top: 8px;"),
+    "the trend line in the quiet links' rhythm");
+  assert.deepEqual([...code.matchAll(/min-height:\s*([^;]+);/g)].map((m) => m[1].trim()).sort(), ["2lh", "var(--hit)", "var(--hit)", "var(--hit)"].sort(),
+    "no other height");
+  assert.doesNotMatch(code, /:is\(|display:\s*none|line-clamp|max-height/, "plain selectors; nothing hidden, clamped or capped");
+});

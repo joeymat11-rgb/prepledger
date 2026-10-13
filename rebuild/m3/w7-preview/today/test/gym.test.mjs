@@ -1643,3 +1643,73 @@ test('S15P-3b on the card, "BW" and a 0 lb load are said in plain words under th
     assert.equal((await opsOf(kit.gymHost.repository)).filter(o => o.kind === 'session-set').length, 0, 'nothing was recorded');
   } finally { kit.gymHost.close(); }
 });
+
+/* POLISH 5 D1 (Fable, f2427b73): the set screen's plain line and its Why? say a planned figure ONLY when the engine
+   specified the load (gym-model.mjs activeView prescription.loadSpecified). The box can hold a load nobody planned:
+   the S15 prefill (a debut lift's second set opens at the load just logged) and the S14 R1 hold card (it opens at the
+   last real load). Neither is said as planned, on the line or behind Why?. Every value is invented. RED on the
+   accepted polish 5 bytes: set 2 of a debut lift draws no "find your weight" line and Why? says "the planned 25 lb";
+   the hold card says "Same as last time" and Why? says what today "keeps". */
+async function d1Screen(model) {
+  const doc = s14Dom();
+  await mountGym(doc, doc.getElementById('phone'), { model, onBack: () => {}, onChanged: () => {} });
+  const line = doc.querySelector('[data-slot="reason"]').textContent;
+  const why = doc.querySelector('[data-action="why"]');
+  const whyShown = !why.hidden;
+  if (whyShown) why.click();
+  for (let i = 0; i < 20; i += 1) await new Promise(resolve => setTimeout(resolve, 0));
+  const opened = [...doc.querySelectorAll('[data-slot="reason-more"] .w-reason')].map(el => el.textContent);
+  return { line, whyShown, opened, text: doc.getElementById('phone').textContent };
+}
+
+test('P5-D1 a load the plan did not set is never said as planned: the debut second set (S15 prefill) and the hold card (S14 R1)', async () => {
+  const { SET_PLAIN, SET_WHY } = await import('../gym-app.mjs');
+  const kit = await device({ engineState: debutState() });
+  try {
+    assert((await kit.model.start()).ok);
+    const one = await kit.model.read();
+    assert.deepEqual([one.phase, one.entry.load], ['active', null], 'fixture: a debut set 1 opens with no load');
+    const first = await d1Screen(kit.model);
+    assert.deepEqual([first.line, first.whyShown, first.opened], [SET_PLAIN.first, true, [SET_WHY.first]], 'set 1: find your weight');
+    assert((await kit.model.logSet({ startId: one.startId, slot: one.set.slot, lift: one.set.lift,
+      load: '25', reps: '10', effort: CHOSEN })).ok);
+    kit.model.forget();
+    const two = await kit.model.read();
+    assert.deepEqual([two.phase, two.set.lift, two.entry.load], ['active', one.set.lift, 25], 'fixture: set 2 opens at the load just logged');
+    const second = await d1Screen(kit.model);
+    assert.equal(second.line, SET_PLAIN.first, 'set 2 of a debut lift: still find your weight, no figure on the line');
+    assert.equal(second.whyShown, true);
+    assert.deepEqual(second.opened, [SET_WHY.unplanned + SET_WHY.boxAt + 25 + SET_WHY.boxFrom], 'Why? says nobody planned 25');
+    assert.doesNotMatch(second.text, /planned|first time: 25|25 lb for/i, 'no planned figure anywhere on the set screen');
+    assert.deepEqual([one.prescription.loadSpecified, two.prescription.loadSpecified], [false, false], 'the model says the load is not specified');
+  } finally { kit.gymHost.close(); }
+  const hold = await s14Device('p5-d1-hold');
+  await s14DayOne(hold);
+  const handle = await s14Active(hold, 'hold');
+  try {
+    const view = await handle.model.read();
+    assert.equal(view.prescription.line.startsWith('hold '), true, 'fixture: the card says hold: ' + view.prescription.line);
+    assert.match(String(view.previous), /^Last time: 40 lb \u00d7 \d+$/, 'fixture: the Last time line says 40 lb');
+    assert.equal(view.entry.load, 40, 'fixture: the hold card opens at the last real load');
+    const shown = await d1Screen(handle.model);
+    assert.equal(shown.line, SET_PLAIN.choose, 'the hold card: choose your weight, no comparison to a plan');
+    assert.equal(shown.whyShown, true);
+    assert.deepEqual(shown.opened, [SET_WHY.unplanned + SET_WHY.boxAt + 40 + SET_WHY.boxFrom], 'Why? says nobody planned 40');
+    assert.doesNotMatch(shown.text, /planned|same as last time|same weight as last time|today keeps|today repeats|today moves/i,
+      'no planned figure anywhere on the set screen');
+    assert.equal(view.prescription.loadSpecified, false, 'the model says the hold load is not specified');
+  } finally { handle.close(); }
+  /* control: a fresh athlete's day 1 card is a planned numeric load, and still says so */
+  const planned = await s14Device('p5-d1-planned');
+  const control = await planned.on(DAY, planned.fresh);
+  try {
+    assert.equal((await control.model.start()).ok, true);
+    const view = await control.model.read();
+    const load = view.entry.load;
+    assert.deepEqual([view.phase, view.prescription.loadSpecified, Number.isFinite(load), view.previous], ['active', true, true, null],
+      'control: a planned numeric card with no earlier set');
+    const shown = await d1Screen(control.model);
+    assert.equal(shown.line.startsWith(SET_PLAIN.firstAt + load + ' lb'), true, 'control: the planned figure is said: ' + shown.line);
+    assert.deepEqual(shown.opened, [SET_WHY.firstAt + load + ' lb.'], 'control: Why? says the planned load');
+  } finally { control.close(); }
+});

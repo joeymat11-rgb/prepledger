@@ -538,3 +538,107 @@ test("S12 C-2 + S12b R6 the panel follows the fixed stack, dressed in the pack's
   const status = region.querySelector('[data-native-load="status"]');
   assert.equal(w(status).get("color")?.value, "var(--muted)", "the status line is the reason line's quiet text");
 });
+
+/* POLISH 5 (PM, item 1, and its ruling; the owner's set screen, shot 04: "chase 10,10,9: final set reported 0 reps left;
+   ..." under the lift name). The line under the lift name is ONE short plain sentence from the set's own figures and its
+   "Last time" line; Why? opens a plain rewrite of the same figures, or the plain generic sentence; and NO engine phrase
+   and no code string reaches this screen at all, Why? opened or not. Red first: on df7ad22's gym-app.mjs the line is
+   the engine's first reason line and Why? opens the rest of it. */
+const P5_ENGINE = Object.freeze(["chase 10,10,9: final set reported 0 reps left; its recorded effort target was 0 reps left.",
+  "The current rule selects a one-rep step proposal from this rating.",
+  "DEBUT: find the working weight: pick a load you can control for about 10 reps, enter the load and log what it gives. Zero expectations: everything banks.",
+  "NATIVE_LOAD_WINDOW_NOT_TOP held by PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED"]);
+/* every run of three words of an engine reason, lower case: none may appear on the screen */
+const engineRuns = () => P5_ENGINE.flatMap((line) => {
+  const words = line.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter(Boolean);
+  return words.slice(0, -2).map((_, i) => words.slice(i, i + 3).join(" "));
+});
+const screenWords = (phone) => " " + phone.textContent.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ") + " ";
+async function p5SetScreen(previous, entry) {
+  const { mountGym } = await import("../gym-app.mjs");
+  const dom = new JSDOM(design.shellHtml().replace("<!-- APPROVED_TEMPLATES -->", design.templateHtml()), { url: "http://127.0.0.1/" });
+  const doc = dom.window.document, phone = doc.getElementById("phone");
+  const view = { phase: "active", startId: "p5-start", title: "Synthetic workout", session: { instruction: { display: "Synthetic workout" } },
+    lift: { id: "p5-lift", label: "Back squat", index: 1, count: 7 }, set: { slot: 0, lift: "p5-lift", position: 1, count: 3 },
+    prescription: { reason: P5_ENGINE.slice(), setup: null, line: "95 lb \u00d7 10", effort: "Aim to finish with 2 clean reps left.", loadSpecified: true },
+    strip: [], entry: { step: 5, ...entry }, previous, upNext: null, message: null };
+  const model = { day: "2026-10-12", read: async () => structuredClone(view),
+    effortChoices: () => [{ label: "2", reserve: { tag: "known", value: 2 } }], start: async () => ({ ok: true }) };
+  const settings = { latest: async () => null, save: async () => ({ ok: false }) };
+  await mountGym(doc, phone, { model, settings, onBack: () => {} });
+  for (let i = 0; i < 20; i += 1) await new Promise((r) => setTimeout(r, 0));
+  return { dom, phone };
+}
+test("C-UI polish 5 W-07: the set screen says one plain line, Why? says a plain rewrite, and no engine phrase or code string is ever drawn", async () => {
+  const { plainSetLine, plainSetWhy, SET_PLAIN, SET_WHY, CODE_STRING } = await import("../gym-app.mjs");
+  /* the mapping, case by case, from the set's figures and the model's own "Last time" line (gym-model.mjs previousLine) */
+  const last = (load, reps) => "Last time: " + load + " lb \u00d7 " + reps;
+  const cases = [
+    [{ load: 95, reps: 10 }, last(95, 10), "Same as last time: 95 lb for 10.", "Last time you did 95 lb for 10, and today repeats it."],
+    [{ load: 95, reps: 11 }, last(95, 10), "Up one rep from last time.", "Last time you did 95 lb for 10. Today keeps the weight and asks for one more rep."],
+    [{ load: 95, reps: 12 }, last(95, 10), "Up 2 reps from last time.", "Last time you did 95 lb for 10. Today keeps the weight and asks for 2 more reps."],
+    [{ load: 95, reps: 9 }, last(95, 10), "Down one rep from last time.", "Last time you did 95 lb for 10. Today keeps the weight with one rep fewer."],
+    [{ load: 95, reps: 7 }, last(95, 10), "Down 3 reps from last time.", "Last time you did 95 lb for 10. Today keeps the weight with 3 fewer reps."],
+    [{ load: 100, reps: 8 }, last(95, 10), "Up to 100 lb from 95 lb last time.", "Last time you did 95 lb for 10. Today moves the weight up to 100 lb."],
+    [{ load: 90, reps: 10 }, last(95, 10), "Down to 90 lb from 95 lb last time.", "Last time you did 95 lb for 10. Today moves the weight down to 90 lb."],
+    [{ load: 95, reps: null }, last(95, 10), "Same weight as last time: 95 lb.", "Last time you did 95 lb for 10. Today keeps 95 lb."],
+    [{ load: null, reps: 10 }, null, SET_PLAIN.first, SET_WHY.first],
+    [{ load: 40, reps: 12 }, null, "First time: 40 lb for 12.", "There is no earlier set of this lift on this device, so today starts at the planned 40 lb."],
+    [{ load: null, reps: 10 }, last(95, 10), null, SET_WHY.fallback],
+    [{ load: 95, reps: 10 }, "Last time: something else", null, SET_WHY.fallback],
+  ];
+  for (const [entry, previous, line, why] of cases) {
+    assert.equal(plainSetLine(entry, previous, true), line, JSON.stringify([entry, previous]));
+    assert.equal(plainSetWhy(entry, previous, true), why, JSON.stringify([entry, previous]));
+  }
+  /* POLISH 5 D1 (Fable): a load the engine did not specify (prescription.loadSpecified false: the S15 prefill, the S14 R1
+     last real load) is never said as planned; with no load in the box the planned and unplanned sentences agree */
+  const unplanned = (load) => SET_WHY.unplanned + SET_WHY.boxAt + load + SET_WHY.boxFrom;
+  for (const [entry, previous, line, why] of [
+    [{ load: 40, reps: 10 }, null, SET_PLAIN.first, unplanned(40)],
+    [{ load: 40, reps: null }, null, SET_PLAIN.first, unplanned(40)],
+    [{ load: 95, reps: 10 }, last(95, 10), SET_PLAIN.choose, unplanned(95)],
+    [{ load: 100, reps: 8 }, last(95, 10), SET_PLAIN.choose, unplanned(100)],
+    [{ load: null, reps: 10 }, null, SET_PLAIN.first, SET_WHY.first],
+    [{ load: null, reps: 10 }, last(95, 10), null, SET_WHY.fallback]]) {
+    for (const planned of [false, undefined]) {
+      assert.equal(plainSetLine(entry, previous, planned), line, "unplanned " + JSON.stringify([entry, previous]));
+      assert.equal(plainSetWhy(entry, previous, planned), why, "unplanned " + JSON.stringify([entry, previous]));
+    }
+  }
+  assert.equal(SET_WHY.fallback, "This is the weight your recent sets support.");
+  /* no engine phrase in the copy itself */
+  const runs = engineRuns();
+  for (const words of [...Object.values(SET_PLAIN), ...Object.values(SET_WHY)]) {
+    const said = " " + words.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ") + " ";
+    assert.equal(runs.some((run) => said.includes(" " + run + " ")), false, "an engine phrase in the copy: " + words);
+  }
+  /* over the real card and template: a mapped set, and an unmapped one (its figures say nothing plainly) */
+  for (const [previous, entry, line, why] of [[last(95, 10), { load: 95, reps: 10 }, "Same as last time: 95 lb for 10.", "Last time you did 95 lb for 10, and today repeats it."],
+    ["Last time: something else", { load: 95, reps: 10 }, "", SET_WHY.fallback]]) {
+    const { dom, phone } = await p5SetScreen(previous, entry);
+    const check = (where) => {
+      const text = screenWords(phone);
+      const leaked = runs.filter((run) => text.includes(" " + run + " "));
+      assert.deepEqual(leaked, [], where + ": no engine phrase on the set screen");
+      assert.equal(CODE_STRING.test(phone.textContent), false, where + ": no code string on the set screen");
+    };
+    assert.equal(phone.querySelector('[data-slot="reason"]').textContent, line, "the line under the lift name");
+    check("closed");
+    const whyButton = phone.querySelector('[data-action="why"]');
+    assert.equal(whyButton.hidden, false, "Why? is there");
+    assert.equal(whyButton.getAttribute("aria-expanded"), "false");
+    whyButton.click();
+    for (let i = 0; i < 20; i += 1) await new Promise((r) => setTimeout(r, 0));
+    const opened = [...phone.querySelectorAll('[data-slot="reason-more"] .w-reason')].map((el) => el.textContent);
+    assert.deepEqual(opened, [why], "behind Why?, the plain rewrite, never the engine's reason");
+    assert.equal(phone.querySelector('[data-action="why"]').getAttribute("aria-expanded"), "true");
+    check("Why? opened");
+    /* the guard has teeth: the screen text with any engine reason line in it is caught */
+    for (const engine of P5_ENGINE) {
+      const planted = screenWords({ textContent: phone.textContent + " " + engine });
+      assert.equal(runs.some((run) => planted.includes(" " + run + " ")), true, "the guard sees " + engine.slice(0, 20));
+    }
+    dom.window.close();
+  }
+});

@@ -41,6 +41,99 @@ export const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
    inventing one. Declared in design.cjs and checked to be absent from the
    approved references, so it can never smuggle in approved-looking words. */
 export const NO_REST_PRESCRIBED = 'Your plan does not set a rest length.';
+/* POLISH 5 (PM, item 1; the owner's 7-lift world, shot 04): the set screen's first-glance line is ONE short plain
+   sentence, mapped from the set's own figures (the entry the model prefills) and the "Last time" line the model
+   composed for this position (gym-model.mjs previousLine, "Last time: <load> lb \u00d7 <reps>"), the way the coach's PLAIN
+   table maps tool values. It never repeats the engine's prescription reason, which waits behind Why?. A set it cannot
+   say plainly (no figure to compare, a line in another shape) draws no line. PM-approved short plain copy (:913 (5)). */
+export const SET_PLAIN = Object.freeze({
+  first: 'First time: find your weight.',
+  firstAt: 'First time: ',
+  same: 'Same as last time: ',
+  lbFor: ' lb for ',
+  sameWeight: 'Same weight as last time: ',
+  upOneRep: 'Up one rep from last time.',
+  downOneRep: 'Down one rep from last time.',
+  up: 'Up ',
+  down: 'Down ',
+  repsFrom: ' reps from last time.',
+  upTo: 'Up to ',
+  downTo: 'Down to ',
+  lbFrom: ' lb from ',
+  lbLast: ' lb last time.',
+  /* POLISH 5 D1: a load the plan did not set, with an earlier set to go on (the S14 R1 hold card) */
+  choose: 'Choose your weight for this set.',
+});
+const LAST_TIME_LINE = /^Last time: (\d+(?:\.\d+)?) lb \u00d7 (\d+)$/;
+/* An engine code string (NATIVE_LOAD_..., WORKOUT_..., PERFORMED_...): never drawn on this screen. */
+export const CODE_STRING = /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/;
+/* POLISH 5 D1 (Fable, f2427b73): `planned` is the model's prescription.loadSpecified. Only a load the engine specified
+   is said as the plan; anything else in the box (the S15 prefill, the S14 R1 last real load) is said as the athlete's
+   own choice, with no planned figure. Anything but `true` counts as not planned. */
+export function plainSetLine(entry, previous, planned) {
+  const load = entry && Number.isFinite(entry.load) ? entry.load : null;
+  const reps = entry && Number.isSafeInteger(entry.reps) ? entry.reps : null;
+  const said = typeof previous === 'string' && previous !== '' ? previous : null;
+  const last = said ? LAST_TIME_LINE.exec(said) : null;
+  if (planned !== true && load !== null) return said ? SET_PLAIN.choose : SET_PLAIN.first;
+  if (said && !last) return null;
+  if (!last) {
+    if (load === null) return SET_PLAIN.first;
+    return reps === null ? null : SET_PLAIN.firstAt + load + SET_PLAIN.lbFor + reps + '.';
+  }
+  const lastLoad = Number(last[1]), lastReps = Number(last[2]);
+  if (load === null) return null;
+  if (load > lastLoad) return SET_PLAIN.upTo + load + SET_PLAIN.lbFrom + lastLoad + SET_PLAIN.lbLast;
+  if (load < lastLoad) return SET_PLAIN.downTo + load + SET_PLAIN.lbFrom + lastLoad + SET_PLAIN.lbLast;
+  if (reps === null) return SET_PLAIN.sameWeight + load + ' lb.';
+  if (reps === lastReps) return SET_PLAIN.same + load + SET_PLAIN.lbFor + reps + '.';
+  const step = Math.abs(reps - lastReps);
+  if (reps > lastReps) return step === 1 ? SET_PLAIN.upOneRep : SET_PLAIN.up + step + SET_PLAIN.repsFrom;
+  return step === 1 ? SET_PLAIN.downOneRep : SET_PLAIN.down + step + SET_PLAIN.repsFrom;
+}
+/* POLISH 5 RULING (PM, item 1): behind Why? is a plain rewrite too, never the engine's own reason text. It is mapped
+   from the same figures as the line above (the set's entry and its "Last time" line), saying what last time was and
+   what today asks; a set those figures do not describe says the plain generic sentence. PM-approved short plain copy
+   (:913 (5)). */
+export const SET_WHY = Object.freeze({
+  first: 'There is no earlier set of this lift on this device. Choose a weight that stays steady for every set; what you log becomes your starting point.',
+  firstAt: 'There is no earlier set of this lift on this device, so today starts at the planned ',
+  lastTime: 'Last time you did ',
+  repeats: ', and today repeats it.',
+  keeps: '. Today keeps ',
+  oneMore: '. Today keeps the weight and asks for one more rep.',
+  moreReps: '. Today keeps the weight and asks for ',
+  more: ' more reps.',
+  oneFewer: '. Today keeps the weight with one rep fewer.',
+  fewerReps: '. Today keeps the weight with ',
+  fewer: ' fewer reps.',
+  upTo: '. Today moves the weight up to ',
+  downTo: '. Today moves the weight down to ',
+  fallback: 'This is the weight your recent sets support.',
+  /* POLISH 5 D1: a load in the box that the plan did not set (the S15 prefill, the S14 R1 last real load) */
+  unplanned: 'Your plan does not set a weight for this set.',
+  boxAt: ' The box starts at ',
+  boxFrom: ' lb from your recent sets; change it to what you lift.',
+});
+export function plainSetWhy(entry, previous, planned) {
+  const load = entry && Number.isFinite(entry.load) ? entry.load : null;
+  const reps = entry && Number.isSafeInteger(entry.reps) ? entry.reps : null;
+  const said = typeof previous === 'string' && previous !== '' ? previous : null;
+  const last = said ? LAST_TIME_LINE.exec(said) : null;
+  if (planned !== true && load !== null) return SET_WHY.unplanned + SET_WHY.boxAt + load + SET_WHY.boxFrom;
+  if (said && !last) return SET_WHY.fallback;
+  if (!last) return load === null ? SET_WHY.first : SET_WHY.firstAt + load + ' lb.';
+  const lastLoad = Number(last[1]), lastReps = Number(last[2]);
+  if (load === null) return SET_WHY.fallback;
+  const before = SET_WHY.lastTime + lastLoad + SET_PLAIN.lbFor + lastReps;
+  if (load > lastLoad) return before + SET_WHY.upTo + load + ' lb.';
+  if (load < lastLoad) return before + SET_WHY.downTo + load + ' lb.';
+  if (reps === null) return before + SET_WHY.keeps + load + ' lb.';
+  if (reps === lastReps) return before + SET_WHY.repeats;
+  const step = Math.abs(reps - lastReps);
+  if (reps > lastReps) return before + (step === 1 ? SET_WHY.oneMore : SET_WHY.moreReps + step + SET_WHY.more);
+  return before + (step === 1 ? SET_WHY.oneFewer : SET_WHY.fewerReps + step + SET_WHY.fewer);
+}
 /* REVIEW B1. A refusal that came from the accepted layer is NOT a fault of this
    device, and this screen must not say it is. The lead below is neutral and
    factual; the layer's own reason and its own code follow it, each exactly once.
@@ -435,14 +528,23 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, onCo
     }
     put(map, 'set-count', 'Set ' + view.set.position + ' of ' + view.set.count);
 
-    /* W-07 to W-13: the engine's own sentence under the lift name, the first line only,
-       and a "Why?" that reveals the rest (W-13). */
-    const all = view.prescription.reason;
-    root.querySelector('.w-reasons').hidden = all.length === 0;
-    put(map, 'reason', all.length ? all[0] : '');
+    /* W-07 to W-13: the line under the lift name and a "Why?" that reveals the reason (W-13).
+       POLISH 5 (PM, item 1, and its ruling; the owner sees this screen the whole session): the line is ONE short
+       plain sentence from the set's own figures and its "Last time" line (plainSetLine above), and Why? opens a
+       plain rewrite of the same figures (plainSetWhy above), or the plain generic sentence. The engine's
+       prescription reason is never drawn on this screen, Why? opened or not: it only says that there IS a reason.
+       W-13's reveal lives on this active set screen only: the saved-set screen (renderSaved below) draws no reason
+       line and no Why? at all. POLISH 5 D1: a load the engine did not specify (prescription.loadSpecified false) is
+       never said as planned. */
+    const engineSaid = view.prescription.reason.length > 0;
+    const planned = view.prescription.loadSpecified === true;
+    const plainLine = plainSetLine(view.entry, view.previous, planned);
+    root.querySelector('.w-reasons').hidden = !plainLine && !engineSaid;
+    put(map, 'reason', plainLine || '');
     const why = root.querySelector('[data-action="why"]');
-    why.hidden = all.length < 2;
-    lines(map.get('reason-more'), showWhy ? all.slice(1) : [], 'w-reason w-more');
+    why.hidden = !plainLine && !engineSaid;
+    why.setAttribute('aria-expanded', showWhy ? 'true' : 'false');
+    lines(map.get('reason-more'), showWhy ? [plainSetWhy(view.entry, view.previous, planned)] : [], 'w-reason w-more');
     hooks.listen(why, 'click', () => { showWhy = !showWhy; paint(); });
 
     /* The set card. The numerals are the entry itself: the prescribed figures, or what
@@ -689,9 +791,10 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, onCo
     const next = view.next;
     put(map, 'session-title', view.title || view.session.instruction.display);
     put(map, 'saved-title', next ? 'Set ' + view.saved.position + ' logged' : view.lift.label + ' complete');
-    const reasonLines = view.reasonLines.slice(0, 1);
-    root.querySelector('.w-reasons').hidden = reasonLines.length === 0;
-    put(map, 'reason', reasonLines.length ? reasonLines[0] : '');
+    /* POLISH 5 (PM, item 1): the saved set's screen draws no engine reason under its title either; the
+       set just logged is said by the card below it, in its own figures. */
+    root.querySelector('.w-reasons').hidden = true;
+    put(map, 'reason', '');
     put(map, 'entry-title', 'What you did · Set ' + view.saved.position);
     put(map, 'saved-facts', view.saved.facts);
     /* F2: the same set card, repainted (states-workout.js rest()): the numerals keep the
