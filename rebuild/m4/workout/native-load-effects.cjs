@@ -1509,7 +1509,7 @@ function completedLifts(workoutFacts, closeOpId) {
 // CI verifies against the bytes (FC12 row R2-REVISION, run by rebuild.yml's FC12 step):
 // any engine byte change without re-binding turns that row red. A record issued under
 // any other revision is applied from its body with PRODUCER_REVISION_ABSENT_APPLIED.
-const PRODUCER_REVISION = 'earned/native-load/v1+sha256:eb9194850896c371fe2d80f40230fa69627fa3441ff5126417a1244b1ac86ca8';
+const PRODUCER_REVISION = 'earned/native-load/v1+sha256:cac26b47d1d97cc5b652d7dfe23dd029210b7e9872230dedee41b4cb04403dca';
 const BLOCKING_CODES = Object.freeze([...BLOCKING]);
 module.exports = { PRODUCER, PRODUCER_REVISION, BLOCKING_CODES, FAMILY, proposalDigest, sha256Hex, basisOf, foldNativeLoad, checkNativeLoad, issuanceFor, sameIssued, completedLifts, operationsOf,
   heldProjection, HOLD_CODES: Object.freeze([...HOLD_CODES]), isHold, LINEAGE_PROFILE,
