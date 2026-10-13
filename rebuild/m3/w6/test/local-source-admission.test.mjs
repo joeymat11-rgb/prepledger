@@ -8,6 +8,7 @@ import {createLocalSourceController} from '../local/source-admission.mjs';
 import {createCleanInitState} from '../../w7-preview/today/setup-model.mjs';
 import Profile from '../../../m4/import/local-source-profile.cjs';
 import Food from '../../w7-preview/today/food-commands.cjs';
+import Steps from '../../w7-preview/today/steps-commands.cjs';
 import Ops from '../../../client/ops.cjs';
 import {readLocalEra} from '../local/local-era.mjs';
 import NativeLoadEffects from '../../../m4/workout/native-load-effects.cjs';
@@ -104,6 +105,25 @@ test('S3-Q-N1-REPLACE: the real whole-answer winner never resurrects omitted pro
  const f=await fixture(t);await f.append('replacement',Food.prepare({action:Food.ACTION,input:{day:{cal:2400},effective:fixtureEffective()}}));
  const view=await f.controller.view(await prepare(f));assert.deepEqual(view.state.dailyLogs['2026-09-04'],{cal:2400});
  assert.ok(view.families.some(r=>r.op_id==='TEST-ONLY-food'&&r.state==='retained'));
+});
+/* N2 "LOG TODAY" (Part A), F11. Before F11 any steps op fell to admission's catch-all and refused the whole import
+   LOCAL_SOURCE_DAILY_UNRESOLVED. The page's own steps producer is now admitted by F2's rule: the latest count for the
+   day is projected beside the day's food, an earlier one is retained on record, and a steps op the producer's own
+   validate() refuses still refuses the import by that code. */
+test('S3-Q-N2-STEPS: a device step count is projected into the imported day beside its food, and a correction wins',async t=>{
+ const f=await fixture(t);
+ await f.append('steps-first',Steps.prepare({action:Steps.ACTION,input:{day:{steps:6400},effective:fixtureEffective()}}));
+ await f.append('steps-second',Steps.prepare({action:Steps.ACTION,input:{day:{steps:7100},effective:fixtureEffective()}}));
+ const view=await f.controller.view(await prepare(f));
+ assert.deepEqual(view.state.dailyLogs['2026-09-04'],{cal:2300,pro:175,steps:7100});
+ assert.ok(view.families.some(r=>r.op_id==='steps-second'&&r.family==='F11'&&r.state==='projected'));
+ assert.ok(view.families.some(r=>r.op_id==='steps-first'&&r.family==='F11'&&r.state==='retained'));
+});
+test('S3-Q-N2-STEPS-REFUSED: a steps op the producer refuses still refuses the import LOCAL_SOURCE_DAILY_UNRESOLVED',async t=>{
+ const f=await fixture(t);
+ const action=Steps.prepare({action:Steps.ACTION,input:{day:{steps:6400},effective:fixtureEffective()}});
+ await f.append('steps-foreign',{...action,payload:{...action.payload,profile:'earned/steps-day/v0'}});
+ await refused(f,['LOCAL_SOURCE_DAILY_UNRESOLVED']);
 });
 test('S3-Q-REVIEW: cloned reviews and caller-supplied selection evidence cannot replace identity confirmation',async t=>{
  const f=await fixture(t),review=await f.review();

@@ -677,7 +677,7 @@ async function weekToday(day, lane) {
   return { doc, phone, api, model };
 }
 const WEEK_LANE = Object.freeze({
-  gym: { read: async () => ({ phase: "ready" }), weekSessions: async () => ({ ok: true, done: 2, dates: [] }) },
+  gym: { read: async () => ({ phase: "ready" }), lastRead: () => ({ phase: "ready" }), weekSessions: async () => ({ ok: true, done: 2, dates: [] }) },
   nativeLoad: { weekLifts: async () => ({ ok: true, lifts: [
     { lift: "demo-press", name: "Chest press", status: "offer", kind: "earn", date: "2030-01-30", loads: [105, 105], current: [100, 100],
       reason: "Chest press: every set at 100 lb reached the top of the range." },
@@ -778,7 +778,7 @@ test("CV1-8 the first day of a week shows last week's review on Today, collapsed
    before the week holds fewer than two workouts says no lift is ready YET. */
 const OWNER_LIFTS = ["Lateral machine", "Press", "Machine fly", "Pulldown", "Leg press", "Leg curl", "Calf raise", "Hip thrust",
   "Leg extension", "Row"];
-const ownerLane = (done) => ({ gym: { read: async () => ({ phase: "ready" }), weekSessions: async () => ({ ok: true, done, dates: [] }) },
+const ownerLane = (done) => ({ gym: { read: async () => ({ phase: "ready" }), lastRead: () => ({ phase: "ready" }), weekSessions: async () => ({ ok: true, done, dates: [] }) },
   nativeLoad: { weekLifts: async () => ({ ok: true, lifts: OWNER_LIFTS.map((name, i) => ({
     lift: "owner-" + i, name, status: "refused", code: i % 3 ? "NATIVE_LOAD_WINDOW_NOT_TOP" : "NATIVE_LOAD_SOMETHING_UNMAPPED" })) }) } });
 const landedIn = (d) => { const c = d.querySelector('[data-slot="week-review"]'); return c && c.querySelector('[data-slot="week-review-summary"]') ? c : null; };
@@ -859,7 +859,7 @@ test("CV1-9 where's my seat set reads the saved settings through the workout lan
   const Intents = (await import("../../../../coach/coach-intents.cjs")).default;
   const { default: TodayModel } = await import("../today-model.cjs");
   const seen = [];
-  const lane = { gym: { read: async () => ({ phase: "ready" }) },
+  const lane = { gym: { read: async () => ({ phase: "ready" }), lastRead: () => ({ phase: "ready" }) },
     seatSettings: async (view, ids) => { seen.push({ view, ids }); return { ok: true, rows: ids.map((lift, i) => ({ lift,
       latest: i === 0 ? { op_id: "op-1", machine: { exercise_id: lift, settings: [{ name: "seat", value: "4" }, { name: "back pad", value: "2" }] } } : null })) }; } };
   const { doc, phone, api, model } = await weekToday(TodayModel.SYNTHETIC_DAY, lane);

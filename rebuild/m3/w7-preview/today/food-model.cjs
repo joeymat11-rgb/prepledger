@@ -85,11 +85,21 @@ function winningRows(rows) {
    agree. `next` is only advanced by a writer that RETURNED, so nothing is half applied:
    writeDaily builds its whole next state before the ledger guard runs. */
 function foodProjection(state, rows, engine) {
+  return dailyProjection(state, rows, engine, MEMBERS);
+}
+
+/* N2 "LOG TODAY" - THE SAME PROJECTOR, NAMED BY THE MEMBERS IT CARRIES. The steps lane
+   (steps-model.cjs) records a different member of the SAME engine row, `steps`, and the
+   rule above is N1.7's: this file is the ONE place the page writes a daily log. So the
+   steps lane is not handed a second writer call; it asks this one, with its own members,
+   and everything said above (latest op wins per date, a winning op replays only what it
+   carries, a refusal is named and never thrown) holds for it unchanged. */
+function dailyProjection(state, rows, engine, members) {
   let next = state;
   const unavailable = [];
   for (const row of winningRows(rows)) {
     const partial = {};
-    for (const key of MEMBERS) if (Object.hasOwn(row.day, key)) partial[key] = row.day[key];
+    for (const key of members) if (Object.hasOwn(row.day, key)) partial[key] = row.day[key];
     if (Object.keys(partial).length === 0) continue;
     try { next = engine.writeDaily(next, row.date, partial); }
     catch (_) { unavailable.push(row.date); }
@@ -122,4 +132,4 @@ function loggedDay(state, date) {
 }
 
 module.exports = { REFUSALS, refusalFor, dayFromEntry, winningRows, foodProjection,
-  projectFoodDays, recordedDay, loggedDay, LIMITS, MEMBERS, PROFILE, DAY_RE };
+  dailyProjection, projectFoodDays, recordedDay, loggedDay, LIMITS, MEMBERS, PROFILE, DAY_RE };

@@ -685,17 +685,118 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   and s10-copy-lock 33 -> 35 (CL-UP13-DELTA, CL-UP13-APPROVAL, measured).
 - At the builder seat: the today batch 665/686 (the four UP13 cells and the two copy-lock rows added; the same 21 seat-only build failures), the fences batch 2208/2210 (the same two seat-only failures, P-MEASURE (g) among them), the copy lock 35/35, and the coach suite 401/401 without the seat-only engine-revision-gap file.
 
+## N2 "Log today", Part A: the steps lane and its import admission (PM N2 brief; on 20c0b09, rebased from f4bd98c, rebuild/c-nutri2)
+- Part A is the steps lane (commands, host, projection), the import-admission change in its own declared section
+  below, and Fable's three N1 debts (D1 to D3). Part B (the Log today card and its sheet) follows after review. No
+  rebuild/engine file and none of the protected five; no sealed file (today-readings.cjs, today-lanes.cjs and
+  gym-settings-lane.mjs are untouched); today-entry.mjs and today-bindings.mjs are untouched, so PAGE_PINS stand.
+- The command (today/steps-commands.cjs): one day's step count becomes ONE operation of rebuild/client's own
+  envelope, kind "fact", class "steps" (both already in rebuild/client/ops.cjs KINDS and CLASSES), profile
+  earned/steps-day/v1, payload {profile, day: {steps}}. A whole number from 0 to 100000, refused by name and never
+  clamped; a correction is a NEW op for the date and the latest wins. food-commands.cjs's shape, member for member.
+- The host (today/steps-host.mjs): food-host.mjs's shape. It opens through era.client.hostBindings({ workoutCommands })
+  in the SAME store as every other lane and declares no clock of its own, so the installation's live clock stamps it
+  (food-live-save.test.mjs FLS/5's census now names nine hosts; FLS/6 saves a count on a live era and reads it back,
+  stamped on the page's day with the offset in force). Its read-back is a filter by class and profile, in the log's
+  own order, rejected and tombstoned ops out.
+- The projection (today/steps-model.cjs, today-model.cjs): the model replays the winning count per date after the
+  food days (options.stepDays, settable as setStepDays, as the food lane is), into the engine's daily row
+  dailyLogs[date].steps, which the engine's own readers read (energy.cjs stepTarget and the energy rollups). It goes
+  through food-model.cjs dailyProjection, the page's ONE daily-log writer call: food.test.mjs N1.7 still finds the
+  writer called only in food-model.cjs, and foodProjection is now dailyProjection with the food members, byte for byte
+  the replay N1 measured. steps-model.cjs and steps-commands.cjs are on the Today boot graph (today-model.cjs requires
+  them); steps-host.mjs is not on the page yet, and nothing opens the lane until Part B (it cannot be opened from the
+  sealed today-lanes.cjs; Part B says where it is).
+
+### Declared spec section: F11, the import admission of device steps (rebuild/m3/w6/local/source-admission.mjs)
+- Before: every operation of class steps fell to admission's catch-all and refused the whole import
+  LOCAL_SOURCE_DAILY_UNRESOLVED, so a step count recorded on the phone before an import would block the import.
+- After: a steps operation of schema 2 that the steps producer's own validate() accepts is collected BEFORE the
+  catch-all and answered by F11, F2's rule over the day's other member: the winning count per date is PROJECTED onto
+  the replayed state through the page's own projector (engineFor(date, 12), after the food days); a date whose
+  imported history already holds a count is not overwritten, and that operation refuses LOCAL_SOURCE_DAILY_UNRESOLVED
+  by name; earlier counts for a date are retained on record; anything the producer refuses still reaches the
+  catch-all and refuses LOCAL_SOURCE_DAILY_UNRESOLVED as before. Admission names the family ('F11'); the rule itself
+  is steps-model.cjs admitStepRows, pure, so it is executed at the builder seat too.
+- Nothing sealed is edited: source-admission.mjs is role edited in S19 and S4 does not pin it. The register
+  (rebuild/m4/import/replay-registry.cjs) gains steps-commands.cjs#steps, family F11, because the producer is now in
+  the page graph; writer-enumeration.test.mjs P3-EN2 re-pins FAMILIES to add 'F11' and asserts that F11's validator
+  is the producer's, collected before the catch-all, and run by admission.
+- Cells: food.test.mjs N2S.5 (the rule: winner projected, replaced count retained, a held count refused by name) and
+  N2S.7 (the register and admission's text) run at the builder seat. Seat-only, because they load the engine's
+  migration walk: local-source-admission.test.mjs S3-Q-N2-STEPS (a count projected into the imported day beside its
+  food, a correction wins) and S3-Q-N2-STEPS-REFUSED (a count under a foreign profile still refuses by that code);
+  writer-order.test.mjs P3-WO1 and P3-WO2 for the steps writer (both orders, through the real host); and
+  writer-enumeration.test.mjs P3-EN1 and P3-EN2.
+
+### Fable's N1 debts
+- D1: in a blackout (energy.cjs observedTDEE's first line) the food card used to say nothing under the estimate,
+  because today-model.cjs calorieGateOf returned null. It now returns the counts with blackoutUntil, and the line says
+  the day the range is measured again in the date's own words (today-app.cjs dayLabel): "Your range is measured again
+  on Sunday, February 10." alone, or after any count still left, "Log food for 3 more days to measure yours. Not
+  before Sunday, February 10." The coach says the same (read-tools.cjs today_plan tags the day as text, measuredAgainOn;
+  coach-intents.cjs gateLine).
+- D2: the counts are as of today. calorieGateOf counts on the state the page replays for the day it stands on: the
+  21-day fallback and the rate's window are measured back from today, so what the line says is left is as of today,
+  and it moves as he logs and as the days pass.
+- D3: ONE cell, problem.test.mjs N2-D3, holds the coach's gate line and Today's equal, world by world (seven worlds,
+  each with and without a blackout): each is the line its own screen draws, read off that screen (the card's
+  kcal-note; the coach's "What am I hitting today?" answer, every number traced), and 13 of the 14 draw one.
+- Fable 86af076c D1 (on the ui-pass13 fix-forward, folded in here), and the PM's extension to every coach read of the
+  card: "What am I hitting today?" took the card's sets by calling gym.read() and then prescriptions(), and the set,
+  last-time and why-this-weight questions (read-tools.cjs gymView) and page-coach.cjs liftId called gym.read() too. A
+  read is not free: it hands back and clears the card's one-shot message and re-prepares its preparedId, so a coach
+  question ate a refusal the athlete had not yet seen. Now no coach read calls gym.read(): capturedSets() takes the
+  card's last read's slots (gym-model.mjs prescriptions), and gymView and liftId take the view the card's own last
+  read() returned (gym-model.mjs lastRead(), new: held when a read returns, cleared when one starts, and handed out as
+  a deep, detached copy frozen at every depth, Fable 4a010467 D2; page-coach.cjs READS.gym + lastRead). Before the card has read once there is no snapshot: today's sets fall back
+  to the plan's figures, as with no gym lane, and gymView answers WORKOUT_NOT_READY by code with no words of its own.
+  native-load-panel.test.mjs N2-F1 asks every page question (today, why this weight, last time, the seat, the week and
+  the rest) and the set questions' own tools (current_set, next_set, last_comparable_performance), each after a fresh
+  refusal: the card's next read still says it every time, the coach read the card zero times, the snapshot is equal to
+  what the card drew, a new copy per call, frozen at every depth and detached from the card's own, the set question answers
+  from the last read, and the coach still says the set screen (UP13-COACH unchanged). Red on 20c0b09's read-tools.cjs
+  and page-coach.cjs (the first question, today, eats the refusal) and on the first D1 fix alone (why this weight eats
+  it, through last_times and gymView). The coach suites' fake gym cards answer lastRead() with the same view their
+  read() returns, and two real-card cells (memory.test.cjs M06 P06-03 and P06-04) let the card read once, as the
+  page draws it, before the coach is asked; no assertion changes, and the coach suite stands at 401.
+- New strings (PM rulings on Part A: both D1 forms accepted, "Not before <date>" included, and approved under
+  DECISIONS:980, because the blackout lines belong to the owner's estimate ruling): today-app.cjs "Your range is
+  measured again on ", " Not before " and "." (CALORIE_GATE again, notBefore, end); coach-intents.cjs the same three
+  words (gateAgain, gateNotBefore, gateEnd; not copy-locked); steps-host.mjs "createStepsHost requires day" (a
+  developer TypeError, the food and sleep hosts' shape, never drawn). Codes, never shown: STEPS_INPUT_INVALID,
+  STEPS_WRITE_REFUSED, NOTHING, STEPS_RANGE. The copy lock re-measures for exactly the steps lane's three files, these
+  pieces and the two existing pieces they also carry (CL-NUTRI2A-DELTA, CL-NUTRI2A-APPROVAL citing DECISIONS:980;
+  corpus f95b7915 -> 25eefea4; on f4bd98c it was e8193158 -> 66ade625).
+- food-model.cjs, which no parent pins, is declared role new with pre null under DECISIONS:792 (PM ruling on Part A),
+  as S19-REGEN declares every parent-unpinned path it finds changed.
+- Re-pins, to measured values: page-bundle.test.mjs P3-B2 162 -> 164 and P3-B5 41 -> 43 (the builder's esbuild graph
+  with every protected engine file held external, never read, on f4bd98c's bytes of the importing files and on this
+  tree (20c0b09 adds no import to either graph, so the counts stand on the rebase): 160 -> 162 and 159 -> 161 non-protected inputs, steps-model.cjs and steps-commands.cjs added, none removed,
+  the route-only set unchanged at 19); writer-enumeration.test.mjs P3-EN2 FAMILIES gains 'F11' (seat-only, derived
+  from the register); writer-fence.test.mjs today-model.cjs's declared edges gain require:./steps-model.cjs (417
+  unchanged). food-live-save.test.mjs's census and page-coach.test.cjs PC-5's writer list gain the new host and
+  setStepDays.
+- Needles: s10-copy-lock 35 -> 37 and food-live-save 6 -> 7, measured; today-17 864 -> 874 (N2S.1 to N2S.7, N2-D1,
+  N2-D3, N2-F1), w6-local-source 31 -> 33 and d-replay-all 56 -> 58, expected, observed at the PM seat.
+- Red first, re-measured on the rebase: on 20c0b09's bytes of today-model.cjs, today-app.cjs, food-model.cjs,
+  read-tools.cjs, coach-intents.cjs, source-admission.mjs and replay-registry.cjs (the new files kept) 8 of the 10 new
+  today cells fail and pass on these: food.test.mjs N2S.3 to N2S.7, problem.test.mjs N2-D1 and N2-D3, and
+  native-load-panel.test.mjs N2-F1 (on 20c0b09's read-tools.cjs the card's next read has lost the refusal); N2S.1 and
+  N2S.2 stand on files 20c0b09 does not have. The copy lock refused the new pieces and owners by name until the corpus was re-measured.
+- At the builder seat: the today batch 677/698 (665/686 plus N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1 and the two copy-lock rows; the same 21 seat-only build failures), the fences batch 2209/2211 (2208/2210 plus FLS/6; the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 37/37, food-live-save 7/7, the coach suite 401/401 without the seat-only engine-revision-gap file, and the estimate probe 58 of 58 (its 38, plus the two blackout lines inside the food card, unclipped, at 390 and 430; the longest wraps to three lines).
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
 rebuild/engine file and none of the protected five; no child or argv; needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 (the polish's CL-COACH-POLISH-DELTA
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
 polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

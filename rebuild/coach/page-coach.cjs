@@ -37,10 +37,11 @@ const { ask, WEEK_WORDS } = require("./coach-intents.cjs");
    lane's own single store handle; read-tools.cjs seat_settings).
    UI-PASS13 (item 2) adds one more, and only a read: the gym card's prescriptions(), the cells of the slots its own
    last read() prepared, so "What am I hitting today?" says each lift's sets exactly as the set screen shows them
-   (read-tools.cjs today_session). */
+   (read-tools.cjs today_session). N2 Part A adds one more, and only a read: the gym card's lastRead(), the view its own
+   last read() returned, which every coach read of the card now takes instead of calling read() (Fable 86af076c D1). */
 const READS = Object.freeze({
   today: Object.freeze(["read", "stateFromOps", "plannedDays", "sessionPlan"]),
-  gym: Object.freeze(["read", "weekSessions", "lastTimes", "prescriptions"]),
+  gym: Object.freeze(["read", "weekSessions", "lastTimes", "prescriptions", "lastRead"]),
   checkin: Object.freeze(["refresh", "read"]),
   week: Object.freeze(["lifts"]),
   seats: Object.freeze(["read"]),
@@ -70,8 +71,9 @@ function createPageCoach(world) {
   const tools = createWave1Tools({ world: held, coach: createReadTools(held) });
   let turns = 0;
   const liftId = async () => {
-    if (!held.gym || typeof held.gym.read !== "function") return null;
-    const shown = await held.gym.read();
+    /* N2 Part A (PM): the card's last read, never a new one (gym-model.mjs lastRead). */
+    if (!held.gym || typeof held.gym.lastRead !== "function") return null;
+    const shown = held.gym.lastRead();
     return shown && shown.lift && typeof shown.lift.id === "string" ? shown.lift.id : null;
   };
   return Object.freeze({

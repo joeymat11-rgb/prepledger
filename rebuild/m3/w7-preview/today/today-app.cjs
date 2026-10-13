@@ -86,19 +86,27 @@ function calorieEstimate(calorieTarget) {
   return CALORIE_ESTIMATE + amount(calorieTarget.lo) + " to " + amount(calorieTarget.hi) + " kcal";
 }
 /* What will make it measured, in the counts today-model.cjs calorieGateOf reads off the engine's own gate inputs
-   (days with calories logged, weigh-ins), so the line moves as he logs. Null when nothing he logs shortens the wait. */
+   (days with calories logged, weigh-ins), so the line moves as he logs. Null when nothing he logs shortens the wait.
+   N2 (Fable's N1 debt D1): in a blackout (calorieGateOf's `blackoutUntil`) the line says the day the range is measured
+   again, in the date's own words (dayLabel), after any count still left: "Your range is measured again on Sunday,
+   February 10." alone, or "Log food for 3 more days to measure yours. Not before Sunday, February 10." Both forms
+   approved under DECISIONS:980 (PM ruling on N2 Part A). */
 const CALORIE_GATE = Object.freeze({ food: "Log food for ", weigh: "Weigh in ", andWeigh: " and weigh in ",
-  day: " more day", days: " more days", time: " more time", times: " more times", tail: " to measure yours." });
+  day: " more day", days: " more days", time: " more time", times: " more times", tail: " to measure yours.",
+  again: "Your range is measured again on ", notBefore: " Not before ", end: "." });
 function calorieGateLine(gate) {
   if (!gate) return null;
   const food = Number.isSafeInteger(gate.foodLeft) && gate.foodLeft > 0 ? gate.foodLeft : 0;
   const weigh = Number.isSafeInteger(gate.weighLeft) && gate.weighLeft > 0 ? gate.weighLeft : 0;
   const days = (n) => n + (n === 1 ? CALORIE_GATE.day : CALORIE_GATE.days);
   const times = (n) => n + (n === 1 ? CALORIE_GATE.time : CALORIE_GATE.times);
-  if (food && weigh) return CALORIE_GATE.food + days(food) + CALORIE_GATE.andWeigh + times(weigh) + CALORIE_GATE.tail;
-  if (food) return CALORIE_GATE.food + days(food) + CALORIE_GATE.tail;
-  if (weigh) return CALORIE_GATE.weigh + times(weigh) + CALORIE_GATE.tail;
-  return null;
+  let line = null;
+  if (food && weigh) line = CALORIE_GATE.food + days(food) + CALORIE_GATE.andWeigh + times(weigh) + CALORIE_GATE.tail;
+  else if (food) line = CALORIE_GATE.food + days(food) + CALORIE_GATE.tail;
+  else if (weigh) line = CALORIE_GATE.weigh + times(weigh) + CALORIE_GATE.tail;
+  const until = typeof gate.blackoutUntil === "string" && /^\d{4}-\d{2}-\d{2}$/.test(gate.blackoutUntil) ? dayLabel(gate.blackoutUntil) : null;
+  if (!until) return line;
+  return line ? line + CALORIE_GATE.notBefore + until + CALORIE_GATE.end : CALORIE_GATE.again + until + CALORIE_GATE.end;
 }
 
 /* The morning line. When the accepted writer attached a note to the reading — "spike —

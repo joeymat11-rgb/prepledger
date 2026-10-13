@@ -5,12 +5,12 @@
   "status": "BRIEF-ACCEPTED",
   "brief": {
     "file": "rebuild/lanes/b/S19-LIVE-BRIEF.md",
-    "sha256": "30e8db29439fc2ee0ceec585ee320584bbb97fdd795647f40bb5305d2fb647ec",
+    "sha256": "40700fdb47933b35daf9b58528df43525d0f83e6b1498e9b2de9ddb98911ef1a",
     "acceptedLedgerLine": {
-      "ledgerLine": 983,
+      "ledgerLine": 985,
       "role": "cowork",
-      "line": "- 2026-10-13 · cowork · BRIEF ACCEPTED BY SHA for M2-S19-LIVE: rebuild/lanes/b/S19-LIVE-BRIEF.md, sha256 30e8db29439fc2ee0ceec585ee320584bbb97fdd795647f40bb5305d2fb647ec (79555 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
-      "lineSha256": "735e51880c1e3d6683f441205a0cb46a0af8e3cdb2c87a70bcfb179d09d550f7"
+      "line": "- 2026-10-13 · cowork · BRIEF ACCEPTED BY SHA for M2-S19-LIVE: rebuild/lanes/b/S19-LIVE-BRIEF.md, sha256 40700fdb47933b35daf9b58528df43525d0f83e6b1498e9b2de9ddb98911ef1a (91000 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "84b7b994adf4cec0a3720fb515e029c4a4e4bc99dbec620d6c6124f3be31192e"
     }
   },
   "sourceBase": "e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06",
@@ -472,7 +472,7 @@
     },
     "rebuild/lanes/c/today-split/writer-fence.test.mjs": {
       "pre": "a34e8d6c0920ffc926aa00861df7c6dd78991dc6c60e5d18eabe16350fa7fa00",
-      "post": "99b5fa3bdeecf0b63ecd4605839cb9479a89b908867a911be6ff92420ea0c53c",
+      "post": "b204afc0f7a36ff9c6737a7d8869d7f16c43c473bb0e3f225af5a54ee5be2e8e",
       "role": "edited"
     },
     "rebuild/lanes/c/ui-port/approved-pin.test.mjs": {
@@ -617,12 +617,12 @@
     },
     "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs": {
       "pre": "7d6571190880f58786b2579bdaf43462cb22c67fc3f46bdf2bffacc080d48aa3",
-      "post": "60c97ac3240c38f9b863bcebfb6387dac1aa5f0511f5866591835ea80de0bc18",
+      "post": "d3966a15d2b68c04bc68a8a1bc229d625e68bf703fed711396c48d739bd151e0",
       "role": "edited"
     },
     "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs": {
       "pre": "1491e63f4dd9c62a89dd3928f2ea8310767d45161fa1da8467c806ddb58fcd55",
-      "post": "fd0cc72c8d4dcb93a0ee75e98d6c83484dd1859506ff5f3a8fb5c635eff67636",
+      "post": "a18a7905a1d4ec2e16e859f0d394aa7809f4ce9f80cfda6de773ad08b6736cb1",
       "role": "edited"
     },
     "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs": {
@@ -727,8 +727,8 @@
     },
     "rebuild/m3/w6/host/test/food-live-save.test.mjs": {
       "pre": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
-      "post": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
-      "role": "carried"
+      "post": "721c1aaa41ffac573e04dcdab1293a32540e2519e5346d9f13b35fce206fc6ed",
+      "role": "edited"
     },
     "rebuild/m3/w6/host/test/host-seams.test.mjs": {
       "pre": "bdd0b83b17c75c8b3d5158feb7ab3b10566fd45cc3180fa85dbd2294fdf175c9",
@@ -792,7 +792,7 @@
     },
     "rebuild/m3/w6/local/source-admission.mjs": {
       "pre": "902df9ff3623ba71e62df30ef50d82878099b4ede13e5c777846c3b8992e0359",
-      "post": "401eb6b67c31d3230ce237e4b9ffe2227cad8c70586e494a39f944a1b0f0557f",
+      "post": "dad91a98898487e0585f373880afbc32076f2cbefa35c47f0a670010782a77b0",
       "role": "edited"
     },
     "rebuild/m3/w6/local/source-platform.mjs": {
@@ -822,8 +822,8 @@
     },
     "rebuild/m3/w6/test/local-source-admission.test.mjs": {
       "pre": "0e1a6ed7f216b5f451ccc0fd2c5e5698e54eda8f70c6f7e1b63710b2bfbf46f9",
-      "post": "0e1a6ed7f216b5f451ccc0fd2c5e5698e54eda8f70c6f7e1b63710b2bfbf46f9",
-      "role": "carried"
+      "post": "df8bdefeee9836e52a3875c913ec25b048e5b228c1ee48c9ee96bca332bcca74",
+      "role": "edited"
     },
     "rebuild/m3/w6/test/local-source-commit.test.mjs": {
       "pre": "04ec9d32b6047375c6b3fd0a3ae69c1bfddcf0dd8493eeb5414b99f28e027f7f",
@@ -882,7 +882,7 @@
     },
     "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs": {
       "pre": "95f952c6ff419ab194b8dbdc2650e0e7cc72aa6caad8aa7f7d21a62743c48e24",
-      "post": "85e6760fad376469ca38709858580a12f1e20994b6a064195a7c8de2001f25e3",
+      "post": "7e71d203296c8705b1a0f854bcd4110c4bb4c158c790d61d313286c1ec20123e",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs": {
@@ -1005,6 +1005,11 @@
       "post": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
       "role": "carried"
     },
+    "rebuild/m3/w7-preview/today/food-model.cjs": {
+      "pre": null,
+      "post": "16483c7d8b66989138c9e822a5e0cec31d9bb4cb03db32138aa6f89c3f70db75",
+      "role": "new"
+    },
     "rebuild/m3/w7-preview/today/gym-check.mjs": {
       "pre": "ac65e728cb19d18fd23f3e5c7791a36df566c16037eb95903426a0da5567e159",
       "post": "ac65e728cb19d18fd23f3e5c7791a36df566c16037eb95903426a0da5567e159",
@@ -1017,7 +1022,7 @@
     },
     "rebuild/m3/w7-preview/today/gym-model.mjs": {
       "pre": "995eb460e01e4b43affa373be3cbb4e58010562f8fb9c98c7e502d2983aab14b",
-      "post": "0ee7677624bba0f44c0a6acf33babad678f182960a94d059a6c3a22d6619332b",
+      "post": "4d872f1e42436836342332bdbd24fb3db4e5721463e0c07df9031a76ecb408a5",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/gym-settings-lane.mjs": {
@@ -1090,6 +1095,21 @@
       "post": "2eb31cb57d85088ba3533de93a53fe83a43ce22e220f6a1b1fba1838b5349b27",
       "role": "carried"
     },
+    "rebuild/m3/w7-preview/today/steps-commands.cjs": {
+      "pre": null,
+      "post": "4e74c7b08445a4a8e9ab7a3c31c75da2310fd8971fa754ea361eb75db6380992",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/steps-host.mjs": {
+      "pre": null,
+      "post": "eb556c41c34e4e294687f6ea40ec1dfa22c995bccb288e965302890c89eb294a",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/steps-model.cjs": {
+      "pre": null,
+      "post": "6cbe4336a3bc20567a2ce346fae118735dbd1bd141bb789ae6227b44cd6b200a",
+      "role": "new"
+    },
     "rebuild/m3/w7-preview/today/test/adapter.test.mjs": {
       "pre": "0138b6e1c2c8ac0b1193f1464e976cfdcbc3aa3385982ddd984b58d7c8d6d8f7",
       "post": "0138b6e1c2c8ac0b1193f1464e976cfdcbc3aa3385982ddd984b58d7c8d6d8f7",
@@ -1102,7 +1122,7 @@
     },
     "rebuild/m3/w7-preview/today/test/coach.test.mjs": {
       "pre": "94258418d5daeb9eef487cd183c1967de962149563d473eaa1604e1c90e9fd56",
-      "post": "6739bae46e3cdce4643553dbb4187e2da7fb4f2d5b3b4c555fd9e28efb246cac",
+      "post": "99c074976fd17b014f9d8e97400b0e4108125293f85079f7d777d22ef4f550ee",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/copy-lock-measure.mjs": {
@@ -1122,7 +1142,7 @@
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.corpus.json": {
       "pre": "3a226341aac5832d490ffa652e6cf969c5f55b1820024695c94e5713880e9a98",
-      "post": "f95b7915202a30b5c851a97c2b4ce37e467c665c978a186f2bd66a23bea521ed",
+      "post": "25eefea475523b81cd96e83638f697d57952027655bde78c9fc354adba2841ab",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.s12-delta.json": {
@@ -1132,7 +1152,7 @@
     },
     "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs": {
       "pre": "c2a8e07cd89e9dab9e8193fdd6d3593acf7a5c00d79029d39c2e980825ecbf53",
-      "post": "ff05ba76a3b2a4ca019f8b08050691eebb90be26260ff51086020711a3aace20",
+      "post": "5cb172acb20fd01b4089b576a0af5e136789e3a8fa8ff3e5ad5779231351f4c6",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/copy.test.mjs": {
@@ -1147,7 +1167,7 @@
     },
     "rebuild/m3/w7-preview/today/test/food.test.mjs": {
       "pre": "b6b8c9e301ccf92feb61d0e70a0997b9a68e514c70e856e926f081449b86fb04",
-      "post": "335a473db71e3dda8cc0102374efea72078fae1e7a1b541cfc8c0b2ae4dc6205",
+      "post": "918552a67472953ab8f0b4b299efdd14999601a28974cc28939c072d85ee091c",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs": {
@@ -1197,7 +1217,7 @@
     },
     "rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs": {
       "pre": "30b739f3e480b1b03b10202fdbb7a00999eec14ed9289b4c0190cc2a6244d221",
-      "post": "e2131ad5ce7ab99ba1f30d896fcacec10e82f94577880285acc8026f5cd2d5b9",
+      "post": "a95f1168afb6e76b97304c8a213760f8bd31690e8334267a01ee2a8d7a6c659a",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": {
@@ -1212,7 +1232,7 @@
     },
     "rebuild/m3/w7-preview/today/test/problem.test.mjs": {
       "pre": "ed5cb78718edaa8c34d837cc981b0544e55b003f89a9ba0937e6fe5911cad2b1",
-      "post": "a6af408880ce3df4a145a5704e52857389b41d16b8718c4cb4ee8e662ecc7a3a",
+      "post": "1476e3d1ec74abe0ab4919801e762428bb4d9e51b866b98f0f6cc8401806f333",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/routine.test.mjs": {
@@ -1252,7 +1272,7 @@
     },
     "rebuild/m3/w7-preview/today/today-model.cjs": {
       "pre": "4db1be46b3e61454c4e922672036df8242ad0f1b25828ad6c77fedf644bf2f19",
-      "post": "814737a4a90bd8cd0d1a42124a7a86271ad50ec709108ca67e76554ada8fdc1e",
+      "post": "a0e55bd8d8098bd0d3c0de9f75e5b638312ea8dc13229afecd69349ba55a6681",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/today-readings.cjs": {
@@ -1322,7 +1342,7 @@
     },
     "rebuild/m4/import/replay-registry.cjs": {
       "pre": "fe0b95a76eb89b3a2316759955d01662cdc2fe5c2d5767cf1773fd13c30a765a",
-      "post": "72db0263222eb95389fa0f7bc4299c598e7a201beb31054918d329e090f16731",
+      "post": "c5c0f55c0ede99c53e737a012af2d32c35bcdea34ba79e8ee83e005fcb399713",
       "role": "edited"
     },
     "rebuild/m4/import/sleep-replay.cjs": {
@@ -2002,7 +2022,7 @@
         "rebuild/m3/w7-preview/measure/test/boundary.test.mjs",
         "rebuild/m3/w7-preview/today/test/native-load-panel.test.mjs"
       ],
-      "needle": "# pass 864"
+      "needle": "# pass 874"
     },
     {
       "name": "measure-hermetic",
@@ -2114,7 +2134,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/food-live-save.test.mjs"
       ],
-      "needle": "# pass 6"
+      "needle": "# pass 7"
     },
     {
       "name": "w7-import",
@@ -2146,7 +2166,7 @@
         "rebuild/m3/w6/test/local-source-admission.test.mjs",
         "rebuild/m3/w6/test/local-source-consumer.test.mjs"
       ],
-      "needle": "# pass 31"
+      "needle": "# pass 33"
     },
     {
       "name": "d-replay-all",
@@ -2160,7 +2180,7 @@
         "rebuild/lanes/d/p3-replay-all/native-load-import.test.mjs",
         "rebuild/lanes/d/p3-replay-all/plan-edit-import.test.mjs"
       ],
-      "needle": "# pass 56"
+      "needle": "# pass 58"
     },
     {
       "name": "d-port-admission",
@@ -2352,7 +2372,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w7-preview/today/test/copy-lock.test.mjs"
       ],
-      "needle": "# pass 35"
+      "needle": "# pass 37"
     },
     {
       "name": "native-load-fc12",
@@ -2417,12 +2437,12 @@
     "M2-S19-LIVE is the ROLLING UNSEALED --ci child of the SEALED M2-S14-HOLD on rebuild/c-live (the S12/S13/S15/S16/S17/S18 shape): it carries every byte M2-S18-OPENED declared, the CI job split (the cumulative package step in its own both-OS job beside the suites, the pnpm store cached, the fence row P-S9-5 closed over the three both-OS jobs) and the rebuild/c-live deploy trigger of slice-host.yml, brief rebuild/lanes/b/S19-LIVE-BRIEF.md, the two UI check 6 nits and Coach v1 below. It moves no rebuild/engine byte, declares no D-id (NO_REGISTER_IDS) and no gate supersession; no seal, receipt or VERDICT; the coach ENGINE_REVISION stays M2-S14-HOLD's.",
     "ROLLING (PM ruling, 2026-10-12): later rounds amend this spec IN PLACE on lanes branched from rebuild/c-live (S19-REGEN re-measures it; a new BRIEF ACCEPTED BY SHA line only when the brief changes); no further per-release supersession; rebuild/c-live merges into the chain at milestones.",
     "S18 RETIRED BY SUPERSESSION (the DECISIONS:920 / :923 / :943 / :947 / :955 shape): S18 was released onto the chain (DECISIONS:957), so a later diff no longer adds packages/S18.json at status A. This spec holds the one parent claim on acceptance-s14-hold.json; packages/S18.json stays as the record with its claim withdrawn (decided false, chosen null) and is declared here as a changed file like any other; 'S18' left b-package.cjs IDS and NO_REGISTER_IDS for 'S19' (F6 pins moved red first); CHILD_SPECS in boundary, food, machine-settings-ui, problem and setup gained 'S19', youngest last. S19-REGEN's SCOPE adds .github/workflows/slice-host.yml and rebuild/slice/pwa/test/workflow.test.cjs as exact files, so both are declared here.",
-    "LEDGER LINES: THEME M2-S19-LIVE is authorizations.theme (DECISIONS:958) and S18 RETIRED BY SUPERSESSION is DECISIONS:960; BRIEF ACCEPTED BY SHA is brief.acceptedLedgerLine at DECISIONS:983 (Coach v1 amended the brief; it was DECISIONS:959; proposed until it stands on the chain branch, and the runner refuses by name until then).",
-    "CHILDREN: S18's forty-two, carried with their argv; needles re-pinned to measured values: s15-routine 25 -> 27 (RT-26, an adoption offer's heading states its weight; RT-27, an offer's Why? on its own row), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 (CL-COACH-V1-DELTA, CL-COACH-V1-APPROVAL; polish: CL-COACH-POLISH-DELTA, CL-COACH-POLISH-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 (coach.test.mjs CV1-1 to CV1-11; batch 2, look-cui2 quiet links; polish 3, look-cui2; polish 4, look-cui2; polish 5, look-cui2 and workout-look W-07; polish 6, look-cui2), and with the seat read s10-copy-lock 23 -> 25 (CL-COACH-SEAT-DELTA, CL-COACH-SEAT-APPROVAL) and with polish 4 25 -> 27 (CL-WEEK-POLISH4-DELTA, CL-WEEK-POLISH4-APPROVAL) and with polish 5 27 -> 29 (CL-POLISH5-DELTA, CL-POLISH5-APPROVAL) and with polish 6 29 -> 31 (CL-POLISH6-DELTA, CL-POLISH6-APPROVAL) and with nutri 1 31 -> 33 (CL-NUTRI1-DELTA, CL-NUTRI1-APPROVAL) and with the ui-pass13 fix-forward 33 -> 35 (CL-UP13-DELTA, CL-UP13-APPROVAL), today-split-fence 404 -> 417 (FENCE-SEAT-READ, FENCE-SEAT-EDGE over the whole repository and eleven RED rows) and today-17 850 -> 852 (machine-settings-ui.test.mjs MS-SEAT-1, MS-SEAT-2; observed at the PM seat) and with polish 5 852 -> 856 (native-load-panel P5-NL-VERBS, problem.test P5-BOOT, P5-TREND, gym.test P5-D1) and with polish 6 856 -> 858 (problem.test P6-BOOT, gym.test P6-DEBUT) and with nutri 1 858 -> 860 (problem.test N1-GATE, N1-CARD; expected, observed at the PM seat) and with the ui-pass13 fix-forward 860 -> 864 (native-load-panel UP13-COACH, problem.test UP13-SETTLE, food.test UP13-CARBFAT and UP13-MARKER; expected, observed at the PM seat); S19 adds no child (the fence and workflow cells gain assertions inside existing tests). Needles of children that load protected engine files must be OBSERVED at the PM seat.",
+    "LEDGER LINES: THEME M2-S19-LIVE is authorizations.theme (DECISIONS:958) and S18 RETIRED BY SUPERSESSION is DECISIONS:960; BRIEF ACCEPTED BY SHA is brief.acceptedLedgerLine at DECISIONS:985 (Coach v1 amended the brief; it was DECISIONS:959; proposed until it stands on the chain branch, and the runner refuses by name until then).",
+    "CHILDREN: S18's forty-two, carried with their argv; needles re-pinned to measured values: s15-routine 25 -> 27 (RT-26, an adoption offer's heading states its weight; RT-27, an offer's Why? on its own row), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 (CL-COACH-V1-DELTA, CL-COACH-V1-APPROVAL; polish: CL-COACH-POLISH-DELTA, CL-COACH-POLISH-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 (coach.test.mjs CV1-1 to CV1-11; batch 2, look-cui2 quiet links; polish 3, look-cui2; polish 4, look-cui2; polish 5, look-cui2 and workout-look W-07; polish 6, look-cui2), and with the seat read s10-copy-lock 23 -> 25 (CL-COACH-SEAT-DELTA, CL-COACH-SEAT-APPROVAL) and with polish 4 25 -> 27 (CL-WEEK-POLISH4-DELTA, CL-WEEK-POLISH4-APPROVAL) and with polish 5 27 -> 29 (CL-POLISH5-DELTA, CL-POLISH5-APPROVAL) and with polish 6 29 -> 31 (CL-POLISH6-DELTA, CL-POLISH6-APPROVAL) and with nutri 1 31 -> 33 (CL-NUTRI1-DELTA, CL-NUTRI1-APPROVAL) and with the ui-pass13 fix-forward 33 -> 35 (CL-UP13-DELTA, CL-UP13-APPROVAL) and with N2 part A 35 -> 37 (CL-NUTRI2A-DELTA, CL-NUTRI2A-APPROVAL), today-split-fence 404 -> 417 (FENCE-SEAT-READ, FENCE-SEAT-EDGE over the whole repository and eleven RED rows) and today-17 850 -> 852 (machine-settings-ui.test.mjs MS-SEAT-1, MS-SEAT-2; observed at the PM seat) and with polish 5 852 -> 856 (native-load-panel P5-NL-VERBS, problem.test P5-BOOT, P5-TREND, gym.test P5-D1) and with polish 6 856 -> 858 (problem.test P6-BOOT, gym.test P6-DEBUT) and with nutri 1 858 -> 860 (problem.test N1-GATE, N1-CARD; expected, observed at the PM seat) and with the ui-pass13 fix-forward 860 -> 864 (native-load-panel UP13-COACH, problem.test UP13-SETTLE, food.test UP13-CARBFAT and UP13-MARKER; expected, observed at the PM seat) and with N2 part A 864 -> 874 (food.test N2S.1 to N2S.7, problem.test N2-D1, N2-D3, native-load-panel N2-F1; expected, observed at the PM seat), food-live-save 6 -> 7 (FLS/6, measured), w6-local-source 31 -> 33 (local-source-admission S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (writer-order P3-WO1 and P3-WO2 for the steps writer; both expected, observed at the PM seat); S19 adds no child (the fence and workflow cells gain assertions inside existing tests). Needles of children that load protected engine files must be OBSERVED at the PM seat.",
     "UI CHECK 6 (PM, 2026-10-12): an adoption offer's heading states the weight it sets (\"Plank: make 25 lb your working weight\", PM-approved; today-entry.mjs, two new copy pieces, CL-S15-DELTA 44 -> 46, corpus re-measured; PAGE_PINS today-entry.mjs a15606e6 -> dac88dd5), and on an offer card Why? takes its own row so Yes and Not now sit together (preview.css S19 block).",
-    "COACH V1 (owner ruling 2026-10-12, DECISIONS:963, \"No-AI coach first\"): the Coach screen answers tap-to-ask questions on the device through the coach's tested tools (rebuild/coach page-coach.cjs, read-tools.cjs, tool-kernel.cjs, coach-intents.cjs, wave1-tools.cjs; outside S19-REGEN's SCOPE, named in the brief), every number a tool result of its turn or the answer is discarded; the tools hold read-only wrappers of the Today model, gym card and check-in, with no writer reachable (Fable D1, page-coach.test.cjs PC-5) and only the coach's READ tools (read-tools.cjs, tool-kernel.cjs; never tools.cjs, so no plan writer and no engine revision on the page: page-bundle P3-B2 157 -> 162, P3-B5 36 -> 41, PC-6); typed and spoken questions come later; the Coach entry is back on Today in the board's words. Re-measured: copy lock CL-COACH-V1-DELTA (corpus fadf6140... -> e61da75a...), writer fence today-app.cjs edge + page-coach.cjs and FENCE-MODEL-HELD 33 -> 34, package.test.cjs REQUIRED_INPUTS 54 -> 59. Piece 2, the weekly review (PM ruling option A): a READ tool week_review (read-tools.cjs) over three read seams (today-model.cjs plannedDays, gym-model.mjs weekSessions, today-entry.mjs weekLifts; PAGE_PINS today-entry.mjs dac88dd5 -> fbdcd96a), the Today card on the first day of a week and the Coach question How did my week go? (copy lock e61da75a -> 60411337); no new module or edge. Polish (PM polish batch, ui-pass7): the review is its own card in the feed after the workout card; the Coach entry is the compact row Ask Coach in the feed above Start (design.cjs PREVIEW_COPY; the Talk row words left Today); the live Coach is tap to ask only (its stack hidden, no question icons); plain answers from one new READ seam and tool (today-model.cjs sessionPlan, read-tools.cjs today_session), no engine code or word on the screen (coach-intents.test.cjs CI-7), the number check unchanged; the scrolled top fade starts below the status band (copy lock 60411337 -> 218da3dc); no new module or edge. Batch 2: What did I do last time? covers every lift (gym-model.mjs lastTimes, read-tools.cjs last_times), Why this weight? says each shared reason once, the quiet links on Today read at secondary contrast and are never faded above Start, the weekly card Why? says the offer plainly (today-entry.mjs weekLifts carries the offer vectors; PAGE_PINS fbdcd96a -> 2387a971); the seat question waited for a sealed read. The seat read (PM ruling option A): gym-settings-lane.mjs, the one sealed file, gains exactly one read, readSavedSettings, over one shared store handle (openSharedHost) that its own open also uses, imported by today-entry.mjs alone (seatSettings), as the brief declares; the writer fence admits exactly that edge (FENCE-SEAT-READ, FENCE-SEAT-EDGE); the Coach asks Where's my seat set? (copy lock 218da3dc -> 5bdf2c2e; PAGE_PINS today-entry.mjs 2387a971 -> 57782256). Polish 3 (ui-pass9): the live Coach fits its seven questions at 390x844, Why this weight? says first time only with no earlier session, the machine-settings form takes the dark theme and its row puts the saved setting under its title, the review Why? and the quiet links read at secondary contrast in one rhythm. Polish 4 (the owner's 7-lift week): the weekly review opens collapsed (a summary line and See details), its lifts grouped (each ready lift with its Why?, any news, one Holding steady line with and N more, the suggestion as a count), the same grouping in the Coach answer; read-tools.cjs week_review tags each lift's group and the counts the review says, the number check unchanged (copy lock 5bdf2c2e -> 0f7f06de). Polish 5 (ui-pass11, the owner's 7-lift world): the set screen leads with one plain line from the set's own figures (gym-app.mjs plainSetLine) and Why? opens a plain rewrite of them (plainSetWhy; PM ruling), the engine's reason and any code string drawn nowhere; a load the engine did not specify is never said as planned (Fable D1: gym-model.mjs prescription.loadSpecified, gym.test P5-D1); the RIR panel clears the last row; each next-weight offer says Use or Undo (today-entry.mjs; PAGE_PINS 57782256 -> 4c6b553a); a pre-adoption refusal is drawn as loading; the weekly review is read once per summary behind a placeholder of its own height; plan order, the first weeks, the inline and N more; the trend line and Why this plan? on rows of their own; the coach answer scrolled into view and focused, from your data on this phone (copy lock 0f7f06de -> e63812ae). Polish 6 (ui-pass12): until the adoption settles Today names no workout (Start shows the loading state and is held, the card draws no pre-adoption title, the status line says the board's T-03 words); a coach answer scrolls wholly into view clear of the fades; an undo card's two buttons are equally quiet; Show fewer is a row of its own with its chevron at its words; a debut set draws no cells line under the numerals (gym-model.mjs prescription.loadOpen) (copy lock e63812ae -> a4374f49; the T-03 line declared in design.cjs RUNTIME_COPY). Nutri 1 (owner ruling DECISIONS:980, Labelled estimate): while the engine's band is gated its own labelled estimate (energy.cjs calorieTarget, from mass-estimate) is shown on the food card and said by the coach marked Estimate (one figure as about), the status line says the range is an estimate for now, with what will make it measured in the counts today-model.cjs calorieGateOf reads off the engine's own gate inputs; no engine file changes (copy lock a4374f49 -> e8193158). The ui-pass13 fix-forward (PM): the coach says each lift's sets as the set screen does (gym-model.mjs prescriptions, the cells of its own last read; page-coach.cjs READS.gym + prescriptions; read-tools.cjs today_session), Today settles after \"Start using Earned\" with no reload (today-app.cjs: the setup-to-Today transition takes the boot's settle repaint), the nutrition screen says \"No carb or fat target; protein and calories are what count.\" once and never \"engine\" (DECISIONS:913 (5); FOOD_PLAN_UNWIRED's \"engine\" on the no-store path a recorded debt, pinned by B-NTC), and the food marker says nothing while its lane opens; Nutri 1's estimate stays inert (energy.cjs calorieTarget's lo and hi are NaN while calorieFloor has no lean mass) until the engine floor fix the owner authorised at DECISIONS:982 lands in its own engine package (not this batch); no engine file and no sealed file (copy lock e8193158 -> f95b7915).",
-    "PRODUCT MAP (regenerated by rebuild/lanes/b/S19-REGEN.cjs at parent e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s14-hold.json a0e143369d2e); post is sha256 of the bytes ON DISK in the UNCOMMITTED working tree over HEAD f4bd98cda304977e94714e7ec6ebcde735718227 (--worktree, header (B)): after the commit a dry run without --worktree must print \"0 entr(ies) would change\". Released paths of the parent and its ancestors are not declared: rebuild/m3/w7-preview/today/build.mjs (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/gym-app.mjs (rebuild/m4/spec/acceptance-s10-today-split.json), rebuild/m3/w7-preview/today/preview.css (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/today-app.cjs (rebuild/m4/spec/acceptance-s10-today-split.json). New paths are every path changed since the parent, inside the S19 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ (but for the declared spec paper rebuild/coach/NATIVE-LOAD-SPEC.md) and this spec itself. Roles: {\"carried\":310,\"edited\":42,\"new\":25}.",
-    "PARENT-UNPINNED PATHS (regenerated at e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06): 5 path(s) existed at the parent pinned by neither its product map nor its execution pins and are declared here, so they are declared role new with pre null (DECISIONS:792): .github/workflows/slice-host.yml, rebuild/lanes/d/plan-edit/model-mutants.cjs, rebuild/m3/w6/test/prepared-workout.test.mjs, rebuild/m3/w7-preview/today/setup-app.mjs, rebuild/slice/pwa/test/workflow.test.cjs.",
+    "COACH V1 (owner ruling 2026-10-12, DECISIONS:963, \"No-AI coach first\"): the Coach screen answers tap-to-ask questions on the device through the coach's tested tools (rebuild/coach page-coach.cjs, read-tools.cjs, tool-kernel.cjs, coach-intents.cjs, wave1-tools.cjs; outside S19-REGEN's SCOPE, named in the brief), every number a tool result of its turn or the answer is discarded; the tools hold read-only wrappers of the Today model, gym card and check-in, with no writer reachable (Fable D1, page-coach.test.cjs PC-5) and only the coach's READ tools (read-tools.cjs, tool-kernel.cjs; never tools.cjs, so no plan writer and no engine revision on the page: page-bundle P3-B2 157 -> 162, P3-B5 36 -> 41, PC-6); typed and spoken questions come later; the Coach entry is back on Today in the board's words. Re-measured: copy lock CL-COACH-V1-DELTA (corpus fadf6140... -> e61da75a...), writer fence today-app.cjs edge + page-coach.cjs and FENCE-MODEL-HELD 33 -> 34, package.test.cjs REQUIRED_INPUTS 54 -> 59. Piece 2, the weekly review (PM ruling option A): a READ tool week_review (read-tools.cjs) over three read seams (today-model.cjs plannedDays, gym-model.mjs weekSessions, today-entry.mjs weekLifts; PAGE_PINS today-entry.mjs dac88dd5 -> fbdcd96a), the Today card on the first day of a week and the Coach question How did my week go? (copy lock e61da75a -> 60411337); no new module or edge. Polish (PM polish batch, ui-pass7): the review is its own card in the feed after the workout card; the Coach entry is the compact row Ask Coach in the feed above Start (design.cjs PREVIEW_COPY; the Talk row words left Today); the live Coach is tap to ask only (its stack hidden, no question icons); plain answers from one new READ seam and tool (today-model.cjs sessionPlan, read-tools.cjs today_session), no engine code or word on the screen (coach-intents.test.cjs CI-7), the number check unchanged; the scrolled top fade starts below the status band (copy lock 60411337 -> 218da3dc); no new module or edge. Batch 2: What did I do last time? covers every lift (gym-model.mjs lastTimes, read-tools.cjs last_times), Why this weight? says each shared reason once, the quiet links on Today read at secondary contrast and are never faded above Start, the weekly card Why? says the offer plainly (today-entry.mjs weekLifts carries the offer vectors; PAGE_PINS fbdcd96a -> 2387a971); the seat question waited for a sealed read. The seat read (PM ruling option A): gym-settings-lane.mjs, the one sealed file, gains exactly one read, readSavedSettings, over one shared store handle (openSharedHost) that its own open also uses, imported by today-entry.mjs alone (seatSettings), as the brief declares; the writer fence admits exactly that edge (FENCE-SEAT-READ, FENCE-SEAT-EDGE); the Coach asks Where's my seat set? (copy lock 218da3dc -> 5bdf2c2e; PAGE_PINS today-entry.mjs 2387a971 -> 57782256). Polish 3 (ui-pass9): the live Coach fits its seven questions at 390x844, Why this weight? says first time only with no earlier session, the machine-settings form takes the dark theme and its row puts the saved setting under its title, the review Why? and the quiet links read at secondary contrast in one rhythm. Polish 4 (the owner's 7-lift week): the weekly review opens collapsed (a summary line and See details), its lifts grouped (each ready lift with its Why?, any news, one Holding steady line with and N more, the suggestion as a count), the same grouping in the Coach answer; read-tools.cjs week_review tags each lift's group and the counts the review says, the number check unchanged (copy lock 5bdf2c2e -> 0f7f06de). Polish 5 (ui-pass11, the owner's 7-lift world): the set screen leads with one plain line from the set's own figures (gym-app.mjs plainSetLine) and Why? opens a plain rewrite of them (plainSetWhy; PM ruling), the engine's reason and any code string drawn nowhere; a load the engine did not specify is never said as planned (Fable D1: gym-model.mjs prescription.loadSpecified, gym.test P5-D1); the RIR panel clears the last row; each next-weight offer says Use or Undo (today-entry.mjs; PAGE_PINS 57782256 -> 4c6b553a); a pre-adoption refusal is drawn as loading; the weekly review is read once per summary behind a placeholder of its own height; plan order, the first weeks, the inline and N more; the trend line and Why this plan? on rows of their own; the coach answer scrolled into view and focused, from your data on this phone (copy lock 0f7f06de -> e63812ae). Polish 6 (ui-pass12): until the adoption settles Today names no workout (Start shows the loading state and is held, the card draws no pre-adoption title, the status line says the board's T-03 words); a coach answer scrolls wholly into view clear of the fades; an undo card's two buttons are equally quiet; Show fewer is a row of its own with its chevron at its words; a debut set draws no cells line under the numerals (gym-model.mjs prescription.loadOpen) (copy lock e63812ae -> a4374f49; the T-03 line declared in design.cjs RUNTIME_COPY). Nutri 1 (owner ruling DECISIONS:980, Labelled estimate): while the engine's band is gated its own labelled estimate (energy.cjs calorieTarget, from mass-estimate) is shown on the food card and said by the coach marked Estimate (one figure as about), the status line says the range is an estimate for now, with what will make it measured in the counts today-model.cjs calorieGateOf reads off the engine's own gate inputs; no engine file changes (copy lock a4374f49 -> e8193158). The ui-pass13 fix-forward (PM): the coach says each lift's sets as the set screen does (gym-model.mjs prescriptions, the cells of its own last read; page-coach.cjs READS.gym + prescriptions; read-tools.cjs today_session), Today settles after \"Start using Earned\" with no reload (today-app.cjs: the setup-to-Today transition takes the boot's settle repaint), the nutrition screen says \"No carb or fat target; protein and calories are what count.\" once and never \"engine\" (DECISIONS:913 (5); FOOD_PLAN_UNWIRED's \"engine\" on the no-store path a recorded debt, pinned by B-NTC), and the food marker says nothing while its lane opens; Nutri 1's estimate stays inert (energy.cjs calorieTarget's lo and hi are NaN while calorieFloor has no lean mass) until the engine floor fix the owner authorised at DECISIONS:982 lands in its own engine package (not this batch); no engine file and no sealed file (copy lock e8193158 -> f95b7915). N2 Log today, Part A (PM N2 brief): the steps lane (today/steps-commands.cjs, the closed command for one fact of the accepted class steps; steps-host.mjs, food-host.mjs's shape, no clock of its own; steps-model.cjs) and today-model.cjs's replay of the winning count per date into the engine's dailyLogs through food-model.cjs dailyProjection, the page's one daily-log writer call; F11 in source-admission.mjs, a declared section of the brief (a device step count the producer validates is projected at import by F2's rule instead of refusing LOCAL_SOURCE_DAILY_UNRESOLVED; a count the import already holds still refuses by that code), with its register entry; Fable's N1 debts (a blackout names the day the range is measured again, on the card and in the coach; one cell holds the two gate lines equal); page-bundle P3-B2 162 -> 164 and P3-B5 41 -> 43 (steps-model.cjs and steps-commands.cjs on the boot graph, measured with every protected engine file held external); writer fence today-model.cjs edge + steps-model.cjs (417 unchanged); Fable 86af076c D1 on the ui-pass13 fix-forward, extended by the PM to every coach read of the gym card: no coach read calls gym.read(), which would clear the card's one-shot refusal and re-prepare its preparedId; read-tools.cjs capturedSets() takes the card's last read's slots (gym-model.mjs prescriptions), and gymView and page-coach.cjs liftId take the view the card's own last read() returned (gym-model.mjs lastRead(), new; page-coach.cjs READS.gym + lastRead); native-load-panel N2-F1 asks every page question and the set questions' tools, each after a fresh refusal, and the refusal survives each one; no engine file and no sealed file (copy lock f95b7915 -> 25eefea4).",
+    "PRODUCT MAP (regenerated by rebuild/lanes/b/S19-REGEN.cjs at parent e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06). pre is the parent pin read at that commit (SEALED ARTIFACT rebuild/m4/spec/acceptance-s14-hold.json a0e143369d2e); post is sha256 of the bytes ON DISK in the UNCOMMITTED working tree over HEAD 20c0b092703ab4efca62a00d500ffa0e2601e544 (--worktree, header (B)): after the commit a dry run without --worktree must print \"0 entr(ies) would change\". Released paths of the parent and its ancestors are not declared: rebuild/m3/w7-preview/today/build.mjs (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/gym-app.mjs (rebuild/m4/spec/acceptance-s10-today-split.json), rebuild/m3/w7-preview/today/preview.css (rebuild/m4/spec/acceptance-s9-ui-pins.json), rebuild/m3/w7-preview/today/today-app.cjs (rebuild/m4/spec/acceptance-s10-today-split.json). New paths are every path changed since the parent, inside the S19 product scope, that the parent does not pin, except Markdown reports outside rebuild/engine/ (but for the declared spec paper rebuild/coach/NATIVE-LOAD-SPEC.md) and this spec itself. Roles: {\"carried\":308,\"edited\":44,\"new\":29}.",
+    "PARENT-UNPINNED PATHS (regenerated at e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06): 6 path(s) existed at the parent pinned by neither its product map nor its execution pins and are declared here, so they are declared role new with pre null (DECISIONS:792): .github/workflows/slice-host.yml, rebuild/lanes/d/plan-edit/model-mutants.cjs, rebuild/m3/w6/test/prepared-workout.test.mjs, rebuild/m3/w7-preview/today/food-model.cjs, rebuild/m3/w7-preview/today/setup-app.mjs, rebuild/slice/pwa/test/workflow.test.cjs.",
     "EXECUTION PIN SUPERSEDED (regenerated at e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06): the parent execution pins this package changes, each declared superseded-by-child with the pre measured at the parent: none."
   ]
 }

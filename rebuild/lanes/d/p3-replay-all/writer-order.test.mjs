@@ -35,6 +35,7 @@ import { IDBFactory, sealInventedBundle, eraFor, firstRun, admit, durable,
   SETUP, IMPORTED_LOADS } from '../../../m3/w7-preview/import/test/support.mjs';
 import { createSleepHost } from '../../../m3/w7-preview/today/sleep-host.mjs';
 import { createFoodHost } from '../../../m3/w7-preview/today/food-host.mjs';
+import { createStepsHost } from '../../../m3/w7-preview/today/steps-host.mjs';
 import { createMachineSettingsHost } from '../../../m3/w7-preview/today/machine-settings-host.mjs';
 import { createMeasureHost } from '../../../m3/w7-preview/measure/measure-host.mjs';
 import { createGymModel } from '../../../m3/w7-preview/today/gym-model.mjs';
@@ -82,6 +83,16 @@ const WRITERS = {
     const host = await createFoodHost({ day: DAY, era });
     ok('the food day', await host.save({ cal: 2350, pro: 178 }));
     return { close: () => host.close(), read: async () => (await host.all()).map(r => r.date) };
+  } },
+  /* N2 "LOG TODAY" (Part A). THE STEPS LANE, through its own host (steps-host.mjs), which writes ONE steps fact
+     per save. Before F11 admission's catch-all refused any steps op LOCAL_SOURCE_DAILY_UNRESOLVED, so a count
+     recorded before importing refused the whole import; F11 answers for it by F2's rule. Two saves for the day,
+     so the family answers for a winner (projected) and a replaced count (retained) in the same run. */
+  'steps (the day\'s step count, then a correction)': { family: 'F11', async use(era) {
+    const host = await createStepsHost({ day: DAY, era });
+    ok('the step count', await host.save({ steps: 6400 }));
+    ok('the corrected count', await host.save({ steps: 7100 }));
+    return { close: () => host.close(), read: async () => (await host.all()).map(r => [r.date, r.day.steps]) };
   } },
   /* THE WRITER THAT WAS STILL CLOSED WHEN THIS FILE WAS WRITTEN, and the new
      reason stands where the old one did. A workout recorded BEFORE importing

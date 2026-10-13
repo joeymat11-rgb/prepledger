@@ -495,7 +495,24 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
     return lifts;
   }
 
+  /* N2 Part A (PM, after Fable 86af076c D1): the view this card's own last read() returned, held as a SNAPSHOT for the
+     coach. A read is not free: it hands back and clears the card's one-shot message and re-prepares its preparedId, so
+     the coach never reads the card; it reads what the card last drew. Cleared when a read starts, as lastSlots is, and
+     set when it returns; null before the card has read. Fable 4a010467 D2: each call hands out a DEEP, DETACHED copy
+     (structuredClone), frozen all the way down, so no reader can reach or change the card's own view, at any depth. */
+  let lastView = null;
+  const frozenDeep = (v) => {
+    if (v && typeof v === 'object' && !Object.isFrozen(v)) { for (const k of Object.keys(v)) frozenDeep(v[k]); Object.freeze(v); }
+    return v;
+  };
+  function lastRead() { return lastView ? frozenDeep(structuredClone(lastView)) : null; }
   async function read() {
+    lastView = null;
+    const view = await readCard();
+    lastView = view;
+    return view;
+  }
+  async function readCard() {
     const told = message; message = null;
     lastSlots = null;
     /* S15 polish item 1: the title is read when the card reads (a function of the Today view), not frozen at
@@ -802,7 +819,7 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay, onClosed } =
   }
 
   return Object.freeze({ read: readTracked, start, logSet, undo, finish, forget, closeUnfinished, rebase, holdForAdoption,
-    discardOpenedEmpty, weekSessions, lastTimes, prescriptions,
+    discardOpenedEmpty, weekSessions, lastTimes, prescriptions, lastRead,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
     previous: () => previousByLift,
     /* P0-B r2 (review finding 4) - a LIVE getter, not a value captured at

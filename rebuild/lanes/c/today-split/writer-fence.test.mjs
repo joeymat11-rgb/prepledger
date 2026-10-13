@@ -554,8 +554,14 @@ const RELEASED_FILES = [
     holders: {},
     readingsUse: true,
     lane: [],
+    /* N2 "LOG TODAY" RE-MEASURE (Part A, the steps lane): require:./steps-model.cjs, the steps projection. It is
+       a pure module like food-model.cjs and sleep-model.cjs beside it: HANDED the engine, it holds no store, no
+       client and no host, and it writes the day's `steps` member through food-model.cjs dailyProjection, the
+       page's one daily-log writer call (food.test.mjs N1.7). Its own edges are ./steps-commands.cjs (the closed
+       command, which writes nothing on its own: only a host that executes it can) and ./food-model.cjs. Measured with this cell's
+       lexer, not snapshotted. */
     edges: ['require:./today-engine.cjs', 'require:../fixtures.cjs', 'require:./food-model.cjs',
-      'require:./sleep-model.cjs', 'require:./today-readings.cjs'],
+      'require:./sleep-model.cjs', 'require:./steps-model.cjs', 'require:./today-readings.cjs'],
     /* S12 RE-MEASURE (M2-S12-LOOK, C-UI-3 storedProposalAnswers, DECISIONS:817): the look's read-only
        projection writes into a LOCAL object, `out[String(p.id)] = { ... }`, and the scanner reads the
        builtin call inside that computed key as a binding position. No binding, no store, nothing written:

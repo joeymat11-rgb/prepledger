@@ -2553,6 +2553,8 @@ test('P5-NL-VERBS: a new weight says Use 45 lb, an undo says Undo and is the qui
    on f4bd98c's read-tools.cjs, gym-model.mjs and page-coach.cjs the second world fails (the coach says the engine's
    reps). */
 const PageCoach = require('../../../../coach/page-coach.cjs');
+const ReadTools = require('../../../../coach/read-tools.cjs');
+const Intents = require('../../../../coach/coach-intents.cjs');
 const cellOf = c => (c && c.state === 'specified' && typeof c.source_json === 'string' ? JSON.parse(c.source_json) : null);
 function setScreenLine(name, slots) {
   const loads = slots.map(s => cellOf(s.load) && cellOf(s.load).value), reps = slots.map(s => cellOf(s.reps) && cellOf(s.reps).value);
@@ -2608,5 +2610,60 @@ test('UP13-COACH: "What am I hitting today?" says every lift exactly as the set 
   const three = await dayEntry(era, D3);
   await coachMatchesSetScreen(three.model, three.entry, D3, 'D3, after an accepted offer');
   three.entry.gymHost.close();
+  era.close();
+});
+
+/* N2 Part A (Fable 86af076c D1 on the ui-pass13 fix-forward, and the PM's extension to every coach read of the card):
+   the coach takes the gym card's LAST READ as a snapshot (gym-model.mjs prescriptions and lastRead) and never calls
+   gym.read(). A read hands back and clears the card's one-shot message and re-prepares its preparedId, so a coach
+   question that read the card ate a refusal the athlete had not yet seen. Every page question is asked (today, why this
+   weight, last time, the seat, the week and the rest), and the set questions' own tools (current_set, next_set,
+   last_comparable_performance), each after a fresh refusal: the card's next read still says it, and the coach read the
+   card zero times. Red first: on 20c0b09's read-tools.cjs and page-coach.cjs the first question eats the refusal. */
+test('N2-F1: no coach question re-reads the gym card, so a refusal the card holds survives every one', async () => {
+  const fault = faultDatabase();
+  const era = await openTodayInstallation({ indexedDB: fault.indexedDB, crypto: webcrypto, day: D1 });
+  const one = await dayEntry(era, D1);
+  const gym = one.entry.gym;
+  const drawn = await gym.read();
+  assert.equal(drawn.phase, 'ready', 'the card has read once, as the page draws it');
+  /* Fable 4a010467 D2: the snapshot is a deep, detached copy, frozen at every depth */
+  const snap = gym.lastRead();
+  assert.deepEqual(snap, JSON.parse(JSON.stringify(drawn)), 'the snapshot says what the card drew');
+  assert.notEqual(snap, gym.lastRead(), 'each call is its own copy');
+  const objects = [];
+  (function walk(v) { if (v && typeof v === 'object') { objects.push(v); for (const k of Object.keys(v)) walk(v[k]); } })(snap);
+  assert.ok(objects.length > 1, 'the snapshot has depth to hold');
+  for (const o of objects) assert.equal(Object.isFrozen(o), true, 'frozen at every depth');
+  const inner = objects.find((o, i) => i > 0 && !Array.isArray(o) && Object.keys(o).length);
+  assert.throws(() => { inner[Object.keys(inner)[0]] = 'moved'; }, TypeError, 'a nested write is refused');
+  assert.notEqual(snap.lift, drawn.lift, 'and detached: no object is the card\'s own');
+  let reads = 0;
+  const counted = Object.freeze({
+    read: (...a) => { reads += 1; return gym.read(...a); },
+    weekSessions: (...a) => gym.weekSessions(...a), lastTimes: (...a) => gym.lastTimes(...a),
+    prescriptions: (...a) => gym.prescriptions(...a), lastRead: (...a) => gym.lastRead(...a),
+  });
+  const page = PageCoach.createPageCoach({ today: one.model, gym: counted });
+  const tools = ReadTools.createReadTools(PageCoach.readOnlyWorld({ today: one.model, gym: counted }));
+  const questions = [
+    ...Intents.PAGE_INTENT_IDS.map((intent) => ['ask ' + intent, () => page.ask(intent)]),
+    ...['current_set', 'next_set', 'last_comparable_performance'].map((tool) => ['tool ' + tool, () => tools.openTurn('n2-f1-' + tool).call[tool]({})]),
+  ];
+  assert.ok(['today_plan', 'why_weight', 'last_time', 'machine_seat'].every((i) => Intents.PAGE_INTENT_IDS.includes(i)),
+    'today, why this weight, last time and the seat are page questions');
+  for (const [label, askIt] of questions) {
+    const refused = await gym.logSet({ load: '', reps: '' });
+    assert.equal(refused.ok, false, label + ': a refusal the card now holds');
+    assert.ok(typeof refused.copy === 'string' && refused.copy.length > 0, label + ': in words');
+    await askIt();
+    const after = await gym.read();
+    assert.equal(after.message && after.message.copy, refused.copy, label + ': the card still says its refusal after the question');
+    assert.equal(reads, 0, label + ': the coach question did not read the card');
+  }
+  const set = await tools.openTurn('n2-f1-set').call.current_set({});
+  assert.equal(set.ok, true, 'the set question answers from the card\'s last read: ' + JSON.stringify(set.unavailable || {}));
+  await coachMatchesSetScreen(one.model, one.entry, D1, 'and the coach still says the set screen');
+  one.entry.gymHost.close();
   era.close();
 });

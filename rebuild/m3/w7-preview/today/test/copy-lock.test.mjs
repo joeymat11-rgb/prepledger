@@ -84,7 +84,9 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // the value before is PRE_NUTRI1_CORPUS_SHA256, a4374f49...).
 // UI-pass13 fix-forward: re-measured for exactly the nutrition screen's carbohydrate and fat wording, one sentence in
 // and three out (CL-UP13-DELTA; the value before is PRE_UP13_CORPUS_SHA256, e8193158...).
-const CORPUS_SHA256 = 'f95b7915202a30b5c851a97c2b4ce37e467c665c978a186f2bd66a23bea521ed';
+// N2 "Log today", Part A: re-measured for exactly the steps lane's three files and pieces and the blackout words
+// (CL-NUTRI2A-DELTA; the value before is PRE_NUTRI2A_CORPUS_SHA256, f95b7915...).
+const CORPUS_SHA256 = '25eefea475523b81cd96e83638f697d57952027655bde78c9fc354adba2841ab';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -600,6 +602,62 @@ const POLISH_COPY_APPROVAL = 'DECISIONS:913';
 const PRE_SEAT_CORPUS_SHA256 = '218da3dc82a04fca3d958679b7896093cc77a36497e15bdc4b2b5980223bedde';
 const SEAT_NEW = Object.freeze([["Where's my seat set?", CV1_LIVE, []]]);
 const SEAT_COPY_APPROVAL = 'DECISIONS:913';
+/* N2 "Log today", Part A: the steps lane's three scanned files (steps-commands.cjs, steps-model.cjs, steps-host.mjs),
+   the host's own refusal of a missing day (a TypeError, the food and sleep hosts' shape), the two existing pieces the
+   new files also carry ("use strict" twice, "forDate requires a date" once), and the food card's blackout words for
+   Fable's N1 debt D1 (today-app.cjs CALORIE_GATE again and notBefore; its "." is not a locked piece). beforeNutri2a
+   gives every older view the corpus as the ui-pass13 fix-forward sealed it (PRE_NUTRI2A_CORPUS_SHA256), and beforeUp13
+   starts from that view. Approved under DECISIONS:980 (PM ruling on N2 Part A: the blackout lines belong to the owner's estimate
+   ruling); the host's refusal is a developer TypeError of the food and sleep hosts' shape, never drawn on a screen. */
+const PRE_NUTRI2A_CORPUS_SHA256 = 'f95b7915202a30b5c851a97c2b4ce37e467c665c978a186f2bd66a23bea521ed';
+const N2A_SCANNED = Object.freeze([T + '/steps-commands.cjs', T + '/steps-host.mjs', T + '/steps-model.cjs']);
+const N2A_NEW = Object.freeze([
+  ['Your range is measured again on ', { [T + '/today-app.cjs']: 1 }, []], [' Not before ', { [T + '/today-app.cjs']: 1 }, []],
+  ['createStepsHost requires day', { [T + '/steps-host.mjs']: 1 }, []],
+]);
+const N2A_OWNERS_ADDED = Object.freeze([
+  ['use strict', { [T + '/steps-commands.cjs']: 1, [T + '/steps-model.cjs']: 1 }],
+  ['forDate requires a date', { [T + '/steps-host.mjs']: 1 }],
+]);
+const NUTRI2A_COPY_APPROVAL = 'DECISIONS:980';
+function beforeNutri2a(corpus) {
+  const added = new Set(N2A_NEW.map(([text]) => text));
+  return { ...corpus, scanned: corpus.scanned.filter((f) => !N2A_SCANNED.includes(f)),
+    entries: corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
+      const row = N2A_OWNERS_ADDED.find(([text]) => text === e.text);
+      if (!row) return e;
+      const files = { ...e.files };
+      for (const owner of Object.keys(row[1])) delete files[owner];
+      return { ...e, files: sortedFiles(files) };
+    }) };
+}
+test('CL-NUTRI2A-DELTA: the corpus is the ui-pass13 corpus plus exactly the steps lane\'s files and pieces and the blackout words, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  for (const f of N2A_SCANNED) if (!corpus.scanned.includes(f)) failed.push('CL-NUTRI2A-DELTA SCANNED ' + f + ' is not scanned');
+  for (const [text, files, lists] of N2A_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-NUTRI2A-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text, owners] of N2A_OWNERS_ADDED) {
+    const entry = byText.get(text);
+    for (const [owner, count] of Object.entries(owners))
+      if (!entry || entry.files[owner] !== count) failed.push('CL-NUTRI2A-DELTA OWNER ' + JSON.stringify(text) + ' ' + owner + ' is ' + JSON.stringify(entry ? entry.files[owner] : null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforeNutri2a(corpus)), 'utf8'));
+  if (before !== PRE_NUTRI2A_CORPUS_SHA256) failed.push('CL-NUTRI2A-DELTA PRE-NUTRI2A-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the nutri 1 corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-NUTRI2A-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeNutri2a(moved)), 'utf8')) === PRE_NUTRI2A_CORPUS_SHA256) failed.push('CL-NUTRI2A-DELTA PRE-NUTRI2A-VIEW-BLIND');
+  assert.deepEqual(failed, [], 'CL-NUTRI2A-DELTA');
+});
+test('CL-NUTRI2A-APPROVAL: the N2 part A copy delta names the ledger line that approves it', () => {
+  assert.match(NUTRI2A_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-NUTRI2A-APPROVAL-PENDING: the N2 part A copy is not approved');
+});
 /* Nutri 1 (owner ruling 2026-10-13, "Labelled estimate"): the food card's estimate band and its gate line
    (today-app.cjs CALORIE_ESTIMATE, CALORIE_GATE), and the estimate's " to " and " kcal" (calorieEstimate) as one more
    owner count each (two, with the one-figure form), the one-figure estimate and the status line's estimate words.
@@ -638,6 +696,7 @@ const UP13_REMOVED = Object.freeze([
 const UP13_COPY_APPROVAL = 'DECISIONS:913';
 const byEntryText = (a, b) => (a.text < b.text ? -1 : a.text > b.text ? 1 : 0);
 function beforeUp13(corpus) {
+  corpus = beforeNutri2a(corpus);   /* N2 part A stands on top of the ui-pass13 fix-forward */
   const added = new Set(UP13_NEW.map(([text]) => text));
   /* IDEMPOTENT, as every older view is: s14View applies the whole chain to a view already taken back, so a piece is
      put back only where it is not already there. */

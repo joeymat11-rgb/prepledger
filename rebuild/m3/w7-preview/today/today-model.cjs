@@ -47,6 +47,9 @@ const FoodModel = require("./food-model.cjs");
    writer that appends a night, so that module builds the row in the shape
    rebuild/engine/sleep.cjs already reads. Pure, and HANDED the engine it must use. */
 const SleepModel = require("./sleep-model.cjs");
+/* N2 "LOG TODAY" - the steps lane's projection. Pure, HANDED the engine, and it writes
+   through food-model.cjs's one projector (N1.7), never a writer call of its own. */
+const StepsModel = require("./steps-model.cjs");
 /* The weigh-in writer, sealed, cut out of this file by the split (spec F.1, S-R10).
    read() and the whole projection stay here and stay free; the two functions that can
    put a reading on disk do not. The require is at module level, once, and not inside
@@ -299,14 +302,17 @@ function sessionPlanOf(E, state, day) {
      carry a weight (energy.cjs:229-230); the engine's own currentRate says whether that is met;
    - food days: observedTDEE needs 8 days with calories logged, inside the rate's own window, or else since 21 days
      ago (energy.cjs:392-404: `if (rows.length < 8)` falls back to the 21-day window, then `cals.length < 8`).
-   A blackout (observedTDEE's first line, energy.cjs:370) is a wait no logging shortens, so it says no count. Returns
-   null when the band is not the engine's labelled estimate. The counts are cross-checked against the engine itself
+   A blackout (observedTDEE's first line, energy.cjs:370) is a wait no logging shortens: N2 (Fable's N1 debt D1) names
+   its end, `blackoutUntil`, beside the counts, so the line can say when the range is measured again. Returns null
+   when the band is not the engine's labelled estimate. The counts are cross-checked against the engine itself
    (problem.test.mjs N1-GATE): adding exactly the days and weigh-ins left turns the engine's band measured. */
 const MEASURE_WEIGH_INS = 10;   /* energy.cjs:229-230 `.slice(-28)`, `if (reads.length >= 10)` */
 const MEASURE_FOOD_DAYS = 8;    /* energy.cjs:401-404 `if (rows.length < 8)`, `if (cals.length < 8) return null` */
 function calorieGateOf(E, state, target) {
   if (!target || target.gated !== true || target.from !== "mass-estimate") return null;
-  if (state && state.blackout && E.daysUntil(state.blackout.until) > 0) return null;
+  /* N2 (Fable's N1 debt D1): a blackout no longer says nothing. The engine measures nothing until its end
+     (observedTDEE's first line), so the line says the date it is measured again from, and still says any count left. */
+  const blackoutUntil = state && state.blackout && E.daysUntil(state.blackout.until) > 0 ? state.blackout.until : null;
   const rate = E.currentRate(state);
   const reads = (state.reads || []).filter((r) => r && !r.sealed && !r.offWindow && r.w != null).slice(-28).length;
   const weighIns = reads;
@@ -318,6 +324,7 @@ function calorieGateOf(E, state, target) {
   return {
     foodDays, foodNeed: MEASURE_FOOD_DAYS, foodLeft: Math.max(0, MEASURE_FOOD_DAYS - foodDays),
     weighIns, weighNeed: MEASURE_WEIGH_INS, weighLeft: rate && rate.measured ? 0 : Math.max(0, MEASURE_WEIGH_INS - weighIns),
+    blackoutUntil,
   };
 }
 
@@ -390,6 +397,9 @@ function createTodayModel(options = {}) {
      because today-entry.mjs boot() is pinned on disk by B-NTC (DECISIONS:144) and its
      pin-class transition is lane B's round after H3 (:154 (5)). */
   let sleepNights = options.sleepNights || null;
+  /* N2 "LOG TODAY" - THE STEPS LANE, injected and settable exactly as `foodDays` is, for
+     the same reason (boot() cannot gain a lane). Rows only; this module stores nothing. */
+  let stepDays = options.stepDays || null;
 
   const E = engineFactory({ clock: engineClockFor(day) });
 
@@ -431,7 +441,18 @@ function createTodayModel(options = {}) {
        three replays do not interact. */
     state = SleepModel.projectSleepNights(state, storedSleepNights(), E);
     for (const r of storedReads()) state = E.applyRead(state, r.date, r.lb, { hour: 8 });
-    return FoodModel.foodProjection(state, storedFoodDays(), E);
+    const fed = FoodModel.foodProjection(state, storedFoodDays(), E);
+    /* N2 "LOG TODAY" - THE STEPS REPLAY GOES LAST. It writes only the `steps` member of
+       a day's row, which no reading, night or food op carries, and it goes after food so
+       every replay before it runs on exactly the state N1 measured. `unavailable` stays
+       the FOOD list, so every N1 reader of it is unchanged. */
+    const stepped = StepsModel.stepsProjection(fed.state, storedStepDays(), E);
+    return { state: stepped.state, unavailable: fed.unavailable, stepsUnavailable: stepped.unavailable };
+  }
+
+  /* N2 "LOG TODAY" - the durable steps ops, as THIS page's steps lane read them back. */
+  function storedStepDays() {
+    return stepDays && typeof stepDays.rows === "function" ? stepDays.rows() : [];
   }
 
   /* N2 - the durable sleep-night operations, as THIS page's sleep lane read them back.
@@ -642,6 +663,14 @@ function createTodayModel(options = {}) {
     storedSleepNights,
     loggedSleep: (date) => SleepModel.loggedNight(stateFromOps(), date),
     recordedSleep: (date) => SleepModel.recordedNight(storedSleepNights(), date),
+    /* N2 "LOG TODAY" - the steps lane, and what the ENGINE holds for a day once it is
+       replayed (the projected state, never the screen's memory). */
+    stepDays: () => stepDays,
+    setStepDays(lane) { stepDays = lane || null; return stepDays; },
+    storedStepDays,
+    loggedSteps: (date) => StepsModel.loggedSteps(stateFromOps(), date || day),
+    recordedSteps: (date) => StepsModel.recordedSteps(storedStepDays(), date || day),
+    stepsUnavailable: (date) => foodProjectionOf().stepsUnavailable.includes(date || day),
     basisState: () => clone(basis),
     stateFromOps,
     storedReads,

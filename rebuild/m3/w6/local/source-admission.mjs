@@ -4,6 +4,12 @@ import Ops from '../../../client/ops.cjs';
 import {createReadingProjector} from '../reading-history.mjs';
 import Food from '../../w7-preview/today/food-commands.cjs';
 import FoodModel from '../../w7-preview/today/food-model.cjs';
+// N2 "LOG TODAY", F11 (the steps lane; brief section "N2 Part A"). The steps producer is READ here for its own
+// validate(), never edited, and steps-model.cjs carries the family's rule: a device step count recorded before the
+// import is PROJECTED onto the replayed state, as F2 projects a food day, instead of refusing the whole import
+// LOCAL_SOURCE_DAILY_UNRESOLVED. A date the imported history already holds a count for still refuses by that code.
+import Steps from '../../w7-preview/today/steps-commands.cjs';
+import StepsModel from '../../w7-preview/today/steps-model.cjs';
 import CheckIn from '../../w7-preview/today/checkin-commands.cjs';
 // P3-REPLAY-MEASURE-FAMILY. The S5 measure producer is READ here, never
 // edited: measure-commands.cjs is S5-sealed, and the family below answers for
@@ -537,7 +543,7 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    families.push({family:'F1',state:row.local.state==='removed'?'retained':'projected',op_id:row.op_id,effect_ids:row.local.effect_ids});
   }
   for(const row of facts.records)if(row.original.kind!=='fact'&&row.local.state==='unresolved')issue('LOCAL_SOURCE_READING_UNRESOLVED',row.op_id);
-  const food=[];const checkDates=new Set();const measureRows=[];const sleepRows=[];const nativeRows=[];
+  const food=[];const stepRows=[];const checkDates=new Set();const measureRows=[];const sleepRows=[];const nativeRows=[];
   const nativeProposals=nativeLoadFamily.proposals(rows);
   for(const op of rows){
    if(op.class==='reading'||op.class==='session')continue;
@@ -556,6 +562,7 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    const p=op.payload,day=op.effective?.local_date;
    if(!validDay(day)||day>currentDay()){issue('LOCAL_SOURCE_CONTEXT_UNRESOLVED',op.op_id);continue;}
    if(op.class==='food-day'&&op.schema_version===2&&Food.validate(op,id=>ops[id])){food.push({op_id:op.op_id,date:day,day:copy(p.day)});continue;}
+   if(op.class==='steps'&&op.schema_version===2&&Steps.validate(op,id=>ops[id])){stepRows.push({op_id:op.op_id,date:day,day:copy(p.day)});continue;}
    if(p?.profile===Setup.PROFILE){families.push({family:'F4',state:programmeBasis?'retained':'unresolved',op_id:op.op_id});continue;}
    /* P3-REAL-SHAPE (review R1 BLOCKING 1). THE NOTE'S LIFT ID IS READ THROUGH
       THE CORRESPONDENCE, exactly as the capture block reads a capture's. A
@@ -599,6 +606,13 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    const projected=FoodModel.foodProjection(state,[row],engineFor(row.date,12));if(projected.unavailable.length)issue('LOCAL_SOURCE_DAILY_UNRESOLVED',row.op_id);else state=projected.state;
    families.push({family:'F2',state:projected.unavailable.length?'retained':'projected',op_id:row.op_id});}
   for(const row of food)if(!winners.includes(row))families.push({family:'F2',state:'retained',op_id:row.op_id});
+  // F11, THE STEPS FAMILY (N2 "Log today"). F2's rule over the day's other member: the winning count per date is
+  // projected through the page's own daily projector, after the food days; a date the imported history already holds a
+  // count for is not overwritten and refuses LOCAL_SOURCE_DAILY_UNRESOLVED; the rest are retained on record.
+  const stepped=StepsModel.admitStepRows(state,stepRows,engineFor,'F11');
+  for(const row of stepped.issues)issue(row.code,row.op_id);
+  for(const row of stepped.families)families.push(row);
+  state=stepped.state;
   // F3 READS THE PAGE'S OWN CAPTURES (local-capture-start-resume). The shipped
   // page prescribes through the SOURCE-AWARE capture profile: today-bindings.mjs
   // builds Capture.SOURCE_PROFILE with the w5 source codec, so every Start the

@@ -70,7 +70,8 @@ test("PC-3: with no lane open the lane reads refuse in plain words, and the mach
 /* Fable D1: the world the tools hold carries only the read methods the READ intents use, and no writer of the page's
    models is reachable from it, however far it is walked; and asking every page question over models whose writers
    record a call never calls one. */
-const WRITERS = Object.freeze(["weighIn", "reopen", "setFoodDays", "setSleepNights", "start", "logSet", "finish",
+/* N2 "Log today" (Part A): the model's steps-lane setter, setStepDays, is held out like setFoodDays and setSleepNights. */
+const WRITERS = Object.freeze(["weighIn", "reopen", "setFoodDays", "setSleepNights", "setStepDays", "start", "logSet", "finish",
   "discardOpenedEmpty", "undo", "commitWorkoutEdit", "executeResumedWorkout", "save", "answer", "adoptEngineState",
   "draft", "recordSettings", "engine", "host"]);
 function reachableNames(root) {
@@ -94,11 +95,14 @@ test("PC-5: the coach's world is read-only wrappers; no writer of the Today mode
   const spyWriters = (obj) => { for (const w of WRITERS) obj[w] = (..._) => { called.push(w); throw new Error("WRITER " + w); }; return obj; };
   const real = fakeToday();
   const today = spyWriters(Object.assign(Object.create(real), { read: () => real.read(), stateFromOps: () => real.stateFromOps(), today: real.today }));
-  const gym = spyWriters({ read: async () => ({ phase: "ready", lift: { id: "x", label: "Lift", index: 1, count: 1 }, set: { position: 1, count: 1 },
-    prescription: { line: "", effort: "", reason: [], setup: "" }, previous: null }),
+  const shown = () => ({ phase: "ready", lift: { id: "x", label: "Lift", index: 1, count: 1 }, set: { position: 1, count: 1 },
+    prescription: { line: "", effort: "", reason: [], setup: "" }, previous: null });
+  const gym = spyWriters({ read: async () => shown(),
     weekSessions: async () => ({ ok: true, done: 1, dates: [] }), lastTimes: () => [],
     /* ui-pass13 item 2: the card's prepared slots, the set screen's own source (none prepared on this fake card) */
-    prescriptions: () => null });
+    prescriptions: () => null,
+    /* N2 Part A: the view the card's own last read returned, the snapshot every coach read of the card takes */
+    lastRead: () => shown() });
   const checkin = spyWriters({ refresh: async () => {}, read: () => ({ day: real.today, recorded: null, note: "", recordedLines: [] }) });
   const held = readOnlyWorld({ today, gym, checkin });
   /* the seat read (PM ruling option A) adds `seats`, its one read */
@@ -194,7 +198,7 @@ const WEEK_ROWS = Object.freeze([
 const weekWorld = (day, extra = {}, rows = WEEK_ROWS) => {
   const windows = [];
   const today = TodayModel.createTodayModel({ today: day });
-  return { windows, today, gym: { read: async () => ({ phase: "idle" }), weekSessions: async (from, to) => { windows.push([from, to]); return { ok: true, done: 3, dates: [] }; } },
+  return { windows, today, gym: { read: async () => ({ phase: "idle" }), lastRead: () => ({ phase: "idle" }), weekSessions: async (from, to) => { windows.push([from, to]); return { ok: true, done: 3, dates: [] }; } },
     week: { lifts: async () => ({ ok: true, lifts: rows.map((row) => ({ ...row })) }) }, ...extra };
 };
 const planned = (world) => world.today.plannedDays(world.windows[0][0], world.windows[0][1]).length;

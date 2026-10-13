@@ -240,9 +240,15 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
        coach's FACT and PROPOSAL tools and engine-revision.cjs stay off the page, and the route-only set is UNMOVED at 19
        (engine-revision.cjs still route-only). MEASURED by the builder with every protected engine file held external
        (never read) on both sides (de259ca and this tree): 154 -> 159 non-protected inputs, so 157 -> 162 here. */
-    assert.equal(withAdmission.inventory.length, 162,
+    /* N2 "LOG TODAY" PART A (the steps lane) moves it by TWO, both on the BOOT side: today-model.cjs requires
+       steps-model.cjs, which requires steps-commands.cjs (its other edge, food-model.cjs, was already here).
+       source-admission.mjs imports the same two for F11, so the route adds nothing and the route-only set is UNMOVED at
+       19. steps-host.mjs is not in the page yet: nothing on the page imports it until Part B. MEASURED by the builder
+       with every protected engine file held external (never read), on f4bd98c's bytes of the importing files and on
+       this tree: 160 -> 162 non-protected inputs, the two added named, none removed; so 162 -> 164 here. */
+    assert.equal(withAdmission.inventory.length, 164,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 162 (Coach v1\'s five coach modules on the 157 before them, S15\'s seven routine modules on the 150 before those: the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'measured 164 (N2 Part A\'s two steps modules on the 162 before them, Coach v1\'s five coach modules on the 157 before those, S15\'s seven routine modules on the 150 before those: the brief\'s 133, the F7 family\'s one, the F8 family and '
       + 'the shared-class router\'s two, the route\'s own four, B-LOM\'s '
       + 'order-mapping provider, P3-REAL-SHAPE\'s lift-correspondence '
       + 'helper, PASSPHRASE-NORMALIZE\'s shared passphrase form, S10\'s '
@@ -250,6 +256,8 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
       + 'FC09\'s F9 family, and S12\'s coach screen): re-measure and say so');
     assert.ok(paths.includes('rebuild/m3/w7-preview/today/coach-app.mjs'),
       'S12\'s coach screen is not in this graph at all: the figure above moved for some other module');
+    for (const steps of ['rebuild/m3/w7-preview/today/steps-model.cjs', 'rebuild/m3/w7-preview/today/steps-commands.cjs'])
+      assert.ok(paths.includes(steps), steps + ' is not in this graph at all: the figure above moved for some other module');
     assert.ok(paths.includes('rebuild/m4/workout/legacy-order-mapping.cjs'),
       'B-LOM\'s order-mapping provider is not in this graph at all');
     /* S11: the two modules the figure above moved by, named, so that a graph
@@ -513,9 +521,12 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
   const BASE_PINNED_INPUTS = 121;
   /* COACH V1 (S19 amend) moves it by FIVE boot modules (see P3-B2: page-coach.cjs, read-tools.cjs, tool-kernel.cjs, wave1-tools.cjs and coach-intents.cjs); the
      route-only set is UNMOVED at 19. MEASURED on the esbuild graph with protected files held external: 36 -> 41. */
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 41,
+  /* N2 "LOG TODAY" PART A moves it by TWO boot modules (see P3-B2: steps-model.cjs and steps-commands.cjs, reached
+     from today-model.cjs); the route-only set is UNMOVED at 19. MEASURED on the esbuild graph of today-entry.mjs with
+     protected files held external, on f4bd98c's bytes of the importing files and on this tree: 159 -> 161, so 41 -> 43. */
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 43,
     'the delta is ' + (today.inventory.length - BASE_PINNED_INPUTS) + ' modules, not the '
-    + 'measured 41 (Coach v1\'s five coach modules on the 36 before them, S15\'s seven routine modules on the 29 before those: the route\'s 19 plus the nine boot modules, B-LOM\'s order '
+    + 'measured 43 (N2 Part A\'s two steps modules on the 41 before them, Coach v1\'s five coach modules on the 36 before those, S15\'s seven routine modules on the 29 before those: the route\'s 19 plus the nine boot modules, B-LOM\'s order '
     + 'mapping, the shared passphrase form, S10\'s three Today writer '
     + 'lanes, S11\'s two native-load modules, S11 FC09 round 6\'s lift-correspondence '
     + 'helper and S12\'s coach screen, plus S12\'s appended scene input): re-measure and say so');

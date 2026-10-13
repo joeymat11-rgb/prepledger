@@ -79,8 +79,12 @@ const withPlan = (plan, day = SYNTHETIC_DAY) => {
 /* The gym card: its read, and (batch 2) the last sets of each lift it reads off genSession (gym-model.mjs lastTimes). */
 const LAST_TIMES = Object.freeze([{ lift: "plank", sets: [] }, { lift: "press", sets: [{ load: 200, reps: 10 }, { load: 200, reps: 10 }, { load: 200, reps: 9 }] },
   { lift: "curl", sets: [{ load: 55, reps: 12 }, { load: 60, reps: 10 }] }]);
-const gymAt = (label, previous, rows = LAST_TIMES, extra = {}) => ({ read: async () => ({ phase: "ready", lift: { id: "x", label, index: 1, count: 1 },
-  set: { position: 1, count: 2 }, prescription: { line: "", effort: "", reason: [], setup: "" }, previous, ...extra }), lastTimes: () => rows });
+/* N2 Part A: the coach takes the card's last read (lastRead), never a new one; this card has read once, the view below. */
+const gymAt = (label, previous, rows = LAST_TIMES, extra = {}) => {
+  const view = () => ({ phase: "ready", lift: { id: "x", label, index: 1, count: 1 },
+    set: { position: 1, count: 2 }, prescription: { line: "", effort: "", reason: [], setup: "" }, previous, ...extra });
+  return { read: async () => view(), lastRead: () => view(), lastTimes: () => rows };
+};
 
 test("CI-6 the plain answers: the workout and each set target, one plain why per exercise, last time, the check-in's blanks", async () => {
   const today = withPlan(PLAN);
@@ -182,11 +186,11 @@ test("CI-7 no engine code or engine word ever reaches a page answer", async () =
   const worlds = {
     bare: { today: createTodayModel({ today: SYNTHETIC_DAY }) },
     plan: { today: withPlan(PLAN), gym: { ...gymAt("Plank", null), ...sessions }, week: weekRead },
-    blocked: { today: real, gym: { read: async () => ({ phase: "blocked", code: "WORKOUT_PREPARATION_INVALID", copy: blockedCopy }), ...sessions }, week: weekRead },
+    blocked: { today: real, gym: { read: async () => ({ phase: "blocked", code: "WORKOUT_PREPARATION_INVALID", copy: blockedCopy }), lastRead: () => ({ phase: "blocked", code: "WORKOUT_PREPARATION_INVALID", copy: blockedCopy }), ...sessions }, week: weekRead },
     unprepared: { today: withPlan({ available: false, code: "WORKOUT_PREPARATION_UNAVAILABLE", name: null, exercises: [] }),
       checkin: { refresh: async () => {}, read: () => ({ day: SYNTHETIC_DAY, recorded: null,
         note: "Nothing is recorded yet. Every answer is blank, and blank means unknown: never none, never zero.", sleepRecord: null }) } },
-    done: { today: real, gym: { read: async () => ({ phase: "done" }), weekSessions: async () => ({ ok: false, code: "COACH_GYM_SESSION_ABSENT" }) } },
+    done: { today: real, gym: { read: async () => ({ phase: "done" }), lastRead: () => ({ phase: "done" }), weekSessions: async () => ({ ok: false, code: "COACH_GYM_SESSION_ABSENT" }) } },
   };
   let asked = 0;
   for (const [name, world] of Object.entries(worlds)) {
@@ -227,7 +231,7 @@ test("CI-9 why this weight: lifts that share a reason share one line", async () 
   const plan = { available: true, code: null, name: "LOWER", exercises: [first("plank", "Plank", 10), working("row", "Row", 40),
     first("press", "Leg press", 10), first("nordic", "Nordic curl", 10), working("fly", "Fly", 40), first("calf", "Calf raise", 15)] };
   /* polish 3: the gym card says none of these lifts has an earlier session, so a first weight is a first time */
-  const fresh = { read: async () => ({ phase: "ready" }), lastTimes: () => plan.exercises.map((ex) => ({ lift: ex.id, sets: [] })) };
+  const fresh = { read: async () => ({ phase: "ready" }), lastRead: () => ({ phase: "ready" }), lastTimes: () => plan.exercises.map((ex) => ({ lift: ex.id, sets: [] })) };
   const got = await I.ask(toolsOver({ today: withPlan(plan), gym: fresh }), "why_weight", { turnId: "ci9" });
   assert.equal(got.answered, true);
   assert.deepEqual(got.untraceable, []);
@@ -250,7 +254,7 @@ test("CI-10 the weekly card's Why? says the offer plainly, and the number check 
     { lift: "d", name: "Fly", status: "offer", kind: "earn", date: "2026-10-09", loads: [145, 140], current: [140, 135], reason: "engine words" },
   ];
   const world = { today: createTodayModel({ today: "2026-10-12" }),
-    gym: { read: async () => ({ phase: "idle" }), weekSessions: async () => ({ ok: true, done: 2, dates: [] }) },
+    gym: { read: async () => ({ phase: "idle" }), lastRead: () => ({ phase: "idle" }), weekSessions: async () => ({ ok: true, done: 2, dates: [] }) },
     week: { lifts: async () => ({ ok: true, lifts: rows.map((row) => ({ ...row })) }) } };
   const got = await I.ask(toolsOver(world), "week_review", { turnId: "ci10" });
   assert.equal(got.shipped, true);
@@ -310,7 +314,7 @@ test("CI-11 where's my seat set: every lift's saved settings, one line each, rea
 test("CI-12 why this weight says first time only for a lift with no earlier session", async () => {
   const first = (id, name) => ({ id, name, sets: 2, reps: [0, 0], weight: null, firstTime: true, newWeight: false, held: false, repTop: 10 });
   const plan = { available: true, code: null, name: "LOWER", exercises: [first("plank", "Plank"), first("press", "Leg press"), first("nordic", "Nordic curl")] };
-  const gym = { read: async () => ({ phase: "ready" }), lastTimes: () => [{ lift: "plank", sets: [] },
+  const gym = { read: async () => ({ phase: "ready" }), lastRead: () => ({ phase: "ready" }), lastTimes: () => [{ lift: "plank", sets: [] },
     { lift: "press", sets: [{ load: 90, reps: 10 }, { load: 90, reps: 9 }] }, { lift: "nordic", sets: [] }] };
   const tools = toolsOver({ today: withPlan(plan), gym });
   const why = await I.ask(tools, "why_weight", { turnId: "ci12" });

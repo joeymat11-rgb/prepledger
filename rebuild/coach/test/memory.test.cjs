@@ -1413,9 +1413,10 @@ test("M06 P06-03 the effective programme stays the truth, and no proposal is iss
     assert.equal(stored.ok, true, JSON.stringify(stored.unavailable || {}));
 
     const turn = w.coach.openTurn("turn-p06-03");
+    const live = await w.gym.read();   /* the card reads, as the page draws it; the coach takes that last read */
     const set = await turn.call.current_set({});
-    const live = await w.gym.read();
     const baseTurn = control.coach.openTurn("turn-p06-03-c");
+    await control.gym.read();
     const baseSet = await baseTurn.call.current_set({});
     assert.equal(set.ok, true, JSON.stringify(set.unavailable || {}));
     assert.equal(set.values.prescription.display, live.prescription.line);
@@ -1483,6 +1484,7 @@ test("M06 P06-04 an unapplicable constraint comes back NEEDS REVIEW through the 
         "a constraint of unknown applicability was stated as a current restriction: " + pair.sentence);
     }
     /* and the prescription is unchanged */
+    await w.gym.read(); await control.gym.read();   /* each card reads once, as the page draws it */
     const set = await turn.call.current_set({});
     const base = await control.coach.openTurn("turn-p06-04-c").call.current_set({});
     same(set.values.prescription, base.values.prescription, "the prescription");

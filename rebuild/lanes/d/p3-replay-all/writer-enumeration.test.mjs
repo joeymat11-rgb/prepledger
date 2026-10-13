@@ -241,8 +241,11 @@ test('P3-EN2 - every entry either names a family that ADMISSION REALLY RUNS, or 
        S15 F10 (PM ruling, option B, the F4 precedent): F10, the routine-change
        family, answers for the second, the plan-edit save "Change my routine"
        reaches (routine-host.mjs -> plan-edit-host.mjs). FAMILIES is sorted as
-       strings, so 'F10' sorts after 'F1'. */
-    assert.deepEqual(Registry.FAMILIES, ['F1', 'F10', 'F2', 'F3', 'F4', 'F5', 'F7', 'F8', 'F9']);
+       strings, so 'F10' sorts after 'F1'.
+       N2 "LOG TODAY" (Part A): F11, the steps family, answers for the page's steps producer
+       (steps-commands.cjs), which today-model.cjs reaches on boot through steps-model.cjs; 'F11'
+       sorts after 'F10'. */
+    assert.deepEqual(Registry.FAMILIES, ['F1', 'F10', 'F11', 'F2', 'F3', 'F4', 'F5', 'F7', 'F8', 'F9']);
     assert.ok(admission.includes("family:'F6'"), 'F6 stopped answering');
     /* F9 is not a label either: admission imports the family and dispatches it
        BEFORE its unknown-plan catch (NATIVE-LOAD-SPEC R9.13 :176), so a plan
@@ -259,6 +262,15 @@ test('P3-EN2 - every entry either names a family that ADMISSION REALLY RUNS, or 
       'admission does not take F10\'s validator from the plan-edit producer');
     const routine = admission.indexOf('planEditFamily.owns(');
     assert.ok(routine > 0 && routine < unknownPlan, 'F10 is not dispatched before the unknown-plan catch');
+    /* N2 "LOG TODAY": F11 likewise takes its validator from the steps PRODUCER and collects its records BEFORE the
+       catch-all, so a steps op reaches LOCAL_SOURCE_DAILY_UNRESOLVED there only when the producer's own validate()
+       refuses it; and admission, not the helper, names the family. */
+    assert.ok(admission.includes("from '../../w7-preview/today/steps-commands.cjs'"),
+      'admission does not take F11\'s validator from the steps producer');
+    const stepsAt = admission.indexOf('Steps.validate(op,');
+    const dailyCatch = admission.indexOf("op.class==='steps'?'LOCAL_SOURCE_DAILY_UNRESOLVED'");
+    assert.ok(stepsAt > 0 && dailyCatch > 0 && stepsAt < dailyCatch, 'F11 is not collected before the catch-all');
+    assert.ok(admission.includes("StepsModel.admitStepRows(state,stepRows,engineFor,'F11')"), 'admission does not run F11');
   });
 
 /* P3-EN3, THE PLAN WRITERS, rewritten for S11 FC09 (PM ruling DECISIONS:878).

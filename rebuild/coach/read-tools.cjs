@@ -17,6 +17,15 @@ const {
   NEVER_VIA_COACH, TIER3_TOPICS, ok, unavailable, CODES, FORBIDDEN_KEYS, assertNoLeak, carriesNumber,
 } = K;
 
+/* N2 (Fable's N1 debt D1): a local date in Today's own words (today-app.cjs dayLabel: en-US, weekday, month and day of
+   the local calendar date at noon), so the coach and the food card say the same day. Held equal by problem.test.mjs
+   N2-D3. */
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const dayWords = (iso) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date(y, m - 1, d, 12));
+};
+
 function createReadTools(world) {
   if (!world || !world.today || typeof world.today.read !== "function") {
     throw new TypeError("createReadTools requires the slice's today adapter");
@@ -50,6 +59,10 @@ function createReadTools(world) {
       foodDaysLeft: num(turn_id, "today-model.calorieGate.foodLeft", view.calorieGate ? view.calorieGate.foodLeft : null, "day"),
       weighInsLeft: num(turn_id, "today-model.calorieGate.weighLeft", view.calorieGate ? view.calorieGate.weighLeft : null,
         K.unknownNoun(view.calorieGate && view.calorieGate.weighLeft === 1 ? "time" : "times")),
+      /* N2 (Fable's N1 debt D1): in a blackout, the day the range is measured again (calorieGateOf blackoutUntil),
+         in the words Today's food card says it (dayWords below, today-app.cjs dayLabel's own format), as text. */
+      measuredAgainOn: text(turn_id, "today-model.calorieGate.blackoutUntil",
+        view.calorieGate && ISO_DAY.test(view.calorieGate.blackoutUntil || "") ? dayWords(view.calorieGate.blackoutUntil) : null),
       proteinG: num(turn_id, "energy.proteinTarget.g", pro?.g, "g"),
       statusWord: text(turn_id, "today.statusFace.word", view.statusFace.word),
       statusCause: text(turn_id, "today.statusFace.cause", view.statusFace.cause),
@@ -75,11 +88,15 @@ function createReadTools(world) {
      read() prepared (gym-model.mjs prescriptions), lift by lift, set by set. The engine plan above stands on the Today
      model's state, which carries no native workout history and no native-load spend, so its targets are not the card's
      once a lift has history. The plan still names the session and each lift and carries the flags the "why" needs; with
-     no gym lane on this device (no store) it is the only source, and its figures are said as before. */
+     no gym lane on this device (no store) it is the only source, and its figures are said as before.
+     N2 Part A (Fable 86af076c D1): the capture is a SNAPSHOT of the card's own last read, and the coach never calls
+     gym.read() for it. A read is not free: it hands back and clears the card's one-shot message (a refusal the athlete
+     has not yet seen) and re-prepares the card's preparedId, so a coach question would eat the card's refusal. Until
+     the card has read once there is no snapshot, and the plan's figures stand as with no gym lane. */
   async function capturedSets() {
-    if (!gym || typeof gym.read !== "function" || typeof gym.prescriptions !== "function") return null;
-    try { await gym.read(); } catch (_) { return null; }
-    const rows = gym.prescriptions();
+    if (!gym || typeof gym.prescriptions !== "function") return null;
+    let rows = null;
+    try { rows = gym.prescriptions(); } catch (_) { return null; }
     return Array.isArray(rows) && rows.length ? rows : null;
   }
   async function today_session(_args, turn_id) {
@@ -141,7 +158,7 @@ function createReadTools(world) {
 
   /* COACH V1 BATCH 2 ("What did I do last time?", every lift). The "Last time" sets of every lift the engine composes
      today, as the gym card reads them (gym-model.mjs lastTimes: card.prev through previousAt, the same reader the card's
-     own "Last time" line uses). The card is read first, as current_set reads it, so its projection is today's. Each set's
+     own "Last time" line uses). The card's last read is taken first, as current_set takes it, so its projection is today's. Each set's
      load is tagged "lb" and its reps "rep"; a lift with no earlier session has no sets. It writes nothing. */
   async function last_times(_args, turn_id) {
     const got = await gymView("last_times", turn_id);
@@ -261,17 +278,22 @@ function createReadTools(world) {
   }
 
   /* The gym reads. The accepted capture layer is the ONLY source: this reads
-     gym-model.read(), which computes nothing of its own either. A refusal from
+     gym-model.mjs lastRead(), the view the card's own last read() returned, which computes nothing of its own either.
+     N2 Part A (PM, after Fable 86af076c D1): the coach never calls gym.read(), which would clear the card's one-shot
+     refusal and re-prepare its preparedId; before the card has read once there is no view, and the tool says so by
+     code, with no words of its own. A refusal from
      the layer is carried with the layer's own code — PERFORMED_NATIVE_TREND_-
      CONTEXT_REQUIRED, WORKOUT_PREPARATION_INVALID and the rest reach the coach
      unedited, because inventing a friendlier sentence is how a guess starts. */
   async function gymView(tool, turn_id) {
     if (!gym) return { fail: unavailable(tool, TIER.READ, turn_id, CODES.GYM_SESSION_ABSENT,
       "No gym session is composed on this device, so there is no set to read.", "rebuild/m3/w7-preview/today/gym-model.mjs") };
-    const view = await gym.read();
+    const view = typeof gym.lastRead === "function" ? gym.lastRead() : null;
+    if (!view) return { fail: unavailable(tool, TIER.READ, turn_id, "WORKOUT_NOT_READY", null,
+      "rebuild/m3/w7-preview/today/gym-model.mjs lastRead() (the card has not read yet)") };
     if (view.phase === "blocked" || view.phase === "unfinished") {
       return { fail: unavailable(tool, TIER.READ, turn_id, view.code || "WORKOUT_UNAVAILABLE",
-        view.copy || null, "rebuild/m3/w7-preview/today/gym-model.mjs read()") };
+        view.copy || null, "rebuild/m3/w7-preview/today/gym-model.mjs lastRead()") };
     }
     return { view };
   }

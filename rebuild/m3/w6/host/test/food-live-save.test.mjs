@@ -28,6 +28,7 @@ import design from '../../../w7-preview/today/design.cjs';
 import { createFoodHost } from '../../../w7-preview/today/food-host.mjs';
 import { createMachineSettingsHost, PROFILE as MACHINE_PROFILE } from '../../../w7-preview/today/machine-settings-host.mjs';
 import { createSleepHost } from '../../../w7-preview/today/sleep-host.mjs';
+import { createStepsHost } from '../../../w7-preview/today/steps-host.mjs';
 import FoodCommands from '../../../w7-preview/today/food-commands.cjs';
 import TodayModel from '../../../w7-preview/today/today-model.cjs';
 
@@ -223,6 +224,7 @@ test('FLS/4 - a declared-day installation records exactly the triple it always d
            machine-settings-host.mjs:59 hostBindings({ workoutCommands })   [this ticket]
            sleep-host.mjs:106           hostBindings({ workoutCommands })
            measure/measure-host.mjs:159 hostBindings({ workoutCommands })
+           steps-host.mjs               hostBindings({ workoutCommands })   [N2 "Log today", the ninth]
 
    What is forbidden is the third thing the two fixed files were doing: building a
    clock of their own from `day` alone. So no host page may import `clientClockFor`,
@@ -230,10 +232,10 @@ test('FLS/4 - a declared-day installation records exactly the triple it always d
    reaches the installation as a DAY (openTodayHosts), never pre-baked into an instant.
    ========================================================================== */
 const TODAY_HOSTS = ['checkin-host.mjs', 'food-host.mjs', 'gym-host.mjs',
-  'machine-settings-host.mjs', 'reading-host.mjs', 'setup-host.mjs', 'sleep-host.mjs'];
+  'machine-settings-host.mjs', 'reading-host.mjs', 'setup-host.mjs', 'sleep-host.mjs', 'steps-host.mjs'];
 const DELEGATES = { 'checkin-host.mjs': 'era.createCheckInHost', 'gym-host.mjs': 'era.createGymHost',
   'reading-host.mjs': 'era.createReadingHost', 'setup-host.mjs': 'era.createSetupHost' };
-const OWN_LANE = ['food-host.mjs', 'machine-settings-host.mjs', 'sleep-host.mjs'];
+const OWN_LANE = ['food-host.mjs', 'machine-settings-host.mjs', 'sleep-host.mjs', 'steps-host.mjs'];
 /* THE CODE, with its prose removed: a file that explains why it does NOT build its
    own clock must not fail a "this never appears" check for saying so. */
 const codeOf = (text) => text.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/.*$/gm, '$1');
@@ -261,4 +263,26 @@ test('FLS/5 - no host under today/ builds a clock of its own, and each is in one
     'today-bindings.mjs passes the live provider at all four of its own sites');
   assert.equal(/clientClockFor\(day\)[^,]/.test(bindings), false,
     'and at none of them does it drop it');
+});
+
+/* N2 "LOG TODAY" (Part A) - FLS/6. THE STEPS LANE ON A LIVE ERA. steps-host.mjs is in family (b) above and FLS/5
+   holds it there; this cell is the save itself, the way FLS/3 holds sleep: the shipped boot on a live instant, one
+   count saved and read back, stamped on the page's own day with the offset in force at that instant. */
+test('FLS/6 - the steps lane saves on a live era, stamped the same way', async () => {
+  const at = WINTER, day = localDayOf(at), idb = new IDBFactory();
+  const booted = await bootLive(at, idb);
+  const steps = await createStepsHost({ day, era: booted.hosts });
+  try {
+    const saved = await steps.save({ steps: 8200 });
+    assert.equal(saved.ok, true, 'the step count saved: ' + saved.code + ' state ' + saved.state);
+    assert.equal(saved.state, 1, 'state 1, saved on this phone');
+    const rows = await steps.forDate(day);
+    assert.deepEqual(rows.map((row) => row.day), [{ steps: 8200 }], 'and reads back');
+    assert.equal(rows[0].date, day, 'stamped on the page\'s own day');
+    assert.equal(rows[0].offset, localOffsetOf(at), 'with the real offset');
+  } finally {
+    steps.close();
+    if (booted.rollover) booted.rollover.stop();
+    if (typeof booted.teardown === 'function') booted.teardown();
+  }
 });

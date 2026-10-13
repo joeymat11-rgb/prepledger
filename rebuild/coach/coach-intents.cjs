@@ -441,6 +441,11 @@ const PLAIN = Object.freeze({
   gateTime: " more time",
   gateTimes: " more times",
   gateTail: " to measure yours.",
+  /* N2 (Fable's N1 debt D1): in a blackout, the day the range is measured again, in Today's words (CALORIE_GATE).
+     Approved under DECISIONS:980 (PM ruling on N2 Part A). */
+  gateAgain: "Your range is measured again on ",
+  gateNotBefore: " Not before ",
+  gateEnd: ".",
   protein: "Protein: at least ",
   proteinTail: " grams.",
   /* "Why this weight?" */
@@ -568,10 +573,14 @@ function gateLine(v) {
   const days = () => d(v.foodDaysLeft, "day") + (v.foodDaysLeft.value === 1 ? PLAIN.gateDay : PLAIN.gateDays);
   const times = () => (v.weighInsLeft.value === 1 ? d(v.weighInsLeft, T.unknownNoun("time")) + PLAIN.gateTime
     : d(v.weighInsLeft, T.unknownNoun("times")) + PLAIN.gateTimes);
-  if (food && weigh) return PLAIN.gateFood + days() + PLAIN.gateAndWeigh + times() + PLAIN.gateTail;
-  if (food) return PLAIN.gateFood + days() + PLAIN.gateTail;
-  if (weigh) return PLAIN.gateWeigh + times() + PLAIN.gateTail;
-  return null;
+  let line = null;
+  if (food && weigh) line = PLAIN.gateFood + days() + PLAIN.gateAndWeigh + times() + PLAIN.gateTail;
+  else if (food) line = PLAIN.gateFood + days() + PLAIN.gateTail;
+  else if (weigh) line = PLAIN.gateWeigh + times() + PLAIN.gateTail;
+  /* N2 (Fable's N1 debt D1): the day a blackout ends, a text result of the turn in Today's own date words */
+  if (!has(v.measuredAgainOn)) return line;
+  const until = d(v.measuredAgainOn, "text");
+  return line ? line + PLAIN.gateNotBefore + until + PLAIN.gateEnd : PLAIN.gateAgain + until + PLAIN.gateEnd;
 }
 
 /* Each page template takes the turn's results by tool name and returns the answer's lines, or null when a tool

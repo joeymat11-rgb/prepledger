@@ -18,6 +18,10 @@ import { faultDatabase } from '../../../w6/test/support.mjs';
 import { createFoodHost, foodDaysIn, PROFILE, OP_CLASS, OP_KIND } from '../food-host.mjs';
 import FoodCommands from '../food-commands.cjs';
 import FoodModel from '../food-model.cjs';
+import { createStepsHost, stepDaysIn } from '../steps-host.mjs';
+import StepsCommands from '../steps-commands.cjs';
+import StepsModel from '../steps-model.cjs';
+import Registry from '../../../../m4/import/replay-registry.cjs';
 import TodayApp from '../today-app.cjs';
 import TodayModel from '../today-model.cjs';
 import design from '../design.cjs';
@@ -1292,6 +1296,136 @@ test('D2.R2 - the new sentences are declared, dash free, and carry no figure', (
     assert.equal(AI_DASH.test(line), false, 'dash free: ' + line);
     assert.equal(/\d/.test(line), false, 'no invented figure: ' + line);
   }
+});
+
+/* ==========================================================================
+   N2 "LOG TODAY", PART A - THE STEPS LANE (commands, host, projection) and the
+   admission rule F11 applies to the same records. Every cell below was RED at
+   f4bd98c, where none of steps-commands.cjs, steps-host.mjs or steps-model.cjs
+   existed and today-model.cjs replayed no step count. The admission cells that
+   run the real controller live in rebuild/m3/w6/test/local-source-admission.test.mjs
+   (S3-Q-N2-STEPS*) and rebuild/lanes/d/p3-replay-all/writer-order.test.mjs (F11):
+   they load the engine's migration walk and run at the PM seat only.
+   ========================================================================== */
+const STEPS_DAY = Object.freeze({ steps: 6400 });
+
+test('N2S.1 - the steps command is CLOSED: one fact of the accepted class, the athlete\'s own count, nothing clamped', () => {
+  assert(Ops.CLASSES.includes('steps'), 'the class is the accepted client\'s own');
+  const action = StepsCommands.prepare({ action: StepsCommands.ACTION, input: { day: { steps: 6400 } } });
+  assert.deepEqual(action, { class: 'steps', kind: 'fact',
+    payload: { profile: 'earned/steps-day/v1', day: { steps: 6400 } }, parents: [] });
+  for (const bad of [{}, { steps: -1 }, { steps: 100001 }, { steps: 6400.5 }, { steps: '6400' },
+    { steps: 6400, cal: 2000 }, null])
+    assert.throws(() => StepsCommands.prepare({ action: StepsCommands.ACTION, input: { day: bad } }),
+      /STEPS_INPUT_INVALID/, 'refused, never clamped: ' + JSON.stringify(bad));
+  assert.throws(() => StepsCommands.prepare({ action: 'food-day', input: { day: { steps: 1 } } }), /STEPS_INPUT_INVALID/);
+  assert.equal(StepsModel.refusalFor({ steps: '' }), StepsModel.REFUSALS.NOTHING);
+  assert.equal(StepsModel.refusalFor({ steps: '12.5' }), StepsModel.REFUSALS.STEPS_RANGE);
+  assert.equal(StepsModel.refusalFor({ steps: '100001' }), StepsModel.REFUSALS.STEPS_RANGE);
+  assert.deepEqual(StepsModel.dayFromEntry({ steps: ' 8200 ' }), { steps: 8200 });
+});
+
+test('N2S.2 - the host writes ONE op per save into the same store, a correction is a NEW op, and only its own rows read back', async () => {
+  const fault = faultDatabase();
+  const lane = { day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto };
+  const steps = await createStepsHost(lane);
+  const food = await createFoodHost(lane);
+  try {
+    assert.equal((await steps.save(STEPS_DAY)).ok, true, 'the count is saved');
+    assert.equal((await food.save({ cal: 2100 })).ok, true, 'a food day in the same generation');
+    assert.equal((await steps.save({ steps: 7100 })).ok, true, 'and a correction');
+    const ops = await opsOf(steps.repository);
+    const mine = ops.filter((op) => op.class === 'steps');
+    assert.equal(mine.length, 2, 'two saves, two ops: nothing is updated in place');
+    for (const op of mine) {
+      assert.equal(op.kind, 'fact');
+      assert.equal(op.payload.profile, StepsCommands.PROFILE);
+      assert.equal(op.effective.local_date, DAY);
+    }
+    const rows = await steps.forDate(DAY);
+    assert.deepEqual(rows.map((row) => row.day), [{ steps: 6400 }, { steps: 7100 }], 'in the log\'s own order');
+    assert.deepEqual(stepDaysIn((await steps.repository.load()).generation).length, 2,
+      'the food day is not a steps row');
+    assert.equal((await food.all()).length, 1, 'and no steps op is a food row');
+  } finally { steps.close(); food.close(); }
+});
+
+test('N2S.3 - the model replays the WINNING count into the engine\'s daily log, and the engine\'s own reader counts it', () => {
+  const clean = createCleanInitState({ setup: firstRunDocument() });
+  const rows = [{ op_id: 'a', date: DAY, day: { steps: 6400 } }, { op_id: 'b', date: DAY, day: { steps: 7100 } }];
+  const without = createTodayModel({ today: DAY, basisState: clean });
+  const model = createTodayModel({ today: DAY, basisState: clean, stepDays: { rows: () => rows } });
+  const E = model.engine;
+  assert.equal(model.loggedSteps(DAY), 7100, 'the latest op wins');
+  assert.equal(model.recordedSteps(DAY).op_id, 'b');
+  assert.equal(model.stepsUnavailable(DAY), false);
+  /* Replayed INDEPENDENTLY through the engine's own writer: the projector computed nothing of its own. */
+  assert.deepEqual(model.stateFromOps().dailyLogs, E.writeDaily(without.stateFromOps(), DAY, { steps: 7100 }).dailyLogs);
+  /* And the engine READS it: stepTarget's own count of logged step days moves by exactly this one day. */
+  assert.equal(E.stepTarget(model.stateFromOps()).have, E.stepTarget(without.stateFromOps()).have + 1);
+  /* Settable after construction, as the food lane is (the page opens it lazily). */
+  without.setStepDays({ rows: () => rows });
+  assert.equal(without.loggedSteps(DAY), 7100);
+});
+
+test('N2S.4 - a food day and a step count for the same date are ONE engine row, and the food replay is unchanged', () => {
+  const clean = createCleanInitState({ setup: firstRunDocument() });
+  const food = [{ op_id: 'f', date: DAY, day: { cal: 2100 } }];
+  const fed = createTodayModel({ today: DAY, basisState: clean, foodDays: { rows: () => food } });
+  const both = createTodayModel({ today: DAY, basisState: clean, foodDays: { rows: () => food },
+    stepDays: { rows: () => [{ op_id: 's', date: DAY, day: { steps: 6400 } }] } });
+  assert.deepEqual(both.stateFromOps().dailyLogs[DAY], { ...fed.stateFromOps().dailyLogs[DAY], steps: 6400 });
+  assert.deepEqual(both.loggedFood(DAY), fed.loggedFood(DAY), 'the food figures the screen reads are unmoved');
+  assert.equal(both.foodUnavailable(DAY), fed.foodUnavailable(DAY));
+});
+
+test('N2S.5 - F11\'s rule, pure: the winner is projected, a replaced count retained, a count the history holds refuses by name', () => {
+  const model = createTodayModel({ today: DAY, basisState: createCleanInitState({ setup: firstRunDocument() }) });
+  const E = model.engine;
+  const base = model.stateFromOps();
+  const rows = [{ op_id: 'a', date: DAY, day: { steps: 6400 } }, { op_id: 'b', date: DAY, day: { steps: 7100 } }];
+  const asked = [];
+  const engineFor = (date, hour) => { asked.push([date, hour]); return E; };
+  const admitted = StepsModel.admitStepRows(base, rows, engineFor, 'F11');
+  assert.deepEqual(admitted.issues, []);
+  assert.deepEqual(admitted.families, [{ family: 'F11', state: 'projected', op_id: 'b' },
+    { family: 'F11', state: 'retained', op_id: 'a' }]);
+  assert.equal(admitted.state.dailyLogs[DAY].steps, 7100);
+  assert.deepEqual(asked, [[DAY, 12]], 'one engine for the winning day, at the hour F2 uses');
+  /* A food-only row for the date is not a count, so the count lands beside it. */
+  const withFood = E.writeDaily(base, DAY, { cal: 2100 });
+  assert.deepEqual(StepsModel.admitStepRows(withFood, rows, () => E, 'F11').state.dailyLogs[DAY], { ...withFood.dailyLogs[DAY], steps: 7100 });
+  /* A count the imported history already holds is never overwritten: the op is refused by name. */
+  const held = E.writeDaily(base, DAY, { steps: 5000 });
+  const refused = StepsModel.admitStepRows(held, rows, () => E, 'F11');
+  assert.deepEqual(refused.issues, [{ code: 'LOCAL_SOURCE_DAILY_UNRESOLVED', op_id: 'b' }]);
+  assert.equal(refused.state.dailyLogs[DAY].steps, 5000, 'the history\'s figure stands');
+  assert.deepEqual(refused.families, [{ family: 'F11', state: 'retained', op_id: 'a' }]);
+});
+
+test('N2S.6 - N1.7 still holds: the steps lane reaches the daily writer only through food-model\'s one projector', () => {
+  const model = readRepo('rebuild/m3/w7-preview/today/steps-model.cjs');
+  assert.equal(model.includes('writeDaily('), false, 'no writer call of its own');
+  assert(model.includes('FoodModel.dailyProjection(state, rows, engine, MEMBERS)'), 'through food-model');
+  assert(readRepo('rebuild/m3/w7-preview/today/food-model.cjs')
+    .includes('function foodProjection(state, rows, engine) {\n  return dailyProjection(state, rows, engine, MEMBERS);\n}'),
+    'and the food replay is the same projector with the food members');
+  const host = readRepo('rebuild/m3/w7-preview/today/steps-host.mjs');
+  assert(host.includes('era.client.hostBindings('), 'the honest extension point, as food-host.mjs');
+  assert.equal(/era\.create(Reading|Gym|CheckIn|Setup|Food|Steps)Host/.test(codeOf(host)), false, 'no w6 factory');
+});
+
+test('N2S.7 - the register answers for the steps producer with F11, and admission names it', () => {
+  const entry = Registry.ENTRIES.find((e) => e.module === 'rebuild/m3/w7-preview/today/steps-commands.cjs');
+  assert(entry, 'the steps producer is registered');
+  assert.equal(entry.class, 'steps');
+  assert.equal(entry.family, 'F11');
+  assert.deepEqual([...entry.profiles], [StepsCommands.PROFILE]);
+  assert(Registry.FAMILIES.includes('F11'));
+  const admission = readRepo('rebuild/m3/w6/local/source-admission.mjs');
+  assert(admission.includes("StepsModel.admitStepRows(state,stepRows,engineFor,'F11')"), 'admission runs F11');
+  assert(admission.indexOf('Steps.validate(op,') < admission.indexOf("op.class==='steps'?'LOCAL_SOURCE_DAILY_UNRESOLVED'"),
+    'and collects the producer\'s own records before its catch-all');
 });
 
 /* UI-PASS13 item 4 (shot 03): the Carbohydrate and Fat rows each said "Not prescribed. The engine issues no ... target."

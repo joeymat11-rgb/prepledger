@@ -38,6 +38,7 @@ import SleepCommands from '../sleep-commands.cjs';
 import SleepModel from '../sleep-model.cjs';
 import Ops from '../../../../client/ops.cjs';
 import { sleepNightFor, dayBefore } from '../checkin-model.mjs';
+import PageCoach from '../../../../coach/page-coach.cjs';
 
 const readAsset = (name) => fs.readFile(path.join(DIST, name), 'utf8');
 
@@ -4034,4 +4035,61 @@ test('N1-CARD - the food card shows the engine estimate, marked Estimate, and wh
   assert.match(measured.title, /^Eat about /, 'measured: the headline as before');
   assert.equal(measured.note, TodayApp.calorieBand(measured.target), 'measured: the band line as before');
   assert.doesNotMatch(measured.phone, /Estimate|to measure yours/, 'measured: no estimate, no count');
+});
+
+/* N2 (Fable's N1 debts D1 and D3). D1: during a blackout (energy.cjs observedTDEE's first line) the food card used to
+   say nothing under the estimate, because today-model.cjs calorieGateOf returned null; it now says the day the range
+   is measured again, after any count still left. Red first: at f4bd98c the line is hidden in every blackout world.
+   D3: ONE cell holds the coach's gate line and Today's equal, world by world, blackout included, so the two can never
+   drift apart: each is the line its own screen draws, read off that screen (the card's kcal-note; the coach's
+   "What am I hitting today?" answer), never a helper's return. Every value is invented (fixtures.cjs). */
+const N2_BLACKOUT = '2030-02-10';   /* six days after the fixture day 2030-02-04, a Monday */
+const n2World = (keepFood, keepReads, blackout) => {
+  const state = n1Trim(TodayModel.createBasisState(DAY), keepFood, keepReads);
+  if (blackout) state.blackout = { ...(state.blackout || {}), until: blackout };
+  return state;
+};
+const n2CardNote = (state) => {
+  const model = createTodayModel({ today: DAY, basisState: state });
+  const doc = new JSDOM(shell()).window.document;
+  const api = mountToday(doc, model, {});
+  const note = doc.querySelector('[data-slot="kcal-note"]');
+  const out = { target: model.read().calorieTarget, note: note.hidden ? null : note.textContent };
+  api.dispose();
+  return out;
+};
+const N2_GATE_START = /^(Log food for |Weigh in |Your range is measured again on )/;
+const n2CoachGate = async (state) => {
+  const asked = await PageCoach.createPageCoach({ today: createTodayModel({ today: DAY, basisState: state }) }).ask('today_plan');
+  assert.equal(asked.shipped, true, asked.answer);
+  assert.deepEqual(asked.untraceable, [], 'every number is a tool result of the turn: ' + asked.answer);
+  return asked.answer.split('\n').find((line) => N2_GATE_START.test(line)) || null;
+};
+
+test('N2-D1 - in a blackout the card says the day the range is measured again, after any count still left', () => {
+  for (const [keepFood, keepReads, line] of [
+    [28, 28, 'Your range is measured again on Sunday, February 10.'],
+    [5, 28, 'Log food for 3 more days to measure yours. Not before Sunday, February 10.'],
+    [0, 6, 'Log food for 8 more days and weigh in 4 more times to measure yours. Not before Sunday, February 10.']]) {
+    const got = n2CardNote(n2World(keepFood, keepReads, N2_BLACKOUT));
+    assert.deepEqual([got.target.gated, got.target.from], [true, 'mass-estimate'], 'fixture: a blackout leaves the labelled estimate');
+    assert.equal(got.note, line, keepFood + '/' + keepReads + ' in a blackout');
+  }
+  /* a blackout that has ended says nothing of it: the counts line alone, as N1 */
+  assert.equal(n2CardNote(n2World(5, 28, '2030-02-04')).note, 'Log food for 3 more days to measure yours.');
+});
+
+test('N2-D3 - the coach\'s gate line and Today\'s are ONE line, world by world, blackout included', async () => {
+  const worlds = [[0, 28], [5, 28], [7, 28], [0, 6], [7, 9], [8, 9], [28, 28]];
+  let drawn = 0;
+  for (const [keepFood, keepReads] of worlds) for (const blackout of [null, N2_BLACKOUT]) {
+    const state = n2World(keepFood, keepReads, blackout);
+    const card = n2CardNote(state);
+    /* a measured band's kcal-note is the band itself (calorieBand), not a gate line */
+    const cardGate = card.target.gated === true ? card.note : null;
+    const coach = await n2CoachGate(state);
+    assert.equal(coach, cardGate, keepFood + '/' + keepReads + (blackout ? ' in a blackout' : '') + ': Today and the coach say one line');
+    if (cardGate) drawn += 1;
+  }
+  assert.equal(drawn, worlds.length * 2 - 1, 'every world but the measured one draws a line, so the equality is not empty');
 });
