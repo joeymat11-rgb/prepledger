@@ -910,6 +910,29 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   today-split-fence 417 unchanged.
 - At the builder seat: the today batch 688/709 (677/698 plus N2B.1 to N2B.8, look-cui2 N2 LOG TODAY and the two copy-lock rows; the same 21 seat-only build failures), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 39/39, food-live-save 7/7, the coach suite 401/401 without the seat-only engine-revision-gap file, and a Chromium probe of the card and the sheet over the invented fixture athlete, with and without a store, at 390x844, 430x932 and 375x667: 90 of 90 (the card in the feed above the coach row at the feed's title size, its ticks unclipped, the workout card above Start; the sheet inside the phone, no clipped word, every control at least 44 px tall, its head on the screen and the panel scrolling at 375x667).
 
+## Fix-forward: Today's lanes open one at a time (hosted red on aded50a, rebuild/c-nutri2b)
+- The red: food.test.mjs UP13-MARKER on hosted ubuntu (run 38414783359), "Not wired yet" where nothing was expected;
+  green at the Windows seat. ROOT CAUSE, measured: on a store that holds no installation yet, two hosts opened
+  together race to create it, and the one that starts second is refused STALE_REVISION, every time, in either order
+  (food and steps hosts on a fresh store, 32 of 32 by start order). Part B made Today's first paint open the steps
+  lane beside the food and sleep lanes, so three lanes raced, and which one was refused depended on which dynamic
+  import resolved first, which differs between systems: on ubuntu the food lane lost, failed closed for the mount,
+  and the marker said "Not wired yet". At the Windows seat on aded50a's today-app.cjs the race is lost by the sleep
+  lane, 10 of 10 (N2B.9 below).
+- The fix, in the product (today-app.cjs; today-lanes.cjs is sealed and untouched): the page opens its lanes in one
+  order. The food lane opens first, exactly as before; the sleep lane opens once the food lane's opening has settled
+  (openSleepLaneInTurn, used by Today's sleep line and the sleep screen); the steps lane opens once both have. Each
+  lane is still one attempt per mount and fails closed; with no store each still refuses at once. The test API's
+  sleepReady() answers the queued opening too. No wait was added to any test and no test was loosened.
+- New cell: food.test.mjs N2B.9, on a store with no installation yet (UP13-MARKER's world), the food, sleep and steps
+  lanes all open, and Today says nothing about food. Red first on aded50a's today-app.cjs (10 of 10: the sleep lane is
+  refused), green here.
+- Evidence at the builder seat: UP13-MARKER 20 of 20 green and N2B.9 20 of 20 green, each run as its own process;
+  problem.test R5 ("the page reports first-run ...") stays intermittent at the same rate with and without the fix
+  (9 of 10 here, 8 of 10 on aded50a's bytes), as measured before at f4bd98c, and is not touched.
+- Needles: today-17 882 -> 883 (N2B.9; expected, observed at the PM seat).
+- At the builder seat: the today batch 689/710 (688/709 plus N2B.9; the same 21 seat-only build failures), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 39/39 (corpus unchanged, 2b9c2568), food-live-save 7/7, and the card and sheet probe 90 of 90.
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
@@ -920,7 +943,7 @@ CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; p
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
 polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell; N2 part B's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

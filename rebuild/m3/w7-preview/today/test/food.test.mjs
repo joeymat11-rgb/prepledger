@@ -1688,3 +1688,27 @@ test('N2B.8 - Done and Escape hand focus back to the Log today card', async () =
   assert.notEqual(page.doc.activeElement, card(), 'and does not pull focus back to the card');
   page.api.dispose();
 });
+
+/* Hosted red on aded50a (UP13-MARKER, ubuntu): on a store with no installation yet, two hosts opened together race to
+   create it and the second to start is refused STALE_REVISION. Part B's steps lane opened beside the food lane on
+   Today's first paint, so which lane lost depended on which dynamic import resolved first. The steps lane now opens
+   after the food and sleep lanes have settled, and sleep after food. Red first: on aded50a's today-app.cjs a lane is refused. */
+test('N2B.9 - on a store with no installation yet, the food, sleep and steps lanes open one at a time, so none is refused', async () => {
+  const fault = faultDatabase();
+  const dom = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' });
+  Object.defineProperty(dom.window, 'indexedDB', { value: fault.indexedDB, configurable: true });
+  Object.defineProperty(dom.window, 'crypto', { value: webcrypto, configurable: true });
+  const doc = dom.window.document;
+  const api = mountToday(doc, createTodayModel({ today: DAY }), {});
+  assert.notEqual(api.foodReady(), null, 'the food lane is opening on the first frame');
+  assert.notEqual(api.stepsReady(), null, 'and so is the steps lane');
+  const food = await api.foodReady();
+  const sleep = await api.sleepReady();
+  const steps = await api.stepsReady();
+  assert.notEqual(food, null, 'the food lane opened');
+  assert.notEqual(sleep, null, 'the sleep lane opened');
+  assert.notEqual(steps, null, 'the steps lane opened too: ' + api.stepsFailure());
+  api.render('today', false);
+  assert.equal(doc.querySelector('#phone [data-slot="nutrition-state"]').textContent, '', 'and Today says nothing about food');
+  api.dispose();
+});

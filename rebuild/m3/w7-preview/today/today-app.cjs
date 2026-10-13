@@ -1542,13 +1542,32 @@ function mountToday(doc, model, options = {}) {
      today card (bindLogCard -> logToday, on every paint of Today) opens the steps lane here when it is not open yet, and
      opens the food lane through nutritionState() (and reads sleep through sleepState()), so the first paint of Today is
      what opens both lanes. One attempt per mount, failing closed, as the food lane's own opening is. */
+  /* ONE LANE AT A TIME (hosted red on aded50a, UP13-MARKER, "Not wired yet" on ubuntu). On a store that holds no
+     installation yet, two hosts opened together race to create it, and the one that starts second is refused
+     STALE_REVISION, every time, in either order (measured over the food and steps hosts, 32 of 32). Today's first
+     paint opened the food, sleep and steps lanes together, so which lane was refused depended on which dynamic import
+     resolved first, and that differs from one system to another. The page now opens them in one order, food first
+     (exactly as before), then sleep once the food lane's opening has settled, then steps once both have. Each lane is
+     still one attempt per mount and fails closed; with no store each still refuses at once, as before. */
+  let sleepInTurn = null;
+  function openSleepLaneInTurn() {
+    if (facade.sleepLane() || facade.sleepOpening()) return facade.sleepOpening();
+    if (sleepInTurn) return sleepInTurn;
+    const food = facade.foodLane() ? null : hooks.openFoodLane();
+    if (!food) return hooks.openSleepLane();
+    sleepInTurn = food.then(() => null, () => null).then(() => (disposed ? null : hooks.openSleepLane()));
+    return sleepInTurn;
+  }
   function openStepsLane() {
     if (stepsLane || stepsOpening || stepsFailure) return stepsOpening;
     const view = doc.defaultView || null;
     const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
     const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
     if (!idb || !web || !web.subtle) { stepsFailure = "NO_LOCAL_STORE"; return null; }
-    stepsOpening = Promise.resolve()
+    /* ONE LANE AT A TIME (see openSleepLaneInTurn): the steps lane opens only after the food and sleep lanes' own
+       openings have settled, so it never races either of them to create the installation. */
+    const before = [hooks.openFoodLane(), openSleepLaneInTurn()].filter(Boolean);
+    stepsOpening = Promise.allSettled(before)
       .then(() => import("./steps-host.mjs"))
       .then((module) => module.createStepsHost({ day: model.today, indexedDB: idb, crypto: web }))
       .then(async (host) => {
@@ -2042,7 +2061,7 @@ function mountToday(doc, model, options = {}) {
     hooks.readSleepCheckIn(date);
     put(map, "sleep-title", SLEEP_TITLE);
     put(map, "sleep-night", SLEEP_NIGHT_PREFIX + (date || ""));
-    const opening = facade.sleepLane() ? null : hooks.openSleepLane();
+    const opening = facade.sleepLane() ? null : openSleepLaneInTurn();
     if (!facade.sleepLane()) {
       /* WHAT CANNOT HAPPEN, WHY, AND WHAT TO DO - N1's D2 round-1 lesson, applied
          here from the first line rather than after a review. */
@@ -2328,7 +2347,7 @@ function mountToday(doc, model, options = {}) {
      "something new is there" is never mistaken for "mine is there". */
   /* Today's one line about sleep: the DURABLE record, never a flag this page sets. */
   function sleepState() {
-    if (!facade.sleepLane()) { hooks.openSleepLane(); return ""; }
+    if (!facade.sleepLane()) { openSleepLaneInTurn(); return ""; }
     const logged = typeof model.loggedSleep === "function" ? model.loggedSleep(SleepModel.nightDateFor(model.today)) : null;
     return logged && Number.isFinite(logged.h) ? logged.h + " h" : "";
   }
@@ -3006,7 +3025,7 @@ function mountToday(doc, model, options = {}) {
     foodPending: () => facade.foodSaving(), foodReady: () => facade.foodOpening(),
     /* N2 - the in-flight sleep write, the lane's own opening, and the check-in
        rebind's module load, so a check and a test can wait for each honestly. */
-    sleepPending: () => facade.sleepSaving(), sleepReady: () => facade.sleepOpening(),
+    sleepPending: () => facade.sleepSaving(), sleepReady: () => facade.sleepOpening() || sleepInTurn,
     /* N2 "LOG TODAY" (Part B) - the one sheet, and the steps lane's opening, so a cell can open the sheet the card
        opens and wait for the lane honestly. */
     openLogToday: () => openLogToday(), logOpen: () => !!logOpen,
