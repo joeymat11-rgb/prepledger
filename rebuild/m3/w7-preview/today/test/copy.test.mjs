@@ -36,7 +36,7 @@ import TodayModel from '../today-model.cjs';
 import { createReadingHost } from '../reading-host.mjs';
 import { createGymHost } from '../gym-host.mjs';
 import { createGymModel } from '../gym-model.mjs';
-import { mountGym } from '../gym-app.mjs';
+import { mountGym, plainSetLine, plainSetWhy, CODE_STRING } from '../gym-app.mjs';
 import { createCheckInHost } from '../checkin-host.mjs';
 import { createCheckInModel } from '../checkin-model.mjs';
 import { mountCheckIn } from '../checkin-app.mjs';
@@ -552,6 +552,32 @@ test('P1 — Today renders every state it can reach without a dash', async (t) =
   });
 });
 
+/* POLISH 5 (the owner-side ruling, DECISIONS:976): what the athlete can see on the phone, the text and the painted
+   attributes outside any hidden element, and the engine reason's words as runs of three (a shorter line whole), lower
+   case, punctuation and dashes dropped, so a reason line is found however the render boundary punctuates it. */
+function shownText(doc) {
+  const host = doc.getElementById('phone');
+  const out = [];
+  const walk = doc.createTreeWalker(host, 4 /* SHOW_TEXT */);
+  for (let node = walk.nextNode(); node; node = walk.nextNode()) {
+    if (node.nodeValue && !(node.parentElement && node.parentElement.closest('[hidden]'))) out.push(node.nodeValue);
+  }
+  for (const el of host.querySelectorAll('*')) {
+    if (el.closest('[hidden]')) continue;
+    for (const name of USER_FACING_ATTRIBUTES) { const value = el.getAttribute(name); if (value) out.push(value); }
+  }
+  return out.join(' ');
+}
+const reasonWords = (text) => String(text).toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(Boolean);
+function reasonRuns(lines) {
+  return lines.flatMap((line) => {
+    const words = reasonWords(line);
+    if (words.length === 0) return [];
+    if (words.length < 3) return [words.join(' ')];
+    return words.slice(0, -2).map((_, i) => words.slice(i, i + 3).join(' '));
+  });
+}
+
 async function gymDevice(options = {}) {
   const fault = faultDatabase();
   const today = createTodayModel({});
@@ -567,25 +593,53 @@ test('P1 — the gym card renders every state it can reach without a dash', asyn
   const phone = doc.getElementById('phone');
   await mountGym(doc, phone, { model: kit.model, onBack: () => {}, onCheckIn: () => {} });
 
-  await t.test('the active set, carrying the engine’s own prescription reason', async () => {
+  await t.test("the active set: a plain line from its own figures, and no run of the engine's reason words on the screen, Why? closed or open", async () => {
     const view = await kit.model.read();
     assert.equal(view.phase, 'active');
-    /* S12 SC-7 (red first: PM runs s12-pmrun1 and s12-pmrun2, copy.test.mjs:571 "the engine
-       reason is on screen"). The 2026-09-08 card printed each reason line as a p.change; the
-       approved 2026-09-18 board (app/states-workout.js:41-45, states-workout.css:5-8) puts the
-       engine's first reason line in .w-reasons > .w-reason-row > span.w-reason under the lift
-       name, the rest behind "Why?", and gym-app.mjs renderActive binds it there
-       (data-slot="reason"). The old selector now finds only the board's settings row, which
-       holds no reason. The claim is unchanged and is made stronger: the engine gives this set
-       a reason, the board's reason block is shown, and its line IS the engine's first line,
-       through the render boundary, not merely some non-empty text. */
+    /* S12 SC-7 asserted here that the line under the lift name IS the engine's first reason line. POLISH 5 (the
+       owner-side ruling, DECISIONS:976, cdd385d) replaced that rule: the line is ONE plain sentence from the set's own
+       figures (gym-app.mjs plainSetLine), Why? opens a plain rewrite of the same figures (plainSetWhy), and the engine's
+       prescription reason is drawn nowhere on this screen, Why? closed or open. The claim stays as strict: the engine
+       still gives this set a reason, the board's reason block is shown, its line IS plainSetLine's for this entry through
+       the render boundary (not merely some non-empty text), Why? opens exactly plainSetWhy's sentence, and no run of
+       three words of any engine reason line (a shorter line whole) nor any code string is on the screen. */
     const reasons = view.prescription.reason;
     assert(Array.isArray(reasons) && reasons.length > 0, 'the engine gives the active set a prescription reason');
     const block = doc.querySelector('#phone .w-reasons');
     assert(block && !block.hidden, 'the board reason block is shown');
-    const reason = doc.querySelector('#phone .w-reasons .w-reason[data-slot="reason"]').textContent;
-    assert(reason.trim().length > 0, 'the engine reason is on screen');
-    assert.equal(reason, plainOrDrop(reasons[0], 'reason'), 'the line on screen is the engine reason, first line');
+    const planned = view.prescription.loadSpecified === true;
+    const expected = plainSetLine(view.entry, view.previous, planned);
+    assert(typeof expected === 'string' && expected.trim().length > 0, 'the set\'s own figures give a plain line');
+    const line = doc.querySelector('#phone .w-reasons .w-reason[data-slot="reason"]').textContent;
+    assert.equal(line, expected, 'the line on screen is plainSetLine for this entry');
+    const runs = reasonRuns(reasons);
+    assert(runs.length > 0, 'the engine reason gives runs to look for');
+    const check = (where) => {
+      const shown = ' ' + reasonWords(shownText(doc)).join(' ') + ' ';
+      assert.deepEqual(runs.filter((run) => shown.includes(' ' + run + ' ')), [], where + ': engine reason words on the screen');
+      /* the reason block itself, hidden parts included */
+      const said = ' ' + reasonWords(doc.querySelector('#phone .w-reasons').textContent).join(' ') + ' ';
+      assert.deepEqual(runs.filter((run) => said.includes(' ' + run + ' ')), [], where + ': engine reason words in the reason block');
+      assert.equal(CODE_STRING.test(shownText(doc)), false, where + ': a code string on the screen');
+    };
+    const why = doc.querySelector('#phone [data-action="why"]');
+    assert(why && !why.hidden, 'Why? is offered');
+    assert.equal(why.getAttribute('aria-expanded'), 'false');
+    check('Why? closed');
+    why.click();
+    await settle(20);
+    assert.equal(doc.querySelector('#phone [data-action="why"]').getAttribute('aria-expanded'), 'true', 'Why? opens');
+    assert.deepEqual([...doc.querySelectorAll('#phone [data-slot="reason-more"] .w-reason')].map((el) => el.textContent),
+      [plainSetWhy(view.entry, view.previous, planned)], 'behind Why?, the plain rewrite of the same figures');
+    check('Why? open');
+    /* the check has teeth: the screen with any engine reason line added to it is caught */
+    for (const raw of reasons) {
+      const planted = ' ' + reasonWords(shownText(doc) + ' ' + plainOrDrop(raw, 'reason')).join(' ') + ' ';
+      assert(runs.some((run) => planted.includes(' ' + run + ' ')), 'the check sees the engine line "' + raw.slice(0, 24) + '"');
+    }
+    doc.querySelector('#phone [data-action="why"]').click();
+    await settle(20);
+    assert.equal(doc.querySelector('#phone [data-action="why"]').getAttribute('aria-expanded'), 'false', 'Why? closes again');
     assertNoDashOnScreen(doc, 'the active set');
   });
 
