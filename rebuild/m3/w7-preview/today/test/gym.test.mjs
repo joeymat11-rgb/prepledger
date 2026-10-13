@@ -1714,6 +1714,43 @@ test('P5-D1 a load the plan did not set is never said as planned: the debut seco
   } finally { control.close(); }
 });
 
+/* P5-D1 FIX FORWARD (hosted windows red at 75217c6, run 38420278074): Why? only shows or hides words the card already
+   has, so they are on the screen inside the click itself, while the neutral repaint the click still asks for
+   (D-GSS-NEUTRAL-REPAINT) is reading. RED on the 75217c6 bytes: the words came only with that read, after a number of
+   event-loop turns no check can count on, and P5-D1 sampled them after a fixed 20. The read is held here, so the
+   check does not depend on how fast storage answers. Every value is invented. */
+test('P5-D1-NOW Why? opens and closes inside its own click, before the repaint it asks for has read anything', async () => {
+  const { SET_WHY } = await import('../gym-app.mjs');
+  const kit = await device({ engineState: debutState() });
+  try {
+    assert((await kit.model.start()).ok);
+    let gate = null, reads = 0;
+    const pending = [];
+    const model = { ...kit.model, read: () => {
+      reads += 1;
+      const answer = gate ? gate.then(() => kit.model.read()) : kit.model.read();
+      pending.push(answer);
+      return answer;
+    } };
+    const doc = s14Dom();
+    await mountGym(doc, doc.getElementById('phone'), { model, onBack: () => {}, onChanged: () => {} });
+    const why = () => doc.querySelector('[data-action="why"]');
+    const opened = () => [...doc.querySelectorAll('[data-slot="reason-more"] .w-reason')].map(el => el.textContent);
+    assert.deepEqual([why().hidden, why().getAttribute('aria-expanded'), opened()], [false, 'false', []], 'fixture: Why? is offered, closed');
+    let release = null;
+    gate = new Promise(resolve => { release = resolve; });
+    const before = reads;
+    why().click();
+    assert.deepEqual([why().getAttribute('aria-expanded'), opened()], ['true', [SET_WHY.first]], 'Why? is open before any read answers');
+    assert.equal(reads, before + 1, 'the click still asks for the neutral repaint, which reads');
+    why().click();
+    assert.deepEqual([why().getAttribute('aria-expanded'), opened()], ['false', []], 'Why? closes inside its own click too');
+    assert.equal(reads, before + 2, 'each click asks for its repaint');
+    release();
+    await Promise.all(pending);
+  } finally { kit.gymHost.close(); }
+});
+
 /* POLISH 6 (PM, item 5; ui-pass12 shot 04: "Find a working load x Record the reps performed" wrapped awkwardly at 390
    under the numerals of a debut set). The plain line above already says it ("First time: find your weight."), so when
    the engine leaves the load to be found (gym-model.mjs prescription.loadOpen) and the plain line says so, the cells'

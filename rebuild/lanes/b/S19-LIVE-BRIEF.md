@@ -933,6 +933,27 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
 - Needles: today-17 882 -> 883 (N2B.9; expected, observed at the PM seat).
 - At the builder seat: the today batch 689/710 (688/709 plus N2B.9; the same 21 seat-only build failures), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 39/39 (corpus unchanged, 2b9c2568), food-live-save 7/7, and the card and sheet probe 90 of 90.
 
+## Fix-forward: Why? opens inside its own click (hosted red on 75217c6, rebuild/c-nutri2c)
+- The red: gym.test.mjs P5-D1 on hosted windows (run 38420278074), a deepStrictEqual; green on ubuntu and at the
+  Windows seat. ROOT CAUSE, measured: a timing dependency in the set screen, not a real difference and not the lane
+  order (P5-D1 mounts the gym card alone; Today's lanes are not opened). Why? called paint(), which re-reads storage
+  (fake IndexedDB, the gym host) and only then drew the words behind Why?. P5-D1 clicks Why? and reads those words
+  after a fixed 20 event-loop turns. At the seat the read takes 4 to 9 turns (64 screens, 16 runs at once: at most
+  10), so it passes; on a runner where the read answers after more than 20 turns the words are not there yet and
+  [line, whyShown, opened] is [..., true, []]. Reproduced at the seat on 75217c6's bytes by a probe copy of P5-D1
+  (untracked, removed) whose model answers read() 25 turns late: red on exactly that deepStrictEqual ("set 1: find
+  your weight"); with the fix it is green at 25 and at 200 turns.
+- The fix, in the product (gym-app.mjs renderActive; gym-settings-lane.mjs is sealed and untouched): Why? only shows
+  or hides words the card already has, from the view it was drawn from, so its click draws them (and aria-expanded)
+  at once, then asks for the same neutral repaint as before, which still reads and redraws the whole card
+  (D-GSS-NEUTRAL-REPAINT, which uses the Why? toggle as its neutral repaint, is unchanged and green). No wait was
+  added to any test and no test was loosened; P5-D1, its 20 turns and every assertion are as they were.
+- New cell: gym.test.mjs P5-D1-NOW, with the repaint's read held, Why? is open inside its own click and closed
+  inside the next, and each click still asks for its repaint (one read each). Red first on 75217c6's gym-app.mjs
+  (the words are absent until the read answers), green here.
+- Needles: today-17 883 -> 884 (P5-D1-NOW; expected, observed at the PM seat).
+- At the builder seat: the today batch 690/711 (689/710 plus P5-D1-NOW; the same 21 seat-only build failures; D-GSS-NEUTRAL-REPAINT and the copy lock green in it), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 39/39 (corpus unchanged), food-live-save 7/7, s12-look 81/82 (the same seat-only C-UI-1 build failure); P5-D1 20 of 20 and P5-D1-NOW 20 of 20 green, each run as its own process, and P5-D1-NOW 0 of 10 on 75217c6's gym-app.mjs.
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says), no
@@ -943,7 +964,7 @@ CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; p
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
 polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell; N2 part B's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

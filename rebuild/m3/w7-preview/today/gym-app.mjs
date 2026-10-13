@@ -543,9 +543,16 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, onCo
     put(map, 'reason', plainLine || '');
     const why = root.querySelector('[data-action="why"]');
     why.hidden = !plainLine && !engineSaid;
-    why.setAttribute('aria-expanded', showWhy ? 'true' : 'false');
-    lines(map.get('reason-more'), showWhy ? [plainSetWhy(view.entry, view.previous, planned)] : [], 'w-reason w-more');
-    hooks.listen(why, 'click', () => { showWhy = !showWhy; paint(); });
+    /* P5-D1 FIX FORWARD (hosted windows red at 75217c6, run 38420278074): Why? only shows or hides words this card
+       already has, from the view it was drawn from, so it draws them inside its own click. They used to come only
+       with the repaint's storage read, some number of event-loop turns later that nothing can count on. The neutral
+       repaint the click asks for is unchanged (D-GSS-NEUTRAL-REPAINT): it still reads and redraws the whole card. */
+    const drawWhy = () => {
+      why.setAttribute('aria-expanded', showWhy ? 'true' : 'false');
+      lines(map.get('reason-more'), showWhy ? [plainSetWhy(view.entry, view.previous, planned)] : [], 'w-reason w-more');
+    };
+    drawWhy();
+    hooks.listen(why, 'click', () => { showWhy = !showWhy; if (owns) drawWhy(); paint(); });
 
     /* The set card. The numerals are the entry itself: the prescribed figures, or what
        the athlete has typed over them, in the two real boxes the set is logged from. */
