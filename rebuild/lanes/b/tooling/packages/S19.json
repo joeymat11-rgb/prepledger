@@ -9,8 +9,8 @@
     "acceptedLedgerLine": {
       "ledgerLine": 1002,
       "role": "cowork",
-      "line": "- 2026-10-14 · cowork · BRIEF ACCEPTED BY SHA for M2-S19-LIVE: rebuild/lanes/b/S19-LIVE-BRIEF.md, sha256 cef1121dacc6d38490fe4285d409a6d6b4ab2307b5fa0cc6496349b9c806099a (153609 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
-      "lineSha256": "5321aad3a1a8ed5beccee5de0ca155f5dbdd84554e5845dbc66a74bf340ba672"
+      "line": "- 2026-10-13 · cowork · BRIEF ACCEPTED BY SHA for M2-S19-LIVE: rebuild/lanes/b/S19-LIVE-BRIEF.md, sha256 cef1121dacc6d38490fe4285d409a6d6b4ab2307b5fa0cc6496349b9c806099a (153609 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "cc8d570bd027fc7becccb07e40525c88e3d65ec897d876b7f78e325388e63041"
     }
   },
   "sourceBase": "e4dd53bae4149e88a0b0cdcef8dafcb71a40ac06",
