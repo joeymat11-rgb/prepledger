@@ -134,7 +134,23 @@ async function sleepFromToday(page) {
   await page.waitForSelector('#phone [data-slot="log-sleep-go"]');
   await page.click('#phone [data-slot="log-sleep-go"]');
 }
+/* P9 (PM, the Today repeats; call 2; supersession pending in the ledger): the Recovery row is gone from Today, so the
+   check-in is reached through the Log today sheet's Check in row: from the sheet when it is open (back from a screen
+   the sheet opened, Today opens it again), else through the card. closeLogSheet closes a reopened sheet so the card
+   under it can be read. */
+async function closeLogSheet(page) {
+  if (!(await page.$('#phone [data-slot="log-sheet"]'))) return;
+  await page.click('#phone [data-slot="log-done"]');
+  await page.waitForSelector('#phone [data-slot="log-sheet"]', { state: 'detached' });
+}
+async function checkInFromToday(page) {
+  await page.waitForSelector(TODAY_CARD, { timeout: 20000 });
+  if (!(await page.$('#phone [data-slot="log-sheet"]'))) await page.click(TODAY_CARD);
+  await page.waitForSelector('#phone [data-slot="log-checkin-go"]', { timeout: 20000 });
+  await page.click('#phone [data-slot="log-checkin-go"]');
+}
 async function todaySleepLine(page) {
+  await closeLogSheet(page);
   await page.click(TODAY_CARD);
   await page.waitForSelector('#phone [data-slot="log-sleep-state"]');
   const text = await page.textContent('#phone [data-slot="log-sleep-state"]');
@@ -407,8 +423,7 @@ try {
      the SAME host and the CURRENT projected state, which is the journey D2's own
      correction 1 asks for. */
   await page.click('#phone [data-go="today"]');
-  await page.waitForSelector('#phone [data-go="recovery"]');
-  await page.click('#phone [data-go="recovery"]');
+  await checkInFromToday(page);   /* P9 (call 2): was Today's Recovery row */
   await page.waitForSelector('#phone [data-slot="sleep-known"], #phone .option', { timeout: 20000 });
   const sheet = await page.textContent("#phone");
   assert.match(sheet, /7\.5/, "the check-in did not offer the night N2 recorded: " + sheet.slice(0, 200));
@@ -447,7 +462,9 @@ try {
      The gym host's own projection is asserted over the real host in sleep.test.mjs
      N2-09, which can read `gymHost.host.lastProjection()` and a browser cannot. */
   await page.click('#phone [data-go="today"]');
-  await page.waitForSelector('#phone [data-slot="primary-label"]', { timeout: 20000 });
+  await page.waitForSelector('#phone [data-slot="primary-label"]', { state: 'attached', timeout: 20000 });
+  /* P9: back from the sleep screen the sheet that opened it opens again (POLISH 7); close it before Today's own row. */
+  await closeLogSheet(page);
   /* This device's athlete owes his morning weight before a workout can open, and that is
      A2's rule, not N2's. Recording it through the real weigh-in is what makes the gym
      route reachable at all, so the return path can actually be walked. */
@@ -497,14 +514,12 @@ try {
      typed into THAT sheet has to be there on the way back, which is what round 2
      found it was not. */
   await page.click('#phone [data-go="today"]');
-  await page.waitForSelector('#phone [data-go="recovery"]', { timeout: 20000 });
-  await page.click('#phone [data-go="recovery"]');
+  await checkInFromToday(page);   /* P9 (call 2): was Today's Recovery row */
   await page.waitForSelector('#phone #checkin-error', { state: 'attached', timeout: 20000 });
   await page.click('#phone details.checkin-note summary');
   await page.fill('#phone #recovery-note', 'typed on the first visit');
   await page.click('#phone [data-go="today"]');
-  await page.waitForSelector('#phone [data-go="recovery"]', { timeout: 20000 });
-  await page.click('#phone [data-go="recovery"]');
+  await checkInFromToday(page);   /* P9 (call 2): was Today's Recovery row */
   await page.waitForSelector('#phone #checkin-error', { state: 'attached', timeout: 20000 });
   await page.click('#phone details.checkin-note summary');
   assert.equal(await page.inputValue('#phone #recovery-note'), 'typed on the first visit');

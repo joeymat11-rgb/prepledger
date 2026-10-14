@@ -71,9 +71,15 @@ function today(options = {}, clipboard = undefined) {
   const model = options.model || createTodayModel({ today: DAY });
   const api = mountToday(doc, model, options);
   const pick = (slot) => doc.querySelector('#phone [data-slot="' + slot + '"]');
+  /* P9 (PM, the Today repeats; call 6; supersession pending): the control is the More sheet's Report a problem row,
+     one tap from Today's face, so the kit reaches it as the athlete does: Today's More row, then the row. */
+  const reach = () => {
+    if (!pick('problem-entry') && pick('more-entry')) pick('more-entry').dispatchEvent(new dom.window.Event('click'));
+    return pick('problem-entry');
+  };
   return { dom, doc, api, model,
     status: () => doc.getElementById('today-status'),
-    control: () => pick('problem-entry'),
+    control: reach,
     said: () => pick('problem-said'),
     box: () => pick('problem-box'),
     area: () => pick('problem-text'),
@@ -349,8 +355,12 @@ test('R10 - the three sentences are preview-owned, declared, and bound to the vi
 test('R10 - every class the control and its box use is in the APPROVED stylesheets', () => {
   const approved = design.readApproved();
   const template = design.templateHtml();
-  const start = template.indexOf('<template id="t-today">');
-  const section = template.slice(start, template.indexOf('</template>', start));
+  /* P9 (call 6; supersession pending): was the t-today section. The control and its box are the More sheet's (t-more),
+     whose one entry, the More row, is on t-today; both sections are held to the approved classes and to no figure. */
+  const today = template.slice(template.indexOf('<template id="t-today">'), template.indexOf('</template>', template.indexOf('<template id="t-today">')));
+  assert(today.includes('data-slot="more-entry"'), 'P9: Today carries the More row that opens the control');
+  const start = template.indexOf('<template id="t-more">');
+  const section = template.slice(start, template.indexOf('</template>', start)) + today;
   assert(section.includes('data-slot="problem-entry"'), 'the control is in the shipped template');
   assert(section.includes('data-slot="problem-text"'), 'the box is in the shipped template');
   const css = approvedCss(approved);   /* S12 SC-1 (red first): see the note above R10 */
@@ -370,7 +380,12 @@ test('R10 - every class the control and its box use is in the APPROVED styleshee
    ========================================================================== */
 test('R7 - the control is on Today, in the approved vocabulary, before it is tapped', () => {
   const kit = today();
+  /* P9 (call 6; supersession pending): was "on Today's face". Now: Today's face carries the one More row, and the
+     control is the sheet that row opens, one tap away, in the same words. */
+  assert.equal(kit.doc.querySelector('#phone .body [data-slot="problem-entry"]'), null, 'P9: not on Today\'s face itself');
+  assert(kit.doc.querySelector('#phone .body [data-slot="more-entry"]'), 'P9: the More row is');
   assert(kit.control(), 'the control is on the screen');
+  assert(kit.control().closest('[data-slot="more-sheet"]'), 'P9: in the More sheet');
   assert.equal(kit.control().textContent.trim(), PROBLEM_ENTRY);
   assert.equal(kit.said().hidden, true, 'it says nothing until it is tapped');
   assert.equal(kit.box().hidden, true, 'and shows no box until it is tapped');
@@ -1068,7 +1083,12 @@ test('P6-BOOT - until the day\'s workout is settled, Start shows the loading sta
   releaseRebase();
   await api.ready;
   for (let i = 0; i < 50 && bar().label === LOADING; i += 1) await new Promise((r) => setTimeout(r, 2));
-  assert.deepEqual(bar(), { label: 'Start ' + model.read().workout.title, disabled: false }, 'Start is his workout: ' + JSON.stringify(bar()));
+  /* P9 round 2 (DECISIONS:1003 (1); was { label: 'Start ' + his title }): Start names the tap and is live, and the card
+     it sits in names his workout, the one place the workout is named. */
+  assert.deepEqual(bar(), { label: TodayApp.START_WORKOUT, disabled: false }, 'Start is live: ' + JSON.stringify(bar()));
+  assert.equal(slot('workout-title').textContent, model.read().workout.title, 'and the card it sits in is his workout');
+  assert.equal(slot('workout-title').hidden, false, 'drawn');
+  assert(slot('primary').closest('#card-train'), 'Start is that card\'s');
   api.dispose();
   hosts.close();
 });
@@ -1086,11 +1106,18 @@ test('P5-TREND - the weight trend is its own line, and Why this plan? is the one
   assert.equal(row.getAttribute('data-slot'), 'trend-row');
   assert.equal(row.closest('button'), null, 'and sits in no button');
   assert.match(trend.textContent, /^Weight trend (\d+(\.\d+)? lb|Not available yet)$/, 'its own words, and nothing of the link: ' + trend.textContent);
-  const why = doc.querySelector('[data-go="why"]');
+  /* P9 (call 6; supersession pending): was "Why this plan? on the row right under the trend". Why this plan? is a row of
+     the More sheet now, and the quiet row right under the trend (past the first-run tile, hidden on an enrolled or a
+     storeless device) is the More row that opens it. The trend is still a line of its own, in no control, and the
+     control still says only what it opens and still opens Why this plan. */
+  let next = row.nextElementSibling;
+  while (next && next.getAttribute('data-slot') === 'setup-entry' && next.hidden) next = next.nextElementSibling;
+  assert.equal(next && next.getAttribute('data-slot'), 'more-entry', 'P9: the More row is the row under the trend');
+  next.click();
+  const why = doc.querySelector('[data-slot="more-sheet"] [data-go="why"]');
   assert.equal(why.tagName, 'BUTTON');
   assert.equal(why.textContent, 'Why this plan?', 'the control says only what it opens');
   assert.equal(why.contains(trend), false);
-  assert.equal(row.nextElementSibling, why, 'on the row right under the trend');
   why.click();
   assert.equal(api.screen(), 'why', 'and it still opens Why this plan');
   api.dispose();
@@ -1215,8 +1242,11 @@ test('UP13-SETTLE - right after "Start using Earned", Today settles to his worko
   const slot = (name) => doc.querySelector('#phone [data-slot="' + name + '"]');
   const LOADING = 'Your set targets are loading';
   for (let i = 0; i < 200 && slot('primary-label').textContent === LOADING; i += 1) await new Promise((r) => setTimeout(r, 5));
-  assert.equal(slot('primary-label').textContent, 'Start ' + booted.model.read().workout.title,
-    'Start names his workout once the adoption settles: ' + slot('primary-label').textContent);
+  /* P9 round 2 (DECISIONS:1003 (1); was: the label is 'Start ' + his title): once the adoption settles Start says
+     START_WORKOUT, and the card it sits in names his workout. */
+  assert.equal(slot('primary-label').textContent, TodayApp.START_WORKOUT,
+    'Start is settled once the adoption settles: ' + slot('primary-label').textContent);
+  assert.equal(slot('workout-title').textContent, booted.model.read().workout.title, 'and its card names his workout');
   assert.equal(slot('primary').disabled, false, 'and Start is live');
   assert.match(slot('workout-count').textContent, /Your set targets are ready$/, 'the card is settled: ' + slot('workout-count').textContent);
   booted.hosts.close();
@@ -1235,8 +1265,11 @@ test("P0C.2 + S12b R6 - the primary button's label names what it opens, before a
   const viewBefore = kit.model.read();
   assert.equal(viewBefore.marchingOrder.kind, 'weight', 'this fixture\'s own owed head really is the weigh-in');
   assert.equal(viewBefore.hasReadToday, false, 'the weight really is owed');
-  assert.equal(primaryBefore.textContent.trim(), 'Start ' + viewBefore.workout.title,
-    'the label names the workout even while the weigh-in is owed');
+  /* P9 round 2 (DECISIONS:1003 (1); was 'Start ' + the title): Start, on the card that names the workout */
+  assert.equal(primaryBefore.textContent.trim(), TodayApp.START_WORKOUT,
+    'the label names the workout\'s own action even while the weigh-in is owed');
+  assert.equal(before.doc.querySelector('#phone [data-slot="workout-title"]').textContent, viewBefore.workout.title,
+    'on the card that names the workout');
   assert(before.doc.querySelector('#phone #card-weigh [data-slot="weigh-form"] #weight'),
     'the weigh-in is one tap away, on the morning card');
   primaryBefore.dispatchEvent(new before.dom.window.Event('click'));
@@ -1257,8 +1290,10 @@ test("P0C.2 + S12b R6 - the primary button's label names what it opens, before a
   const mismatch = today({ model: mismatchModel });
   mismatch.api.render('today');
   const primaryMismatch = mismatch.doc.querySelector('#phone [data-slot="primary"]');
-  assert.equal(primaryMismatch.textContent.trim(), 'Start ' + mismatchModel.read().workout.title,
+  assert.equal(primaryMismatch.textContent.trim(), TodayApp.START_WORKOUT,
     'the engine\'s off-topic owed head is never shown as the primary label');
+  assert.equal(mismatch.doc.querySelector('#phone [data-slot="workout-title"]').textContent, mismatchModel.read().workout.title,
+    'the card names the workout');
   assert.doesNotMatch(primaryMismatch.textContent, /last night|weight/i, 'no owed item heads the button');
   primaryMismatch.dispatchEvent(new mismatch.dom.window.Event('click'));
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1270,8 +1305,10 @@ test("P0C.2 + S12b R6 - the primary button's label names what it opens, before a
   after.api.render('today');
   const view = kit.model.read();
   const primaryAfter = after.doc.querySelector('#phone [data-slot="primary"]');
-  assert.equal(primaryAfter.textContent.trim(), 'Start ' + view.workout.title,
-    'once the weigh-in is done, the label names the workout');
+  assert.equal(primaryAfter.textContent.trim(), TodayApp.START_WORKOUT,
+    'once the weigh-in is done, the label names the workout\'s own action');
+  assert.equal(after.doc.querySelector('#phone [data-slot="workout-title"]').textContent, view.workout.title,
+    'on the card that names the workout');
   primaryAfter.dispatchEvent(new after.dom.window.Event('click'));
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(after.api.screen(), 'workout', 'clicking it opened exactly the screen the label named');
@@ -3652,9 +3689,11 @@ test('S6C.6b - the engine stamp is the NEXT session, and is carried only where i
     at.booted.teardown();
   }
 
-  /* THE CTA. Where the stamp describes today, the engine's words are kept
-     verbatim; where it does not, the button names the tap and claims no day. */
-  assert.equal(TodayApp.resumeLabel(session.workout), 'Resume UPPER BODY · TODAY');
+  /* THE CTA. The button names the tap and claims no day. P9 round 2 (DECISIONS:1003 (1); was: where the stamp
+     describes today the button carried the engine's words, 'Resume UPPER BODY \u00b7 TODAY'): on that day too, because
+     the workout card the button sits in names the session in the engine's own words, once (S6C.6e holds the page). */
+  assert.equal(TodayApp.resumeLabel(session.workout), TodayApp.RESUME_TODAYS_WORKOUT);
+  assert.equal(TodayApp.resumeLabel(session.workout).includes(session.workout.title), false, 'the session is named by its card, not twice');
   assert.equal(TodayApp.resumeLabel(rest.workout), TodayApp.RESUME_TODAYS_WORKOUT);
   /* Review R1 minor 5 - the page's own apostrophe (U+2019), as every other
      sentence on this screen spells it; the first cut shipped an ASCII one beside
@@ -3703,6 +3742,17 @@ test('S6C.6e - the Resume button on the PAGE names the tap, not the engine\'s ne
   assert.equal(label.textContent.includes('TOMORROW'), false,
     'the defect of :452, at the screen: a Resume button naming another day');
   assert.equal(label.hidden, false, 'and the button is not hidden');
+  /* P9 round 2 (DECISIONS:1003 (1); was: on the day the stamp describes, the page's button read "Resume " + the
+     engine's title). The same open session, with the page standing on ITS day (the 17th): the button still names the
+     tap, and the workout card the button sits in names the session, in the engine's own words, once. */
+  const sameDay = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' }).window.document;
+  mountToday(sameDay, onSession, { workout });
+  const sameLabel = sameDay.querySelector('[data-slot="primary-label"]');
+  assert.equal(onSession.read().workout.title, 'UPPER BODY \u00b7 TODAY', 'the stamp describes this day');
+  assert.equal(sameLabel.textContent, TodayApp.RESUME_TODAYS_WORKOUT, 'Resume names the tap on the session\'s own day too');
+  assert.equal(sameDay.querySelector('[data-slot="workout-title"]').textContent, 'UPPER BODY \u00b7 TODAY', 'the card names the session');
+  assert(sameDay.querySelector('[data-slot="primary"]').closest('#card-train'), 'and the button is that card\'s');
+  assert.equal(sameDay.getElementById('phone').textContent.split('UPPER BODY \u00b7 TODAY').length - 1, 1, 'named once on the page');
   workout.gymHost.close();
   readings.close();
 });

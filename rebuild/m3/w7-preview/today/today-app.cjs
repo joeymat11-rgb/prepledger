@@ -120,14 +120,23 @@ function morningLine(view) {
   const note = (view.morningRead.note || "").trim();
   return note ? line + " · " + note : line;
 }
+/* P9 (call 5): the engine's own trend figure (its bound slot, nowModel.headed.weight), or null when it holds none. */
+function trendFigure(view) {
+  const weight = view && view.nowModel && view.nowModel.headed ? view.nowModel.headed.weight : null;
+  return Number.isFinite(weight) ? weight : null;
+}
 function trendLine(view) {
-  const weight = view.nowModel && view.nowModel.headed ? view.nowModel.headed.weight : null;
-  return "Weight trend " + (Number.isFinite(weight) ? pounds(weight) + " lb" : NOT_AVAILABLE);
+  const weight = trendFigure(view);
+  return "Weight trend " + (weight !== null ? pounds(weight) + " lb" : NOT_AVAILABLE);
 }
 /* POLISH 5 (PM, item 8): "Weight trend <value>, stamp, Why this plan?" was one control doing two things. The trend is now
    a line of its own (trendLine above, the same words before the stamp) and "Why this plan?", the approved words
    (design.cjs), is the one control on the row under it. */
 const WHY_THIS_PLAN = "Why this plan?";
+/* P9 (PM, the Today repeats; call 6): Today's five quiet links (Why this plan?, Report a problem, Measure, Import my
+   history, Change my routine) are one quiet row with this one word, and the sheet it opens is titled with it. PM-approved
+   short plain copy (:913 (5)); the approved references already say the word, so it is copy-locked here and not declared. */
+const MORE_ENTRY = "More";
 
 /* The honesty rule (review D-2): an entry point this slice has not wired says so on
    Today's face, in the approved design's own secondary text, so the athlete never taps to
@@ -321,6 +330,9 @@ const PROBLEM_SELECT = "Select all and copy, then send it to Joe.";
 const WORKOUT_IN_PROGRESS = "Workout in progress";
 const WORKOUT_RECORDED_TODAY = "Workout recorded";
 const REVIEW_WORKOUT = "Review today’s workout";
+/* P9 round 2 (DECISIONS:1003 (1); new copy approved there under :913 (5)): Start is the workout card's own primary, under
+   the card's title, so the button names the tap and the card names the workout, once. */
+const START_WORKOUT = "Start workout";
 const WORKOUT_CANNOT_OPEN = "Today’s workout cannot open";
 const WHY_WORKOUT_CANNOT_OPEN = "Why today’s workout cannot open";
 const UNFINISHED_WORKOUT = "An earlier workout was never finished";
@@ -386,15 +398,15 @@ const SAMPLE_DATA_NOTE = "Sample data. Set up your week to start your own.";
    refuses ENGINE_CAPTURE_NO_WORKOUT); what carried the wrong day there was the
    REFUSAL card's heading, cell S6C.6d.
 
-   Where the stamp truly describes today, the engine's own words are kept unchanged;
-   where it does not, the button names what the tap opens and claims no day of its
-   own. The engine is not touched and no lift name is invented. Exported so a cell
-   can assert both branches directly, and S6C.6e pins that renderToday calls it. */
+   The button names what the tap opens and claims no day of its own. P9 round 2
+   (DECISIONS:1003 (1)): that is now so on EVERY day, the one the stamp describes too,
+   because the workout card the button sits in already names the session in the
+   engine's own words (its title line); the button does not say them a second time.
+   The engine is not touched and no lift name is invented. Exported so a cell can
+   assert it directly, and S6C.6e pins that renderToday calls it. */
 const RESUME_TODAYS_WORKOUT = "Resume today’s workout";
-function resumeLabel(workout) {
-  return workout && workout.today === true && typeof workout.title === "string" && workout.title
-    ? "Resume " + workout.title
-    : RESUME_TODAYS_WORKOUT;
+function resumeLabel() {
+  return RESUME_TODAYS_WORKOUT;
 }
 
 /* WHEN THE SENTENCE IS OWED, as a predicate rather than a flag, so that it clears
@@ -674,7 +686,10 @@ const HEADLINE_BASE = 47, HEADLINE_FLOOR = 33, HEADLINE_GUARD = 8;
    never ran. Start is looked up on the whole view, and where it sits in the fixed stack the
    fit is for today's workout card (#card-train) to be wholly on the first screen above Start;
    a page whose primary is in its own flow keeps the old rule (the primary inside the view).
-   The headline is capped at HEADLINE_BASE (preview.css reads --headline on the greeting). */
+   The headline is capped at HEADLINE_BASE (preview.css reads --headline on the greeting).
+   P9 (PM, the Today repeats; call 1): Today has no fixed stack any more; Start is the workout card's own primary, in
+   the day's own flow, so the old rule holds for it again: the fit keeps Start (and with it the card it sits in) inside
+   the first screen. The stack branch is kept for a page whose primary is still in a stack. */
 function fitHeadline(view, root) {
   const headline = root.querySelector("h1");
   const primary = view && view.querySelector ? view.querySelector('[data-slot="primary"]') : null;
@@ -941,14 +956,24 @@ function mountToday(doc, model, options = {}) {
      not return. A chain that rejects still settles: adoptAthleteState reports
      its own cause on the status line and the link then offers the import, which
      is what it offered before this ticket existed. */
-  let todayEntry = null;         // { root, token } the settle should paint into
+  /* P9 (PM, the Today repeats; call 6): the entry is a row of the More sheet now, so "the frame" is the sheet. The sheet
+     carries no Import row (and so no Change my routine row) until the chain has answered; when the answer lands while
+     the sheet is open, the two rows are put into the sheet that is open, in their places, and nothing else in it is
+     painted again (a report the athlete has open in it stays open). */
+  let moreOpen = null;           // { pages, sheet } while the More sheet is over Today (openMore below)
   function paintTodayEntry() {
-    if (!facade.adoptionSettled() || !todayEntry) return null;
-    if (todayEntry.token !== mountToken || screen !== "today") return null;
-    if (todayEntry.root.querySelector('[data-slot="import-entry"]')) return null;
-    const link = importLink(todayEntry.root, null);
-    routineLink(link);
-    return link;
+    if (!facade.adoptionSettled() || !moreOpen || !moreOpen.sheet || screen !== "today") return null;
+    const sheet = moreOpen.sheet;
+    if (sheet.querySelector('[data-slot="import-entry"]')) return null;
+    const fresh = slots(template("t-more"));
+    if (!moreEntryRows(fresh)) return null;
+    const routineRow = fresh.get("routine-entry");
+    const entry = fresh.get("import-entry");
+    const measure = sheet.querySelector('[data-slot="measure-tile"]');
+    const why = sheet.querySelector('[data-slot="why-entry"]');
+    if (routineRow.parentNode && measure) measure.after(routineRow);
+    if (why) why.after(entry); else return null;
+    return entry;
   }
 
   /* S15 - "CHANGE MY ROUTINE". The entry sits beside the Import entry, on the same
@@ -956,20 +981,11 @@ function mountToday(doc, model, options = {}) {
      lane over a real installation. The two words are this file's own, like the
      Import link's, so painting the link loads none of the editor; routine-model.mjs
      COPY.entry carries the same two words and the S15 suite asserts they agree.
-     The editor itself is lazy-loaded by renderRoutine below. */
+     The editor itself is lazy-loaded by renderRoutine below.
+     P9 (call 6): the entry is the More sheet's Change my routine row (paintMoreSheet), on the same gate: an enrolled,
+     settled installation where boot() composed a routine lane; its tap is the same render("routine", true). */
   const ROUTINE_LINK = "Change my routine";
   let routineView = null;
-  function routineLink(after) {
-    if (!facade.routine() || !after || !after.parentNode) return null;
-    const link = doc.createElement("button");
-    link.type = "button";
-    link.className = "option";
-    link.dataset.slot = "routine-entry";
-    link.textContent = plainOrDrop(ROUTINE_LINK, "routine-entry");
-    hooks.listen(link, "click", () => render("routine", true));
-    after.parentNode.insertBefore(link, after.nextSibling);
-    return link;
-  }
   function closeRoutine() {
     if (routineView) { try { routineView.close(); } catch (_) { /* nothing held */ } routineView = null; }
   }
@@ -1107,6 +1123,11 @@ function mountToday(doc, model, options = {}) {
     catch (error_) { result = { ok: false, copy: WEIGH_FAILED + " " + (error_ && error_.message ? error_.message : "") }; }
     return result;
   }
+  /* P9 round 4 (Fable B3): a weight saved through the morning card's own row is confirmed on that card, in its saved
+     state (the reading and the engine's note on it, no box), for the rest of this Today visit; render() clears it when
+     Today is left, so the next fresh Today draws no card and Log today ticks Weight. A weight saved through the Log
+     today sheet is confirmed by the sheet's Weight row and never sets it. */
+  let weighSavedHere = false;
   function bindWeighIn(map, owed) {
     const form = map.get("weigh-form");
     const note = map.get("weigh-note");
@@ -1134,6 +1155,7 @@ function mountToday(doc, model, options = {}) {
         input.focus();
         return;
       }
+      weighSavedHere = true;
       render("today", true);
     });
   }
@@ -1144,11 +1166,10 @@ function mountToday(doc, model, options = {}) {
     const view = model.read();
     const token = mountToken;
     if (chrome) chrome.textContent = plainOrDrop(view.storageNote, "today-storage");
-    /* C-UI-2: `root` stays the day (the .body every later append targets); the
-       stack beside it carries Start, Recovery and Talk. One slot map spans both. */
-    const [root, stack] = templateParts("t-today");
+    /* C-UI-2: `root` stays the day (the .body every later append targets). P9 (calls 1 and 2): there is no fixed
+       stack beside it any more; Start is the workout card's own primary and the check-in is reached from Log today. */
+    const [root] = templateParts("t-today");
     const map = slots(root);
-    for (const [name, el] of slots(stack)) if (!map.has(name)) map.set(name, el);
     put(map, "date", dayLabel(view.today));
 
     if (view.blocked) {
@@ -1157,7 +1178,6 @@ function mountToday(doc, model, options = {}) {
       /* C-UI-2 round 3 (DECISIONS:820): the pack's T-06 status line; no sample claim and no
          check-in prompt over a record that could not be trusted. */
       map.get("status-line").textContent = plainOrDrop(statusLine(view, null, false), "status-line");
-      map.get("recovery-prompt").hidden = true;
       /* C-UI-3: no proposal card and no weigh-in over a record that could not be trusted (T-06). */
       map.get("proposal").remove();
       bindWeighIn(map, false);
@@ -1169,24 +1189,24 @@ function mountToday(doc, model, options = {}) {
       for (const name of ["eat-title", "workout-title", "morning", "primary-label"]) put(map, name, null);
       for (const name of ["protein-line", "kcal-note", "workout-count"]) map.get(name).hidden = true;
       map.get("trend").parentNode.hidden = true;
-      map.get("why-plan").parentNode.hidden = true;   /* POLISH 5, item 8: the two rows that were one link */
       put(map, "nutrition-state", NOT_WIRED);
       /* S12b R7 (Fable REVIEW-S12B-R6 section 7): under a headline that already says nothing is shown,
          NOT_AVAILABLE is said ONCE, on the food card, which keeps its link to the nutrition plan; the
-         morning and training cards, which would only repeat it, are not drawn, and the Recovery row
-         says nothing rather than repeating it (written straight, as on a normal day with nothing recorded). */
+         morning and training cards, which would only repeat it, are not drawn. (P9: the Recovery row that said
+         nothing here is gone from Today, call 2.) */
       for (const id of ["card-weigh", "card-train"]) root.querySelector("#" + id).hidden = true;
       /* N2 "LOG TODAY" (Part B): nothing is logged over a record that could not be trusted, so the card is not drawn. */
       root.querySelector("#card-log").hidden = true;
-      map.get("recovery-state").textContent = "";
       map.get("primary").disabled = true;
       map.get("primary").hidden = true;
       /* A blocked Today is exactly when a problem is worth reporting, so the control
-         is wired here too. It reads nothing from the record it could not trust. */
-      problemControl(map);
+         is wired here too: P9 (call 6), Today's one More row, whose sheet carries Report a problem and nothing that
+         would read the record it could not trust (no Measure, no Why this plan?, no Import, no routine); with no Log
+         today card here its first row is Recovery check in (P9 round 2, DECISIONS:1003 (2); bindMoreRow). */
+      bindMoreRow(map, true, root);
       wire(root);
-      wire(stack);
-      show(root, focus, stack);
+      show(root, focus);
+      if (moreOpen) keepMoreOver(root);
       return;
     }
 
@@ -1229,8 +1249,19 @@ function mountToday(doc, model, options = {}) {
     if (opening) { map.get("workout-title").textContent = ""; map.get("workout-title").hidden = true; }
     /* S15 ROUND 5 POLISH, item 5 (PM UI pass, shots 11/12): the day says whether it is a training day, so
        preview.css can put today's workout first on a training day and keep the order on a rest day. A
-       data attribute only: no word, slot or card moves in the document. */
+       data attribute only: no word, slot or card moves in the document (P9 round 2 moves one slot on a rest day,
+       directly below). */
     root.setAttribute("data-day", view.workout && view.workout.today === true ? "train" : "rest");
+    /* P9 round 2 (DECISIONS:1003 (7)): a rest day has the training day's card-first face (preview.css, the P9 block):
+       no plan label and no large headline over the cards. The engine's advice under that headline (instruction-why,
+       its words unchanged and whole) is kept as a quiet line. P9 round 3 (the PM's style call): it is the workout card's
+       third line, under its no-session line (workout-count), in that line's own secondary style (the pack's .tcard .sub,
+       the same size and colour), so it is the same one node in a new place: nothing is copied and nothing is cut. */
+    if (root.getAttribute("data-day") === "rest") {
+      const advice = map.get("instruction-why");
+      advice.classList.add("sub");
+      map.get("workout-count").after(advice);
+    }
     /* The workout line carries the durable state of today's session — in progress,
        recorded, or refused — beside the engine's own exercise count. A2.
        REVIEW B1: the state comes from a DRY PREPARATION through the accepted host
@@ -1271,13 +1302,10 @@ function mountToday(doc, model, options = {}) {
     /* C-UI-2: the card's marker is lit only for a recorded day (pack T-25, .marker.on). */
     map.get("nutrition-state").classList.toggle("on", map.get("nutrition-state").textContent === FOOD_SAVED);
     /* S12b R6 (DECISIONS:915 (3)): no coach entry on Today, so no coach marker to bind. */
-    /* Written straight, not through put(): when nothing is recorded this slot says
-       NOTHING. An empty check-in is empty, and a placeholder sentence would be the
-       page inventing a state the athlete never entered. */
-    map.get("recovery-state").textContent = plainOrDrop(recoveryState(), "recovery-state");
-    /* C-UI-2 round 3 (DECISIONS:820 (2), board #recovery, T-26): with nothing recorded the
-       row carries the board's invitation; any durable fact replaces it (T-27, T-28). */
-    map.get("recovery-prompt").hidden = map.get("recovery-state").textContent !== "";
+    /* P9 (PM, the Today repeats; call 2): the Recovery row and its pinned bar are gone from Today. The check-in is the
+       Log today card's Check in: the card ticks it from the check-in lane's own durable summary, and the sheet's Check in
+       row says that summary (Recorded today, or Not available on this device when this device has no store) and opens
+       the same recovery screen, back to Today (logRow and closeLogToday("recovery") below). */
     /* N2 "LOG TODAY" (Part B): the quiet Sleep link and its one line are FOLDED into the Log today card, which ticks
        each of the day's five logs from the durable record and opens the one sheet (bindLogCard). */
     bindLogCard(map, view);
@@ -1293,11 +1321,29 @@ function mountToday(doc, model, options = {}) {
     /* POLISH 6 (item 1): while the model is still the pre-adoption one the line says the board's T-03 words. */
     map.get("status-line").textContent = plainOrDrop(opening ? STATUS_OPENING
       : statusLine(view, today, sample, face ? face.state : undefined), "status-line");
-    problemControl(map);
+    /* P9 (PM, the Today repeats; call 4): on a training day the status line stood under Ask Coach (preview.css puts the
+       section after the cards) and only repeated the cards above it (the session's name, its state, the calorie card's
+       words), so it is not drawn there. P9 round 2 (DECISIONS:1003 (7)): a rest day has the same card-first face, and
+       there the line only said T-12's "nothing scheduled" sentence (or T-11's next session) over the workout card that
+       already says it ("No session is scheduled today." and the next session's title), so it is not drawn on either
+       kind of day. A blocked record keeps it, under its headline, as before. Its words per state are unchanged
+       (statusLine), and stay in the slot for every reader that reads them. */
+    map.get("status-line").hidden = true;
     put(map, "morning", morningLine(view));
     bindWeighIn(map, owed); // C-UI-3: the inline weigh-in, only while this morning's weight is owed
-    put(map, "trend", trendLine(view));
-    put(map, "why-plan", WHY_THIS_PLAN);   /* POLISH 5, item 8: its own row */
+    /* P9 (PM, the Today repeats; call 3): the morning card is drawn only while this morning's weight is owed. Once it
+       is saved the card is not drawn; the Log today card ticks Weight from the same durable reading (logToday), and its
+       sheet's Weight row says the kept value with the engine's note on it, as this card's line did (paintLogSheet).
+       P9 round 4 (Fable B3): except straight after a save on this card's own row, for the rest of that Today visit, when
+       the card stays in its saved state, the reading and the engine's note and no box (weighSavedHere). */
+    if (!owed && !weighSavedHere) root.querySelector("#card-weigh").hidden = true;
+    /* P9 (PM, the Today repeats; call 5): the weight trend is drawn only while the engine holds a trend figure, as the
+       quiet line it already is (trendLine, its words and its figure unchanged); with none it is not drawn at all. */
+    if (trendFigure(view) === null) map.get("trend").parentNode.hidden = true;
+    else put(map, "trend", trendLine(view));
+    /* P9 (PM, the Today repeats; call 6): Why this plan?, Report a problem, Measure, Import my history and Change my
+       routine are the More sheet's rows; Today carries the one More row that opens it. */
+    bindMoreRow(map, false, root);
 
     const primary = map.get("primary");
     /* The resume action the approved direction requires: while a workout is in
@@ -1317,6 +1363,10 @@ function mountToday(doc, model, options = {}) {
        workout primary at all: the button is not drawn and the status line says T-12's "Nothing
        scheduled today, so there is nothing to start." Resume, Close and Review keep precedence:
        each is a real action on any day. No word is new, and nothing here saves anything. */
+    /* P9 round 2 (DECISIONS:1003 (1) and (7)): a training day's primary is START_WORKOUT, under the card's title that
+       names the session (Resume and Review name the tap too, resumeLabel and REVIEW_WORKOUT). On a day with no session
+       the weigh-in primary is not drawn while the morning card's own form is (the second weigh-in button beside the
+       weigh-in row): the form's Save is the one tap, through the same one write site. */
     const finished = !!(today && today.phase === "finished");
     const restDay = noSessionToday(view.workout) && !resuming && !stranded && !finished;
     const weighFirst = restDay && owed;
@@ -1332,7 +1382,7 @@ function mountToday(doc, model, options = {}) {
         ? capitalise(view.marchingOrder.thenText)
         : "Log this morning's weight")
       : refused && !restDay ? WHY_WORKOUT_CANNOT_OPEN
-      : "Start " + view.workout.title;
+      : START_WORKOUT;
     put(map, "primary-label", action);
     hooks.listen(primary, "click", async () => {
       if (stranded) {
@@ -1346,45 +1396,13 @@ function mountToday(doc, model, options = {}) {
       return weighFirst ? openWeighIn() : render("workout", true);
     });
     if (loadingWorkout) primary.disabled = true;   /* POLISH 5 item 4, POLISH 6 item 1: held while loading */
-    else if (nothingToStart) { primary.disabled = true; primary.hidden = true; }
+    else if (nothingToStart || (weighFirst && root.contains(map.get("weigh-form")))) { primary.disabled = true; primary.hidden = true; }
     else if (!weighFirst && view.workout.exerciseCount === null) primary.disabled = true;
 
-    /* P-MEASURE (round 2, closing finding 2 - "nothing renders"): the ONE way
-       Today reaches the comparison view. No approved tile exists for this
-       screen yet, so it is a plain button, built and wired the same way
-       wire(root)'s own [data-go] loop wires every other route off this page. */
-    const measureTile = doc.createElement("button");
-    measureTile.type = "button";
-    measureTile.dataset.slot = "measure-tile";
-    measureTile.dataset.go = "measure";
-    measureTile.textContent = "Measure";
-    root.append(measureTile);
+    /* P-MEASURE (the ONE way Today reaches the comparison view) and P3-IMPORT-UI-2 (the Import entry on the screen setup
+       ends on, gated on an ENROLLED installation and painted only once the adoption chain has answered) are rows of the
+       More sheet since P9 (call 6): paintMoreSheet below, on the same gates and the same routes. */
 
-    /* P3-IMPORT-UI-2 - THE ENTRY, ON THE SCREEN SETUP ENDS ON. DECISIONS:480
-       RULING 1 as the PM amended it in round 4: the Import entry lives on the
-       Measure screen's "No baseline yet" line and here on Today, BOTH gated on
-       an ENROLLED installation, and there is no entry at setup's end.
-
-       ROUND 4, REVIEW R3 MAJOR 1, SAID WHERE THE OLD RULE STOOD: round 2 painted
-       this link unconditionally, and on an installation whose first run is not
-       yet saved the whole walk from it can only take custody and then refuse
-       LOCAL_SOURCE_PROGRAMME_UNRESOLVED, leaving a permanent "Files you took
-       back" entry. That is the trap round 2 removed from setup's last screen,
-       re-created on the screen setup's Back lands on. So the gate: no first run
-       saved, no entry. P3-U5 executes both sides of it on the unenrolled Today
-       frame, and P3-U6 walks it from here on an enrolled one.
-
-       WHEN it is painted is paintTodayEntry's business: the two words depend on
-       the adoption chain, so the link goes on once that chain has answered and
-       never before (review r2 MINOR 4). Nothing here is lazy-loaded, so painting
-       it pulls no admission stack onto the boot path. */
-    todayEntry = facade.firstRun() ? null : { root, token };
-    paintTodayEntry();
-
-    /* S6 MERGE NOTE: the Import entry above and the build footer below both append
-       to this root. The footer's own contract is that it is the LAST thing on the
-       screen, below every control, so the entry - which IS a control - is appended
-       first and the footer keeps its stated place. Neither hunk is dropped. */
     /* S6 item 4 - THE BUILD FOOTER (DECISIONS:468 (b)). The served page names the
        commit it was built from, in visible text, so a verifier can tie what is on
        the phone to a tip without going through GitHub Actions and the service
@@ -1400,15 +1418,16 @@ function mountToday(doc, model, options = {}) {
     root.append(buildFooter);
 
     wire(root);
-    wire(stack);
-    show(root, focus, stack);
+    show(root, focus);
     /* N2 "LOG TODAY" (Part B): a repaint of Today while the sheet is open (a lane that opened, a save) paints the sheet
        again over the new Today, with the new Today inert under it. */
     if (logOpen) {
-      logOpen.pages = [root, stack];
+      logOpen.pages = [root];
       for (const page of logOpen.pages) page.inert = true;
       paintLogSheet(false);
     }
+    /* P9: and the More sheet, likewise, stays over the new Today (its problem box and what it says are kept). */
+    if (moreOpen) keepMoreOver(root);
     fitHeadline(phone, root);
     /* S12b R6: the fit measures text, so it is taken again once the page's two inlined faces
        are ready (their metrics, not a fallback's, decide the lines), on this frame only. */
@@ -1437,8 +1456,8 @@ function mountToday(doc, model, options = {}) {
     arrows(sheet);
     const input = sheet.querySelector("#morning-weight");
     const error = sheet.querySelector("#weigh-error");
-    /* C-UI-2: Today is two elements now (the day and the fixed stack); both go inert
-       under the sheet, so no stack control can be reached behind it. */
+    /* C-UI-2: every element Today puts on the phone goes inert under the sheet (P9: the day alone, now
+       that the fixed stack is gone), so no control can be reached behind it. */
     const pages = [...phone.children];
     for (const page of pages) page.inert = true;
     phone.append(sheet);
@@ -1681,6 +1700,11 @@ function mountToday(doc, model, options = {}) {
   let logReturn = false;
   let stepsEditing = false;
   let logFocus = null;
+  /* The Log today sheet's Escape (POLISH 7), shared with the More sheet (P9): Escape closes the sheet it is pressed in,
+     and goes no further (the #phone listener's Escape is for the screens off Today). */
+  const closesOnEscape = (close) => (event) => {
+    if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); }
+  };
   function openLogToday() {
     if (logOpen || phone.querySelector('[role="dialog"]')) return;
     const pages = [...phone.children];
@@ -1829,9 +1853,7 @@ function mountToday(doc, model, options = {}) {
     /* POLISH 7: Done is the sheet's one primary action, in its foot (preview.css holds the foot on the screen). */
     map.get("log-done").textContent = plainOrDrop(LOG_DONE, "log-done");
     hooks.listen(map.get("log-done"), "click", () => closeLogToday());
-    hooks.listen(sheet, "keydown", (event) => {
-      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeLogToday(); }
-    });
+    hooks.listen(sheet, "keydown", closesOnEscape(() => closeLogToday()));
     if (logOpen.sheet && logOpen.sheet.isConnected) logOpen.sheet.replaceWith(sheet);
     else phone.append(sheet);
     logOpen.sheet = sheet;
@@ -1841,6 +1863,106 @@ function mountToday(doc, model, options = {}) {
     logFocus = null;
     if (target && target.isConnected && !target.hidden && !target.closest("[hidden]")) target.focus();
     else if (focus || target) head.focus();
+  }
+
+  /* ---------------- P9 (PM, the Today repeats; call 6): the More row and the More sheet ----------------
+     Today's five quiet links are one quiet row, More, and the sheet it opens, in the Log today sheet's own pattern: a
+     dialog over Today with Today inert under it, its title and close control, full-width chevron rows, Done in its
+     foot, and Escape. The rows, in the PM's order, open exactly what the links opened:
+       Measure            render("measure"), the P-MEASURE route, on every Today that is not blocked;
+       Change my routine  render("routine"), S15, only on an enrolled, settled installation with a routine lane;
+       Why this plan?     render("why"), on every Today that is not blocked;
+       Import my history  render("import"), P3-IMPORT-UI-2, only on an enrolled installation once the adoption chain has
+                          answered (DECISIONS:480 RULING 1; the two words are importAdmitted's, review r2 MINOR 4);
+       Report a problem   DECISIONS:140 (3), the same control (problemControl), its box and its sentence in the sheet.
+     A blocked Today carries Report a problem, as it did, under Recovery check in (P9 round 2, below). The sheet holds
+     no state of its own and reads no record: it is painted from what Today's last paint answered each time it opens,
+     and again when the adoption chain answers while it is open (paintTodayEntry). */
+  /* `blocked` is the Today paint's own answer (view.blocked), carried with the sheet, so the sheet reads no record of
+     its own: a blocked Today's sheet offers no row that would read the record it could not trust. */
+  let todayBlocked = false;
+  /* P9 round 2 (DECISIONS:1003 (2)): the check-in is reached through Log today, and through More whenever Log today is
+     not on the page (a blocked record draws no Log today card): then the sheet's FIRST row is the approved board's own
+     Recovery row title (the row the pinned bar was; the template's words), which opens the same recovery screen. */
+  let checkinInMore = false;
+  function bindMoreRow(map, blocked, root) {
+    todayBlocked = blocked === true;
+    const logCard = root.querySelector("#card-log");
+    checkinInMore = !logCard || logCard.hidden;
+    put(map, "more-label", MORE_ENTRY);
+    hooks.listen(map.get("more-entry"), "click", () => openMore());
+  }
+  function openMore() {
+    if (moreOpen || logOpen || phone.querySelector('[role="dialog"]')) return null;
+    const pages = [...phone.children];
+    for (const page of pages) page.inert = true;
+    moreOpen = { pages, sheet: null };
+    return paintMoreSheet(true);
+  }
+  /* A repaint of Today under the open sheet (a lane that opened, a save elsewhere) keeps the same sheet over the new
+     Today, inert under it, so a report the athlete has open in it is not torn down. */
+  function keepMoreOver(root) {
+    if (!moreOpen) return;
+    moreOpen.pages = [root];
+    root.inert = true;
+    if (moreOpen.sheet) phone.append(moreOpen.sheet);
+  }
+  function closeMore(next) {
+    if (!moreOpen) return null;
+    const { pages, sheet } = moreOpen;
+    moreOpen = null;
+    if (sheet) sheet.remove();
+    for (const page of pages) page.inert = false;
+    if (next) return render(next, true);
+    /* Done, the close control and Escape hand focus back to the row that opened the sheet. */
+    const row = phone.querySelector('[data-slot="more-entry"]');
+    if (row && row.isConnected) row.focus();
+    return null;
+  }
+  /* One row of the sheet: its words, and its tap, which closes the sheet and opens the row's route. */
+  function moreRow(map, slot, label, words, next) {
+    put(map, label, words);
+    hooks.listen(map.get(slot), "click", () => closeMore(next));
+  }
+  /* The Import and Change my routine rows, on Today's own gates: an enrolled installation (no first run is offered)
+     whose adoption chain has answered, and for the routine a routine lane. A row not offered is removed. Returns
+     whether the Import row was drawn. */
+  function moreEntryRows(map) {
+    const entries = !todayBlocked && !facade.firstRun() && facade.adoptionSettled();
+    if (entries && facade.routine()) moreRow(map, "routine-entry", "routine-label", ROUTINE_LINK, "routine");
+    else map.get("routine-entry").remove();
+    if (entries) moreRow(map, "import-entry", "import-label", facade.importAdmitted() ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, "import");
+    else map.get("import-entry").remove();
+    return entries;
+  }
+  function paintMoreSheet(focus) {
+    if (!moreOpen || disposed) return null;
+    const blocked = todayBlocked;
+    const sheet = template("t-more");
+    const map = slots(sheet);
+    sheet.setAttribute("aria-label", MORE_ENTRY);
+    put(map, "more-head", MORE_ENTRY);
+    const close = map.get("more-close");
+    close.setAttribute("aria-label", LOG_CLOSE);
+    hooks.listen(close, "click", () => closeMore());
+    if (checkinInMore) hooks.listen(map.get("recovery-entry"), "click", () => closeMore("recovery"));
+    else map.get("recovery-entry").remove();
+    if (blocked) map.get("measure-tile").remove();
+    else moreRow(map, "measure-tile", "measure-label", "Measure", "measure");
+    if (blocked) map.get("why-entry").remove();
+    else moreRow(map, "why-entry", "why-plan", WHY_THIS_PLAN, "why");
+    moreEntryRows(map);
+    problemControl(map);
+    map.get("more-done").textContent = plainOrDrop(LOG_DONE, "more-done");
+    hooks.listen(map.get("more-done"), "click", () => closeMore());
+    hooks.listen(sheet, "keydown", closesOnEscape(() => closeMore()));
+    if (moreOpen.sheet && moreOpen.sheet.isConnected) moreOpen.sheet.replaceWith(sheet);
+    else phone.append(sheet);
+    moreOpen.sheet = sheet;
+    const head = map.get("more-head");
+    head.tabIndex = -1;
+    if (focus) head.focus();
+    return sheet;
   }
   /* THE ONE STEPS WRITE. The box's words go through steps-model.cjs's rule first: a refused entry writes nothing. The
      host answers acknowledged or refused, and a save that THROWS has told us nothing, so it is said as unknown, never as
@@ -2941,6 +3063,9 @@ function mountToday(doc, model, options = {}) {
        covers RESTORE_REQUIRED and a device with no store, because in both cases
        the page was given no setup entry at all (S14). */
     if (next === "setup" && !facade.firstRun()) next = "today";
+    /* P9: any screen but Today replaces the page the More sheet stood over, so the sheet is gone with it. P9 round 4
+       (Fable B3): leaving Today also ends the Today visit an inline weigh-in was saved in (weighSavedHere). */
+    if (next !== "today") { moreOpen = null; weighSavedHere = false; }
     /* D2 ROUND 1, FINDING 6 - MOUNT OWNERSHIP, exactly as the gym card's settings lane
        holds it. Leaving a screen INVALIDATES the mount that was on it: any deferred
        work begun there - a save still in flight, a read being retried - finds its token
@@ -3168,6 +3293,8 @@ function mountToday(doc, model, options = {}) {
     /* N2 "LOG TODAY" (Part B) - the one sheet, and the steps lane's opening, so a cell can open the sheet the card
        opens and wait for the lane honestly. */
     openLogToday: () => openLogToday(), logOpen: () => !!logOpen,
+    /* P9 (call 6) - the More sheet the More row opens, so a cell can open it and reach its rows. */
+    openMore: () => openMore(), moreOpen: () => !!moreOpen,
     stepsReady: () => stepsOpening, stepsLane: () => stepsLane, stepsPending: () => stepsSaving, stepsFailure: () => stepsFailure,
     bodyReady: () => bodyOpening, bodyLane: () => bodyLane, bodyFailure: () => bodyFailure,
     sleepCheckInReady: () => screen === "sleep-checkin" ? facade.sleepCheckInViewPending() : facade.sleepCheckInPending(),
@@ -3214,10 +3341,10 @@ function mountToday(doc, model, options = {}) {
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
    tests without touching a document. */
-module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, morningLine, trendLine, dayLabel,
+module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, morningLine, trendLine, trendFigure, MORE_ENTRY, dayLabel,
   calorieGateLine, CALORIE_GATE,
   ARROW, NOT_AVAILABLE, NOT_WIRED, HEADLINE_BASE, HEADLINE_FLOOR, HEADLINE_GUARD,
-  WORKOUT_IN_PROGRESS, WORKOUT_RECORDED_TODAY, REVIEW_WORKOUT,
+  WORKOUT_IN_PROGRESS, WORKOUT_RECORDED_TODAY, REVIEW_WORKOUT, START_WORKOUT,
   WORKOUT_CANNOT_OPEN, WHY_WORKOUT_CANNOT_OPEN, NO_LOCAL_STORE,
   UNFINISHED_WORKOUT, CLOSE_UNFINISHED_WORKOUT,
   CHECKIN_RECORDED_TODAY, CHECKIN_NO_STORE_SHORT, CHECKIN_NO_STORE,

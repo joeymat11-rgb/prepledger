@@ -470,13 +470,23 @@ test('P1 — Today renders every state it can reach without a dash', async (t) =
     assert.equal(shown, plainCopy('This morning ✓ 191.7 lb · ' + note));
     assert(shown.includes('damped in trend'), 'the engine note is still whole: ' + shown);
     assertNoDashOnScreen(kit.doc, 'Today, with a reading');
+    /* P9 (call 3; supersession pending): after the save the morning card is not drawn, and the reading and its note
+       are said in the Log today sheet's Weight row, so the note is held to the same rule there. */
+    assert.equal(kit.doc.querySelector('#card-weigh').hidden, true, 'P9: the morning card is not drawn once saved');
+    kit.api.openLogToday();
+    const kept = kit.doc.querySelector('[data-slot="log-weight-state"]').textContent;
+    assert.equal(kept, plainCopy('191.7 lb \u00b7 ' + note), 'P9: the sheet says the reading and the engine note');
+    assert(kept.includes('damped in trend'), 'P9: the engine note is still whole in the sheet: ' + kept);
+    assertNoDashOnScreen(kit.doc, 'the Log today sheet, with a reading');
     kit.close();
   });
 
   await t.test('the plan explanation, which is the engine writing at length', async () => {
     const kit = await todayScreen();
     await weighIn(kit, 179.4);
-    kit.doc.querySelector('[data-go="why"]').click();
+    /* P9 (call 6): Why this plan? is a row of the More sheet Today's one More row opens */
+    kit.doc.querySelector('[data-slot="more-entry"]').click();
+    kit.doc.querySelector('[data-slot="more-sheet"] [data-go="why"]').click();
     const bodies = [...kit.doc.querySelectorAll('#phone .macro-row p')].map((p) => p.textContent);
     assert(bodies.length >= 5, 'the whole explanation is on screen');
     assert(bodies.join(' ').length > 400, 'and it is the long form');

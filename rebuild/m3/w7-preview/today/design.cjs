@@ -138,8 +138,13 @@ const APPROVED_COPY = Object.freeze([
      app named the same thing differently. Each is on the board (app/app.html) and in the
      shipped template: the Recovery row (board #recovery, state T-26), the Talk row (board
      #talk-today, T-31), the header pill (board .pill, shown only over the sample athlete,
-     T-02/T-04) and the weigh-in field (board #weigh-form label and placeholder, T-42). */
-  "Recovery check in", "Optional. How are you feeling?",
+     T-02/T-04) and the weigh-in field (board #weigh-form label and placeholder, T-42).
+     P9 (PM, the Today repeats; call 2): the Recovery row left Today with its pinned bar, so its invitation (board
+     #recovery, T-26) is not declared here: a declaration the screen no longer says would fail the binding. The
+     check-in is the Log today card's Check in, whose sheet row opens the same recovery screen. P9 round 2
+     (DECISIONS:1003 (2)): wherever Log today is not on the page the More sheet's first row is the Recovery row's
+     title, in the board's words, so the title is declared again, as it was. */
+  "Recovery check in",
   "example", "Example numbers, not your data", "Your weight in pounds", "Your weight",
   "Back to my plan", "Today", "Your food plan.",
   "Your agreed daily targets, together in one place.",

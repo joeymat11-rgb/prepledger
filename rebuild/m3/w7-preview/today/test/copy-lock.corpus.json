@@ -4720,6 +4720,13 @@
    "lists": []
   },
   {
+   "text": "More",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+   },
+   "lists": []
+  },
+  {
    "text": "Move down",
    "files": {
     "rebuild/m3/w7-preview/today/routine-model.mjs": 1
@@ -5542,16 +5549,6 @@
    "lists": []
   },
   {
-   "text": "Optional. How are you feeling?",
-   "files": {
-    "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/screens.template.html": 1
-   },
-   "lists": [
-    "APPROVED_COPY"
-   ]
-  },
-  {
    "text": "Optional. Skip anything you like, and change it later.",
    "files": {
     "rebuild/m3/w7-preview/measure/measure-view.mjs": 1
@@ -6026,8 +6023,7 @@
   {
    "text": "Resume ",
    "files": {
-    "rebuild/m3/w7-preview/today/design.cjs": 1,
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1
+    "rebuild/m3/w7-preview/today/design.cjs": 1
    },
    "lists": [
     "RUNTIME_COPY"
@@ -6670,13 +6666,6 @@
    "lists": []
   },
   {
-   "text": "Start ",
-   "files": {
-    "rebuild/m3/w7-preview/today/today-app.cjs": 1
-   },
-   "lists": []
-  },
-  {
    "text": "Start again",
    "files": {
     "rebuild/m3/w7-preview/today/coach-app.mjs": 1
@@ -6718,6 +6707,13 @@
    "text": "Start using Earned",
    "files": {
     "rebuild/m3/w7-preview/today/setup-model.mjs": 1
+   },
+   "lists": []
+  },
+  {
+   "text": "Start workout",
+   "files": {
+    "rebuild/m3/w7-preview/today/today-app.cjs": 1
    },
    "lists": []
   },

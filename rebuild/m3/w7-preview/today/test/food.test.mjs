@@ -1488,7 +1488,12 @@ test('N2B.1 - Today carries ONE Log today card whose ticks are read from the rec
   assert.equal(page.doc.querySelector('#phone [data-go="sleep"]'), null, 'the quiet Sleep link folded into the card');
   assert.equal(page.doc.querySelector('#phone [data-slot="sleep-entry"]'), null);
   assert(page.doc.querySelector('#phone #card-weigh'), 'the inline weigh-in card stays (ruling 5)');
-  assert(page.doc.querySelector('#phone #recovery'), 'the check-in row stays in the stack (ruling 4)');
+  /* P9 (PM, the Today repeats; call 2; supersession pending): was "the check-in row stays in the stack (ruling 4)". The
+     Recovery row and the stack are gone from Today; the check-in is this card's Check in, ticked from the record and
+     opened from its sheet's Check in row. */
+  assert.equal(page.doc.querySelector('#phone #recovery'), null, 'P9: no Recovery row on Today');
+  assert.equal(page.doc.querySelector('#phone .stack'), null, 'P9: no fixed stack on Today');
+  assert(page.pick('log-ticks').textContent.includes(N2B.LOG_ITEMS.checkin), 'P9: the check-in is named on the card');
   page.api.dispose();
   /* the same device once a count is recorded there: the Steps tick, read from the lane, and no other tick moves */
   const host = await createStepsHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
@@ -1872,7 +1877,8 @@ test('P7.5 - the stylesheet: a 3:1 focus ring everywhere, gold ticks, a dimmed b
    before the ruling (the check-in went back to Today alone). */
 test('P7.6 - back on Today from the check-in reached from the sheet, the sheet opens again; from Today itself it does not', async () => {
   const page = screenOn({ model: cleanModel() });
-  page.api.openLogToday();
+  click(page, page.doc.querySelector('#phone #card-log'));
+  assert.equal(page.api.logOpen(), true, 'the Log today card opens the sheet');
   click(page, page.pick('log-checkin-go'));
   assert.equal(page.api.screen(), 'recovery');
   assert.equal(page.api.logOpen(), false);
@@ -1881,11 +1887,30 @@ test('P7.6 - back on Today from the check-in reached from the sheet, the sheet o
   assert.equal(page.api.logOpen(), true, 'back from the check-in reopens the sheet');
   assert.equal(page.doc.activeElement, page.pick('log-head'));
   click(page, page.pick('log-done'));
-  click(page, page.doc.querySelector('#phone #recovery'));
-  assert.equal(page.api.screen(), 'recovery', 'the check-in reached from Today\'s own row');
-  click(page, page.doc.querySelector('#phone [data-go="today"]'));
-  assert.equal(page.api.logOpen(), false, 'goes back to Today alone');
+  assert.equal(page.api.screen(), 'today');
+  assert.equal(page.api.logOpen(), false, 'Done leaves Today alone');
+  assert.equal(page.doc.querySelector('#phone [role="dialog"]'), null, 'no sheet over it');
+  /* P9 (call 2; supersession pending): was "the check-in reached from Today's own row" (#recovery). Today has no such
+     row now (asserted), so the other half of the rule is held over the one other tap that reaches the check-in without
+     the Log today sheet (P9 round 4, Fable A2: a real tap, not a bare route): on a Today with no Log today card, the
+     More sheet's Recovery check in row. Back from it goes to Today alone; the Log sheet's way back is not inherited. */
+  assert.equal(page.doc.querySelector('#phone #recovery'), null, 'P9: no Recovery row on Today');
   page.api.dispose();
+  const real = cleanModel();
+  const model = Object.create(real);
+  Object.defineProperty(model, 'read', { value: () => ({ ...real.read(), blocked: true,
+    blockedCopy: 'This device\u2019s record did not verify. Nothing on this screen is a value.' }) });
+  const bare = screenOn({ model });
+  assert.equal(bare.doc.querySelector('#phone #card-log').hidden, true, 'precondition: no Log today card');
+  click(bare, bare.pick('more-entry'));
+  click(bare, bare.pick('recovery-entry'));
+  assert.equal(bare.api.screen(), 'recovery', 'the check-in reached by a tap, without the Log today sheet');
+  assert.equal(bare.api.logOpen(), false);
+  click(bare, bare.doc.querySelector('#phone [data-go="today"]'));
+  assert.equal(bare.api.screen(), 'today');
+  assert.equal(bare.api.logOpen(), false, 'goes back to Today alone');
+  assert.equal(bare.doc.querySelector('#phone [role="dialog"]'), null, 'with no sheet over it');
+  bare.api.dispose();
 });
 
 /* POLISH 8 (PM, ui-pass15): the sheet's rows that open another screen are chevron rows, the weight is said once, the
@@ -1965,8 +1990,13 @@ test('P8.4 - the stylesheet: chevron rows, no stray weight gap, the steps line, 
   assert.match(block, /\[data-slot="sleep-modes"\] \{ gap: 12px; margin-top: 10px; margin-bottom: 18px; \}/);
   assert.match(block, /\[data-slot="sleep-modes"\] > \.choice \{ min-height: 44px; padding: 0 16px; font-size: 15px; \}/);
   assert.match(block, /\[data-slot="sleep-times"\] > \.field \+ \.field \{ margin-top: 14px; \}/);
-  assert.match(block, /\.scene-frame\.screen-today > \.view\.ui > \.body\.can-scroll:not\(\.at-end\) \+ \.stack::before \{\s*content: "";[^}]*pointer-events: none; \}/,
-    'a cue above Start while the list continues under it');
+  /* P9 round 2 (DECISIONS:1003; item 4): Today has no stack, so the cue POLISH 8 hung from it is removed as dead; was:
+     this rule pinned here. The same cue, while the list continues below the screen, is the P9 block's, on Today's host
+     (look-cui2's polish 8 D3 cell pins its values and its placing box). */
+  assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, ''), /\.stack::before/, 'no dead stack cue in the polish 8 block');
+  const p9 = chrome.slice(chrome.indexOf('/* ===== P9 (PM'), chrome.indexOf('/* ===== P9: END ===== */'));
+  assert.match(p9, /:has\(> \.body\.can-scroll:not\(\.at-end\)\)::after \{\s*content: "";[^}]*pointer-events: none; z-index: 2; \}/,
+    'a cue while the list continues below the screen, in the chrome Today ships');
   assert.doesNotMatch(block, /\.sleep\b/, 'N2-18: no .sleep class in the chrome');
   assert.doesNotMatch(block, /[^\x00-\x7f]/, 'ASCII');
 });

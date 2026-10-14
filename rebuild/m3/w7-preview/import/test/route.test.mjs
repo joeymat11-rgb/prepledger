@@ -105,6 +105,16 @@ async function openMeasure(win, booted, { pick = true } = {}) {
     trialStart: trial ? trial.textContent : null };
 }
 
+/* P9 (PM, the Today repeats; call 6; supersession pending in the ledger): Today's Import entry is the More sheet's
+   Import my history row, on the same gate (an enrolled installation, once the adoption chain has answered) and with
+   the same two words, so a cell that read it on Today's face opens Today's one More row and reads it in the sheet.
+   null when the sheet carries no Import row, which is how an ungated Today reads. */
+function todayEntry(doc) {
+  if (!slot(doc, 'more-sheet')) { const more = slot(doc, 'more-entry'); if (more) tap(more); }
+  const sheet = slot(doc, 'more-sheet');
+  return sheet ? sheet.querySelector('[data-slot="import-entry"]') : null;
+}
+
 /* ONE TAP, then everything that tap started, then the repaint it asked for.
    `settled()` is the screen's own handle on the work in flight; the explicit
    re-render afterwards is what makes the assertion read the painted screen and
@@ -256,7 +266,7 @@ test('P3-U3 (bar e) - after admission the entry links read History imported, '
     'the pick step is painted after admission');
   assert.equal(slot(doc, 'import-unlock'), null, 'the words step is reachable after admission');
   await booted.api.render('today', true);
-  const todayLink = slot(doc, 'import-entry');
+  const todayLink = todayEntry(doc);   /* P9 (call 6): the More sheet's row */
   assert.equal(todayLink.textContent, Screen.COPY.entryDone,
     'the Today link still offers an import that has already happened');
   tap(todayLink);
@@ -303,7 +313,7 @@ test('P3-U3 (bar e) - after admission the entry links read History imported, '
   const again = await eraFor({ indexedDB, ...scope('second'), live: liveAt(SUMMER.at) });
   const tomorrow = await openPage(again, SUMMER);
   await tomorrow.booted.api.render('today', true);
-  const firstFrame = slot(tomorrow.doc, 'import-entry');
+  const firstFrame = todayEntry(tomorrow.doc);   /* P9 (call 6): the More sheet's row */
   assert.ok(firstFrame, 'the reopened Today frame offers no entry at all');
   assert.equal(firstFrame.textContent, Screen.COPY.entryDone,
     'the FIRST Today frame of a reopened admitted device offers the import again');
@@ -397,8 +407,12 @@ test('P3-U5 - THE UNENROLLED INSTALLATION IS OFFERED NO ROUTE AT ALL: not on '
      lands on, and the first screen of a fresh install on this branch. */
   await fresh.booted.api.render('today', true);
   assert.equal(fresh.booted.api.screen(), 'today', 'the page did not go to Today');
-  assert.equal(slot(doc, 'import-entry'), null,
+  /* P9 (call 6): read in the More sheet Today's More row opens, where the entry would be */
+  assert.equal(todayEntry(doc), null,
     'the unenrolled Today frame offers the import: ' + textOf(doc));
+  assert.ok(slot(doc, 'more-sheet'), 'P9: the More sheet is open, so its rows were really read');
+  assert.deepEqual([...doc.querySelectorAll('[data-go="import"]')], [],
+    'P9: nothing in the open More sheet routes to the import');
   assert.equal(textOf(doc).includes(Screen.COPY.entryNew), false,
     'the two words are painted on the unenrolled Today frame by something else');
   for (let screen = 1; screen <= 6; screen++) {
@@ -468,7 +482,7 @@ test('P3-U5 - THE UNENROLLED INSTALLATION IS OFFERED NO ROUTE AT ALL: not on '
   /* THE GREEN SIDE: the same words, on Today, the moment the first run exists. */
   const enrolled = await phoneDevice({ at: SUMMER.at, day: SUMMER.day });
   await enrolled.booted.api.render('today', true);
-  const link = slot(enrolled.doc, 'import-entry');
+  const link = todayEntry(enrolled.doc);   /* P9 (call 6): the More sheet's row */
   assert.ok(link, 'Today offers no Import link');
   assert.equal(link.textContent, Screen.COPY.entryNew);
   tap(link);
@@ -506,7 +520,7 @@ test('P3-U6 (bar a, ONE STORE) - on the phone\'s own installation the athlete '
   const before = await durable(phone.era);
   assert.equal(before.ops, 1, 'this installation holds more than its first run: ' + before.ops);
   await phone.booted.api.render('today', true);
-  const link = slot(doc, 'import-entry');
+  const link = todayEntry(doc);   /* P9 (call 6): the More sheet's row */
   assert.ok(link, 'Today offers no Import link');
   tap(link);
   await phone.booted.api.render('import', false);
@@ -527,7 +541,7 @@ test('P3-U6 (bar a, ONE STORE) - on the phone\'s own installation the athlete '
   /* FINDING 7: re-entering the route hands back the summary, not the sentence
      that belongs to the import he just confirmed. */
   await phone.booted.api.render('today', true);
-  tap(slot(doc, 'import-entry'));
+  tap(todayEntry(doc));   /* P9 (call 6): the More sheet's row */
   await phone.booted.api.render('import', false);
   const text = textOf(doc);
   assert.ok(text.includes(Screen.COPY.summaryHead), 're-opening shows no summary');

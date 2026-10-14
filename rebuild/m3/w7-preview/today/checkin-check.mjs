@@ -94,7 +94,10 @@ function watch(page) {
   });
   return page;
 }
-async function launch(query = "") {
+/* P9 round 2 (harness, not a law): the shipped plain URL opens a fresh installation on the first run's setup screen
+   (setup-first), which has no Today card to read, so this walk asks for Today by name, as browser-check's preview
+   route does; every promise below is unchanged. */
+async function launch(query = "?screen=today") {
   const context = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport: VIEWPORT });
   const page = watch(context.pages()[0] || await context.newPage());
   await page.goto(url + query, { waitUntil: "load" });
@@ -208,14 +211,30 @@ async function approvedHeight(context) {
   } finally { await page.close(); local.close(); }
 }
 
+/* P9 (PM, the Today repeats; call 2; supersession pending in the ledger): the Recovery row is gone from Today. The
+   check-in is the Log today card's Check in: its sheet's Check in row says the check-in lane's durable fact (the
+   sheet's own "Nothing logged yet." while nothing is recorded, "Recorded today" once it is) and opens the same
+   recovery screen. These read and tap it there, as the athlete does. */
+const checkinState = async (target) => {
+  await target.click("#card-log");
+  const said = await text(target, '[data-slot="log-checkin-state"]');
+  await target.click('[data-slot="log-done"]');
+  await target.waitForSelector('[data-slot="log-sheet"]', { state: "detached" });
+  return said;
+};
+const openCheckIn = async (target) => {
+  await target.click("#card-log");
+  await target.click('[data-slot="log-checkin-go"]');
+};
+
 let failures = 0;
 try {
   /* ---------- launch 1: a blank sheet, answered, one answer cleared ---------- */
   let { context, page } = await launch();
 
-  assert.equal(await text(page, '[data-slot="recovery-state"]'), "",
-    "a fresh device says nothing at all about the check-in");
-  await page.click('[data-go="recovery"]');
+  assert.equal(await checkinState(page), "Nothing logged yet.",
+    "a fresh device says nothing is logged, and claims no check-in");
+  await openCheckIn(page);
   await page.waitForSelector("#phone .checkin");
   assert.match(await phone(page), /A quick check-in\./);
 
@@ -286,8 +305,8 @@ try {
   /* ---------- the reload ---------- */
   await page.reload({ waitUntil: "load" });
   await page.waitForSelector('[data-slot="primary-label"]');
-  assert.equal(await text(page, '[data-slot="recovery-state"]'), "Recorded today");
-  await page.click('[data-go="recovery"]');
+  assert.equal(await checkinState(page), "Recorded today");
+  await openCheckIn(page);
   await page.waitForSelector("#phone .checkin");
   assert.match(await phone(page), /Recorded today at \d\d:\d\d/);
   assert.match(await phone(page), /already recorded on this device/);
@@ -295,18 +314,18 @@ try {
 
   /* ---------- a genuinely new page ---------- */
   const second = watch(await context.newPage());
-  await second.goto(url, { waitUntil: "load" });
+  await second.goto(url + "?screen=today", { waitUntil: "load" });
   await second.waitForSelector('[data-slot="primary-label"]');
-  assert.equal(await text(second, '[data-slot="recovery-state"]'), "Recorded today");
+  assert.equal(await checkinState(second), "Recorded today");
   await noDashes(second, "Today, on a new page, with the check-in recorded");
   await second.close();
 
   /* ---------- THE PROCESS KILL — taskkill /F /T, not a graceful close ---------- */
   await hardKill(context);
   ({ context, page } = await launch());
-  assert.equal(await text(page, '[data-slot="recovery-state"]'), "Recorded today",
+  assert.equal(await checkinState(page), "Recorded today",
     "the check-in did not survive a real process kill");
-  await page.click('[data-go="recovery"]');
+  await openCheckIn(page);
   await page.waitForSelector("#phone .checkin");
   const afterKill = await phone(page);
   assert.match(afterKill, /Recorded today at \d\d:\d\d/);
@@ -344,9 +363,9 @@ try {
     await mod.boot({ today: day });
   }, DAY_TWO);
   await page.waitForSelector('[data-slot="primary-label"]');
-  const today = await text(page, '[data-slot="recovery-state"]');
-  assert.equal(today, "", "yesterday's check-in is not today's");
-  await page.click('[data-go="recovery"]');
+  const today = await checkinState(page);
+  assert.equal(today, "Nothing logged yet.", "yesterday's check-in is not today's");
+  await openCheckIn(page);
   await page.waitForSelector("#phone .checkin");
   const day2 = await phone(page);
   assert.doesNotMatch(day2, /Recorded today at/, "yesterday's answers are not shown as today's");

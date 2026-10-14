@@ -416,13 +416,21 @@ test('P3-X9 - MEASURE FIRST, THEN IMPORT, ON ONE STORE: the athlete opens '
    reset this route to the chooser and drop the bytes. Executed here end to end,
    in ONE page session: a damaged file refuses, and the very next thing he does
    is pick a good one and admit. */
+/* P9 (PM, the Today repeats; call 6; supersession pending in the ledger): Today's Import entry is the More sheet's
+   Import my history row, on the same gate and with the same words, so the cells that tapped it on Today's face open
+   Today's one More row and tap it there, as the athlete does. */
+function todayEntry(doc) {
+  if (!slot(doc, 'more-sheet')) { const more = slot(doc, 'more-entry'); if (more) tap(more); }
+  const sheet = slot(doc, 'more-sheet');
+  return sheet ? sheet.querySelector('[data-slot="import-entry"]') : null;
+}
 test('P3-X10 - A DAMAGED FILE THEN A GOOD ONE, IN ONE PAGE SESSION: the refusal '
   + 'does not trap him on the words step, and no reload is needed', async () => {
   const phone = await phoneDevice({ at: AT, day: DAY });
   const doc = phone.doc;
   const before = await consumers(phone.era, phone.booted);
   await phone.booted.api.render('today', true);
-  const link = slot(doc, 'import-entry');
+  const link = todayEntry(doc);   /* P9 (call 6): the More sheet's row */
   assert.ok(link, 'Today offers no Import link');
   tap(link);
   await phone.booted.api.render('import', false);
@@ -449,7 +457,7 @@ test('P3-X10 - A DAMAGED FILE THEN A GOOD ONE, IN ONE PAGE SESSION: the refusal 
   assert.equal(screen.refusal(), null, 'the refusal is still standing over a new attempt');
   assert.equal(screen.holdingBytes(), false, 'the damaged file is still in the closure');
   /* AND BACK IN, on the same page, through the same link. */
-  tap(slot(doc, 'import-entry'));
+  tap(todayEntry(doc));   /* P9 (call 6): the More sheet's row */
   await phone.booted.api.render('import', false);
   assert.ok(doc.getElementById('import-file'), 'the route did not reopen on the chooser');
   assert.equal(slot(doc, 'import-refusal'), null,
@@ -486,7 +494,7 @@ test('P3-X11 - NO STALE "Working." BESIDE A REFUSAL: the note that said work '
   const phone = await phoneDevice({ at: AT, day: DAY });
   const doc = phone.doc;
   await phone.booted.api.render('today', true);
-  tap(slot(doc, 'import-entry'));
+  tap(todayEntry(doc));   /* P9 (call 6): the More sheet's row */
   await phone.booted.api.render('import', false);
   /* ANOTHER ATHLETE'S FILE, which is refused at the confirm - the one step that
      paints the note. */

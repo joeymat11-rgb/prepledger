@@ -212,7 +212,13 @@ test('RT-04 the routine lane: one save is one dated op, history is never touched
 
 const words = doc => (doc.getElementById('phone') || doc.body).textContent.replace(/\s+/g, ' ');
 async function openEditor(page) {
-  const link = await until(() => slot(page.doc, 'routine-entry'), 'the Change my routine entry');
+  /* P9 (PM, the Today repeats; call 6; supersession pending): the entry is the More sheet's Change my routine row, on
+     the same gate (an enrolled, settled installation with a routine lane), so it is reached through Today's More row;
+     a sheet opened before the adoption answers is painted again with the row when it does. */
+  const link = await until(() => {
+    if (!slot(page.doc, 'more-sheet') && slot(page.doc, 'more-entry')) tap(slot(page.doc, 'more-entry'));
+    return slot(page.doc, 'routine-entry');
+  }, 'the Change my routine entry');
   assert.equal(link.textContent, COPY.entry);
   tap(link);
   await until(() => slots(page.doc, 'routine-row').length, 'the routine list');
@@ -547,7 +553,19 @@ test('RT-12 a training day is marked and laid out workout-first; a rest day keep
   } finally { page.close(); }
   page = await bootOn(indexedDB, 'order', DAY1);               // Wednesday: a rest day
   try {
-    assert.equal(page.doc.querySelector('.body.page').getAttribute('data-day'), 'rest', 'a rest day is marked');
+    const rest = page.doc.querySelector('.body.page');
+    assert.equal(rest.getAttribute('data-day'), 'rest', 'a rest day is marked');
+    /* P9 round 2 (DECISIONS:1003 (7)): on the rest day's card-first face the engine's advice is one whole line (the same
+       node the headline section held), and the status line is not drawn. Round 3 (the PM's style call): that line is the
+       workout card's third line, under its no-session line, in that line's own secondary class (.tcard .sub). */
+    const why = rest.querySelector('[data-slot="instruction-why"]');
+    const count = rest.querySelector('[data-slot="workout-count"]');
+    assert.equal(why.parentElement, rest.querySelector('#card-train'), 'the advice is a line of the workout card');
+    assert.equal(why.previousElementSibling, count, 'its third line, under the no-session line');
+    assert.equal(why.className, count.className, 'in that line\'s own secondary style');
+    assert.equal(count.className, 'sub', 'the card\'s .sub line');
+    assert.ok(why.textContent.trim(), 'and says the engine\'s sentence');
+    assert.equal(rest.querySelector('[data-slot="status-line"]').hidden, true, 'no status line over the card');
   } finally { page.close(); }
   const css = fs.readFileSync(new URL('../preview.css', import.meta.url), 'utf8');
   const begin = css.indexOf('/* ===== S15 ROUND 5 POLISH'), end = css.indexOf('/* ===== S15 ROUND 5 POLISH: END');
@@ -555,7 +573,37 @@ test('RT-12 a training day is marked and laid out workout-first; a rest day keep
   const rules = css.slice(begin, end).replace(/\/\*[\s\S]*?\*\//g, '');
   assert.match(rules, /\.body\[data-day="train"\] > \.timeline > #card-train \{ order: -1; \}/, 'the workout card first');
   assert.match(rules, /\.body\[data-day="train"\] > section,[\s\S]*?\{ order: 2; \}/, 'the headline after the cards');
-  assert.doesNotMatch(rules, /data-day="rest"/, 'a rest day keeps the order it had');
+  /* P9 round 2 (DECISIONS:1003 (7); was 'a rest day keeps the order it had', with its headline over the cards): the
+     round 5 block itself still marks no rest rule; the rest day now takes the training day's card-first face in the P9
+     block, rule for rule, with the headline and its label not drawn and the advice a whole quiet line (round 3: the
+     card's own .sub line, which no rule of this file styles, clamps or hides). */
+  assert.doesNotMatch(rules, /data-day="rest"/, 'the round 5 block itself carries no rest rule');
+  const p9b = css.indexOf('/* ===== P9 (PM'), p9e = css.indexOf('/* ===== P9: END');
+  assert.ok(p9b >= 0 && p9e > p9b, 'the P9 block is in preview.css');
+  const p9 = css.slice(p9b, p9e).replace(/\/\*[\s\S]*?\*\//g, '');
+  const R = '.scene-frame > .view.ui > .body[data-day="rest"]';
+  for (const [rule, what] of [
+    [R + ' { display: flex; flex-direction: column; }', 'the day is the training day\'s column'],
+    [R + ' > .timeline { order: 1; display: flex; flex-direction: column; }', 'the cards come first'],
+    [R + ' > .timeline > #card-train { order: -1; }', 'the workout card first, as on a training day'],
+    [R + ' > .timeline > [data-slot="week-review"] { order: -1; }', 'the week\'s review next to it, as on a training day'],
+    [R + ' > section,\n' + R + ' > [data-slot="setup-note"] { order: 2; }', 'the headline section after the cards'],
+    [R + ' > .day-foot { order: 3; }', 'the foot after them'],
+    [R + ' > section > :is(.label, .greeting) { display: none; }', 'the plan label and the large headline give way'],
+    [R + ' #card-weigh:has(> #weigh-form) > .title {\n  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }',
+      'the weigh row is one row, its label kept for assistive technology, as on a training day'],
+  ]) assert.ok(p9.includes(rule), what + ': ' + rule.split('\n')[0]);
+  /* round 3: the advice takes the card's secondary line's look, the pack's own .tcard .sub (its size and colour), and no
+     rule anywhere in preview.css names it, so nothing restyles, clamps or hides it on the rest day */
+  const pack = fs.readFileSync(new URL('../../../../m1/approved-2026-09-18/app/app.css', import.meta.url), 'utf8');
+  const sub = /\.tcard \.sub \{([^}]*)\}/.exec(pack);
+  assert.ok(sub && /font-size: 13px/.test(sub[1]) && /color: var\(--muted\)/.test(sub[1]), 'the card\'s secondary line: ' + (sub && sub[1]));
+  assert.doesNotMatch(sub[1], /line-clamp|ellipsis|nowrap|overflow|max-height/, 'which wraps whole');
+  const code = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const naming = code.split('}').filter((r) => /instruction-why/.test(r.split('{')[0]));
+  assert.deepEqual(naming.map((r) => r.split('{')[0].trim()),
+    ['.scene-frame > .view.ui > .body[data-day="train"] > section > :is(.label, .greeting, [data-slot="instruction-why"])'],
+    'the only rule naming the advice is the training day\'s, which hides it in its section; none reaches it in the card');
   assert.match(rules, /\.numerals \.value input \{[^}]*border-bottom: 1px solid var\(--line-gold\)/, 'the set boxes are drawn');
   assert.match(rules, /#machine \{[^}]*z-index: 1;[^}]*margin-bottom/, 'the machine row stands clear of the effort row');
   assert.doesNotMatch(rules, /#[0-9a-f]{3,8}\b|rgba?\(/i, 'no colour is invented');
@@ -576,9 +624,18 @@ test('RT-13 round 6: Today is workout-first with its controls at the foot; the s
   try {
     const day = page.doc.querySelector('.body.page');
     assert.equal(day.getAttribute('data-day'), 'train', 'a training day is marked');
+    /* P9 (call 6; supersession pending): was "measure-tile, import-entry and routine-entry are each one of the day's
+       own controls". They are rows of the More sheet now; the day's own control at its foot is the one More row,
+       and the sheet it opens carries all three on an enrolled, settled installation with a routine lane. */
+    const more = day.querySelector(':scope > [data-slot="more-entry"]');
+    assert.ok(more, 'the More row is one of the day\'s own controls');
+    for (const slot of ['measure-tile', 'import-entry', 'routine-entry'])
+      assert.equal(day.querySelector('[data-slot="' + slot + '"]'), null, slot + ' is not on the day\'s face');
+    await page.booted.api.ready;
+    more.click();
     for (const slot of ['measure-tile', 'import-entry', 'routine-entry']) {
-      const node = day.querySelector(':scope > [data-slot="' + slot + '"]');
-      assert.ok(node, slot + ' is one of the day\'s own controls');
+      const node = page.doc.querySelector('[data-slot="more-sheet"] [data-slot="' + slot + '"]');
+      assert.ok(node, slot + ' is a row of the More sheet');
     }
     const build = page.doc.querySelector('[data-slot="build-id"]');
     assert.ok(build && build.textContent.trim(), 'the build line is still in the page for the problem report');

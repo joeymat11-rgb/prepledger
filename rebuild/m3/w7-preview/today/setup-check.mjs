@@ -414,8 +414,10 @@ const opsInStore = (page) => page.evaluate(async () => {
    the next run's kill count meaningless. */
 let failures = 0;
 try {
-  /* ---------- launch 1: Today offers the first run, and the flow is reachable ---------- */
-  let { context, page } = await launch();
+  /* ---------- launch 1: Today offers the first run, and the flow is reachable ----------
+     P9 round 2 (harness, not a law): the shipped plain URL opens a fresh installation straight on the setup screen
+     (setup-first), so the Today that offers the first run is asked for by name, as browser-check's preview route is. */
+  let { context, page } = await launch("?screen=today");
   live = context;
   assert.equal(await page.evaluate(() =>
     document.querySelector('[data-slot="setup-entry"]').hidden), false,
@@ -508,12 +510,13 @@ try {
   /* ---------- the whole flow, then the ONE write ----------
      Back to the plain URL: this launch came up on ?screen=setup, and a reload
      would keep that query rather than landing on Today. */
-  await page.goto(url, { waitUntil: "load" });
+  await page.goto(url + "?screen=today", { waitUntil: "load" });   /* P9 round 2 (harness): Today by name, as above */
   await page.waitForSelector('[data-slot="primary-label"]');
   await openSetup(page);
   await runFlow(page, 6);
   await next(page);
-  await page.waitForFunction(() => !!document.querySelector('#phone [data-slot="recovery-state"]'));
+  /* P9 (call 2): Today is recognised by its Log today card; the Recovery row it was recognised by is gone */
+  await page.waitForFunction(() => !!document.querySelector('#phone #card-log'));
   notes.push("the six screens finished and the page landed on Today");
 
   /* C1 (review round 1). The Today he LANDS ON says, in his own words, that his

@@ -134,13 +134,24 @@ const weighInline = async (page, value) => {
    gym.test.mjs "S12b R9" pins all of these on a fixed date, so they never depend on the weekday;
    `owedNow` says which morning this call expects, so the owed branch cannot pass by accident. */
 const NOTHING_SCHEDULED = "Nothing scheduled today, so there is nothing to start.";
+/* P9 round 2 (DECISIONS:1003 (7); was: wait for the instruction headline to be VISIBLE): a training day and a rest day
+   both draw the card-first face, where the large headline gives way, so "Today has mounted" is the headline slot in the
+   page (its words are still read below) and the workout card drawn on the screen. */
+const todayMounted = async (target) => {
+  await target.waitForSelector('[data-slot="instruction"]', { state: "attached" });
+  await target.waitForSelector("#card-train");
+};
 const workoutAction = async (page, where, owedNow, kind) => {
   const s = await page.evaluate(() => {
     const q = (name) => document.querySelector('[data-slot="' + name + '"]');
     const p = q("primary");
+    const save = q("weigh-save"), status = q("status-line"), title = q("workout-title");
     return { line: (q("workout-count").textContent || "").trim(), label: (q("primary-label").textContent || "").trim(),
-      status: (q("status-line").textContent || "").trim(), drawn: !!p && !p.hidden && p.getClientRects().length > 0,
-      live: !!p && !p.disabled, owed: !!document.querySelector("#weigh-form #weight") };
+      status: (status.textContent || "").trim(), drawn: !!p && !p.hidden && p.getClientRects().length > 0,
+      live: !!p && !p.disabled, owed: !!document.querySelector("#weigh-form #weight"),
+      statusDrawn: !status.hidden && status.getClientRects().length > 0,
+      saveLive: !!save && !save.disabled && save.getClientRects().length > 0,
+      title: title ? (title.textContent || "").trim() : "", titleDrawn: !!title && title.getClientRects().length > 0 };
   });
   const why = /^Why today.s workout cannot open$/, weigh = /weigh|weight|scale/i;
   const said = where + ": " + JSON.stringify(s);
@@ -149,10 +160,14 @@ const workoutAction = async (page, where, owedNow, kind) => {
   assert.equal(s.line === "No session is scheduled today." ? "rest" : "session", kind,
     where + ": the declared day is a " + kind + " day: " + said);
   if (s.line === "No session is scheduled today.") {
-    assert.equal(s.status, NOTHING_SCHEDULED, "a day with no session says T-12's line: " + said);
+    /* P9 round 2 (DECISIONS:1003 (7); was: T-12's status line drawn, and the weigh-in the drawn, live primary while
+       owed): T-12's words stay in the slot and the drawn workout card says the day has no session, once; while the
+       weight is owed the morning card's own row is the one live tap and no second weigh-in button is drawn. */
+    assert.equal(s.status, NOTHING_SCHEDULED, "a day with no session keeps T-12's words in the slot: " + said);
+    assert(!s.statusDrawn, "and the line is not drawn over the workout card that says it: " + said);
     if (s.owed) {
-      assert.match(s.label, weigh, "no session and the weight owed: the primary is the weigh-in: " + said);
-      assert(s.drawn && s.live, "and it is drawn and can be pressed: " + said);
+      assert(!s.drawn, "no session and the weight owed: no second weigh-in button on the workout card: " + said);
+      assert(s.saveLive, "the morning card's own Save is drawn and can be pressed: " + said);
     } else {
       assert(!s.drawn && !s.live, "no session and nothing owed: no workout primary is drawn: " + said);
     }
@@ -161,7 +176,9 @@ const workoutAction = async (page, where, owedNow, kind) => {
     assert.match(s.label, why, "a refused workout line makes the primary its Why route: " + said);
     assert(s.drawn, "and it is drawn: " + said);
   } else {
-    assert.match(s.label, /^Start \S/, "a day with a session offers Start: " + said);
+    /* P9 round 2 (DECISIONS:1003 (1); was /^Start \S/, "Start <title>"): Start, on the card that names the session */
+    assert.equal(s.label, "Start workout", "a day with a session offers Start: " + said);
+    assert(s.title && s.titleDrawn, "and the drawn workout card names the session: " + said);
     assert.doesNotMatch(s.label, weigh, "and the weigh-in never takes it: " + said);
     assert(s.drawn, "and it is drawn: " + said);
   }
@@ -204,7 +221,7 @@ try {
   await page.goto(todayUrl, { waitUntil: "load" });
 
   await stand(page);
-  await page.waitForSelector('[data-slot="instruction"]');
+  await todayMounted(page);
   await namedWait(page, "ink-scene-ready",
     () => window.__earnedScene && window.__earnedScene.snapshot().ready);
   const sceneWitness = await page.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
@@ -247,7 +264,7 @@ try {
     const dawn = await dawnContext.newPage();
     await dawn.goto(url + "?theme=dawn&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
     await stand(dawn);
-    await dawn.waitForSelector('[data-slot="instruction"]');
+    await todayMounted(dawn);
     await namedWait(dawn, "dawn-scene-ready",
       () => window.__earnedScene && window.__earnedScene.snapshot().ready);
     await dawn.evaluate(() => document.fonts.ready);
@@ -291,7 +308,7 @@ try {
       const ours = await chromeContext.newPage();
       await ours.goto(url + "?theme=" + theme + "&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
       await stand(ours);
-      await ours.waitForSelector('[data-slot="instruction"]');
+      await todayMounted(ours);
       const actual = await chromeLook(ours);
       await ours.close();
       assert(expected, "the approved pack draws a status bar with chrome=1 (" + theme + ")");
@@ -337,6 +354,14 @@ try {
   await recorded(page);
   const logged = (await page.textContent('[data-slot="morning"]')).trim();
   assert.equal(logged, "This morning ✓ 179.4 lb", "the weigh-in reached the screen");
+  /* P9 (PM, the Today repeats; call 3; supersession pending): once the weight is saved the morning card is not drawn,
+     and the Log today card on Today's face ticks Weight from the same durable reading. */
+  /* P9 round 4 (Fable B3; was: the morning card is not drawn once saved): saved on the card's own row, the card stays
+     for the rest of this Today visit in its saved state (the reading above, no box); the reload below is a fresh Today,
+     which draws no card and ticks Weight. */
+  assert.equal(await page.$eval("#card-weigh", (el) => el.hidden), false, "P9: the morning card confirms the save it took");
+  assert.equal(await page.$("#weigh-form"), null, "P9: in its saved state, with no box");
+  assert(await page.$('[data-slot="log-ticks"] [data-item="weight"][data-done]'), "P9: Log today ticks Weight");
   const trend = (await page.textContent('[data-slot="trend"]')).trim();
   const after = (await page.textContent('[data-slot="instruction"]')).trim();
   assert.notEqual(after, instruction.trim(), "the engine's instruction changed");
@@ -356,7 +381,10 @@ try {
   const sweep = async (target, label) => {
     const rows = [];
     for (const title of HEADLINES) {
-      const row = await target.evaluate(async (text) => {
+      /* P9 round 2 (harness): Today repaints as each of its lanes opens, which can replace the headline between the
+         write and the measure; such a row is measured again (at most five times) and never counted unmeasured. */
+      let row = null;
+      for (let attempt = 0; attempt < 5 && !(row && row.live); attempt += 1) row = await target.evaluate(async (text) => {
         const view = document.querySelector(".view");
         const headline = document.querySelector('[data-slot="instruction"]');
         const primary = document.querySelector('[data-slot="primary"]');
@@ -368,14 +396,21 @@ try {
         return { bottom: Math.round(box.bottom - top), viewport: Math.round(view.clientHeight),
           exactRoom: view.clientHeight - (box.bottom - top),
           size: Math.round(parseFloat(getComputedStyle(headline).fontSize)),
-          height: Math.round(headline.getBoundingClientRect().height) };
+          height: Math.round(headline.getBoundingClientRect().height),
+          live: headline.isConnected && headline.textContent === text,
+          drawn: headline.getClientRects().length > 0 };
       }, title);
       /* CUI1 review D1: the assertions below are unchanged; the unrounded headroom is
          only REPORTED, so a platform's real margin is visible in its log. */
+      assert(row.live, label + ': "' + title + '" was written into the live headline slot (the sweep measured the page)');
       assert(row.bottom <= row.viewport,
         label + ': "' + title + '" pushes the primary action out of the viewport (bottom '
         + row.bottom + " > " + row.viewport + ", headline at " + row.size + "px)");
-      assert(row.size >= 33,
+      /* P9 round 2 (DECISIONS:1003 (7); was: the headline's computed size at or above the 33 px floor on the face): on
+         the card-first face, a training day's and a rest day's alike, the large headline is not drawn, so no engine
+         title can move Start (the bottom assertion above, for every title); where a headline IS drawn the floor holds. */
+      assert.equal(row.drawn, false, label + ': "' + title + '" is not drawn on the card-first face');
+      assert(!row.drawn || row.size >= 33,
         label + ': "' + title + '" drove the headline below the 33px floor (' + row.size + "px)");
       rows.push({ title, room: row.viewport - row.bottom, exactRoom: row.exactRoom, size: row.size });
     }
@@ -388,13 +423,32 @@ try {
 
   const sweepContext = await browser.newContext({ viewport: VIEWPORT });
   const sweepPage = await sweepContext.newPage();
+  /* P9 round 2 (harness): the sweep waits for the day to settle (the workout card's line is the day's own, not the
+     loading line), so a settle repaint cannot replace the headline it is writing into mid-sweep. */
+  const settled = async (target) => {
+    await target.waitForFunction(() => {
+      const line = document.querySelector('[data-slot="workout-count"]');
+      return !!line && !/loading/.test(line.textContent);
+    }, null, { timeout: 30000 });
+    /* and Today's day node has stood unreplaced for a second (its lanes have opened) */
+    for (let i = 0; i < 30; i += 1) {
+      const still = await target.evaluate(async () => {
+        const before = document.querySelector("#phone .body");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return before === document.querySelector("#phone .body");
+      });
+      if (still) break;
+    }
+  };
   await sweepPage.goto(todayUrl, { waitUntil: "load" });
   await stand(sweepPage);
   await sweepPage.waitForSelector('[data-slot="primary"]');
+  await settled(sweepPage);
   const sweptBefore = await sweep(sweepPage, "before a weigh-in");
   await sweepPage.reload({ waitUntil: "load" });
   await stand(sweepPage);
   await sweepPage.waitForSelector('[data-slot="primary"]');
+  await settled(sweepPage);
   await weighInline(sweepPage, "180.6");
   await recorded(sweepPage);
   const sweptAfter = await sweep(sweepPage, "after a weigh-in");
@@ -419,11 +473,23 @@ try {
   /* S12b R6 (DECISIONS:915 (3)) took the Coach entry off Today; COACH V1 (owner ruling 2026-10-12) brings back one
      quiet link to it, with no marker. */
   assert.equal(await page.$('[data-slot="coach-state"]'), null, "no Coach marker on Today");
-  assert.equal((await page.$('[data-go="coach"]')).length, 1, "one Coach entry on Today");
-  for (const name of ["recovery-state", "nutrition-state"]) {
+  /* P9 round 2 (harness): page.$ returns one handle, never a list, so this read undefined; $$ counts the entries. */
+  assert.equal((await page.$$('[data-go="coach"]')).length, 1, "one Coach entry on Today");
+  for (const name of ["nutrition-state"]) {
     assert.equal((await page.textContent('[data-slot="' + name + '"]')).trim(), "",
       "a blank " + name + " must be blank on Today's face, never 'none' and never 'not wired'");
   }
+  /* P9 (PM, the Today repeats; call 2; supersession pending): was `recovery-state` on Today's Recovery row. The row is
+     gone; the check-in is the Log today card's Check in, which is not ticked while nothing is recorded, and the sheet one
+     tap opens says so in its Check in row in the sheet's own words, never 'none' and never 'not wired'. */
+  assert.equal(await page.$('[data-slot="recovery-state"]'), null, "P9: no Recovery row on Today");
+  assert.equal(await page.$('[data-slot="log-ticks"] [data-item="checkin"][data-done]'), null, "P9: a blank check-in is not ticked");
+  await page.click("#card-log");
+  const checkinRow = (await page.textContent('[data-slot="log-checkin-state"]')).trim();
+  assert.equal(checkinRow, "Nothing logged yet.", "P9: the sheet's Check in row says nothing is logged: " + checkinRow);
+  assert.doesNotMatch(checkinRow, /none|not wired/i, "P9: never 'none' and never 'not wired'");
+  await page.click('[data-slot="log-done"]');
+  await page.waitForSelector('[data-slot="log-sheet"]', { state: "detached" });
 
   /* review F1: a spike reading must carry the engine's own note beside it. Checked on a
      second browser profile so it does not disturb the reading above. */
@@ -432,6 +498,7 @@ try {
   await spikePage.goto(todayUrl, { waitUntil: "load" });
   await stand(spikePage);
   await spikePage.waitForSelector('[data-slot="primary"]');
+  await settled(spikePage);   /* P9 round 2 (harness): the lanes' repaints are done before the row is typed into */
   await weighInline(spikePage, "191.7");
   await recorded(spikePage);
   const spikeLine = (await spikePage.textContent('[data-slot="morning"]')).trim();
@@ -440,6 +507,13 @@ try {
   /* P1: the engine's own note is the sharpest case for the owner's rule, because the
      accepted writer really does write "spike — damped in trend". */
   await sweepForDashes(spikePage, "Today, with the engine's spike note beside the reading");
+  /* P9 (call 3; supersession pending): the morning card is not drawn once saved, so the reading and the engine's note
+     are said where Today's face sends him, the Log today sheet's Weight row, and swept there too. */
+  await spikePage.click("#card-log");
+  const spikeKept = (await spikePage.textContent('[data-slot="log-weight-state"]')).trim();
+  assert(spikeKept.startsWith("191.7 lb ") && spikeKept.length > "191.7 lb ".length + 2,
+    "P9: the sheet says the reading and the engine's note beside it: " + spikeKept);
+  await sweepForDashes(spikePage, "the Log today sheet, with the engine's spike note beside the reading");
   // review F8: an impossible weight is refused in words and recorded nowhere.
   await spikeContext.close();
 
@@ -448,6 +522,7 @@ try {
   await refusePage.goto(todayUrl, { waitUntil: "load" });
   await stand(refusePage);
   await refusePage.waitForSelector('[data-slot="primary"]');
+  await settled(refusePage);   /* P9 round 2 (harness), as above */
   await weighInline(refusePage, "10000");
   await namedWait(refusePage, "impossible-weight-refusal",
     () => document.querySelector("#weigh-note").textContent.trim().length > 0);
@@ -468,18 +543,46 @@ try {
     await restPage.goto(todayUrl, { waitUntil: "load" });
     await stand(restPage, REST);
     await restPage.waitForSelector('[data-slot="morning"]');
+    await settled(restPage);
     await workoutAction(restPage, "the rest day, the weight owed", true, "rest");
+    /* P9 round 2 (DECISIONS:1003 (7); was: the weigh-in primary drawn inside the viewport, opening the weigh-in sheet):
+       the rest day's card-first face asks for the weight once, by the morning card's own row, whose Save is inside the
+       first viewport; no second weigh-in button is drawn; the large headline and its label are not drawn; the engine's
+       advice is drawn whole directly under the workout card; and nothing scrolls sideways. */
     const restOwed = await restPage.evaluate(() => {
-      const view = document.querySelector(".view"), cta = document.querySelector('[data-slot="primary"]');
-      const top = view.getBoundingClientRect().top, box = cta.getBoundingClientRect();
-      return { bottom: Math.round(box.bottom - top), viewport: Math.round(view.clientHeight) };
+      const view = document.querySelector(".view"), save = document.querySelector('[data-slot="weigh-save"]');
+      const top = view.getBoundingClientRect().top, box = save.getBoundingClientRect();
+      const why = document.querySelector('[data-slot="instruction-why"]'), card = document.querySelector("#card-train");
+      const drawn = (el) => !!el && el.getClientRects().length > 0;
+      return { bottom: Math.round(box.bottom - top), viewport: Math.round(view.clientHeight),
+        primaryDrawn: drawn(document.querySelector('[data-slot="primary"]')),
+        headlineDrawn: drawn(document.querySelector('[data-slot="instruction"]')),
+        labelDrawn: drawn(document.querySelector("#phone .body section > .label")),
+        statusDrawn: drawn(document.querySelector('[data-slot="status-line"]')),
+        /* P9 round 3 (the PM's style call): the advice is the workout card's third line, under its no-session line, in
+           that line's own size and colour */
+        whyUnderCard: !!why && why.parentElement === card && drawn(why)
+          && why.previousElementSibling === document.querySelector('[data-slot="workout-count"]'),
+        whyWhole: !!why && why.scrollWidth <= why.clientWidth + 1 && why.scrollHeight <= why.clientHeight + 1
+          && getComputedStyle(why).textOverflow !== "ellipsis",
+        whyBelowCard: !!why && Math.round(why.getBoundingClientRect().top)
+          >= Math.round(document.querySelector('[data-slot="workout-count"]').getBoundingClientRect().bottom)
+          && Math.round(why.getBoundingClientRect().bottom) <= Math.round(card.getBoundingClientRect().bottom),
+        whyStyle: !!why && ["fontSize", "color", "lineHeight"].every((k) => getComputedStyle(why)[k]
+          === getComputedStyle(document.querySelector('[data-slot="workout-count"]'))[k]),
+        overflow: Math.round(view.scrollWidth - view.clientWidth) };
     });
-    assert(restOwed.bottom <= restOwed.viewport, "the rest day's weigh-in primary is below the fold: " + JSON.stringify(restOwed));
+    const rested = JSON.stringify(restOwed);
+    assert(restOwed.bottom <= restOwed.viewport, "the rest day's weigh-in Save is below the fold: " + rested);
+    assert.equal(restOwed.primaryDrawn, false, "no second weigh-in button on the rest day's workout card: " + rested);
+    assert.equal(restOwed.headlineDrawn, false, "the rest day's large headline gives way: " + rested);
+    assert.equal(restOwed.labelDrawn, false, "and its plan label: " + rested);
+    assert.equal(restOwed.statusDrawn, false, "no nothing-scheduled line over the card that says it: " + rested);
+    assert(restOwed.whyUnderCard && restOwed.whyBelowCard, "the engine's advice is drawn as the workout card's third line: " + rested);
+    assert(restOwed.whyStyle, "in the no-session line's own size and colour: " + rested);
+    assert(restOwed.whyWhole, "and whole, never cut: " + rested);
+    assert(restOwed.overflow <= 0, "the rest day scrolls sideways: " + rested);
     await sweepForDashes(restPage, "Today, a rest day with the weight owed");
-    await restPage.click('[data-slot="primary"]');
-    await restPage.waitForSelector('[role="dialog"] #morning-weight');
-    await restPage.keyboard.press("Escape");
-    await restPage.waitForSelector('[role="dialog"]', { state: "detached" });
     await weighInline(restPage, "179.8");
     await recorded(restPage);
     await workoutAction(restPage, "the rest day, the morning recorded", false, "rest");
@@ -489,7 +592,8 @@ try {
       return { top: Math.round(box.top - top), bottom: Math.round(box.bottom - top), viewport: Math.round(view.clientHeight),
         overflow: Math.round(view.scrollWidth - view.clientWidth) };
     });
-    assert(restDone.top >= 0 && restDone.bottom <= restDone.viewport, "the rest day's stack is off the first screen: " + JSON.stringify(restDone));
+    /* P9 (call 1): the primary's parent is the workout card now (there is no stack), so this is the card it heads */
+    assert(restDone.top >= 0 && restDone.bottom <= restDone.viewport, "the rest day's workout card is off the first screen: " + JSON.stringify(restDone));
     assert(restDone.overflow <= 0, "the rest day scrolls sideways: " + JSON.stringify(restDone));
     await sweepForDashes(restPage, "Today, a rest day with nothing owed");
   } finally {
@@ -499,7 +603,10 @@ try {
   // A REAL reload of a REAL browser.
   await page.reload({ waitUntil: "load" });
   await stand(page);
-  await page.waitForSelector('[data-slot="morning"]');
+  /* P9 (call 3): once saved the morning card is not drawn; its slot keeps the words and Log today ticks Weight */
+  await page.waitForSelector('[data-slot="morning"]', { state: "attached" });
+  await page.waitForSelector('[data-slot="log-ticks"] [data-item="weight"][data-done]');
+  assert.equal(await page.$eval("#card-weigh", (el) => el.hidden), true, "P9 round 4: a fresh Today draws no morning card");
   assert.equal((await page.textContent('[data-slot="morning"]')).trim(), logged, "the reading survived the reload");
   assert.equal((await page.textContent('[data-slot="trend"]')).trim(), trend, "the trend survived the reload");
 
@@ -507,7 +614,8 @@ try {
   const relaunched = await context.newPage();
   await relaunched.goto(todayUrl, { waitUntil: "load" });
   await stand(relaunched);
-  await relaunched.waitForSelector('[data-slot="morning"]');
+  await relaunched.waitForSelector('[data-slot="morning"]', { state: "attached" });
+  await relaunched.waitForSelector('[data-slot="log-ticks"] [data-item="weight"][data-done]');
   assert.equal((await relaunched.textContent('[data-slot="morning"]')).trim(), logged, "a new page sees the same reading");
   await sweepForDashes(page, "Today, after a real reload");
   await sweepForDashes(relaunched, "Today, on a genuinely new page");
@@ -515,13 +623,21 @@ try {
   /* S12b R6 (DECISIONS:915 (3)): no Coach entry on Today, so the Coach route is not walked from here. */
   for (const [route, where] of [["why", "Why this plan"], ["nutrition", "the nutrition entry"],
     ["recovery", "the recovery check-in"]]) {
-    await relaunched.click('[data-go="' + route + '"]');
+    /* P9 (calls 2 and 6): Why this plan? is a row of the More sheet, and the check-in the Log today sheet's Check in */
+    if (route === "why") {
+      await relaunched.click('[data-slot="more-entry"]');
+      await relaunched.click('[data-slot="more-sheet"] [data-go="why"]');
+    } else if (route === "recovery") {
+      await relaunched.click("#card-log");
+      await relaunched.click('[data-slot="log-checkin-go"]');
+    } else await relaunched.click('[data-go="' + route + '"]');
     await namedWait(relaunched, "route-leaves-today-" + route,
       () => !document.querySelector('[data-slot="kcal-note"]'));
     await sweepForDashes(relaunched, where);
     await relaunched.goto(todayUrl, { waitUntil: "load" });
     await stand(relaunched);
-    await relaunched.waitForSelector('[data-slot="morning"]');
+    await relaunched.waitForSelector('[data-slot="morning"]', { state: "attached" });
+    await settled(relaunched);   /* P9 round 2 (harness): the lanes' repaints are done before the next tap */
   }
 
   const text = await page.textContent("#phone");
@@ -550,6 +666,8 @@ try {
      measured is the thing that does not depend on it. The block must be the eight
      fields, must name this build, and opening it must not make the page scroll
      sideways at either width. */
+  /* P9 (call 6; supersession pending): the control is the More sheet's Report a problem row, one tap from Today's face */
+  await page.click('[data-slot="more-entry"]');
   await page.click('[data-slot="problem-entry"]');
   await page.waitForSelector('[data-slot="problem-text"]', { state: "visible" });
   await namedWait(page, "problem-report-populated", () => {
@@ -606,7 +724,7 @@ try {
   await page.setViewportSize(VIEWPORT);
   await page.reload({ waitUntil: "load" });
   await stand(page);
-  await page.waitForSelector('[data-slot="morning"]');
+  await page.waitForSelector('[data-slot="morning"]', { state: "attached" });   /* P9 (call 3): saved, so not drawn */
 
   /* THE REAL PROCESS KILL (review B2). Everything above ran on a throwaway context;
      this runs on a PERSISTENT profile and kills every chrome.exe of it with
@@ -621,6 +739,7 @@ try {
     await killPage.goto(todayUrl, { waitUntil: "load" });
     await stand(killPage);
     await killPage.waitForSelector('[data-slot="primary"]');
+    await settled(killPage);   /* P9 round 2 (harness), as above */
     await weighInline(killPage, "178.9");
     await recorded(killPage);
     const killedLine = (await killPage.textContent('[data-slot="morning"]')).trim();
@@ -646,7 +765,9 @@ try {
     const after = second.pages()[0] || await second.newPage();
     await after.goto(todayUrl, { waitUntil: "load" });
     await stand(after);
-    await after.waitForSelector('[data-slot="morning"]');
+    /* P9 (call 3): saved, so the morning card is not drawn; its slot keeps the words and Log today ticks Weight */
+    await after.waitForSelector('[data-slot="morning"]', { state: "attached" });
+    await after.waitForSelector('[data-slot="log-ticks"] [data-item="weight"][data-done]');
     assert.equal((await after.textContent('[data-slot="morning"]')).trim(), killedLine,
       "the reading survived a REAL process kill");
     assert.equal((await after.textContent('[data-slot="trend"]')).trim(), killedTrend,
@@ -666,7 +787,8 @@ try {
        scene review hook correctly says "workout". */
     await still.goto(url + "?theme=dawn&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
     await stand(still);
-    await still.waitForSelector('[data-slot="instruction"]');
+    await todayMounted(still);
+    await settled(still);   /* P9 round 2 (harness): the context's lanes and installation are open before leaving Today */
     await namedWait(still, "reduced-bootstrap-scene-ready",
       () => window.__earnedScene && window.__earnedScene.snapshot().ready);
     await still.goto(url + "?theme=dawn&screen=workout&chrome=1&date=board&state=W-18", { waitUntil: "load" });

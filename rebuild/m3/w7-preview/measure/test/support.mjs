@@ -284,8 +284,10 @@ export async function page(fault, { basis, today = FIXTURE.today, measure = null
   try { await api.ready; } catch (_) { /* reported by adoptAthleteState's own catch */ }
   /* Then the screen itself: Today's Measure control is the thing every cell below
      reaches for first, so its arrival is what "this page is up" means here. */
-  await settle(() => pick('measure-tile'),
-    'the Today screen to paint its Measure control after mountToday');
+  /* P9 (PM, the Today repeats; call 6; supersession pending in the ledger): Today's Measure control is the More sheet's
+     Measure row, opened from Today's one More row, so "this page is up" is that row's arrival on Today's face. */
+  await settle(() => pick('more-entry'),
+    'the Today screen to paint its More row (the way to its Measure control) after mountToday');
   await quiet(phone, 'the Today screen to stop changing after mountToday');
   return { dom, doc, api, model, setup, lane, saves, markerSaves, pick, all, phone,
     text: () => doc.getElementById('phone').textContent,
@@ -305,6 +307,9 @@ export async function page(fault, { basis, today = FIXTURE.today, measure = null
        without one the generic change-then-quiet wait stands, and it is only sound for
        a control whose whole effect is one paint. */
     async go(slot, until = null, what = null) {
+      /* P9 (call 6): a control that is a row of Today's More sheet is reached as the athlete reaches it, through
+         Today's one More row first. */
+      if (!pick(slot) && !pick('more-sheet') && pick('more-entry')) pick('more-entry').click();
       await settle(() => pick(slot),
         'the control "' + slot + '" to be on the screen before it is clicked');
       const before = phone();

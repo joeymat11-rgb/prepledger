@@ -497,8 +497,14 @@ test("CV1-1 the Coach entry is a compact row in Today's feed above Start, and it
   assert.equal(entry.parentElement && entry.parentElement.classList.contains("timeline"), true, "inside the feed");
   const start = doc.getElementById("start");
   assert(start, "Start is on Today");
-  assert.equal(Boolean(entry.compareDocumentPosition(start) & 4), true, "the entry comes before Start");
-  assert.equal(start.closest(".stack").querySelector('[data-go="coach"]'), null, "nothing of the coach sits in Start's stack");
+  /* P9 (PM, the Today repeats; call 1; supersession pending): was "the entry comes before Start" and "nothing of the
+     coach sits in Start's stack", from when Start was pinned in a stack under the feed. Start is now the workout card's
+     own primary, at the head of the feed, so the entry comes after it in the same feed, nothing is pinned under the
+     day, and nothing of the coach sits in the card that holds Start. */
+  assert.equal(start.closest("#card-train") !== null, true, "Start is the workout card's own");
+  assert.equal(Boolean(start.compareDocumentPosition(entry) & 4), true, "the entry follows Start in the feed");
+  assert.equal(phone.querySelector(".stack"), null, "nothing is pinned under the day");
+  assert.equal(start.closest("#card-train").querySelector('[data-go="coach"]'), null, "nothing of the coach sits in Start's card");
   entry.click();
   await new Promise((r) => setTimeout(r, 0));
   const chips = [...phone.querySelectorAll("#prompts .prompt")];

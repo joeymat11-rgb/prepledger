@@ -266,8 +266,11 @@ try {
   await page.waitForSelector("#weigh-form", { state: "detached" });
   await page.waitForFunction(() => /✓/.test(document.querySelector('[data-slot="morning"]').textContent));
   const startLabel = await text(page, '[data-slot="primary-label"]');
-  assert.match(startLabel, /^Start /, "after the weigh-in the primary action starts today's workout: " + startLabel);
-  const sessionTitle = startLabel.replace(/^Start /, "");
+  /* P9 round 2 (DECISIONS:1003 (1); was /^Start / and the session's title read off the label): Start names the tap, and
+     the session's title is read off the workout card that names it. */
+  assert.equal(startLabel, "Start workout", "after the weigh-in the primary action starts today's workout: " + startLabel);
+  const sessionTitle = await text(page, '[data-slot="workout-title"]');
+  assert.match(sessionTitle, /\S/, "the workout card names the session");
   assert.match(await text(page, '[data-slot="workout-count"]'), /Your set targets are ready$/);
   await noDashes(page, "Today, with a reading and a workout ready");
 
@@ -381,7 +384,9 @@ try {
   assert.match(await text(page, '[data-slot="workout-count"]'), /Workout in progress$/,
     "Today knows a workout is in progress after the browser was KILLED");
   const resumeLabel = await text(page, '[data-slot="primary-label"]');
-  assert.equal(resumeLabel, "Resume " + sessionTitle, "the resume action is on Today: " + resumeLabel);
+  /* P9 round 2 (DECISIONS:1003 (1); was "Resume " + the session's title): Resume names the tap, under the same card */
+  assert.equal(resumeLabel, "Resume today\u2019s workout", "the resume action is on Today: " + resumeLabel);
+  assert.equal(await text(page, '[data-slot="workout-title"]'), sessionTitle, "under the card that names the same session");
   assert.equal(await text(page, '[data-slot="morning"]'), "This morning ✓ 179.4 lb",
     "REVIEW B2: the morning reading survived the kill because it is in the encrypted store");
   assert.match(await text(page, '[data-slot="trend"]'), /^Weight trend \d+\.\d lb/,

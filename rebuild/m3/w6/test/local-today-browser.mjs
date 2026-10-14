@@ -199,12 +199,15 @@ try {
   await page.waitForFunction(() => /✓/.test(document.querySelector('[data-slot="morning"]').textContent));
   assert.equal(await text(page, '[data-slot="morning"]'), "This morning ✓ 179.4 lb");
   const startLabel = await text(page, '[data-slot="primary-label"]');
-  assert.match(startLabel, /^Start /, startLabel);
+  /* P9 (DECISIONS:1003 (1); was /^Start / with the session's title read off the label): Start names the tap, and the
+     workout card it sits in names the session. */
+  assert.equal(startLabel, "Start workout", startLabel);
+  const sessionTitle = await text(page, '[data-slot="workout-title"]');
+  assert.match(sessionTitle, /\S/, "the workout card names the session");
   passed();
 
   /* 3. START AND ONE SET, through the shipped gym card. Both write paths have
      now run in the same page load, into the same sealed generation. */
-  const sessionTitle = startLabel.replace(/^Start /, "");
   await page.click('[data-slot="primary"]');
   await page.waitForSelector('[data-slot="log"]');
   await page.click(".choice:nth-child(3)");
@@ -232,7 +235,9 @@ try {
     "the morning reading survived a REAL process kill");
   assert.match(await text(page, '[data-slot="workout-count"]'), /Workout in progress$/,
     "and so did the workout");
-  assert.equal(await text(page, '[data-slot="primary-label"]'), "Resume " + sessionTitle);
+  /* P9 (DECISIONS:1003 (1); was "Resume " + the session's title): Resume names the tap, under the same card */
+  assert.equal(await text(page, '[data-slot="primary-label"]'), "Resume today" + String.fromCharCode(0x2019) + "s workout");
+  assert.equal(await text(page, '[data-slot="workout-title"]'), sessionTitle, "under the card that names the same session");
   await page.click('[data-slot="primary"]');
   await page.waitForSelector('[data-slot="log"]');
   assert.equal(await text(page, '[data-slot="entry-title"]'), "Today\u2019s set",

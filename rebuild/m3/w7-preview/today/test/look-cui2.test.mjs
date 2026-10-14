@@ -108,14 +108,36 @@ test("C-UI-2 R3: the board's words on Today (DECISIONS:820 (2))", () => {
      through today's plan"). The Coach entry (the board's Talk row) has left Today until a live coach exists,
      so its words are no longer the shipped Today's; the other board words are pinned as before, and the Talk
      row's absence is pinned below, together with the Coach screen it used to open, which is still shipped. */
-  const words = ["Recovery check in", "Optional. How are you feeling?",
-    "example", "Example numbers, not your data", "Your weight in pounds", "Your weight"];
+  /* P9 (PM, the Today repeats; call 2; supersession pending in the ledger): the Recovery row and its pinned bar left
+     Today, so its two board lines are no longer the shipped Today's. Was: both pinned here as on the template and
+     declared under :820. Now: the other board words are pinned exactly as before; the Recovery row's two lines are
+     pinned ABSENT from Today and undeclared (so neither can come back as a stray row), and the check-in they
+     introduced is pinned reachable from Today's face: the Log today card's sheet carries the Check in row. */
+  const words = ["example", "Example numbers, not your data", "Your weight in pounds", "Your weight"];
   for (const w of words) {
     assert(board.includes(w), "on the approved board: " + w);
     assert(today.includes(w) || weigh.includes(w), "on the shipped template: " + w);
     const decl = design.indexOf(JSON.stringify(w));
     assert(decl >= 0 && design.lastIndexOf("DECISIONS:820", decl) >= 0, "declared in design.cjs under :820: " + w);
   }
+  const designCode = design.replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const w of ["Recovery check in", "Optional. How are you feeling?"]) {
+    assert(board.includes(w), "still on the approved board: " + w);
+    assert(!today.includes(w), "P9: off the shipped Today's face: " + w);
+  }
+  assert(!designCode.includes(JSON.stringify("Optional. How are you feeling?")), "P9: the invitation is no longer declared");
+  assert.doesNotMatch(today, /id="recovery"|data-go="recovery"/, "P9: no Recovery row on Today's face");
+  assert(today.includes('id="card-log"') && templateBlock("t-log").includes('data-slot="log-checkin-go"'),
+    "P9: the check-in stays one tap from Today's face, through the Log today card's Check in row");
+  /* P9 round 2 (DECISIONS:1003 (2); was: the Recovery row's title pinned undeclared): wherever Log today is not on the
+     page, the More sheet's FIRST row is the Recovery row's title, in the board's words, so the title is declared again
+     under :820, exactly as it was, and carried by the sheet, first, opening the recovery screen. */
+  const more = templateBlock("t-more");
+  const recovery = /<button class="tcard nav" type="button" data-go="recovery" data-slot="recovery-entry"><div class="title">Recovery check in<\/div>/.exec(more);
+  assert(recovery, "P9 round 2: the More sheet carries the board's Recovery row title, opening the recovery screen");
+  assert(more.indexOf(recovery[0]) < more.indexOf('<button class="tcard nav"', more.indexOf(recovery[0]) + 1), "and it is the sheet's first row");
+  const decl = design.indexOf(JSON.stringify("Recovery check in"));
+  assert(decl >= 0 && design.lastIndexOf("DECISIONS:820", decl) >= 0, "declared in design.cjs under :820: Recovery check in");
   /* COACH V1 (owner ruling 2026-10-12, "No-AI coach first"; red first on the S19 template): the Coach entry is back
      on Today because the coach now answers from the device's records. COACH V1 POLISH (the PM's polish batch, ui-pass7
      shot 02: the quiet link sat below Start, off the first screen): it is ONE compact row in the feed, in the food
@@ -134,7 +156,11 @@ test("C-UI-2 R3: the board's words on Today (DECISIONS:820 (2))", () => {
   assert(feedEnd > today.indexOf('<div class="timeline">'), "the trend row still follows the feed");
   const timeline = today.slice(today.indexOf('<div class="timeline">'), feedEnd);
   assert(timeline.includes(entry[0]), "inside the feed");
-  assert(today.indexOf(entry[0]) < today.indexOf('<div class="stack">'), "above Start's stack");
+  /* P9 (call 1; supersession pending): was "above Start's stack". Today has no stack now: Start is the workout card's own
+     primary, in the feed above this row, and nothing at all is pinned under the day. */
+  assert.equal(today.indexOf('<div class="stack">'), -1, "P9: no fixed stack on Today");
+  const start = today.indexOf('id="start"');
+  assert(start > today.indexOf('id="card-train"') && start < today.indexOf(entry[0]), "P9: Start is on the workout card, above the Coach row");
   const declared = design.indexOf(JSON.stringify("Ask Coach"));
   const preview = design.indexOf("const PREVIEW_COPY"), approved = design.indexOf("const APPROVED_COPY");
   assert(declared > preview && declared < approved, "declared in design.cjs as preview copy");
@@ -166,18 +192,27 @@ test("N2 LOG TODAY: one card in the feed, above Start, preview-owned, and the we
   const at = today.indexOf(card[0]);
   assert(at > feedStart && at < feedEnd, "inside the feed");
   assert(at > today.indexOf('id="card-train"'), "after today's workout, so the card Start opens stays beside Start");
-  assert(at < today.indexOf('<div class="stack">'), "above Start's stack");
+  /* P9 (calls 1 and 2; supersession pending): was "above Start's stack" and "the stack is still Start and the check-in
+     (ruling 4, C-UI-2 LOCKED)". Ruling 4's stack is gone from Today by the PM's calls: Start is the workout card's own
+     primary (before this card in the feed), and the check-in is this card's own Check in row, one tap from Today's face.
+     Ruling 5's inline weigh-in card stays, pinned below exactly as before. */
+  assert.equal(today.indexOf('<div class="stack">'), -1, "P9: no fixed stack on Today");
+  const start = today.indexOf('id="start"');
+  assert(start > today.indexOf('id="card-train"') && start < at, "P9: Start is on the workout card, above this card");
   assert.equal((today.match(/id="card-log"/g) || []).length, 1, "exactly one Log today card");
   assert(!board.includes('id="card-log"'), "which the approved board does not draw");
-  /* the two folds C-UI-2 does NOT allow: ruling 5 keeps the weigh-in the board's inline card, and ruling 4 keeps the
-     stack Start, Recovery and nothing else. The third fold, the quiet Sleep link (DECISIONS:167, preview-owned), is done. */
+  /* ruling 5 keeps the weigh-in the board's inline card (P9 draws it only while the weight is owed). The quiet Sleep
+     link (DECISIONS:167, preview-owned) and, by P9, the Recovery row are folded into this card. */
   assert(today.includes('id="card-weigh"') && today.includes('id="weigh-form"'), "the inline weigh-in card stays (ruling 5, C-UI-2 LOCKED, C-UI-3)");
-  const stack = today.slice(today.indexOf('<div class="stack">'));
-  assert(stack.includes('id="start"') && stack.includes('id="recovery"'), "the stack is still Start and the check-in (ruling 4, C-UI-2 LOCKED)");
+  assert.equal((today.match(/id="start"/g) || []).length, 1, "P9: one Start on Today");
+  assert.doesNotMatch(today, /id="recovery"|data-go="recovery"/, "P9: the check-in has folded into the card");
   assert.doesNotMatch(today, /data-slot="sleep-entry"/, "the quiet Sleep link has folded into the card");
   const sheet = templateBlock("t-log");
   for (const slot of ["log-weight", "log-food", "log-steps", "log-sleep", "log-checkin", "log-done"])
     assert(sheet.includes('data-slot="' + slot + '"'), "the Log today sheet carries its " + slot + " row");
+  assert(sheet.includes('data-slot="log-checkin-go"'), "P9: and its Check in row opens the recovery screen");
+  assert(fs.readFileSync(APP, "utf8").includes('hooks.listen(map.get("log-checkin-go"), "click", () => closeLogToday("recovery"));'),
+    "P9: the Check in row's route is the recovery screen, back to Today");
 });
 
 function statusModule() {
@@ -379,17 +414,86 @@ test("C-UI polish 6: the coach answer's scroll room, the quiet undo card, Show f
    a positioned box (app.css `.screen .ui > .stack { ... position: relative ... }`); were either moved, the chevron
    would leave Start for the page's corner. Pinned both ways here, as the measured probe placed it (P8: cue top -18px,
    at 375, 390 and 430). */
-test("C-UI polish 8 (D3): the scroll cue above Start is placed by the stack it hangs from", () => {
+/* P9 round 2 (DECISIONS:1003; item 4, the dead Today stack CSS): Today has no stack, so POLISH 8's cue hung from it
+   matched nothing and is removed. Was: the cue rule pinned in POLISH 8, placed from the pack's positioned stack. Now,
+   the same promise on the box that draws the cue: the cue is in the P9 block on Today's host, in POLISH 8's own values
+   (centred, 9 px, the soft ink's two strokes, no tap), and the host it is placed from is a positioned box (the P9
+   chassis rule's position: absolute), which nothing in P9 or POLISH 8 un-positions; POLISH 8 carries no stack cue. */
+test("C-UI polish 8 (D3), P9 round 2: the scroll cue is placed by the positioned Today host it hangs from", () => {
   const css = fs.readFileSync(PREVIEW_CSS, "utf8");
   const block = css.slice(css.indexOf("/* ===== POLISH 8 (PM"), css.indexOf("/* ===== POLISH 8: END ===== */"));
   assert(block.length > 0, "the polish 8 block");
   const code = block.replace(/\/\*[\s\S]*?\*\//g, "");
-  assert(code.includes(".scene-frame.screen-today > .view.ui > .body.can-scroll:not(.at-end) + .stack::before {\n"
-    + "  content: \"\"; position: absolute; left: 50%; top: -18px; width: 9px; height: 9px; margin-left: -6px;\n"),
-    "the cue hangs 18 px above the stack's top, centred, from the stack itself");
-  const pack = fs.readFileSync(PACK_CSS, "utf8");
-  const stack = pack.match(/\.screen \.ui > \.stack \{([^}]*)\}/);
-  assert(stack, "the pack's stack rule");
-  assert.match(stack[1], /position:\s*relative;/, "Today's stack is the positioned box the cue is placed from");
-  assert.doesNotMatch(code, /\.stack\s*\{[^}]*position:\s*static/, "and nothing in polish 8 un-positions it");
+  assert.doesNotMatch(code, /\.stack::before/, "the dead stack cue is gone from POLISH 8");
+  assert.doesNotMatch(css.replace(/\/\*[\s\S]*?\*\//g, ""), /screen-today[^{]*\.stack/, "and no Today rule anywhere reaches for a stack");
+  const p9 = css.slice(css.indexOf("/* ===== P9 (PM"), css.indexOf("/* ===== P9: END ===== */")).replace(/\/\*[\s\S]*?\*\//g, "");
+  const HOST = ".scene-frame > .view.ui:has(> .body > section > #greeting)";
+  assert(p9.includes(HOST + ":has(> .body.can-scroll:not(.at-end))::after {\n"
+    + "  content: \"\"; position: absolute; left: 50%; bottom: max(10px, env(safe-area-inset-bottom, 0px)); width: 9px; height: 9px;\n"
+    + "  margin-left: -6px; border-right: 1.5px solid var(--text-soft); border-bottom: 1.5px solid var(--text-soft);\n"
+    + "  transform: rotate(45deg); pointer-events: none; z-index: 2; }"),
+  "the cue hangs from Today's host, centred, in POLISH 8's own values, and takes no tap");
+  assert(p9.includes(HOST + " { position: absolute;"), "Today's host is the positioned box the cue is placed from");
+  assert.doesNotMatch(p9 + code, /:has\(> \.body > section > #greeting\)\s*\{[^}]*position:\s*(static|relative)/,
+    "and nothing in P9 or polish 8 un-positions it");
+});
+
+/* P9 (PM, the Today repeats; calls 1, 2 and 6; supersession of C-UI-2 ruling 4's stack on Today pending in the ledger).
+   Replaces, for Today, what the stack cells above still hold for the coach and workout chassis: (a) the chassis (the
+   day scrolls in its .body, a sheet paints above every card) holds for Today without a stack, known by Today's own
+   headline and never by the frame's screen class; (b) Start keeps C-UI-2's restorations on the card (the pack's
+   inherited weight, no legacy ink edge, the pack's disabled edge standing); (c) the scroll cue that hung above Start
+   still shows while the day continues below the screen, now from the host's foot; (d) the five quiet links are one
+   More row in the quiet links' own look, and its sheet is the Log today sheet's look, rows in the PM's order. */
+test("P9: Today keeps the chassis, Start's restorations and the scroll cue without a stack; one More row and its sheet", () => {
+  const css = fs.readFileSync(PREVIEW_CSS, "utf8");
+  const block = css.slice(css.indexOf("/* ===== P9 (PM"), css.indexOf("/* ===== P9: END ===== */"));
+  assert(block.length > 0, "the P9 block");
+  const code = block.replace(/\/\*[\s\S]*?\*\//g, "");
+  const HOST = ".scene-frame > .view.ui:has(> .body > section > #greeting)";
+  assert(code.includes(HOST + " { position: absolute; inset: 0; height: auto; display: flex;\n  flex-direction: column; padding: 0 var(--inset); overflow: hidden; }"),
+    "(a) Today's host takes the chassis values the stack host and the coach frame take");
+  assert(!/\.screen-today > \.view\.ui \{/.test(code), "(a) never by the frame's screen class alone, which a screen shown off Today keeps");
+  const pack = rules(fs.readFileSync(PACK_CSS, "utf8"));
+  const stackZ = Number(pack.find((r) => r.selector === ".screen .ui > .stack" && r.decls["z-index"] !== undefined).decls["z-index"]);
+  const lift = rules(block).filter((r) => r.selector === HOST + " > .sheet-panel");
+  assert.equal(lift.length, 1, "(a) a sheet over Today is lifted");
+  assert(Number(lift[0].decls["z-index"]) > stackZ, "(a) as high as C-UI-2 lifted it over the stack");
+  const START = ".scene-frame > .view.ui > .body #card-train > .primary";
+  const start = rules(block).filter((r) => r.selector.startsWith(START));
+  assert(start.some((r) => r.decls["font-weight"] === "inherit"), "(b) Start on the card takes the pack's inherited weight");
+  for (const r of start) {
+    const touchesBorder = Object.keys(r.decls).some((k) => k === "border" || k.startsWith("border-"));
+    if (touchesBorder) assert(r.selector.includes(":not(:disabled)"), "(b) a border rule on Start is scoped away from the disabled state: " + r.selector);
+  }
+  assert(start.some((r) => r.selector === START + ":not(:disabled)" && r.decls.border === "0"), "(b) no legacy ink edge on a live Start");
+  assert(code.includes(HOST + ":has(> .body.can-scroll:not(.at-end))::after {\n  content: \"\"; position: absolute; left: 50%;"),
+    "(c) the cue shows only while the day continues below the screen, centred, from the host");
+  assert(code.includes("pointer-events: none; z-index: 2; }"), "(c) and it takes no tap");
+  assert(code.includes(".scene-frame.screen-today > .view.ui > .body { padding-bottom: max(34px, calc(env(safe-area-inset-bottom, 0px) + 14px)); }"),
+    "(c) the day keeps S17's 34 px room at its foot, and the home bar's");
+  const today = templateBlock("t-today");
+  const more = /<button class="link on-scene day-foot" type="button" data-own data-slot="more-entry"><span data-slot="more-label"><\/span><\/button>/.exec(today);
+  assert(more, "(d) one More row, in the quiet links' own look (button.day-foot takes their cloud and rhythm)");
+  for (const gone of ['data-go="why"', 'data-slot="problem-entry"', 'data-slot="measure-tile"', 'data-slot="import-entry"', 'data-slot="routine-entry"'])
+    assert(!today.includes(gone), "(d) off Today's face, into the sheet: " + gone);
+  const sheet = templateBlock("t-more");
+  assert.match(sheet, /<div class="sheet-panel" role="dialog" aria-modal="true" data-own data-slot="more-sheet">/, "(d) a dialog in the sheet pattern");
+  const order = ['data-slot="measure-tile"', 'data-slot="routine-entry"', 'data-slot="why-entry"', 'data-slot="import-entry"', 'data-slot="problem-entry"']
+    .map((s) => sheet.indexOf(s));
+  assert(order.every((at, i) => at > 0 && (i === 0 || at > order[i - 1])), "(d) Measure, Change my routine, Why this plan?, Import my history, Report a problem");
+  for (const go of ['data-go="measure"', 'data-go="routine"', 'data-go="why"', 'data-go="import"']) assert(sheet.includes(go), "(d) each row names its route: " + go);
+  /* P9 round 2 (DECISIONS:1003 (2); was five): the PM's five, under the Recovery row the sheet draws first only where
+     Log today is not on the page (today-app.cjs bindMoreRow; view.test drives both pages). */
+  assert.equal((sheet.match(/<button class="tcard nav" type="button"/g) || []).length, 6, "(d) six full-width chevron rows");
+  assert(sheet.indexOf('data-slot="recovery-entry"') > 0 && sheet.indexOf('data-slot="recovery-entry"') < order[0],
+    "(d) the Recovery row first, above the PM's five");
+  assert(sheet.includes('data-slot="problem-box"') && sheet.includes('data-slot="problem-said"'), "(d) the report's box and sentence go with its row");
+  for (const rule of ['.view .sheet-panel[data-slot="more-sheet"] {\n  padding-bottom: 0;\n  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.6),',
+    '.view [data-slot="more-sheet"] .tcard.nav {\n  display: block; width: 100%; box-sizing: border-box; margin: 8px 0 0; min-height: 52px;',
+    '.view .sheet-panel[data-slot="more-sheet"] > [data-slot="more-foot"] {\n  position: sticky; bottom: 0;'])
+    assert(code.includes(rule), "(d) the sheet in the Log today sheet's own values: " + rule.split("\n")[0]);
+  for (const rule of ['.view .sheet-panel[data-slot="log-sheet"] {\n  padding-bottom: 0;\n  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.6),',
+    '.view [data-slot="log-sheet"] .tcard.nav {\n  display: block; width: 100%; box-sizing: border-box; margin: 8px 0 0; min-height: 52px;'])
+    assert(css.includes(rule), "(d) ... which are the Log today sheet's: " + rule.split("\n")[0]);
 });

@@ -115,7 +115,12 @@ try {
      operator to, and the Measure link's own two labels are read off the served
      page in step 8 and step 9. */
   await page.goto(origin + '/index.html', { waitUntil: 'load' });
-  const entry = page.locator('[data-slot="import-entry"]');
+  /* P9 (PM, the Today repeats; call 6; supersession pending in the ledger): the Today entry is the More sheet's
+     Import my history row, opened from Today's one More row. */
+  const more = page.locator('[data-slot="more-entry"]');
+  await more.waitFor({ state: 'visible', timeout: 20000 });
+  await more.click();
+  const entry = page.locator('[data-slot="more-sheet"] [data-slot="import-entry"]');
   await entry.waitFor({ state: 'visible', timeout: 20000 });
   taps.push(['Today entry link', await entry.textContent()]);
   /* THE TAP MINIMUM, MEASURED ON A SETTLED FRAME (round 4, review r3 MINOR 4).

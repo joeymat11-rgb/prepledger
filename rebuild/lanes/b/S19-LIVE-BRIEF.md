@@ -1338,20 +1338,152 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   records), so the gate supersession is unchanged. FC12 (native-load-options.test.cjs) 491/491 at the builder seat.
 - At the builder seat (on c2d6db8): the today batch 723/744 (711/732 plus the ten E2b cells, CL-E2B-DELTA and CL-E2B-APPROVAL; the same 21 seat-only build failures), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 49/49 (corpus f31847eb), food-live-save 7/7, s12-look 82/83 (the same seat-only C-UI-1 build failure), measure-hermetic 15/15, today-17 743 passing with the seat's guard and build refusals (733 plus the ten E2b cells), the coach suite 403/404 (the seat-only engine-revision-gap R4), s19-engine-files-differential's check and its three plants with the protected five held unread (27 outside the product, energy.cjs 17 and native-load.cjs 6 hunks, 3 plants RED; red on c2d6db8's energy.cjs), and the import suites, page-bundle and the s19 supersession children reached and refused by the guard by name (they read the protected engine, PM seat).
 
+## P9: Today, the workout named once (the owner asked; the PM's ruling DECISIONS:1003; on 30683ee, rebuild/c-p9; no engine change)
+The owner said Today repeats too much. The PM's calls, as built (today-app.cjs, screens.template.html, preview.css,
+design.cjs; no engine, sealed or protected file):
+- (1) The workout is named once: Start is the workout card's own primary (#card-train, the same #start and slots),
+  labelled START_WORKOUT, "Start workout"; Resume names the tap on every day (resumeLabel, RESUME_TODAYS_WORKOUT) and
+  Review already did; the card's title line names the session in the engine's words. The pinned Start bar is gone, so
+  Today has no fixed stack: its chassis is keyed on its own headline (#greeting), never on the frame's screen class.
+  Every card state stands: rest day, done, in progress, the loading gate and the refusal's Why route.
+- (2) The pinned Recovery check in bar is gone. The check-in is Log today's Check in row (log-checkin-go), and wherever
+  Log today is not on the page (a blocked record) the More sheet's FIRST row is the board's Recovery check in, opening
+  the same recovery screen (today-app.cjs bindMoreRow; the title is declared again in design.cjs APPROVED_COPY under
+  DECISIONS:820 (2), as it was; the invitation stays withdrawn).
+- (3) The inline weight row shows until today's weight is saved; Log today then ticks Weight, and its sheet's Weight row
+  says the kept value with the engine's note on it. The sheet's weight entry stays. Round 4 (Fable B3): a weight saved
+  on the morning card's own row is confirmed on that card in its saved state (the reading and the engine's note, no
+  box) for the rest of that Today visit (today-app.cjs weighSavedHere, cleared by render() when Today is left); the
+  next fresh Today (re-entry from another screen, or a reload) draws no morning card. A weight saved through the Log
+  today sheet never draws it: the sheet's Weight row is its confirmation.
+- (4) The status sentence is not drawn on either kind of day (it stood under Ask Coach on a training day and only said
+  what the cards say); its words per state are unchanged in its slot. A blocked record keeps it under its headline.
+- (5) Weight trend is drawn only with a trend figure (trendFigure), as the same quiet line from the same slot.
+- (6) The five quiet links are one quiet More row and a sheet in the Log today sheet's pattern, rows in the PM's order
+  (Measure, Change my routine, Why this plan?, Import my history, Report a problem), each opening exactly what its link
+  opened on the same gates; Import and Change my routine are put into an open sheet when the adoption chain answers,
+  without repainting it, so an open report stays open.
+- (7) A rest day takes the training day's card-first face (preview.css P9 item 5): no plan label and no large headline,
+  the workout card first, the engine's advice (instruction-why, the same node, whole) a quiet line: the card's third
+  line under its no-session line, in that line's own secondary style (the pack's .tcard .sub; round 3, the PM's style call),
+  the weigh row one compact row as on a training day, and no second weigh-in button: the card's primary is not drawn
+  while the morning card's own form is, whose Save is the one tap through the one write site (submitWeighIn).
+- Dead CSS (item 4 of the round): POLISH 8 item 6, the scroll cue hung from Today's stack, matched nothing and is
+  removed; the same cue is drawn from Today's positioned host in the P9 block. The C-UI-2 chassis rules stay: the coach
+  and workout hosts still mount a direct stack.
+- Copy (approved under DECISIONS:1003, which names More and Start workout under :913 (5)): 2 new pieces ("More",
+  "Start workout"), 2 withdrawn ("Optional. How are you feeling?", and "Start ", the head of the old label), one owner
+  count ("Resume ", today-app.cjs 1 -> 0; design.cjs RUNTIME_COPY still declares it). "Recovery check in" is locked as
+  E2b sealed it. CL-P9-DELTA and CL-P9-APPROVAL (P9_COPY_APPROVAL = DECISIONS:1003), a layer on top of E2b; corpus
+  f31847eb -> 8b6210cb. The More sheet's Escape shares the Log sheet's handler, so "Escape" stays 3.
+- Law replacements (old -> new; each holds its promise on the new face, none deleted or loosened; paths under
+  rebuild/m3/w7-preview/today/ unless named):
+  - design.cjs:137-147 APPROVED_COPY (DECISIONS:820 (2)): both Recovery row lines declared -> the invitation withdrawn,
+    the title declared, carried by the More sheet's first row.
+  - test/look-cui2.test.mjs:111 C-UI-2 R3 (DECISIONS:820 (2)): both lines on the template and declared -> both off
+    Today's face, the invitation undeclared, the title declared under :820 and the More sheet's first row, opening
+    recovery; the check-in one tap from the face through log-checkin-go.
+  - test/look-cui2.test.mjs:159 COACH V1 (owner ruling 2026-10-12): the entry "above Start's stack" -> no stack, Start on
+    the workout card above the Coach row; :195 N2 LOG TODAY (ruling 4, C-UI-2 LOCKED): Start and #recovery in the stack
+    -> one #start in #card-train before #card-log, no #recovery, the sheet routes Check in to closeLogToday("recovery").
+  - test/look-cui2.test.mjs:422 polish 8 D3 (carried in E2a): the cue pinned from the positioned stack -> no stack cue
+    anywhere on Today, the cue in POLISH 8's own values from Today's positioned host, nothing un-positions it.
+  - test/look-cui2.test.mjs:448 P9 (new cell): Today's chassis without a stack, Start's C-UI-2 restorations on the card,
+    the cue, one More row, the sheet's six rows (Recovery first, then the PM's five) in the Log sheet's values.
+  - test/view.test.mjs:188 S12b R6 (DECISIONS:915 (4)): label "Start <title>" -> START_WORKOUT, the card's title is the
+    workout, Start is that card's, the title not said twice; :476 (DECISIONS:915 (4)): "Resume <title>" ->
+    RESUME_TODAYS_WORKOUT under the card's title; :330, :362 Why this plan? through More; :653 review D-2 (unwired notes in
+    secondary text): the Recovery row's note -> the Log card's Check in, unticked, and the sheet's CHECKIN_NO_STORE_SHORT in
+    small muted text; :864 the 16 px sweep through Log today and More; new cells :962, :977, :1000, :1022, :1054, :1080,
+    :1098 (calls 1, 3, 4 with the rest day, 7 the rest day, 2 the blocked More row, 5, 6).
+  - test/checkin.test.mjs:404, :521, :557 (A3): the check-in reached and reported on Today's Recovery row -> through the
+    Log today card, its tick and its sheet's state (LOG_NOTHING_YET, then CHECKIN_RECORDED_TODAY); back returns through
+    the sheet.
+  - test/copy.test.mjs:473 (review F1): the morning card's note -> the card not drawn once saved and the note in the Log
+    sheet's weight row, no dash; :487 Why this plan? through More.
+  - test/food.test.mjs:1491 N2B.1: #recovery present -> none, no .stack, the ticks carry Check in; :1878 P7.6: the
+    #recovery half -> (round 4, Fable A2, a real tap) the Log today card tapped, its Check in row, Back: the sheet again,
+    Done: Today alone; and on a Today with no Log today card the More sheet's Recovery check in row tapped, Back: Today
+    alone, no sheet; :1977 P8.4: the stack cue -> no dead stack cue, the host cue in P9.
+  - test/problem.test.mjs:74 the control reached through More; :358 R10 and :383 R7 (DECISIONS:140 (3)): the control on
+    Today -> in the More sheet, not on the face; :1109 P5-TREND: More under the trend, Why in the sheet; :1086 P6-BOOT,
+    :1245 UP13-SETTLE, :1268 P0C.2 + S12b R6 (DECISIONS:915 (4)): "Start <his title>" -> START_WORKOUT and the card names
+    his workout; :3692 S6C.6b (DECISIONS:452, :468 (d)): the stamp's words kept on the session's day -> the tap named on
+    every day, never the title; :3745 S6C.6e: + the same open session on its own day, Resume names the tap and the card
+    names the session once.
+  - test/gym.test.mjs:930 S12b R9: "Start <title>" -> START_WORKOUT on the card that names it; an owed rest day's drawn
+    weigh-in primary and T-12's drawn line -> no second weigh-in button, the morning row's Save drawn and live through
+    the one write site (an empty box refused in words, nothing recorded), T-12's words in the undrawn slot, the card
+    saying the day has no session.
+  - test/routine.test.mjs:214 RT-04 the editor through More; :558 RT-12 (S15 round 5 polish): "a rest day keeps the
+    order it had" -> the round 5 block still carries no rest rule, the rest day takes the training day's face rule for
+    rule in the P9 block, and on a booted rest day the advice is the workout card's third line under its no-session line,
+    in that line's own .sub class (the pack's .tcard .sub: 13 px, muted, unclamped), which no preview.css rule restyles,
+    clamps or hides, with no status line; :615 RT-13: the three controls -> rows of the More sheet.
+  - test/coach.test.mjs:500 CV1-1: entry before Start's stack -> Start in #card-train, the entry after it, no .stack.
+  - test/copy-lock.test.mjs:104 CORPUS_SHA256 7dd7c887 (round 1) -> 8b6210cb; :1059 CL-P9-DELTA, :1091 CL-P9-APPROVAL.
+  - rebuild/m3/w6/test/local-today-journey.test.mjs:937, :970, :1014 (S12b R6): /^Start / and /^Resume / ->
+    START_WORKOUT and RESUME_TODAYS_WORKOUT exactly, with the card naming the session.
+  - import/test/route.test.mjs:112 and refusal-route.test.mjs:422 (P3-IMPORT-UI-2): the Today Import link -> the More
+    sheet's import-entry; measure/test/support.mjs:289 Measure through More.
+  - Browser walks: browser-check.mjs:163 (S12b R9 by kind of day, as gym.test above), checkin-check.mjs:218,
+    setup-check.mjs:518, sleep-check.mjs:141, import/test/edge-route.mjs:118, gym-check.mjs:269 and
+    rebuild/m3/w6/test/local-today-browser.mjs:202 (the session's title read off the card, not the label).
+  - browser-check.mjs:372 review D-1: every engine title in the headline slot keeps the primary in the first viewport
+    and the headline at 33 px or more -> the same bottom assertion for every title, written into the live slot (a
+    title a repaint replaced is measured again), the headline not drawn on the card-first face, and the floor
+    wherever it is drawn; :532 S12b R10 the rest day with the weight owed (the drawn weigh-in primary opening the
+    sheet) -> the morning row's Save inside the first viewport, no second weigh-in button, no headline, label or
+    status line drawn, the advice drawn whole as the workout card's third line under its no-session line, in that line's
+    computed size, colour and line height, no sideways scroll; :140 the waits for
+    a visible headline -> the slot attached and the workout card drawn; :595, :604, :626, :714, :756 the waits for a visible
+    morning line -> the slot attached and Log today's Weight tick.
+  - Harness repairs, no promise moved: checkin-check.mjs and setup-check.mjs open Today by name (?screen=today), as
+    browser-check does, because the shipped plain URL opens a fresh installation on setup (setup-first) and both walks
+    stopped at their first Today read; browser-check.mjs waits for Today to settle (its lanes' repaints) before typing
+    or sweeping, and :473 counts the Coach entries with page.$ (page.$ returned one handle, never a count).
+- Round 4 (Fable's named debts, no needle moved):
+  - B3, call 3 above: view.test.mjs:977 keeps its sheet half (a weight saved through the sheet draws no morning card)
+    and adds the card's own row: after an inline save the card is drawn with the saved words (the reading and the
+    engine's note, plain) and no box, Log today ticks Weight; after render('today', true) from another screen the card
+    is not drawn and the tick stands. Red on either half of the change (the flag never set; the flag never cleared).
+    browser-check.mjs: after the inline save in Chromium the card stays drawn with no form and the tick; after the
+    reload it is not drawn.
+  - A2: food.test.mjs P7.6 above, by real taps only.
+  - F: preview.css POLISH 7 item 5's comment describes the box Today has now (no stack, no Start bar; the fade over the
+    body's own foot, the host's cue) and S17 item 6's comment says P9 item 2 now keeps the 34 px room; S17 item 6's rule
+    (padding-bottom: 34px; --fade-bot-inset: 14px) stays, its text held by look-cui2.test.mjs:312 and
+    routine.test.mjs:703, and its --fade-bot-inset still read by POLISH 6's scroll margin. No rule changed.
+- Needles: today-17 910 -> 917 (view.test P9 calls 1, 3, 4, 5, 6, the rest day and the blocked More row); s12-look
+  83 -> 84 (look-cui2 P9); s10-copy-lock 49 -> 51 (CL-P9-DELTA, CL-P9-APPROVAL; measured).
+- Package: S19-REGEN.cjs --parent e4dd53ba --worktree --receipt-line 932 re-measured 24 entries over HEAD 30683ee on
+  the uncommitted tree; checkin-check.mjs and setup-check.mjs, parent-unpinned, are declared new (DECISIONS:792).
+  today-app.cjs and preview.css are released paths and stay undeclared. After the commit a dry run without --worktree
+  must print "0 entr(ies) would change".
+- At the builder seat (on 30683ee + the uncommitted P9 tree): view 31/31, problem 145/145, gym 78/78, look-cui2 13/13,
+  food 94/94, routine 27/27, copy-lock 51/51 (corpus 8b6210cb), the w6 journey 51/51, checkin 28/28, copy 39/39,
+  coach 23/23, the gss annexes 25/25, the misc batch 231/231, the import route suites 21/21, measure journey and
+  boundary 12/12, the two fences 480/480, setup 159/159, pwa 47/47; the children s10-copy-lock 51/51, s12-look 84/84 and
+  today-17 917/917 by their own argv. Browser walks (headless Chromium; Edge for edge-route): sleep-check, checkin-check
+  and edge-route PASS; browser-check passes every Today state through the real process kill and stops at its later
+  reduced-motion walk to ?screen=workout (the workout route, not moved by P9, re-booted on that URL before its lane
+  opens); setup-check stops on setup screen 1 ("setup-name renders at 15px", the setup screen, not moved by P9).
+
 ## Not changed
 No product source but today-entry.mjs and preview.css (the two nits) and the Coach v1 files above (the one sealed file,
 gym-settings-lane.mjs, only as its declaring spec above says) and E2b's files above (native-load-effects.cjs by its
-one PRODUCER_REVISION line, the re-bind above), no
+one PRODUCER_REVISION line, the re-bind above) and P9's files above (today-app.cjs, screens.template.html,
+preview.css and design.cjs, DECISIONS:1003), no
 rebuild/engine file but energy.cjs (E2b, DECISIONS:982 and :999) and none of the protected five; no
 child or argv but E2b's three replacements (children 30, 31 and 35, under GATE-SUPERSESSION M2-S19-LIVE,
 DECISIONS:1004, restating :989); needles move only to measured values,
-s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 -> 41 -> 43 -> 45 -> 47 -> 49 (the polish's CL-COACH-POLISH-DELTA
+s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 -> 41 -> 43 -> 45 -> 47 -> 49 -> 51 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
-CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL; E1a's CL-E1-DELTA and CL-E1-APPROVAL; polish 7's CL-P7-DELTA and CL-P7-APPROVAL; polish 8's CL-P8-DELTA and CL-P8-APPROVAL; E2a's CL-E2A-DELTA and CL-E2A-APPROVAL; E2b's CL-E2B-DELTA and CL-E2B-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82 -> 83
+CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL; E1a's CL-E1-DELTA and CL-E1-APPROVAL; polish 7's CL-P7-DELTA and CL-P7-APPROVAL; polish 8's CL-P8-DELTA and CL-P8-APPROVAL; E2a's CL-E2A-DELTA and CL-E2A-APPROVAL; E2b's CL-E2B-DELTA and CL-E2B-APPROVAL; P9's CL-P9-DELTA and CL-P9-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82 -> 83 -> 84
 (piece 2's CV1-8; the polish edits cells, adds none; batch 2's quiet-links cell; the seat read's CV1-9; polish 3's look-cui2 cell;
-polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell; N2 part B's look-cui2 cell; polish 8's D3 look-cui2 cell, carried in E2a), and with the
+polish 4's CV1-10 and look-cui2 cell; polish 5's CV1-11, look-cui2 cell and workout-look W-07 cell; polish 6's look-cui2 cell; N2 part B's look-cui2 cell; polish 8's D3 look-cui2 cell, carried in E2a; P9's look-cui2 cell), and with the
 seat read today-split-fence 404 -> 417 and today-17 850 -> 852, and with polish 5 today-17 852 -> 856 (P5-NL-VERBS, P5-BOOT,
-P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW), and with E1a 884 -> 885 (E1-NOFIG), and with polish 7 885 -> 891 (P7.1 to P7.6), and with polish 8 891 -> 896 (P8.1 to P8.5), and with E2a 896 -> 900 (E2A-L1, E2A-L2, E2A-J1, E2A-J2), measure-hermetic 11 -> 15 (E2A.1 to E2A.4), d-replay-measure 9 -> 10 (E2A-MF7) and w7-import 36 -> 37 (E2A-IR1), and with E2b 900 -> 910 (UP13-FLOOR, UP13-FLOOR-CONTROL, UP13-ESTIMATE, E2B-BAND, E2B-FORMULA, E2B-NEITHER, E2B-RANGE, E2B-LEAN, E2B-PLUMB, E2B-APP) and w7-import 37 -> 39 (E2B-IR1, E2B-IR2); the
+P5-TREND, P5-D1), and with polish 6 856 -> 858 (P6-BOOT, P6-DEBUT), and with nutri 1 858 -> 860 (N1-GATE, N1-CARD), and with the ui-pass13 fix-forward 860 -> 864 (UP13-COACH, UP13-SETTLE, UP13-CARBFAT, UP13-MARKER), and with N2 part A 864 -> 874 (N2S.1 to N2S.7, N2-D1, N2-D3, N2-F1), food-live-save 6 -> 7 (FLS/6), w6-local-source 31 -> 33 (S3-Q-N2-STEPS, S3-Q-N2-STEPS-REFUSED) and d-replay-all 56 -> 58 (P3-WO1 and P3-WO2 for the steps writer), and with N2 part B 874 -> 882 (N2B.1 to N2B.8), w6-local-source 33 -> 34 (S3-Q-N2-STEPS-HELD) and w7-import 35 -> 36 (N2B-D1), and with the lane-order fix-forward today-17 882 -> 883 (N2B.9), and with the Why? fix-forward 883 -> 884 (P5-D1-NOW), and with E1a 884 -> 885 (E1-NOFIG), and with polish 7 885 -> 891 (P7.1 to P7.6), and with polish 8 891 -> 896 (P8.1 to P8.5), and with E2a 896 -> 900 (E2A-L1, E2A-L2, E2A-J1, E2A-J2), measure-hermetic 11 -> 15 (E2A.1 to E2A.4), d-replay-measure 9 -> 10 (E2A-MF7) and w7-import 36 -> 37 (E2A-IR1), and with E2b 900 -> 910 (UP13-FLOOR, UP13-FLOOR-CONTROL, UP13-ESTIMATE, E2B-BAND, E2B-FORMULA, E2B-NEITHER, E2B-RANGE, E2B-LEAN, E2B-PLUMB, E2B-APP) and w7-import 37 -> 39 (E2B-IR1, E2B-IR2), and with P9 today-17 910 -> 917 (the seven view.test P9 cells); the
 fence and workflow
 cells gain assertions inside existing tests, so their counts stand; no check, pattern,
 pin or fence is loosened; no test is skipped or deleted. b-package.cjs moves only its IDS and NO_REGISTER_IDS

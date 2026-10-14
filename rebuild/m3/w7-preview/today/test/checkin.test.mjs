@@ -401,6 +401,20 @@ async function screen(options = {}) {
   return { dom, doc, phone };
 }
 const text = doc => doc.getElementById('phone').textContent;
+/* P9 (PM, the Today repeats; call 2; supersession pending in the ledger): the Recovery row and its pinned bar are gone
+   from Today. The check-in is the Log today card's Check in: one tap opens the sheet, whose Check in row opens the same
+   recovery screen and says the check-in lane's durable fact; back from the check-in, Today opens that sheet again
+   (POLISH 7). These cells reach it and read it there, as the athlete does. */
+function openCheckInFromToday(doc) {
+  const card = doc.querySelector('#phone #card-log');
+  assert(card && !card.hidden, 'Today carries the Log today card');
+  card.click();
+  const row = doc.querySelector('#phone [data-slot="log-checkin-go"]');
+  assert(row, 'its sheet carries the Check in row');
+  row.click();
+}
+const checkinTicked = doc => !!doc.querySelector('#phone [data-slot="log-ticks"] [data-item="checkin"][data-done]');
+const closeLogSheet = doc => { const done = doc.querySelector('#phone [data-slot="log-done"]'); if (done) done.click(); };
 const options = doc => [...doc.querySelectorAll('#phone .option')];
 const byLabel = (doc, label) => options(doc).find(b => b.textContent.trim() === label);
 async function settle() { for (let i = 0; i < 50; i++) await new Promise(r => setTimeout(r, 2)); }
@@ -504,9 +518,16 @@ test('A3 — the check-in is reachable from Today, and Today reports the durable
   const api = mountToday(doc, today, { checkin: entry });
   entry.setOnRefresh(() => { if (api.screen() === 'today') api.render('today'); });
 
-  const state = () => doc.querySelector('[data-slot="recovery-state"]').textContent;
-  assert.equal(state(), '', 'nothing recorded says nothing at all');
-  doc.querySelector('[data-go="recovery"]').click();
+  /* P9 (call 2): was `recovery-state` on Today's Recovery row: '' with nothing recorded, then CHECKIN_RECORDED_TODAY.
+     Now the Log today card on Today's face ticks Check in from the same durable summary, and its sheet's Check in row
+     says the same fact in words (the sheet's own "Nothing logged yet." for an empty check-in, never a state the
+     athlete did not enter). */
+  const state = () => doc.querySelector('#phone [data-slot="log-checkin-state"]').textContent;
+  assert.equal(checkinTicked(doc), false, 'nothing recorded ticks nothing');
+  doc.querySelector('#phone #card-log').click();
+  assert.equal(state(), TodayApp.LOG_NOTHING_YET, 'and the sheet says nothing is logged');
+  closeLogSheet(doc);
+  openCheckInFromToday(doc);
   assert(text(doc).includes('A quick check-in.'));
 
   entry.checkin.draft().choose('stress', 'High');
@@ -514,7 +535,9 @@ test('A3 — the check-in is reachable from Today, and Today reports the durable
   await settle();
   assert(text(doc).includes(Model.RECORDED_AT_PREFIX), 'the check-in reads itself back');
   doc.querySelector('#phone [data-go="today"]').click();   // the approved back control
-  assert.equal(state(), TodayApp.CHECKIN_RECORDED_TODAY, 'Today reports what the lane holds');
+  assert.equal(api.screen(), 'today', 'back lands on Today');
+  assert.equal(checkinTicked(doc), true, 'Today ticks what the lane holds');
+  assert.equal(state(), TodayApp.CHECKIN_RECORDED_TODAY, 'and the sheet it reopens says it');
   entry.host.close();
 });
 
@@ -531,13 +554,17 @@ test('A3 — back from the check-in returns to where the athlete came from', asy
   const entry = await createCheckInEntry(today, lane);
   const api = mountToday(doc, today, { workout, checkin: entry });
 
-  /* From TODAY: back lands on Today. */
-  doc.querySelector('[data-go="recovery"]').click();
+  /* From TODAY: back lands on Today. P9 (call 2): entered through the Log today card's Check in row, which is where
+     the check-in is reached from Today now; back lands on Today with that sheet open again, and Done closes it. */
+  openCheckInFromToday(doc);
   assert.equal(api.screen(), 'recovery');
   doc.querySelector('#phone [data-go="today"]').click();
   await settle();
   assert.equal(api.screen(), 'today');
-  assert(doc.querySelector('[data-slot="recovery-state"]'), 'Today is on screen');
+  assert(doc.querySelector('#phone #card-log'), 'Today is on screen');
+  assert(doc.querySelector('#phone [data-slot="log-sheet"]'), 'with the sheet the check-in was opened from');
+  closeLogSheet(doc);
+  assert.equal(doc.querySelector('#phone [data-slot="log-sheet"]'), null);
 
   /* From the ACTIVE SET: the card is opened, a weight is typed but not logged, the
      check-in is reached from the card's own approved route, and back lands on the
@@ -575,10 +602,11 @@ test('A3 — back from the check-in returns to where the athlete came from', asy
   doc.querySelector('#phone [data-action="back"]').click();
   await settle();
   assert.equal(api.screen(), 'today');
-  doc.querySelector('[data-go="recovery"]').click();
+  openCheckInFromToday(doc);   /* P9 (call 2): was Today's Recovery row */
   doc.querySelector('#phone [data-go="today"]').click();
   await settle();
   assert.equal(api.screen(), 'today', 'the workout origin was not inherited');
+  closeLogSheet(doc);
 
   workout.gymHost.close();
   entry.host.close();

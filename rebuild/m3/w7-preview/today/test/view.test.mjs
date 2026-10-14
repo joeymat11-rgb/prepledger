@@ -74,6 +74,31 @@ async function setup(options = {}) {
 const API = new WeakMap();
 const phoneText = (doc) => doc.getElementById("phone").textContent;
 const slot = (doc, name) => doc.querySelector(`[data-slot="${name}"]`);
+/* P9 (PM, the Today repeats; supersession pending in the ledger). Call 6: Today's five quiet links are the More
+   sheet's rows, so a cell that tapped a link on Today's face taps Today's one More row and then the row, as the
+   athlete does. Call 2: the Recovery row is gone, so a cell that tapped it taps the Log today card and its Check in
+   row; back from the check-in, Today opens that sheet again (POLISH 7), and backToToday closes it with Done. */
+function viaMore(doc, selector) {
+  const more = doc.querySelector('[data-slot="more-entry"]');
+  assert(more, "Today carries its one More row");
+  more.click();
+  const row = doc.querySelector('[data-slot="more-sheet"] ' + selector);
+  assert(row, "the More sheet carries " + selector);
+  row.click();
+}
+function viaLogToday(doc) {
+  const card = doc.querySelector("#card-log");
+  assert(card && !card.hidden, "Today carries the Log today card");
+  card.click();
+  const row = doc.querySelector('[data-slot="log-sheet"] [data-slot="log-checkin-go"]');
+  assert(row, "the Log today sheet carries its Check in row");
+  row.click();
+}
+function backToToday(doc) {
+  doc.querySelector('[data-go="today"]').click();
+  const done = doc.querySelector('[data-slot="log-sheet"] [data-slot="log-done"]');
+  if (done) done.click();
+}
 
 /* S12 SC-9 (red first: the PM's runs s12-pmrun2 at 96551fb and s12-pmrun1 at the S12 head,
    view.test.mjs:101 'CLOSE THE BOOKS FIRST' !== 'Chest', :148 'NOTHING NEEDS YOU' !== 'Chest',
@@ -160,7 +185,13 @@ test("S12b R6: before a weigh-in the primary action is Start, and the engine's m
      label names the workout, never the weigh-in, the click opens the workout, and the weigh-in is the
      morning card's own form. The marching order keeps its place, whole, under the instruction. */
   assert.equal(view.hasReadToday, false, "the morning really is owed");
-  assert.equal(slot(kit.doc, "primary-label").textContent, plainCopy("Start " + view.workout.title));
+  /* P9 round 2 (DECISIONS:1003 (1); was: the label is plainCopy("Start " + view.workout.title)): the workout is named
+     once, by the card Start sits in, in the engine's own words, and Start names the tap. */
+  assert.equal(slot(kit.doc, "primary-label").textContent, app.START_WORKOUT);
+  assert.equal(app.START_WORKOUT, "Start workout");
+  assert.equal(slot(kit.doc, "workout-title").textContent, plainCopy(view.workout.title), "the card names the workout");
+  assert(slot(kit.doc, "primary").closest("#card-train") === kit.doc.querySelector("#card-train"), "and Start is that card's");
+  assert(!slot(kit.doc, "primary-label").textContent.includes(view.workout.title), "the workout is not named twice");
   assert.notEqual(slot(kit.doc, "primary-label").textContent.toLowerCase(), view.marchingOrder.thenText.toLowerCase(),
     "the engine's marching order no longer heads Start");
   assert(kit.doc.querySelector('#card-weigh [data-slot="weigh-form"] #weight'), "the weigh-in is one tap away on the morning card");
@@ -296,7 +327,8 @@ test("a reload of the page restores the stored weigh-in on screen", async () => 
 test("Why this plan shows only the engine's own explanations", async () => {
   const kit = await setup();
   const { doc, model } = kit;
-  doc.querySelector('[data-go="why"]').click();
+  viaMore(doc, '[data-go="why"]');   /* P9 (call 6): was Today's own Why this plan? link */
+  assert.equal(slot(doc, "more-sheet"), null, "the sheet closes as its row opens the screen");
   const view = model.read();
   const bodies = [...doc.querySelectorAll(".macro-row p")].map((p) => p.textContent);
   assert.equal(bodies.length, view.why.length);
@@ -327,7 +359,7 @@ test("every screen this slice does not build says so and shows no invented value
      every control inert, and says in the capture layer's own terms that nothing here
      can be recorded. It must never claim the feature is unbuilt. */
   doc.querySelector('[data-go="today"]').click();
-  doc.querySelector('[data-go="recovery"]').click();
+  viaLogToday(doc);   /* P9 (call 2): was Today's Recovery row */
   assert.doesNotMatch(phoneText(doc), /not wired yet/, "the check-in is wired");
   assert.match(phoneText(doc), /no check-in can be recorded here/);
   assert.match(phoneText(doc), /A quick check-in\./);
@@ -353,7 +385,7 @@ test("every screen this slice does not build says so and shows no invented value
      no digit at all (stronger than the old /135/), "chest press" occurs only inside a prompt,
      and the refusal invents nothing either. Today's face still marks the entry "Not wired yet"
      (the next test). */
-  doc.querySelector('[data-go="today"]').click();
+  backToToday(doc);   /* P9: back from the check-in Today opens the Log today sheet again; Done closes it */
   /* COACH V1 (owner ruling 2026-10-12): the Coach entry is back on Today (it left at DECISIONS:915 (3) until a
      live coach existed), so the screen is opened here from Today's own link, as the athlete opens it. */
   const coachEntry = doc.querySelector('[data-go="coach"]');
@@ -441,8 +473,12 @@ test("Today's workout state comes from the injected host, never from the page", 
        morning card. */
     assert.equal(model.read().hasReadToday, false, phase + ": the morning is owed");
     assert(doc.querySelector('#card-weigh [data-slot="weigh-form"]'), phase + ": the weigh-in stays on the morning card");
+    /* P9 round 2 (DECISIONS:1003 (1); was "Resume " + the workout's title while active): Resume names the tap, as
+       Review does, and the card above it names the workout. */
     assert.equal(slot(doc, "primary-label").textContent,
-      phase === "active" ? "Resume " + model.read().workout.title : app.REVIEW_WORKOUT, phase);
+      phase === "active" ? app.RESUME_TODAYS_WORKOUT : app.REVIEW_WORKOUT, phase);
+    assert.equal(slot(doc, "workout-title").textContent, model.read().workout.title, phase + ": the card names the workout");
+    assert(!slot(doc, "primary-label").textContent.includes(model.read().workout.title), phase + ": once");
     slot(doc, "primary").click();
     assert.equal(opened, 1, phase + ": the primary action opens the injected gym card");
     kit.close();
@@ -614,7 +650,10 @@ test("every unwired entry point says so on Today's own face, in secondary text",
     assert.equal(el.closest("[data-go]") !== null, true, name + " sits inside its own entry point");
   }
   assert(slot(doc, "nutrition-state").classList.contains("muted"));
-  assert(slot(doc, "recovery-state").classList.contains("muted"));
+  /* P9 (PM, the Today repeats; call 2; supersession pending): was `recovery-state` in secondary text on Today's
+     Recovery row. The row is gone; the check-in is the Log today card's Check in, one tap from Today's face, and the
+     same durable fact is said in that sheet's Check in row, in its secondary text (asserted below). */
+  assert.equal(slot(doc, "recovery-state"), null, "P9: no Recovery row on Today");
   const face = phoneText(doc);
   /* S12 SC-14 (red first: the PM's runs s12-pmrun2 and s12-pmrun1, view.test.mjs:519 "Ask your
      coach"; rev8 s3b SC-14, FCR D-CMP-3). Under DECISIONS:820 O2 the approved board's words won on
@@ -633,16 +672,24 @@ test("every unwired entry point says so on Today's own face, in secondary text",
   }
   /* A3 — the recovery entry is marked with the DURABLE fact, never "not wired yet".
      With no check-in lane the marker names the device, and a lane that holds nothing
-     for today says NOTHING: a blank check-in is blank, never "none". */
-  assert.equal(slot(doc, "recovery-state").textContent, app.CHECKIN_NO_STORE_SHORT);
-  /* S12 SC-16 (rev8 s3b SC-16, AL2-S12 L2-B2; red only after SC-14's move, the next
-     assertion of this test): the approved Today face names the Recovery row "Recovery check in"
-     (the template's #recovery) and no longer says "How are you feeling today?". The label
-     rebinds to the board's row title; the durable marker above, the presence assertion, the
-     no-NOT_WIRED assertion and the 120-character window are unchanged. */
-  const at = face.indexOf("Recovery check in");
-  assert(at >= 0);
-  assert(!face.slice(at, at + 120).includes(app.NOT_WIRED), "the check-in is wired");
+     for today says NOTHING: a blank check-in is blank, never "none".
+     P9 (call 2; supersession pending). Was: Today's Recovery row said the fact (`recovery-state`), under the board's
+     row title "Recovery check in" (S12 SC-16), with no NOT_WIRED in the 120 characters after it. Now: Today's face
+     carries the entry one tap away (the Log today card, whose line names "Check in" and does not tick it, since
+     nothing is recorded), and the sheet that tap opens says the same durable fact in its Check in row's secondary
+     text, with no NOT_WIRED in that row. The board's row title is no longer on Today. */
+  assert(!face.includes("Recovery check in"), "P9: the Recovery row's title left Today with the row");
+  const logCard = doc.querySelector("#card-log");
+  assert(logCard && !logCard.hidden && logCard.textContent.includes("Check in"), "P9: Today's face carries the Check in entry");
+  assert.equal(logCard.querySelector('[data-item="checkin"][data-done]'), null, "P9: and does not tick it with nothing recorded");
+  logCard.click();
+  const checkinState = slot(doc, "log-checkin-state");
+  assert(checkinState, "P9: one tap opens the sheet with its Check in row");
+  assert.equal(checkinState.textContent, app.CHECKIN_NO_STORE_SHORT, "P9: the row says the durable fact");
+  assert(checkinState.classList.contains("muted") && checkinState.classList.contains("small"), "P9: in secondary text");
+  assert(!slot(doc, "log-checkin").textContent.includes(app.NOT_WIRED), "P9: the check-in is wired");
+  slot(doc, "log-done").click();
+  assert.equal(slot(doc, "log-sheet"), null, "P9: Done closes the sheet");
   for (const screen of ["nutrition", "coach"]) {
     /* S12b R6 opened the Coach screen through the page's router, because nothing on Today linked to it. COACH V1
        (owner ruling 2026-10-12, DECISIONS:963): Today's own link is back, so it is opened from there. */
@@ -663,9 +710,9 @@ test("every unwired entry point says so on Today's own face, in secondary text",
     }
     doc.querySelector('[data-go="today"]').click();
   }
-  doc.querySelector('[data-go="recovery"]').click();
+  viaLogToday(doc);   /* P9 (call 2): was Today's Recovery row */
   assert.doesNotMatch(phoneText(doc), /not wired yet/, "recovery");
-  doc.querySelector('[data-go="today"]').click();
+  backToToday(doc);
   kit.close();
 });
 
@@ -814,11 +861,19 @@ test("every text input the page actually renders is 16px or more", async () => {
   for (const screen of ["nutrition", "recovery", "coach", "why"]) {
     /* S12b R6 (DECISIONS:915 (3)): the Coach screen is opened through the page's router; Today has no entry to it. */
     if (screen === "coach") kit.api.render("coach", true);
+    /* P9 (calls 2 and 6): the check-in is reached through Log today, and Why this plan? through the More sheet */
+    else if (screen === "recovery") viaLogToday(doc);
+    else if (screen === "why") viaMore(doc, '[data-go="why"]');
     else doc.querySelector(`[data-go="${screen}"]`).click();
     sweep(screen);
-    doc.querySelector('[data-go="today"]').click();
+    backToToday(doc);
   }
   sweep("today");
+  /* P9 (call 6): the report's box left Today's face for the More sheet, so the sheet is swept as Today was */
+  kit.api.openMore();
+  sweep("more");
+  assert(seen.some(([where, name]) => where === "more" && name === "TEXTAREA"), "the report's box is swept in the More sheet");
+  slot(doc, "more-done").click();
   /* S12b R6 (DECISIONS:915 (4)): Start no longer opens the sheet; the sheet is opened through the page's api,
      and Today's own weigh-in box (the morning card's #weight, swept above) is held to the same 16px. */
   kit.api.openWeighIn();
@@ -897,4 +952,212 @@ test("S12 R3 (DECISIONS:906): the inline weigh form and the Start sheet each sto
   assert.equal(sheet.model.read().hasReadToday, true);
   inline.close();
   sheet.close();
+});
+
+/* ---- P9 (PM, the Today repeats, 2026-10-13; supersession pending in the ledger) ----
+   The replacements for the cells P9 moved, as cells of their own: each states the user promise the old cell held and
+   holds it in the new shape. */
+const withView = (model, change) => { const m = Object.create(model); m.read = () => change(model.read()); return m; };
+
+test("P9 call 1: the workout is named once, with Start as its card's own primary; no fixed stack on Today", async () => {
+  const kit = await setup();
+  const { doc } = kit;
+  const card = doc.querySelector("#card-train");
+  const start = slot(doc, "primary");
+  assert(start && card.contains(start), "Start is inside the workout card");
+  assert.equal(start.id, "start", "the same #start");
+  assert.equal(doc.querySelectorAll("#phone .stack").length, 0, "no fixed stack on Today");
+  assert.equal(doc.querySelectorAll("#phone .primary").length, 1, "one primary action on Today");
+  assert.equal(card.querySelectorAll('[data-slot="workout-title"]').length, 1, "the card names the workout");
+  start.click();
+  assert.equal(kit.api.screen(), "workout", "the card's Start opens the workout");
+  kit.close();
+});
+
+test("P9 call 3: the inline weigh-in shows only while owed; after the save Log today ticks Weight and its sheet says the value and the engine's note", async () => {
+  const reference = createEngine({ clock: engineClockFor(DAY) });
+  const spikeNote = reference.applyRead(createBasisState(DAY), DAY, 191.7, { hour: 8 }).reads.at(-1).note;
+  assert(spikeNote, "the accepted writer attaches a note to this reading");
+  const kit = await setup();
+  const { dom, doc } = kit;
+  assert.equal(doc.querySelector("#card-weigh").hidden, false, "owed: the morning card is drawn");
+  assert(doc.querySelector('#card-weigh [data-slot="weigh-form"] #weight'), "owed: with its inline row");
+  assert.equal(doc.querySelector('[data-slot="log-ticks"] [data-item="weight"][data-done]'), null, "owed: Weight is not ticked");
+  await weighIn(dom, doc, 191.7);
+  assert.equal(doc.querySelector("#card-weigh").hidden, true, "saved: the morning card is not drawn");
+  assert.equal(doc.querySelector("#weigh-form"), null, "saved: its inline row is gone");
+  assert(doc.querySelector('[data-slot="log-ticks"] [data-item="weight"][data-done] [data-tick]'), "saved: Log today ticks Weight");
+  doc.querySelector("#card-log").click();
+  assert.equal(slot(doc, "log-weight-state").textContent, plainCopy("191.7 lb \u00b7 " + spikeNote),
+    "review F1, held in the sheet: the kept value and the ENGINE's own note, its dash rewritten");
+  assert.equal(slot(doc, "log-weight-form"), null, "the sheet's weight entry is replaced by the kept value");
+  slot(doc, "log-done").click();
+  kit.close();
+  /* P9 round 4 (Fable B3; the cell above is a save through the weigh-in sheet, which the sheet confirms): a save on the
+     morning card's OWN row is confirmed on that card for the rest of that Today visit, in its saved state, the reading
+     and the engine's note and no box; the next fresh Today (back from another screen) draws no card, and Log today
+     ticks Weight. */
+  const inline = await setup();
+  const d2 = inline.doc;
+  const box = d2.querySelector('#card-weigh [data-slot="weigh-form"] #weight');
+  assert(box, "owed: the card's own row");
+  box.value = "191.7";
+  d2.querySelector('#card-weigh [data-slot="weigh-form"]').dispatchEvent(new inline.dom.window.Event("submit", { bubbles: true, cancelable: true }));
+  for (let at = 0; at < 200 && d2.querySelector("#weigh-form"); at += 1) await new Promise((r) => setTimeout(r, 5));
+  assert.equal(d2.querySelector("#weigh-form"), null, "saved on the card: its box is gone");
+  assert.equal(d2.querySelector("#card-weigh").hidden, false, "and the card stays, in its saved state");
+  assert.equal(slot(d2, "morning").textContent, plainCopy("This morning \u2713 191.7 lb \u00b7 " + spikeNote),
+    "saying the saved reading and the ENGINE's own note on it");
+  assert(d2.querySelector('[data-slot="log-ticks"] [data-item="weight"][data-done]'), "Log today ticks Weight beside it");
+  inline.api.render("nutrition", true);
+  inline.api.render("today", true);
+  assert.equal(d2.querySelector("#card-weigh").hidden, true, "the next fresh Today draws no card");
+  assert.equal(d2.querySelector("#weigh-form"), null, "and asks for nothing");
+  assert(d2.querySelector('[data-slot="log-ticks"] [data-item="weight"][data-done] [data-tick]'), "Log today ticks Weight");
+  inline.close();
+});
+
+/* P9 round 2 (DECISIONS:1003 (4) and (7); was: "a rest day keeps its status line under the headline"): the status line
+   is not drawn on either kind of day, its words unchanged in its slot; what it said is said by the workout card, once. */
+test("P9 call 4: the status line is not drawn on a training day or a rest day; the workout card says the day, once", async () => {
+  const kit = await setup();
+  const { doc } = kit;
+  assert.equal(doc.querySelector("#phone .body").getAttribute("data-day"), "train", "the fixture day is a training day");
+  assert.equal(slot(doc, "status-line").hidden, true, "a training day draws no status line");
+  kit.close();
+  const store = await lane();
+  const real = createTodayModel({ today: DAY, readings: store.readings });
+  const rest = await setup({ lane: store, model: withView(real, restDay) });
+  assert.equal(rest.doc.querySelector("#phone .body").getAttribute("data-day"), "rest");
+  assert.equal(slot(rest.doc, "status-line").hidden, true, "a rest day draws no status line");
+  assert.equal(slot(rest.doc, "status-line").textContent, "Nothing scheduled today, so there is nothing to start.",
+    "its words are unchanged in the slot (T-12)");
+  assert.equal(slot(rest.doc, "workout-count").textContent, "No session is scheduled today.", "the workout card says it");
+  assert.equal(slot(rest.doc, "workout-count").hidden, false, "and is drawn");
+  rest.close();
+});
+
+/* P9 round 2 (DECISIONS:1003 (7)): a rest day's face is the training day's. The large plan headline and its label give
+   way (the stylesheet's rest rules, routine.test RT-12), the engine's advice under it is the same node, whole, directly
+   under the workout card, and the weigh-in is asked for once, by the morning card's own row, not by a second button. */
+const restDay = (view) => ({ ...view, workout: { ...view.workout, today: false, available: false, unavailableReason: null, exerciseCount: null } });
+test("P9 round 2 rest day: the advice is a whole line under the workout card, and the weigh-in is asked once", async () => {
+  const store = await lane();
+  const real = createTodayModel({ today: DAY, readings: store.readings });
+  const restModel = withView(real, restDay);
+  const kit = await setup({ lane: store, model: restModel });
+  const { doc } = kit;
+  const view = restModel.read();
+  assert.equal(view.hasReadToday, false, "the morning is owed");
+  const card = doc.querySelector("#card-train");
+  const why = slot(doc, "instruction-why");
+  /* P9 round 3 (the PM's style call; was: a line of its own directly under the card): the card's third line, under its
+     no-session line, in that line's own secondary class */
+  assert.equal(why.parentElement, card, "the engine's advice is a line of the workout card");
+  assert.equal(why.previousElementSibling, slot(doc, "workout-count"), "its third line, under the no-session line");
+  assert.equal(why.className, slot(doc, "workout-count").className, "in that line's own secondary style (.sub)");
+  assert.equal(doc.querySelector("#greeting").parentElement.contains(why), false, "and no longer under the plan headline");
+  assert.equal(doc.querySelectorAll('[data-slot="instruction-why"]').length, 1, "one node, moved, not copied");
+  assert.equal(why.textContent, plainCopy(view.orderSentence || view.statusFace.cause), "the engine's own sentence, whole");
+  assert.equal(why.hidden, false, "and drawn");
+  assert.equal(slot(doc, "instruction").textContent, plainCopy(view.nowModel.move.title), "the headline slot keeps its words for every reader");
+  const form = doc.querySelector('#card-weigh [data-slot="weigh-form"]');
+  assert(form && form.querySelector("#weight"), "the morning card's own row asks for the weight");
+  assert.equal(slot(doc, "weigh-save").disabled, false, "and its Save can be pressed: one tap");
+  assert.equal(slot(doc, "primary").hidden, true, "no second weigh-in button on the workout card");
+  assert.equal(slot(doc, "primary").disabled, true, "and nothing behind it can be pressed");
+  /* the row's Save goes through the page's one weigh-in write site, which answers in words (an empty box is refused) */
+  form.dispatchEvent(new kit.dom.window.Event("submit", { cancelable: true }));
+  for (let at = 0; at < 200 && slot(doc, "weigh-note").hidden !== false; at += 1) await new Promise((r) => setTimeout(r, 5));
+  assert.equal(slot(doc, "weigh-note").hidden, false, "the one write site answered the row's Save");
+  kit.close();
+});
+
+/* P9 round 2 (DECISIONS:1003 (2); test added): on a Today with no Log today card (a blocked record), the check-in is still
+   one tap from the face's More row: the sheet's FIRST row is the board's "Recovery check in", which opens the recovery
+   screen. Where Log today is on the face the row is not drawn (the check-in is Log today's). */
+test("P9 round 2 blocked Today: the More sheet's first row is Recovery check in, and it opens the check-in", async () => {
+  const store = await lane();
+  const real = createTodayModel({ today: DAY, readings: store.readings });
+  const kit = await setup({ lane: store, model: withView(real, (view) => ({ ...view, blocked: true,
+    blockedCopy: "This device\u2019s record did not verify. Nothing on this screen is a value." })) });
+  const { doc } = kit;
+  assert.equal(doc.querySelector("#card-log").hidden, true, "precondition: no Log today card on a blocked Today");
+  slot(doc, "more-entry").click();
+  const rows = [...slot(doc, "more-sheet").querySelectorAll(".tcard.nav")];
+  assert.equal(rows[0].getAttribute("data-slot"), "recovery-entry", "the first row is the check-in");
+  assert.equal(rows[0].textContent.trim(), "Recovery check in", "in the board's words");
+  assert.deepEqual(rows.map((r) => r.textContent.trim()), ["Recovery check in", app.PROBLEM_ENTRY],
+    "and nothing that would read the untrusted record");
+  rows[0].click();
+  assert.equal(slot(doc, "more-sheet"), null, "the sheet closes");
+  assert.equal(kit.api.screen(), "recovery", "one tap from the sheet opens the check-in");
+  kit.close();
+  const plain = await setup();
+  plain.doc.querySelector('[data-slot="more-entry"]').click();
+  assert.equal(slot(plain.doc, "more-sheet").querySelector('[data-slot="recovery-entry"]'), null,
+    "with Log today on the face the sheet draws no Recovery row");
+  assert(plain.doc.querySelector("#card-log") && !plain.doc.querySelector("#card-log").hidden, "the check-in is Log today's there");
+  slot(plain.doc, "more-done").click();
+  plain.close();
+});
+
+test("P9 call 5: the weight trend is drawn only with a trend figure, as the same line from the same slot", async () => {
+  assert.equal(app.trendFigure({ nowModel: { headed: { weight: 180.1 } } }), 180.1);
+  assert.equal(app.trendFigure({ nowModel: { headed: { weight: null } } }), null);
+  assert.equal(app.trendFigure({ nowModel: null }), null);
+  const kit = await setup();
+  const view = kit.model.read();
+  assert(Number.isFinite(view.nowModel.headed.weight), "the fixture holds a trend figure");
+  assert.equal(slot(kit.doc, "trend-row").hidden, false, "with a figure the line is drawn");
+  assert.equal(slot(kit.doc, "trend").textContent, trendLine(view), "and says exactly trendLine's words and figure");
+  kit.close();
+  const store = await lane();
+  const real = createTodayModel({ today: DAY, readings: store.readings });
+  const none = await setup({ lane: store, model: withView(real, (v) => ({ ...v, nowModel: { ...v.nowModel, headed: { ...v.nowModel.headed, weight: null } } })) });
+  assert.equal(slot(none.doc, "trend-row").hidden, true, "with no figure the line is not drawn");
+  assert.doesNotMatch(phoneText(none.doc), /Weight trend/, "and Not available yet is not said for it");
+  none.close();
+});
+
+test("P9 call 6: one More row opens a sheet whose rows, in the PM's order, open exactly what the links opened", async () => {
+  const kit = await setup();
+  const { doc } = kit;
+  for (const gone of ['[data-go="why"]', '[data-slot="problem-entry"]', '[data-slot="measure-tile"]', '[data-slot="import-entry"]', '[data-slot="routine-entry"]'])
+    assert.equal(doc.querySelector("#phone .body " + gone), null, "off Today's face: " + gone);
+  const more = slot(doc, "more-entry");
+  assert.equal(more.textContent, app.MORE_ENTRY, "one quiet row, More");
+  more.click();
+  const sheet = slot(doc, "more-sheet");
+  assert(sheet && sheet.getAttribute("role") === "dialog", "the sheet is a dialog");
+  assert.equal(sheet.getAttribute("aria-label"), app.MORE_ENTRY);
+  assert.equal(doc.querySelector("#phone .body").inert, true, "Today is inert under it");
+  /* the rows Today drew (Measure, Why this plan? and Report a problem always; the Import and routine entries on their
+     own gates, which the route and routine suites drive), in the PM's order */
+  const rows = [...sheet.querySelectorAll(".tcard.nav")].map((b) => b.textContent.trim());
+  const ORDER = ["Measure", "Change my routine", "Why this plan?", "Import my history", "History imported", app.PROBLEM_ENTRY];
+  assert.deepEqual(rows, ORDER.filter((r) => rows.includes(r)), "the PM's order: " + JSON.stringify(rows));
+  for (const r of ["Measure", "Why this plan?", app.PROBLEM_ENTRY]) assert(rows.includes(r), "the sheet carries " + r);
+  assert.equal(rows.length, new Set(rows).size, "each once");
+  slot(doc, "more-close").click();
+  assert.equal(slot(doc, "more-sheet"), null, "the close control closes it");
+  assert.equal(doc.activeElement, slot(doc, "more-entry"), "and hands focus back to More");
+  more.click();
+  slot(doc, "more-sheet").dispatchEvent(new kit.dom.window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  assert.equal(slot(doc, "more-sheet"), null, "Escape closes it");
+  viaMore(doc, '[data-slot="measure-tile"]');
+  assert.equal(kit.api.screen(), "measure", "Measure opens Measure");
+  kit.api.render("today", true);
+  viaMore(doc, '[data-go="why"]');
+  assert.equal(kit.api.screen(), "why", "Why this plan? opens Why this plan?");
+  doc.querySelector('[data-go="today"]').click();
+  slot(doc, "more-entry").click();
+  slot(doc, "problem-entry").click();
+  for (let at = 0; at < 200 && slot(doc, "problem-box").hidden; at += 1) await new Promise((r) => setTimeout(r, 5));
+  assert.equal(slot(doc, "problem-box").hidden, false, "Report a problem opens its box, in the sheet");
+  assert.match(slot(doc, "problem-text").value, /\S/, "with the diagnostic block in it");
+  assert.equal(slot(doc, "problem-said").hidden, false, "and says what to do with it");
+  assert.equal(kit.api.screen(), "today", "and stays on Today");
+  slot(doc, "more-done").click();
+  kit.close();
 });

@@ -58,10 +58,14 @@
     <!-- S12b R6 (DECISIONS:915 (4), audit F2): today's workout comes straight after the morning
          card, so the card Start opens is on the first screen beside Start at phone sizes; the
          food card follows the proposal card. Every card keeps its classes, slots and words. -->
+    <!-- P9 (PM, the Today repeats; call 1): the workout is named once, on this card, and its Start is the card's own
+         primary button (the same #start, the same slots and every state it had: loading, start, resume, close, review,
+         why, the rest day's weigh-in, and not drawn when there is nothing to start). There is no fixed stack on Today. -->
     <div class="tcard" id="card-train">
       <span class="tdot" aria-hidden="true"></span>
       <div class="title" data-slot="workout-title"></div>
       <div class="sub" data-slot="workout-count"></div>
+      <button class="primary" type="button" id="start" data-slot="primary"><span data-slot="primary-label"></span><span class="arrow" aria-hidden="true"><svg viewBox="0 0 20 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9h17M12 3l6 6-6 6"/></svg></span></button>
     </div>
     <!-- N2 "LOG TODAY" (PM N2 brief, Part B; the owner's ruling, food logging in "Log today"). One card near the top,
          in the food card's own look (tcard nav, the feed's dot, a chevron): its title and one line that ticks each of
@@ -116,15 +120,36 @@
     <!-- N2 "LOG TODAY" (Part B): the quiet Sleep link that stood here (DECISIONS:167, preview-owned) is FOLDED into the
          Log today card above: its Sleep row says the night's hours and opens the same sleep screen. No C-UI law holds it:
          the approved board has no sleep entry at all, and C-UI-7 governs the sleep screen behind it, which is unchanged. -->
-  <!-- POLISH 5 (PM, item 8): the weight trend is a line of its own, and Why this plan? the one control on the next row. -->
+  <!-- POLISH 5 (PM, item 8): the weight trend is a line of its own. P9 (call 5): it is drawn only while the engine
+       holds a trend figure, as a quiet secondary line; with no trend it is not drawn at all. -->
   <div class="on-scene day-foot" data-slot="trend-row"><span data-slot="trend"></span></div>
-  <button class="link on-scene day-foot" type="button" data-go="why"><span data-slot="why-plan"></span></button>
     <!-- A4 · the first-run tile. Shown ONLY while this installation carries no
          first-run operation; once the setup op is in the generation the tile is
          hidden and the route refuses, so setup can never run twice (S13). Its
          words are bound at runtime from setup-model.mjs. -->
   <button class="link on-scene day-foot" type="button" data-go="setup" data-own data-slot="setup-entry" hidden><span data-slot="setup-entry-label"></span></button>
-    <!-- REPORT A PROBLEM, DECISIONS:140 (3). A secondary control that copies a
+    <!-- P9 (PM, the Today repeats; call 6): Today's five quiet links (Why this plan?, Report a problem, Measure, Import
+         my history, Change my routine) are ONE quiet row, More, in the quiet links' own look. It opens the More sheet
+         (t-more), which carries each of them as a chevron row and opens each exactly as the link did. -->
+  <button class="link on-scene day-foot" type="button" data-own data-slot="more-entry"><span data-slot="more-label"></span></button>
+</div>
+<!-- P9 (PM, the Today repeats; calls 1 and 2): the fixed stack that held Start and the Recovery row is gone from Today.
+     Start is the workout card's own primary (#card-train above), and the check-in is reached from the Log today card,
+     whose sheet's Check in row opens the same recovery screen. -->
+</template>
+<!-- C-UI-2 END -->
+
+<!-- P9 (PM, the Today repeats; call 6). THE MORE SHEET Today's one More row opens, in the Log today sheet's own pattern
+     (sheet-panel, a dialog over Today with Today inert under it, the title and its close control, full-width chevron
+     rows, Done in the foot). In the PM's order: Measure, Change my routine, Why this plan?, Import my history, Report a
+     problem. Each row opens exactly what its quiet link on Today opened, and carries the same slot. Change my routine
+     and Import my history are drawn only where Today drew them (an enrolled installation, once the adoption chain has
+     answered; Change my routine only where boot() composed a routine lane), and the sheet draws them as soon as that
+     answer lands. Preview-owned: every word is bound at runtime from today-app.cjs, but one: P9 round 2
+     (DECISIONS:1003 (2)), whenever Log today is not on the page (a blocked record) the sheet's first row is the
+     approved board's own Recovery row title, the row the pinned bar was, in its board words (design.cjs
+     APPROVED_COPY), opening the same recovery screen; anywhere else the check-in is Log today's and the row is removed.
+     REPORT A PROBLEM, DECISIONS:140 (3). A secondary control that copies a
          diagnostic block the owner can paste: which screen, which lanes, which
          enrolment state, which build, which device prefix, the user agent and the
          time. It writes NOTHING durable, opens no store and makes no operation.
@@ -134,23 +159,23 @@
          navigator.clipboard.writeText succeeds inside an installed iOS Home
          Screen app is not verifiable from this repository, so the block is always
          on the screen to select and the copy path is an enhancement. -->
-  <button class="link on-scene day-foot" type="button" data-own data-slot="problem-entry"><span data-slot="problem-label"></span></button>
-  <p class="note-block day-foot" data-own data-slot="problem-said" hidden></p>
-  <div class="field day-foot" data-own data-slot="problem-box" hidden><textarea data-slot="problem-text" readonly></textarea></div>
-</div>
-<div class="stack">
-  <button class="primary" type="button" id="start" data-slot="primary"><span data-slot="primary-label"></span><span class="arrow" aria-hidden="true"><svg viewBox="0 0 20 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9h17M12 3l6 6-6 6"/></svg></span></button>
-  <button class="rowcard" type="button" id="recovery" data-go="recovery">
-    <span class="icon-square" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span>
-    <span class="text"><div class="title">Recovery check in</div><div class="sub"><span data-slot="recovery-prompt">Optional. How are you feeling?</span><span class="muted" data-own data-slot="recovery-state"></span></div></span>
-    <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
-  </button>
-  <!-- S12b R6 (DECISIONS:915 (3)): the Coach entry (the board's Talk row, #talk-today) left
-       Today until a live coach existed. Coach v1 brings it back as a compact row in the feed
-       (#card-coach, above), not as a row here, so this stack stays Start and the check-in. -->
+<template id="t-more">
+<div class="sheet-panel" role="dialog" aria-modal="true" data-own data-slot="more-sheet">
+  <div data-slot="more-top">
+    <h2 data-slot="more-head"></h2>
+    <button type="button" data-action="more-close" data-slot="more-close"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M1 1l12 12M13 1L1 13"/></svg></button>
+  </div>
+  <button class="tcard nav" type="button" data-go="recovery" data-slot="recovery-entry"><div class="title">Recovery check in</div><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+  <button class="tcard nav" type="button" data-go="measure" data-slot="measure-tile"><div class="title" data-slot="measure-label"></div><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+  <button class="tcard nav" type="button" data-go="routine" data-slot="routine-entry"><div class="title" data-slot="routine-label"></div><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+  <button class="tcard nav" type="button" data-go="why" data-slot="why-entry"><div class="title" data-slot="why-plan"></div><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+  <button class="tcard nav" type="button" data-go="import" data-slot="import-entry"><div class="title" data-slot="import-label"></div><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+  <button class="tcard nav" type="button" data-own data-slot="problem-entry"><div class="title" data-slot="problem-label"></div><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+  <p class="note-block" data-own data-slot="problem-said" hidden></p>
+  <div class="field" data-own data-slot="problem-box" hidden><textarea data-slot="problem-text" readonly></textarea></div>
+  <div data-slot="more-foot"><button class="primary" type="button" data-action="more-done" data-slot="more-done"></button></div>
 </div>
 </template>
-<!-- C-UI-2 END -->
 
 <template id="t-weigh">
 <form class="sheet-panel" role="dialog" aria-modal="true" aria-label="Log this morning's weight">

@@ -934,7 +934,10 @@ test('C4b — the page\'s createWorkoutEntry drives Today\'s real screen over th
     /* S12b R6 (DECISIONS:915 (4); this cell pinned the P0-C gate, "Log the scale" on the primary while the
        weight was owed). The weigh-in no longer gates the workout: the primary names the workout, and the
        morning weigh-in is the card's own form on Today, owed until it is in. */
-    assert.match(slot('primary-label'), /^Start /);
+    /* P9 (DECISIONS:1003 (1); was /^Start /, "Start <title>"): Start names the tap; the card it sits in names the session. */
+    assert.equal(slot('primary-label'), TodayApp.START_WORKOUT);
+    assert.equal(slot('workout-title'), today.read().workout.title, 'the workout card names the session');
+    assert(doc.querySelector('#card-train [data-slot="primary"]'), 'and Start is that card\'s');
     assert(doc.querySelector('#card-weigh [data-slot="weigh-form"]'), 'the morning weigh-in is on its card');
     assert.equal(workout.summary().phase, 'ready');
     assert.equal(workout.gymHost.repository, readings.repository, 'one repository handle');
@@ -944,7 +947,8 @@ test('C4b — the page\'s createWorkoutEntry drives Today\'s real screen over th
     const weighed = await today.weighIn(179.4);
     assert.equal(weighed.ok, true, JSON.stringify(weighed));
     api.render('today');
-    assert.match(slot('primary-label'), /^Start /);
+    assert.equal(slot('primary-label'), TodayApp.START_WORKOUT);
+    assert.equal(slot('workout-title'), today.read().workout.title, 'the card names the session after the weigh-in');
     /* ONE STORE, ONE FINDING. The preparation this entry took at construction
        was resolved against the generation BEFORE the weigh-in, and in one store
        the weigh-in moves that generation's revision. Holding a stale preparation
@@ -963,7 +967,9 @@ test('C4b — the page\'s createWorkoutEntry drives Today\'s real screen over th
     assert.equal((await workout.refresh()).phase, 'active');
     api.render('today');
     assert.match(slot('workout-count'), new RegExp(TodayApp.WORKOUT_IN_PROGRESS + '$'));
-    assert.match(slot('primary-label'), /^Resume /);
+    /* P9 (DECISIONS:1003 (1); was /^Resume /, "Resume <title>"): Resume names the tap, under the card's title */
+    assert.equal(slot('primary-label'), TodayApp.RESUME_TODAYS_WORKOUT);
+    assert.equal(slot('workout-title'), today.read().workout.title, 'the card still names the session');
     const last = await logEverySet(workout.gym);
     assert.equal((await workout.gym.finish({ startId: last.startId })).ok, true);
     await workout.refresh();
@@ -1004,12 +1010,16 @@ const shellDoc = () => new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPL
 
 async function wholeJourney(booted, doc) {
   const label = () => doc.querySelector('[data-slot="primary-label"]').textContent;
-  /* S12b R6 (DECISIONS:915 (4); was /^Log the scale$/i, the P0-C gate): Start before the weigh-in too. */
-  assert.match(label(), /^Start /);
+  /* S12b R6 (DECISIONS:915 (4); was /^Log the scale$/i, the P0-C gate): Start before the weigh-in too.
+     P9 (DECISIONS:1003 (1); was /^Start /): exactly Start workout, on the card that names the session. */
+  const title = () => doc.querySelector('[data-slot="workout-title"]').textContent;
+  assert.equal(label(), TodayApp.START_WORKOUT);
+  assert.equal(title(), booted.model.read().workout.title, 'the card names the session');
   assert(doc.querySelector('#card-weigh [data-slot="weigh-form"]'), 'the morning weigh-in is on its card');
   assert.equal((await booted.model.weighIn(179.4)).ok, true);
   booted.api.render('today');
-  assert.match(label(), /^Start /);
+  assert.equal(label(), TodayApp.START_WORKOUT);
+  assert.equal(title(), booted.model.read().workout.title, 'the card names the session after the weigh-in');
   await booted.workout.open({ doc, phone: doc.getElementById('phone'),
     back: () => booted.api.render('today') });
   const last = await logEverySet(booted.workout.gym);

@@ -915,7 +915,8 @@ test('S12b R9 - Today\'s primary by kind of day: a session starts, a refusal exp
     TodayApp.mountToday(doc, model, { workout: { summary: () => summary } });
     const q = (name) => doc.querySelector(`[data-slot="${name}"]`);
     return { doc, primary: q('primary'), label: q('primary-label').textContent.trim(),
-      status: q('status-line').textContent.trim(), line: q('workout-count').textContent.trim() };
+      status: q('status-line').textContent.trim(), statusDrawn: !q('status-line').hidden,
+      line: q('workout-count').textContent.trim() };
   };
   const drawn = (screen, why) => {
     assert.equal(screen.primary.hidden, false, why + ': the primary is drawn');
@@ -926,7 +927,9 @@ test('S12b R9 - Today\'s primary by kind of day: a session starts, a refusal exp
 
   // 1. A training day with a session: Start, owed or not.
   const start = mount(real, READY);
-  assert.match(start.label, /^Start \S/, 'a session starts: ' + start.label);
+  /* P9 round 2 (DECISIONS:1003 (1); was /^Start \S/, "Start <title>"): Start, on the card that names the session */
+  assert.equal(start.label, TodayApp.START_WORKOUT, 'a session starts: ' + start.label);
+  assert.equal(start.doc.querySelector('[data-slot="workout-title"]').textContent, real.read().workout.title, 'its card names it');
   assert.doesNotMatch(start.label, WEIGH, 'the weigh-in never takes a training day\'s primary');
   drawn(start, 'a training day');
   // 2. A real refusal on a training day: its Why route.
@@ -934,32 +937,47 @@ test('S12b R9 - Today\'s primary by kind of day: a session starts, a refusal exp
   assert.match(refused.label, WHY, 'a real refusal explains itself: ' + refused.label);
   assert.match(refused.line, /workout cannot open . WORKOUT_SPLIT_NOT_IN_FORCE$/, 'and the workout line names it: ' + refused.line);
   assert.notEqual(refused.status, NOTHING_SCHEDULED, 'a training day is never called empty');
-  // 3. No session, the weight owed: the weigh-in is the primary, whatever code the layer answered.
+  // 3. No session, the weight owed: the weigh-in is asked for, once, whatever code the layer answered.
+  /* P9 round 2 (DECISIONS:1003 (7); was: the weigh-in is the drawn primary, which opens the weigh-in sheet, beside the
+     morning card's own Save, and T-12's status line is drawn). The second weigh-in button beside the weigh-in row is
+     not drawn: the morning card's own row is the one tap, through the same one write site; the workout card says the
+     day has no session, and T-12's words stay in the status line's slot, which neither kind of day draws. */
   for (const summary of [REFUSED, READY]) {
     const owed = mount(rest, summary);
     assert.equal(owed.line, 'No session is scheduled today.', 'the engine scheduled nothing: ' + owed.line);
-    assert.match(owed.label, WEIGH, 'a rest day with the weight owed offers the weigh-in: ' + owed.label);
+    assert.equal(owed.primary.hidden, true, 'no second weigh-in button on the rest day\'s workout card');
+    assert.equal(owed.primary.disabled, true, 'and nothing behind it can be pressed');
     assert.doesNotMatch(owed.label, WHY, 'a rest day is never a refusal');
     assert.doesNotMatch(owed.label, /^Start /, 'and offers nothing to start');
-    drawn(owed, 'the owed rest day');
-    assert.equal(owed.status, NOTHING_SCHEDULED, 'the line is T-12\'s: ' + owed.status);
-    assert(owed.doc.querySelector('#card-weigh #weigh-form #weight'), 'the morning card keeps its own Save');
-    owed.primary.dispatchEvent(new owed.doc.defaultView.MouseEvent('click', { bubbles: true }));
-    assert(owed.doc.querySelector('[role="dialog"] #morning-weight'), 'the primary opens the weigh-in sheet');
+    assert.equal(owed.status, NOTHING_SCHEDULED, 'the slot keeps T-12\'s words: ' + owed.status);
+    assert.equal(owed.statusDrawn, false, 'and the line is not drawn over the card that says it');
+    const form = owed.doc.querySelector('#card-weigh [data-slot="weigh-form"]');
+    assert(form && form.querySelector('#weight'), 'the morning card asks for the weight');
+    const save = owed.doc.querySelector('[data-slot="weigh-save"]');
+    assert(save && !save.hidden && !save.disabled, 'and its own Save can be pressed: the one tap');
+    assert.match(owed.doc.querySelector('#card-weigh').textContent + ' ' + save.textContent, WEIGH,
+      'the row is the weigh-in, in its own words');
+    form.dispatchEvent(new owed.doc.defaultView.Event('submit', { cancelable: true }));
+    const note = owed.doc.querySelector('[data-slot="weigh-note"]');
+    for (let i = 0; i < 200 && note.hidden !== false; i += 1) await new Promise((r) => setTimeout(r, 5));
+    assert.equal(note.hidden, false, 'the row\'s Save reaches the one write site, which answers an empty box in words');
+    assert.equal(real.read().hasReadToday, false, 'and an empty box records nothing');
   }
-  // 4. No session, nothing owed: no workout primary, and T-12's line says why.
+  // 4. No session, nothing owed: no workout primary, and T-12's words say why (in the slot; the card says it on screen).
   assert((await real.weighIn(179.4)).ok, 'the morning is recorded');
   for (const summary of [REFUSED, READY]) {
     const none = mount(rest, summary);
     assert.equal(none.primary.hidden, true, 'a rest day with nothing owed draws no workout primary');
     assert.equal(none.primary.disabled, true, 'and nothing behind it can be pressed');
-    assert.equal(none.status, NOTHING_SCHEDULED, 'the line says there is nothing to start: ' + none.status);
+    assert.equal(none.status, NOTHING_SCHEDULED, 'the slot says there is nothing to start: ' + none.status);
+    assert.equal(none.line, 'No session is scheduled today.', 'and the drawn card says the day has no session');
+    assert.equal(none.statusDrawn, false, 'once');
     assert.doesNotMatch(none.doc.getElementById('phone').textContent.replace(none.label, ''), /workout cannot open/,
       'nothing on a rest day calls it a refusal');
   }
   // 5. And the training day, after the weigh-in, still starts.
   const after = mount(real, READY);
-  assert.match(after.label, /^Start \S/, 'after the weigh-in a session starts: ' + after.label);
+  assert.equal(after.label, TodayApp.START_WORKOUT, 'after the weigh-in a session starts: ' + after.label);
   drawn(after, 'a training day after the weigh-in');
   readings.close();
 });

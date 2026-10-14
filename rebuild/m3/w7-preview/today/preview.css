@@ -636,7 +636,10 @@
 /* 6. TODAY. The morning weigh-in's dot sits on the centre of its one row (measured: 29 px puts the dot's centre on the
       row's), and the day keeps 34 px of room above Start at the end of its scroll. S18: the bottom fade (20 px, over a
       clear band of --fade-bot-inset) lies INSIDE that 34 px room (14 + 20), so while only the room overflows the last row
-      (Change my routine) is never drawn faded at the foot of the day (measured with the phone the whole screen). */
+      (Change my routine) is never drawn faded at the foot of the day (measured with the phone the whole screen). P9 round
+      4: Today has no Start bar now; the P9 block's item 2 keeps this 34 px room (never less, more over a home bar) and
+      outranks this padding, which stays as written because two laws hold this rule's text (look-cui2 C-UI-2, routine);
+      its --fade-bot-inset is still read (POLISH 6's scroll margin). */
 .scene-frame > .view.ui > .body[data-day="train"] #card-weigh:has(> #weigh-form) > .tdot { top: 29px; }
 .scene-frame.screen-today > .view.ui > .body { padding-bottom: 34px; --fade-bot-inset: 14px; }
 /* 7. THE DEPLOYED PAGE ON A PHONE. The deployed shell reserves the status bar and the home indicator as the stage's own
@@ -868,11 +871,13 @@
 .view [data-slot="sleep-date-field"] > [data-slot="sleep-date-words"] {
   grid-row: 2; grid-column: 1; align-self: center; z-index: 1; margin-left: 13px; pointer-events: none;
   color: var(--text); font-size: 16px; }
-/* 5. NOTHING HALF DRAWN AT START'S EDGE (shot 01a: "Why this plan?" showed its top above the Start bar). On Today the
-      body's foot runs 22 px under the stack (app.css .ui > .stack, margin-top -22px) and Start's top lies 12 px into the
-      stack, 10 px above the body's foot. The bottom fade now runs over exactly that 12 px band and is clear at Start's
-      top, so a row the scroll leaves under Start fades out above it instead of showing a sliver; a row that ends above
-      the band is drawn whole as before (COACH V1 BATCH 2), and at the end of the scroll nothing is faded. */
+/* 5. NOTHING HALF DRAWN AT THE FOOT OF THE DAY (shot 01a: "Why this plan?" showed its top above the Start bar). P9 round
+      4: Today has no stack and no Start bar now (the P9 block below, items 1 and 2), so the body runs to the foot of the
+      screen, its last 34 px or more the day's own room (P9 item 2). While the day continues below the screen the bottom
+      fade runs from 22 px to 10 px above the body's foot and nothing is drawn in the last 10 px, so a row the scroll
+      carries to the foot fades out instead of being cut by the screen's edge, and the host's scroll cue (P9 item 2) hangs
+      over that band; a row that ends above the band is drawn whole as before (COACH V1 BATCH 2), and at the end of the
+      scroll nothing is faded. */
 .scene-frame.screen-today > .view.ui > .body.can-scroll:not(.at-end) { --fade-bot: calc(100% - 22px); --fade-bot-end: calc(100% - 10px); }
 /* ===== POLISH 7: END ===== */
 /* ===== POLISH 8 (PM, ui-pass15, 2026-10-13): BEGIN =====
@@ -902,14 +907,9 @@
 .view [data-slot="sleep-entry-form"] > [data-slot="sleep-modes"] { gap: 12px; margin-top: 10px; margin-bottom: 18px; }
 .view [data-slot="sleep-modes"] > .choice { min-height: 44px; padding: 0 16px; font-size: 15px; }
 .view [data-slot="sleep-times"] > .field + .field { margin-top: 14px; }
-/* 6. A SCROLL CUE ABOVE START: while Today's list continues under the Start bar (the body can scroll and is not at its
-      end), a small chevron sits above the bar, so a row hidden under it at rest is never hidden without a cue. At the
-      end of the scroll the list clears the bar (the body's 34 px room) and the cue is gone. Drawn by the stack itself,
-      no element and no word. */
-.scene-frame.screen-today > .view.ui > .body.can-scroll:not(.at-end) + .stack::before {
-  content: ""; position: absolute; left: 50%; top: -18px; width: 9px; height: 9px; margin-left: -6px;
-  border-right: 1.5px solid var(--text-soft); border-bottom: 1.5px solid var(--text-soft); transform: rotate(45deg);
-  pointer-events: none; }
+/* 6. (P9 round 2, DECISIONS:1003: Today has no stack, so the cue this item hung from the stack above Start matched
+      nothing and is removed. The same cue, in the same values, is drawn by Today's host at the foot of the screen while
+      the day continues below it: the P9 block, item 2.) */
 /* ===== POLISH 8: END ===== */
 
 /* ===== E2A (PM, the E2 scope; the PM's ruling 5 on E2a, 2026-10-13): BEGIN =====
@@ -969,3 +969,76 @@
 .view #measure-screen table[data-slot$="-table"] tr > :first-child {
   position: sticky; left: 0; z-index: 1; min-width: 64px; background: var(--card); border-right: 1px solid var(--line); }
 /* ===== E2A: END ===== */
+/* ===== P9 (PM, the Today repeats, 2026-10-13): BEGIN =====
+   Today names the workout once, on its card, with Start as the card's own primary (call 1); the pinned Start bar and the
+   Recovery bar are gone, so Today has no fixed stack (calls 1 and 2); its five quiet links are one More row and a sheet
+   (call 6). Round 2 (DECISIONS:1003 (7)): a rest day takes the same card-first face (item 5). No colour and no type
+   size here is new: every value is the pack's token or one this file already uses.
+   1. TODAY'S CHASSIS WITHOUT A STACK. C-UI-2's host rule matches a host with a direct .stack child; Today has none now,
+      so Today's host (known by its own headline, #greeting, never by the frame's screen class, which a screen shown off
+      Today keeps) takes the same chassis values, as the coach frame's own rule does: the day scrolls in its .body, and
+      a sheet over it paints above every card (the C-UI-2 lift). */
+.scene-frame > .view.ui:has(> .body > section > #greeting) { position: absolute; inset: 0; height: auto; display: flex;
+  flex-direction: column; padding: 0 var(--inset); overflow: hidden; }
+.scene-frame > .view.ui:has(> .body > section > #greeting) > .sheet-panel { z-index: 3; }
+/* 2. THE FOOT OF THE DAY. The stack kept the device's home-bar room under Start (app.css .screen-today .ui > .stack); with
+      no stack the day keeps it itself, never less than the 34 px of room S17 measured. While the list continues below
+      the screen, the scroll cue that hung above Start hangs at the foot of the screen instead, drawn by the host. */
+.scene-frame.screen-today > .view.ui > .body { padding-bottom: max(34px, calc(env(safe-area-inset-bottom, 0px) + 14px)); }
+.scene-frame > .view.ui:has(> .body > section > #greeting):has(> .body.can-scroll:not(.at-end))::after {
+  content: ""; position: absolute; left: 50%; bottom: max(10px, env(safe-area-inset-bottom, 0px)); width: 9px; height: 9px;
+  margin-left: -6px; border-right: 1.5px solid var(--text-soft); border-bottom: 1.5px solid var(--text-soft);
+  transform: rotate(45deg); pointer-events: none; z-index: 2; }
+/* 3. START ON THE WORKOUT CARD. The pack's .primary (its cream fill and arrow), at the card's own width under the
+      card's two lines, in the Log today sheet's 52 px row; the label keeps audit B5's one line of 16 px sans (section 4
+      above), so no type size here is new. The C-UI-2 restorations of Start (the pack's inherited weight, no legacy ink
+      border, the pack's disabled edge kept) are said again for it here. */
+.scene-frame > .view.ui > .body #card-train > .primary {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box;
+  height: auto; min-height: 52px; margin: 10px 0 6px; padding: 10px 14px 10px 16px;
+  text-align: left; font-weight: inherit; }
+.scene-frame > .view.ui > .body #card-train > .primary:not(:disabled) { border: 0; }
+.scene-frame > .view.ui > .body #card-train > .primary > .arrow { flex: 0 0 auto; }
+/* 4. THE MORE SHEET, in the Log today sheet's own look, value for value (POLISH 7 and POLISH 8): the dimmed page under
+      it, its title and 44 px close control, the full-width 52 px chevron rows, and Done in a foot held on the screen. */
+.sheet-panel[data-slot="more-sheet"] { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+.view .sheet-panel[data-slot="more-sheet"] {
+  padding-bottom: 0;
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.6), 0 -12px 40px color-mix(in srgb, var(--text) 8%, transparent); }
+.view [data-slot="more-sheet"] > [data-slot="more-top"] { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.view [data-slot="more-sheet"] [data-slot="more-head"] { margin: 0; font-size: 24px; line-height: 1.25; font-weight: 500; color: var(--text); }
+.view [data-slot="more-sheet"] [data-slot="more-close"] {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-width: 44px;
+  margin-right: -10px; padding: 0; background: none; border: 0; border-radius: 50%; color: var(--text-soft); }
+.view [data-slot="more-sheet"] [data-slot="more-close"] svg { width: 14px; height: 14px; }
+.view [data-slot="more-sheet"] .tcard.nav {
+  display: block; width: 100%; box-sizing: border-box; margin: 8px 0 0; min-height: 52px; padding: 14px 38px 14px 16px;
+  text-align: left; }
+.view [data-slot="more-sheet"] .tcard.nav > .title { margin: 0; }
+.view .sheet-panel[data-slot="more-sheet"] > [data-slot="more-foot"] {
+  position: sticky; bottom: 0; z-index: 1; margin: 16px -24px 0;
+  padding: 12px 24px max(20px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+  background: var(--surface); border-top: 1px solid var(--line); }
+.view [data-slot="more-foot"] > [data-slot="more-done"] {
+  display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; height: auto;
+  margin: 0; padding: 12px 20px; font-size: 17px; line-height: 1.2; }
+/* 5. THE REST DAY'S FACE (round 2, DECISIONS:1003 (7)) is the training day's, rule for rule (S15 round 5 item 5, round 6 A
+      and S17 item 6, which mark a training day): the workout card first under the date, then the week's review, the
+      morning weigh-in one compact row whose status line is kept for assistive technology while the box and Save are on
+      screen, the plan label and the large headline not drawn, and the day's foot after the cards. The engine's advice
+      that stood under the headline is the workout card's third line (round 3, the PM's style call): today-app.cjs moves
+      that one node under the card's no-session line and gives it that line's own class (the pack's .tcard .sub), so it
+      takes the same size and colour and wraps whole; no rule here styles it. */
+.scene-frame > .view.ui > .body[data-day="rest"] { display: flex; flex-direction: column; }
+.scene-frame > .view.ui > .body[data-day="rest"] > * { flex: 0 0 auto; }
+.scene-frame > .view.ui > .body[data-day="rest"] > .timeline { order: 1; display: flex; flex-direction: column; }
+.scene-frame > .view.ui > .body[data-day="rest"] > .timeline > #card-train { order: -1; }
+.scene-frame > .view.ui > .body[data-day="rest"] > .timeline > [data-slot="week-review"] { order: -1; }
+.scene-frame > .view.ui > .body[data-day="rest"] > section,
+.scene-frame > .view.ui > .body[data-day="rest"] > [data-slot="setup-note"] { order: 2; }
+.scene-frame > .view.ui > .body[data-day="rest"] > .day-foot { order: 3; }
+.scene-frame > .view.ui > .body[data-day="rest"] > section > :is(.label, .greeting) { display: none; }
+.scene-frame > .view.ui > .body[data-day="rest"] #card-weigh:has(> #weigh-form) > .title {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.scene-frame > .view.ui > .body[data-day="rest"] #card-weigh:has(> #weigh-form) > .tdot { top: 29px; }
+/* ===== P9: END ===== */

@@ -98,7 +98,10 @@ const CORPUS_FILE = path.join(HERE, 'copy-lock.corpus.json');
 // sentences (CL-E2A-DELTA; the value before is PRE_E2A_CORPUS_SHA256, 1f393735...).
 // E2b (the owner's ruling, DECISIONS:999): re-measured for exactly the import route's different-version sentence
 // (CL-E2B-DELTA; the value before is PRE_E2B_CORPUS_SHA256, fe891976...).
-const CORPUS_SHA256 = 'f31847eb7ee43db789ff54ab5ea37d907879ecabd3bf676b89dc0c686b9dca8d';
+// P9 (PM, the Today repeats; DECISIONS:1003): re-measured for exactly More and Start workout in, the Recovery row's
+// invitation and Start's old head out, and one Resume owner (CL-P9-DELTA; the value before is PRE_P9_CORPUS_SHA256,
+// f31847eb...).
+const CORPUS_SHA256 = '8b6210cb319784f6e039949c5f4478e696e62893be41a66cfe2b299cf0295e1a';
 const UNDER_TEST = process.env.COPY_LOCK_UNDER_TEST || 'lock';
 const T = 'rebuild/m3/w7-preview/today';
 const N2_ID = 'GYM-SETTINGS-N2';
@@ -983,6 +986,7 @@ const E2B_NEW = Object.freeze([
 /* the PM's ruling on E2b: the import sentence is approved under DECISIONS:913 (5), the short-plain-copy rule */
 const E2B_COPY_APPROVAL = 'DECISIONS:913';
 function beforeE2B(corpus) {
+  corpus = beforeP9(corpus);   /* P9 stands on top of E2b */
   const added = new Set(E2B_NEW.map(([text]) => text));
   return { ...corpus, entries: corpus.entries.filter((e) => !added.has(e.text)) };
 }
@@ -1006,6 +1010,87 @@ test('CL-E2B-DELTA: the corpus is the E2a corpus plus exactly the import route\'
 });
 test('CL-E2B-APPROVAL: the E2b copy delta names the ledger line that approves it', () => {
   assert.match(E2B_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-E2B-APPROVAL-PENDING: the E2b copy is not approved');
+});
+/* P9 (PM, the Today repeats, calls 2 and 6; the PM records the supersession of C-UI-2 ruling 4's stack on Today in the
+   ledger before the commit): Today's five quiet links are one More row, so one new piece, today-app.cjs MORE_ENTRY
+   (the row's word and the sheet's title); the Recovery row left Today with its pinned bar, so its two board lines are
+   withdrawn from the template and from design.cjs APPROVED_COPY (two pieces out, whole). No owner count moves: the
+   More sheet's Escape shares the Log today sheet's handler (today-app.cjs closesOnEscape), so "Escape" stays at the 3
+   N2 part B pinned (P9_COUNTS is empty, and held empty). beforeP9 gives every older view the corpus as E2b sealed it
+   (PRE_P9_CORPUS_SHA256), and beforeE2B starts from that view. IDEMPOTENT, as every older view is: a withdrawn piece
+   is put back only where it is not there.
+   P9 round 2 (DECISIONS:1003 (1), (2)): Start is START_WORKOUT on the workout card, so one more new piece ("Start
+   workout") and one piece withdrawn whole ("Start ", the head of the old "Start <title>" label, said nowhere else);
+   Resume names the tap on every day too (resumeLabel), so today-app.cjs no longer says "Resume " as a piece of its own
+   (one owner count, 1 -> 0; design.cjs RUNTIME_COPY still declares it and RESUME_TODAYS_WORKOUT still says it); and the
+   Recovery row's title is back, whole and as it was, as the More sheet's first row wherever Log today is not on the
+   page, so only its invitation stays withdrawn. An owner count of 0 is an owner the corpus does not list. */
+const PRE_P9_CORPUS_SHA256 = 'f31847eb7ee43db789ff54ab5ea37d907879ecabd3bf676b89dc0c686b9dca8d';
+const P9_APP = T + '/today-app.cjs';
+const P9_NEW = Object.freeze([
+  ['More', { [P9_APP]: 1 }, []],
+  ['Start workout', { [P9_APP]: 1 }, []],
+]);
+const P9_REMOVED = Object.freeze([
+  ['Optional. How are you feeling?', { [T + '/design.cjs']: 1, [T + '/screens.template.html']: 1 }, ['APPROVED_COPY']],
+  ['Start ', { [P9_APP]: 1 }, []],
+]);
+const P9_COUNTS = Object.freeze([
+  /* [text, owner, count before, count now] */
+  ['Resume ', P9_APP, 1, 0],
+]);
+/* "More" and "Start workout" are new copy approved by the PM's P9 ruling, DECISIONS:1003 ("New copy approved under :913
+   (5): More, Start workout"). The withdrawn pieces need no approval of their own. */
+const P9_COPY_APPROVAL = 'DECISIONS:1003';
+function beforeP9(corpus) {
+  const added = new Set(P9_NEW.map(([text]) => text));
+  const have = new Set(corpus.entries.map((e) => e.text));
+  const back = P9_REMOVED.filter(([text]) => !have.has(text))
+    .map(([text, files, lists]) => ({ text, files: sortedFiles(files), lists: [...lists] }));
+  const entries = corpus.entries.filter((e) => !added.has(e.text)).map((e) => {
+    const rows = P9_COUNTS.filter(([text, owner, , now]) => text === e.text && (e.files[owner] || 0) === now);
+    if (rows.length === 0) return e;
+    const files = { ...e.files };
+    for (const [, owner, before] of rows) { if (before === 0) delete files[owner]; else files[owner] = before; }
+    return { ...e, files: sortedFiles(files) };
+  });
+  return { ...corpus, entries: [...entries, ...back].sort((a, b) => (a.text < b.text ? -1 : a.text > b.text ? 1 : 0)) };
+}
+test('CL-P9-DELTA: the corpus is the E2b corpus plus exactly More and Start workout, minus exactly the Recovery row\'s invitation and Start\'s old head, and one Resume owner, both directions', () => {
+  const { corpus } = loaded();
+  const byText = new Map(corpus.entries.map((e) => [e.text, e]));
+  const failed = [];
+  assert.deepEqual(P9_COUNTS.map(([text, owner, before, now]) => [text, owner, before, now]), [['Resume ', P9_APP, 1, 0]],
+    'CL-P9-DELTA exactly one owner count moves');
+  assert.equal(byText.get('Escape') && byText.get('Escape').files[P9_APP], 3, 'CL-P9-DELTA the More sheet adds no Escape of its own');
+  /* the Recovery row's title is back exactly as E2b sealed it, so no delta row carries it */
+  assert.equal(JSON.stringify(byText.get('Recovery check in') || null), JSON.stringify({ text: 'Recovery check in',
+    files: sortedFiles({ [T + '/design.cjs']: 1, [T + '/screens.template.html']: 1 }), lists: ['APPROVED_COPY'] }),
+  'CL-P9-DELTA the Recovery row title is locked as it was');
+  for (const [text, files, lists] of P9_NEW) {
+    const want = { text, files: sortedFiles(files), lists };
+    if (JSON.stringify(byText.get(text) || null) !== JSON.stringify(want)) failed.push('CL-P9-DELTA NEW ' + JSON.stringify(text) + ' is ' + JSON.stringify(byText.get(text) || null));
+  }
+  for (const [text] of P9_REMOVED) if (byText.has(text)) failed.push('CL-P9-DELTA REMOVED ' + JSON.stringify(text) + ' is still locked');
+  for (const [text, owner, , now] of P9_COUNTS) {
+    const entry = byText.get(text);
+    if (!entry || (entry.files[owner] || 0) !== now) failed.push('CL-P9-DELTA OWNER ' + JSON.stringify(text) + ' ' + owner + ' is ' + JSON.stringify(entry ? entry.files[owner] : null));
+  }
+  const before = lock.sha256(Buffer.from(serialize(beforeP9(corpus)), 'utf8'));
+  if (before !== PRE_P9_CORPUS_SHA256) failed.push('CL-P9-DELTA PRE-P9-VIEW ' + before);
+  // ... and that comparison can fail: one owner count the delta does not touch, moved, is no longer the E2b corpus
+  const moved = structuredClone(corpus);
+  const other = moved.entries.find((e) => e.text === 'Settings could not be read.');
+  assert(other && Object.keys(other.files).length > 0, 'CL-P9-DELTA-TEETH-PRECONDITION');
+  other.files[Object.keys(other.files)[0]] += 1;
+  if (lock.sha256(Buffer.from(serialize(beforeP9(moved)), 'utf8')) === PRE_P9_CORPUS_SHA256) failed.push('CL-P9-DELTA PRE-P9-VIEW-BLIND');
+  // ... and it is idempotent: the E2b view taken twice is the E2b view
+  if (lock.sha256(Buffer.from(serialize(beforeP9(beforeP9(corpus))), 'utf8')) !== PRE_P9_CORPUS_SHA256) failed.push('CL-P9-DELTA NOT-IDEMPOTENT');
+  assert.deepEqual(failed, [], 'CL-P9-DELTA');
+});
+test('CL-P9-APPROVAL: the P9 copy delta names the ledger line that approves it', () => {
+  assert.match(P9_COPY_APPROVAL, /^DECISIONS:\d+$/, 'CL-P9-APPROVAL-PENDING: the P9 copy is not approved');
+  assert.equal(P9_COPY_APPROVAL, 'DECISIONS:1003', 'CL-P9-APPROVAL the PM\'s P9 ruling, which names More and Start workout');
 });
 function beforeNutri2a(corpus) {
   corpus = beforeNutri2b(corpus);   /* N2 part B stands on top of N2 part A */
