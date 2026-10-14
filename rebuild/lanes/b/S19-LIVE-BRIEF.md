@@ -5,7 +5,7 @@ rebuild/m4/spec/acceptance-s14-hold.json, receipt DECISIONS:932), the S12/S13/S1
 branch rebuild/c-live. It carries every byte M2-S18-OPENED declared, the CI and deploy change below, two
 small product nits from UI check 6 and Coach v1 (the owner's "No-AI coach first", amended in place). It moves
 one rebuild/engine file, energy.cjs (E1's floor fix and E2b, the owner's rulings DECISIONS:982 and :999), and declares
-one gate supersession, GATE-SUPERSESSION M2-S19-LIVE (DECISIONS:989; E2b below); it declares no D-id; no seal, receipt
+one gate supersession, GATE-SUPERSESSION M2-S19-LIVE (DECISIONS:1004, restating :989; E2b below); it declares no D-id; no seal, receipt
 or VERDICT; the coach ENGINE_REVISION stays M2-S14-HOLD's.
 
 ## Why a new id, and why it is the last one for a while (PM ruling, 2026-10-12)
@@ -964,7 +964,7 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   E1's app, coach and test half only. The engine half moves to E2b with the no-body-fat floor: energy.cjs, the one
   treeSha256 re-pin (the S11, FC09 and S14 precedent), the S3 portable-sources re-pin, s19-energy-moves.cjs, the s19
   supersession children that replace children 30, 31 and 35, UP13-FLOOR, UP13-FLOOR-CONTROL and UP13-ESTIMATE.
-- No rebuild/engine byte moves and no gate is superseded here. GATE-SUPERSESSION M2-S19-LIVE (DECISIONS:989) stays
+- No rebuild/engine byte moves and no gate is superseded here. GATE-SUPERSESSION M2-S19-LIVE (DECISIONS:989; restated at :1004 for E2b) stays
   recorded on the ledger, unused until E2b: coverage.superseded is not declared, and children 30, 31 and 35 are S14's,
   as they were.
 - THE GATED ESTIMATE IS NEVER SHOWN (Fable fd80cb84 D1; the PM's ruling, recorded at DECISIONS:989, reverses
@@ -1205,7 +1205,7 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   (the two plain sentences); expected red on 3d13efe's bytes, not measured here.
 - At the builder seat (on 3d13efe): the today batch 711/732 (708/729 plus CL-E2A-DELTA, CL-E2A-APPROVAL and the look-cui2 D3 cell; the same 21 seat-only build failures), the coach suite 403/404 (engine-revision-gap R4, the guard's refusal of rebuild/engine/index.cjs, PM seat), the fences batch 2209/2211 (the same two seat-only failures, P-MEASURE (g) among them), the writer fence 417/417, the copy lock 47/47 (corpus fe891976), food-live-save 7/7, s12-look 82/83 (the same seat-only C-UI-1 build failure), measure-hermetic 15/15, today-17 733 passing with the seat's guard and build refusals, the four E2A measure cells among the passes, the E2a Chromium probe 114 of 114, and the import suites, d-replay-measure, d-replay-all and w7-import reached and refused by the guard by name (they read the protected engine, PM seat).
 
-## E2b: lean mass when the model has none, the engine floor, and the import's engine tree (the owner's ruling DECISIONS:999; :982; GATE-SUPERSESSION M2-S19-LIVE, DECISIONS:989; on c2d6db8, rebuild/c-e2b)
+## E2b: lean mass when the model has none, the engine floor, and the import's engine tree (the owner's ruling DECISIONS:999; :982; GATE-SUPERSESSION M2-S19-LIVE, DECISIONS:1004, restating :989; on c2d6db8, rebuild/c-e2b)
 - The engine change: rebuild/engine/energy.cjs alone, none of the protected five and no sealed file, by its seventeen
   declared hunks, written out as literals in rebuild/m4/workout/test/s19-energy-moves.cjs (4dd7195e -> 39757cee).
   constants.cjs is NOT moved (the PM's ruling on E2b, option 1): the stand-in's three values, LEAN_BOER,
@@ -1274,11 +1274,13 @@ rebuild/m3/w7-preview/today/gym-settings-lane.mjs, gains exactly one read and no
   changed." The sentence is keyed on the file's own sealed engine block (import-screen.mjs sealedByOtherEngine: the
   four fields production-mapping.cjs pins, the very comparison qualify() makes), never on the code alone, since the
   same code covers a phone whose calendar or timezone cannot be proved; that refusal keeps the bare code.
-- The gate supersession (DECISIONS:153, the S14 shape; GATE-SUPERSESSION M2-S19-LIVE, RULED at DECISIONS:989 under the
-  owner's ruling at :982, and for E2b :999), E1's block ported: coverage.superseded names the five byte-identity
+- The gate supersession (DECISIONS:153, the S14 shape; GATE-SUPERSESSION M2-S19-LIVE, RULED at DECISIONS:1004, which
+  restates in the runner's shape the original grant at DECISIONS:989, under the owner's ruling at :982, and for E2b
+  :999), E1's block ported: coverage.superseded names the five byte-identity
   carriers, each with its why and its own evidence (redFirst its child; the census the runner's live-triggered line;
-  a0-journeys, today-17 and s19-engine-files-differential the three differentials); rulingLineSha256 is the :989
-  line's, c4fb0a62..., E1's. Children 30, 31 and 35 are replaced by E1's own, ported and pointed at E2b's hunks:
+  a0-journeys, today-17 and s19-engine-files-differential the three differentials); rulingLineSha256 is the :1004
+  line's, 4b65dc3d... (:989 is the original grant; its recorded sha, c4fb0a62..., had included a UTF-8 BOM, and :989
+  carries its token inside prose and ends RULED + RECORDED, so the runner reads the grant from :1004). Children 30, 31 and 35 are replaced by E1's own, ported and pointed at E2b's hunks:
   - 30, s19-sup-source-carriers: SUP-1 exactly energy.cjs moves from the S14 post, by its declared hunks only, nothing
     added, S14's native-load proof replayed; SUP-P two RED plants (a third moving file; an undeclared line in
     energy.cjs); SUP-2 the carrier's verifier refuses (six leavers, energy.cjs the sixth); SUP-3; SUP-4.
@@ -1342,7 +1344,7 @@ gym-settings-lane.mjs, only as its declaring spec above says) and E2b's files ab
 one PRODUCER_REVISION line, the re-bind above), no
 rebuild/engine file but energy.cjs (E2b, DECISIONS:982 and :999) and none of the protected five; no
 child or argv but E2b's three replacements (children 30, 31 and 35, under GATE-SUPERSESSION M2-S19-LIVE,
-DECISIONS:989); needles move only to measured values,
+DECISIONS:1004, restating :989); needles move only to measured values,
 s15-routine 25 -> 27 (RT-26, RT-27), and with Coach v1 s10-copy-lock 19 -> 21 -> 23 -> 25 -> 27 -> 29 -> 31 -> 33 -> 35 -> 37 -> 39 -> 41 -> 43 -> 45 -> 47 -> 49 (the polish's CL-COACH-POLISH-DELTA
 and CL-COACH-POLISH-APPROVAL; the seat read's CL-COACH-SEAT-DELTA and CL-COACH-SEAT-APPROVAL; polish 4's CL-WEEK-POLISH4-DELTA and
 CL-WEEK-POLISH4-APPROVAL; polish 5's CL-POLISH5-DELTA and CL-POLISH5-APPROVAL; polish 6's CL-POLISH6-DELTA and CL-POLISH6-APPROVAL; nutri 1's CL-NUTRI1-DELTA and CL-NUTRI1-APPROVAL; the ui-pass13 fix-forward's CL-UP13-DELTA and CL-UP13-APPROVAL; N2 part A's CL-NUTRI2A-DELTA and CL-NUTRI2A-APPROVAL; N2 part B's CL-NUTRI2B-DELTA and CL-NUTRI2B-APPROVAL; E1a's CL-E1-DELTA and CL-E1-APPROVAL; polish 7's CL-P7-DELTA and CL-P7-APPROVAL; polish 8's CL-P8-DELTA and CL-P8-APPROVAL; E2a's CL-E2A-DELTA and CL-E2A-APPROVAL; E2b's CL-E2B-DELTA and CL-E2B-APPROVAL) and s12-look 64 -> 71 -> 72 -> 73 -> 74 -> 75 -> 77 -> 80 -> 81 -> 82 -> 83
