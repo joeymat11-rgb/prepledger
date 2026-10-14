@@ -477,18 +477,33 @@ test('S4/8 - after two midnights the OLD mount cannot repaint and cannot date a 
        offers its workout action, live, never the weigh-in's words. The vector this cell guards, a
        tap that could date a record, is the morning card's form, asserted and used below (the
        rest-day primary opens the sheet, which saves through the same one write site). */
+    /* P9 (the PM's ruling DECISIONS:1003 (1), (3) and (7); was "the live Today draws its primary action", the
+       primary drawn on every day, and on a rest day with the weight owed the primary itself the live weigh-in). On
+       P9's face a day with no session does not draw a second weigh-in button beside the morning card's own row: the
+       day's action there is that row's Save, through the same one write site. So the live Today still draws its
+       day's action on every day, drawn, named and live: the primary where one is drawn, and on the rest day with the
+       weight owed the morning card's Save, with the primary not drawn beside it. */
     const primary = phone.querySelector('[data-slot="primary"]');
-    assert(primary && primary.hidden !== true, 'the live Today draws its primary action');
+    assert(primary, 'the live Today has its primary slot');
     const workoutLine = phone.querySelector('[data-slot="workout-count"]').textContent.trim();
     const primaryLabel = phone.querySelector('[data-slot="primary-label"]').textContent.trim();
     const said = workoutLine + ' | ' + primaryLabel;
     if (/^No session is scheduled today\.$/.test(workoutLine)) {
-      assert.equal(primary.disabled, false, 'a rest day with the weight owed offers the weigh-in, live: ' + said);
-      assert.match(primaryLabel, /weigh|weight|scale/i, 'and it is the weigh-in: ' + said);
+      const owedForm = phone.querySelector('#card-weigh > #weigh-form');
+      assert(owedForm && phone.querySelector('#card-weigh').hidden !== true,
+        'the live Today draws its day\'s action: on a rest day with the weight owed, the morning card\'s weigh-in: ' + said);
+      const save = owedForm.querySelector('[data-slot="weigh-save"]');
+      assert(save && save.hidden !== true && save.textContent.trim() !== '', 'its Save is drawn and named: ' + said);
+      assert.equal(save.disabled, false, 'a rest day with the weight owed offers the weigh-in, live: ' + said);
+      assert.match(owedForm.querySelector('label[for="weight"]').textContent, /weigh|weight|scale/i,
+        'and it is the weigh-in: ' + said);
+      assert.equal(primary.hidden, true, 'P9: no second weigh-in button beside the morning row: ' + said);
     } else if (/^Today.s exercises are not available: /.test(workoutLine)) {
+      assert(primary.hidden !== true, 'the live Today draws its day\'s action: its primary: ' + said);
       assert.equal(primary.disabled, true, 'a session that could not be generated cannot be started: ' + said);
       assert.match(primaryLabel, /^Start /, said);
     } else {
+      assert(primary.hidden !== true, 'the live Today draws its day\'s action: its primary: ' + said);
       assert.equal(primary.disabled, false, 'a day with a session offers its workout action, live: ' + said);
       assert.doesNotMatch(primaryLabel, /weigh|weight|scale|morning/i, 'the weigh-in never takes a session day: ' + said);
     }

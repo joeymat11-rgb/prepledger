@@ -1424,6 +1424,14 @@ design.cjs; no engine, sealed or protected file):
   - test/copy-lock.test.mjs:104 CORPUS_SHA256 7dd7c887 (round 1) -> 8b6210cb; :1059 CL-P9-DELTA, :1091 CL-P9-APPROVAL.
   - rebuild/m3/w6/test/local-today-journey.test.mjs:937, :970, :1014 (S12b R6): /^Start / and /^Resume / ->
     START_WORKOUT and RESUME_TODAYS_WORKOUT exactly, with the card naming the session.
+  - rebuild/m3/w6/host/test/local-real-day.test.mjs:487 S4/8 (S12b R9, the s4-real-day child; missed in rounds 1 to 4,
+    red at the gate on a2b8d8a): "the live Today draws its primary action", and on the rest day with the weight owed
+    that primary live and naming the weigh-in -> the live Today draws its day's action on every day, drawn, named and
+    live: on that rest day (the day the two midnights stand on) the morning card drawn with its weigh-in form, its
+    Save drawn, named and enabled, its label the weigh-in, and the primary not drawn beside it (no second weigh-in
+    button, call 7); on any other day the primary drawn, as before. The cell's point is untouched: one Escape repaints
+    nothing and moves neither old mount, the live mount stays on Today, and the one weigh-in through the card's form
+    writes only the current local date.
   - import/test/route.test.mjs:112 and refusal-route.test.mjs:422 (P3-IMPORT-UI-2): the Today Import link -> the More
     sheet's import-entry; measure/test/support.mjs:289 Measure through More.
   - Browser walks: browser-check.mjs:163 (S12b R9 by kind of day, as gym.test above), checkin-check.mjs:218,
